@@ -58,3 +58,9 @@ docs/_build/
 # PyBuilder
 target/
 
+# temp files
+temp.py
+
+# decrypted sample pdf files
+sample/dec_sample
+
