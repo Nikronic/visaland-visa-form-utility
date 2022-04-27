@@ -1,9 +1,9 @@
-#### 
+"""
 # Contains implementation related to dealing with PDF, mostly IO
 # Author: Nikan Doosti @ NahalGasht
-####
+"""
 
-# TODO: add logging
+
 
 # import packages
 from typing import Union
@@ -14,21 +14,15 @@ from pickle import DICT
 # preprocessing
 import re
 import xml.etree.ElementTree as et
+import xmltodict
+from collections import OrderedDict
 
 # PDF tools
 import pikepdf
 import PyPDF2 as pypdf
 
-
-
-class DOC_TYPES(Enum):
-    """
-    Contains all document types which can be used to customize ETL steps for each doc.
-    Remark: Order of docs is meaningless.
-    """
-    
-    canada_5257e = 1  # application for visitor visa (temporary resident visa)
-    canada_5645e = 2  # Family information
+# our modules
+from .constant import DOC_TYPES
 
 
 class PDFIO:
@@ -60,8 +54,6 @@ class PDFIO:
                 x=self.find_in_dict(needle,value)            
                 if x is not None:
                     return x
-
-
 
 class XFAPDF(PDFIO):
     """
@@ -110,7 +102,7 @@ class XFAPDF(PDFIO):
         Cleans the XML file extracted from XFA forms
         Remark: since each form has its own format and issues, this method needs
             to be implemented uniquely for each unique file/form which needs
-            to be specified using argument `type`.
+            to be specified using argument `type` that can be populated from `DOC_TYPES`.
         
         args:
             xml: A string containing XML code
@@ -118,6 +110,41 @@ class XFAPDF(PDFIO):
         """
 
         raise NotImplementedError
+
+    def flatten_dict(self, d: dict) -> OrderedDict:
+        """
+        Takes a (nested) dictionary and flattens it where the final keys are key.key....
+            and values are the leaf values of dictionary.
+        
+        ref: https://stackoverflow.com/questions/38852822/how-to-flatten-xml-file-in-python
+        args:
+            d: A dictionary  
+            return: An ordered dict
+        """
+
+        def items():
+            for key, value in d.items():
+                if isinstance(value, dict):
+                    for subkey, subvalue in self.flatten_dict(value).items():
+                        yield key + "." + subkey, subvalue
+                else:
+                    yield key, value
+
+        return OrderedDict(items())
+    
+    def xml_to_flattened_dict(self, xml: str) -> OrderedDict:
+        """
+        Takes a (nested) XML and flattens it to a dict where the final keys are key.key....
+            and values are the leaf values of XML tree.
+
+        args:
+            d: A XML string
+            return: A flattened ordered dict
+        """
+        flattened_dict = xmltodict.parse(xml)  # XML to dict
+        flattened_dict = self.flatten_dict(flattened_dict)
+        return flattened_dict
+
 
 class CanadaXFA(XFAPDF):
     def __init__(self) -> None:
@@ -131,8 +158,7 @@ class CanadaXFA(XFAPDF):
             xml = re.sub(r"\\n", '', xml)
 
             # remove 9000 lines of redundant info for '5257e' doc
-            tree = et.ElementTree()
-            tree.parse('sample/xml/5257e-9-cleaned.xml')
+            tree = et.ElementTree(et.fromstring(xml))
             root = tree.getroot()
             junk = tree.findall('LOVFile')  
             root.remove(junk[0])
@@ -148,3 +174,4 @@ class CanadaXFA(XFAPDF):
             xml = re.sub(r"'", '', xml)
             xml = re.sub(r"\\n", '', xml)
         
+        return xml
