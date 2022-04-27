@@ -1,6 +1,10 @@
 # How to read XML files
 This readme contains the keywords, variables, IDs, etc used to describe different fields in the XFA format used by Adobe in PDF files
 
+## General Warning
+1. The VSCode extension I used to view and format the XML code has bug and removed the trailing ">" parts for all tags. Also, it added "=" for no reason to start of tags.
+2. 
+
 ## 5257e-9.xml
 - starting line: 1215
 - ServiceIn: 01 = Eng
