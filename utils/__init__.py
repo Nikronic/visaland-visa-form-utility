@@ -7,3 +7,5 @@ from .PDFIO import DOC_TYPES
 from .constant import CANADA_5257E_KEY_ABBREVIATION
 from .constant import CANADA_CUTOFF_TERMS
 from .constant import DOC_TYPES
+
+from .helpers import deprecated
