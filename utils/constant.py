@@ -13,14 +13,33 @@ CANADA_5257E_KEY_ABBREVIATION = {
     'Education': 'Edu',
     'PageWrapper': 'PW',
     'Occupation': 'Occ',
-    'BackgroundInfo': 'BGI'
+    'BackgroundInfo': 'BGI',
+    'Current': 'Curr',
+    'Previous': 'Prev',
+    'Marriage': 'Marr',
+    'Married': 'Marr',
+    'Previously': 'Prev',
+    'Passport': 'Psprt',
+    'Language': 'Lang',
+    'Address': 'Addr',
+    'contact': 'cntct',
+    'Contact': 'cntct',
+    'Resident': 'Resi',
+    'Phone': 'Phn',
+    'Number': 'Num',
+    'Purpose': 'Prps',
+    'HowLongStay': 'HLS',
+    'Signature': 'Sign',
 }
 CANADA_5645E_KEY_ABBREVIATION = {
-    'age': 'p',
+    'page': 'p',
     'Applicant': 'App',
     'Mother': 'Mo',
     'Father': 'Fa',
     'Section': 'Sec',
+    'Spouse': 'Sps',
+    'Child': 'Chd',
+
 }
 
 class DOC_TYPES(Enum):
