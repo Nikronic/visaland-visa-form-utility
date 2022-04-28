@@ -22,7 +22,9 @@ import pikepdf
 import PyPDF2 as pypdf
 
 # our modules
-from .constant import DOC_TYPES
+from utils.constant import DOC_TYPES
+from utils.helpers import deprecated
+
 
 
 class PDFIO:
@@ -111,7 +113,8 @@ class XFAPDF(PDFIO):
 
         raise NotImplementedError
 
-    def flatten_dict(self, d: dict) -> OrderedDict:
+    @deprecated('Use `flatten_dict`')
+    def flatten_dict_basic(self, d: dict) -> OrderedDict:
         """
         Takes a (nested) dictionary and flattens it where the final keys are key.key....
             and values are the leaf values of dictionary.
@@ -125,11 +128,39 @@ class XFAPDF(PDFIO):
         def items():
             for key, value in d.items():
                 if isinstance(value, dict):
-                    for subkey, subvalue in self.flatten_dict(value).items():
+                    for subkey, subvalue in self.flatten_dict_basic(value).items():
                         yield key + "." + subkey, subvalue
                 else:
                     yield key, value
 
+        return OrderedDict(items())
+    
+    def flatten_dict(self, d: dict) -> OrderedDict:
+        """
+        Takes a (nested) multilevel dictionary and flattens it where the final keys are key.key....
+            and values are the leaf values of dictionary.
+        
+        ref: https://stackoverflow.com/a/67744709/18971263
+        args:
+            d: A dictionary  
+            return: An ordered dict
+        """
+        
+        def items():
+            if isinstance(d, dict):
+                for key, value in d.items():
+                    # nested subtree
+                    if isinstance(value, dict):
+                        for subkey, subvalue in self.flatten_dict(value).items():
+                            yield '{}.{}'.format(key, subkey), subvalue
+                    # nested list
+                    elif isinstance(value, list):
+                        for num, elem in enumerate(value):
+                            for subkey, subvalue in self.flatten_dict(elem).items():
+                                yield '{}.[{}].{}'.format(key, num, subkey), subvalue
+                    # everything else (only leafs should remain)
+                    else:
+                        yield key, value
         return OrderedDict(items())
     
     def xml_to_flattened_dict(self, xml: str) -> OrderedDict:
