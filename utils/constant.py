@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-# dict of abbreviation used to shortening length of keys in XML to CSV conversion
+# dict of abbreviation used to shortening length of KEYS in XML to CSV conversion
 CANADA_5257E_KEY_ABBREVIATION = {
     'Page': 'P',
     'PersonalDetails': 'PD',
@@ -31,6 +31,7 @@ CANADA_5257E_KEY_ABBREVIATION = {
     'HowLongStay': 'HLS',
     'Signature': 'Sign',
 }
+
 CANADA_5645E_KEY_ABBREVIATION = {
     'page': 'p',
     'Applicant': 'App',
@@ -39,8 +40,13 @@ CANADA_5645E_KEY_ABBREVIATION = {
     'Section': 'Sec',
     'Spouse': 'Sps',
     'Child': 'Chd',
-
 }
+
+# dict of abbreviation used to shortening length of VALUES in XML to CSV conversion
+CANADA_5257E_VALUE_ABBREVIATION = {
+    'BIOMETRIC ENROLMENT': 'Bio'
+}
+
 
 class DOC_TYPES(Enum):
     """
@@ -51,7 +57,7 @@ class DOC_TYPES(Enum):
     canada_5257e = 1  # application for visitor visa (temporary resident visa)
     canada_5645e = 2  # Family information
 
-# 
+# Cutoff terms for both keys and values
 class CANADA_CUTOFF_TERMS(Enum):
     """
     Dict of cut off terms for different files that is can be used with
