@@ -5,6 +5,7 @@ from .PDFIO import DOC_TYPES
 
 
 from .constant import CANADA_5257E_KEY_ABBREVIATION, CANADA_5257E_VALUE_ABBREVIATION
+from .constant import CANADA_5257E_DROP_COLUMNS
 from .constant import CANADA_CUTOFF_TERMS
 from .constant import DOC_TYPES
 
