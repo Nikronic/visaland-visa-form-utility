@@ -85,7 +85,7 @@ CANADA_5257E_DROP_COLUMNS = [
     'P2.CI.cntct.PhnNums.AltPhn.NANum.AreaCode', 'P2.CI.cntct.PhnNums.AltPhn.NANum.FirstThree',
     'P2.CI.cntct.PhnNums.AltPhn.NANum.LastFive', 'P2.CI.cntct.PhnNums.AltPhn.IntlNum.IntlNum',
     'P2.CI.cntct.FaxEmail.Phn.CanadaUS', 'P2.CI.cntct.FaxEmail.Phn.Other', 
-    'P2.CI.cntct.FaxEmail.Phn.NumExt',
+    'P2.CI.cntct.FaxEmail.Phn.NumExt', 'P2.MS.SecA.Psprt.IssueDate.IssueDate',
     'P2.CI.cntct.FaxEmail.Phn.NumCountry', 'P2.CI.cntct.FaxEmail.Phn.ActualNum', 
     'P2.CI.cntct.FaxEmail.Phn.NANum.AreaCode', 'P2.CI.cntct.FaxEmail.Phn.NANum.FirstThree',
     'P2.CI.cntct.FaxEmail.Phn.NANum.LastFive', 'P2.CI.cntct.FaxEmail.Phn.IntlNum.IntlNum',
@@ -94,7 +94,7 @@ CANADA_5257E_DROP_COLUMNS = [
     'P3.Occ.SecHeader_CurrOcc.@ns0:dataNode', 'P3.BGI_SecHeader.@ns0:dataNode',
     'P3.Sign.Consent0.Choice', 'P3.Sign.hand.@ns0:dataNode', 'P3.Sign.TextField2',
     'P3.Disclosure.@ns0:dataNode', 'P3.ReaderInfo', 'Barcodes.@ns0:dataNode', 
-    'P3.BGI2.Details.refusedDetails', 'P3.PWrapper.BGI3.details',
+    'P3.BGI2.Details.refusedDetails', 'P3.PWrapper.BGI3.details', 
     'P3.PWrapper.Military.militaryServiceDetails', 'P1.PD.AliasName.AliasGivenName',
     'P1.PD.AliasName.AliasFamilyName', 'P2.MS.SecA.PMFamilyName', 'P2.MS.SecA.GivenName.PMGivenName',
     'P3.DOV.PrpsRow1.Other.Other', 'P3.DOV.cntcts_Row1.Name.Name', 'P3.cntcts_Row2.Name.Name',
@@ -105,6 +105,9 @@ CANADA_5257E_DROP_COLUMNS = [
     'P3.Occ.OccRow2.CityTown.CityTown', 'P3.Occ.OccRow2.ProvState', 'P3.Occ.OccRow3.FromMonth',
     'P3.Occ.OccRow3.ToMonth', 'P3.Occ.OccRow3.CityTown.CityTown', 'P3.Occ.OccRow3.ProvState',
     'P1.PD.Name.FamilyName', 'P1.PD.Name.GivenName', 'P1.PD.PrevCOR.Row2.Other', 'P1.PD.PrevCOR.Row3.Other',
+    'P1.MS.SecA.FamilyName', 'P1.MS.SecA.GivenName', 'P2.MS.SecA.PrevSpouseDOB.DOBMonth', 
+    'P2.MS.SecA.PrevSpouseDOB.DOBDay', 'P2.MS.SecA.Psprt.PsprtNum.PsprtNum',
+    'P2.natID.natIDdocs.DocNum.DocNum', 
     
 ]
 
