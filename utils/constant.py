@@ -59,7 +59,7 @@ CANADA_5257E_VALUE_ABBREVIATION = {
 ## LIST
 CANADA_5257E_DROP_COLUMNS = [
     'ns0:datasets.@xmlns:ns0', 'P1.Header.CRCNum', 'P1.FormVersion', 'P1.PrevSpouseAge',
-    'P1.PD.UCIClientID', 'P1.PD.SecHeader.@ns0:dataNode', 'P1.PD.DOBYear', 'P1.PD.DOBMonth',
+    'P1.PD.UCIClientID', 'P1.PD.SecHeader.@ns0:dataNode', 'P1.PD.DOBMonth',
     'P1.PD.DOBDay', 'P1.PD.CurrCOR.Row1.@ns0:dataNode', 'P1.PD.PrevCOR.Row1.@ns0:dataNode', 
     'P1.PD.CWA.Row1.@ns0:dataNode', 'P1.PD.ApplicationValidatedFlag', 
     'P2.MS.SecA.SecHeader.@ns0:dataNode', 'P2.MS.SecA.DateLastValidated.DateCalc', 
@@ -95,7 +95,17 @@ CANADA_5257E_DROP_COLUMNS = [
     'P3.Sign.Consent0.Choice', 'P3.Sign.hand.@ns0:dataNode', 'P3.Sign.TextField2',
     'P3.Disclosure.@ns0:dataNode', 'P3.ReaderInfo', 'Barcodes.@ns0:dataNode', 
     'P3.BGI2.Details.refusedDetails', 'P3.PWrapper.BGI3.details',
-    'P3.PWrapper.Military.militaryServiceDetails',
+    'P3.PWrapper.Military.militaryServiceDetails', 'P1.PD.AliasName.AliasGivenName',
+    'P1.PD.AliasName.AliasFamilyName', 'P2.MS.SecA.PMFamilyName', 'P2.MS.SecA.GivenName.PMGivenName',
+    'P3.DOV.PrpsRow1.Other.Other', 'P3.DOV.cntcts_Row1.Name.Name', 'P3.cntcts_Row2.Name.Name',
+    'P3.cntcts_Row2.AddrInCanada.AddrInCanada', 'P3.Edu.Edu_Row1.FromMonth', 'P3.Edu.Edu_Row1.ToMonth',
+    'P3.Edu.Edu_Row1.School', 'P3.Edu.Edu_Row1.CityTown', 'P3.Edu.Edu_Row1.ProvState', 
+    'P3.Occ.OccRow1.FromMonth', 'P3.Occ.OccRow1.ToMonth', 'P3.Occ.OccRow1.CityTown.CityTown', 
+    'P3.Occ.OccRow1.ProvState', 'P3.Occ.OccRow2.FromMonth', 'P3.Occ.OccRow2.ToMonth',
+    'P3.Occ.OccRow2.CityTown.CityTown', 'P3.Occ.OccRow2.ProvState', 'P3.Occ.OccRow3.FromMonth',
+    'P3.Occ.OccRow3.ToMonth', 'P3.Occ.OccRow3.CityTown.CityTown', 'P3.Occ.OccRow3.ProvState',
+    'P1.PD.Name.FamilyName', 'P1.PD.Name.GivenName', 'P1.PD.PrevCOR.Row2.Other', 'P1.PD.PrevCOR.Row3.Other',
+    
 ]
 
 ## ENUM
