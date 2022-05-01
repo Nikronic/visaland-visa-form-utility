@@ -105,7 +105,7 @@ def column_dropper(dataframe: pd.DataFrame, string: str, exclude: str = None,
         dataframe.drop(col_to_drop, axis=1, inplace=inplace)
     else:
         dataframe = dataframe.drop(col_to_drop, axis=1, inplace=inplace)
-    
+
     return None if inplace else dataframe
 
 
@@ -135,7 +135,7 @@ def fillna_datetime(dataframe: pd.DataFrame, col_base_name: str, date: str,
     for col in dataframe[columns_to_fillna_names]:
         if inplace:
             dataframe[col].fillna(date, inplace=inplace)
-        else:    
+        else:
             dataframe[col] = dataframe[col].fillna(date, inplace=inplace)
     return None if inplace else dataframe
 
@@ -210,23 +210,6 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
     dataframe[aggregated_column_name] = dataframe[aggregated_column_name].dt.days.astype(
         'int32')  # change to int of days
 
-    dataframe.drop(columns_to_aggregate_names, axis=1, inplace=True)  # drop from/to columns
+    dataframe.drop(columns_to_aggregate_names, axis=1,
+                   inplace=True)  # drop from/to columns
     return dataframe
-
-
-class Discretizer:
-    def __init__(self) -> None:
-        pass
-
-    def occupation(self, string: str, target: List[str]) -> str:
-        """
-        Takes a string and discretize it to a specific keywords specified in `target`
-
-        TODO: 
-        """
-
-    def field_of_study(self, string: str, target: List[str]) -> str:
-        """
-
-        TODO:
-        """
