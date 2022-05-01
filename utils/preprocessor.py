@@ -8,16 +8,18 @@ from dateutil import parser
 T0 = '19000202T000000'
 
 
-def column_dropper(dataframe: pd.DataFrame, string: str, regex: bool = False) -> None:
+def column_dropper(dataframe: pd.DataFrame, string: str, exclude: str = None,
+                   regex: bool = False) -> None:
     """
     Takes a Pandas Dataframe and searches for columns *containing* `string` in them either 
-        raw string or regex (in latter case, use `regex=True`) and drops them *in-place*.
+        raw string or regex (in latter case, use `regex=True`) and after `exclude`ing a
+        subset of them, drops the remaining *in-place*.
 
     args:
         dataframe: Pandas dataframe to be processed
         string: string to look for in `dataframe` columns
+        exclude: string to exclude a subset of columns from being dropped 
         regex: compile `string` as regex
-
     """
 
     if regex:
@@ -26,6 +28,9 @@ def column_dropper(dataframe: pd.DataFrame, string: str, regex: bool = False) ->
     else:
         col_to_drop = [
             col for col in dataframe.columns.values if string in col]
+
+    if exclude is not None:
+        col_to_drop = [col for col in col_to_drop if exclude not in col]
 
     dataframe.drop(col_to_drop, axis=1, inplace=True)
 
@@ -47,17 +52,22 @@ def fillna_datetime(dataframe: pd.DataFrame, col_base_name: str, one_sided: str 
             2. `'left'`: Uses the `reference_date` as the starting time 
     """
 
-    if one_sided is not None:
+    if not one_sided:
         r = re.compile(col_base_name.replace('.', '\.'))
-    else:    
+    else:
         r = re.compile(col_base_name.replace('.', '\.')+'\.(From|To).+')
     columns_to_fillna_names = list(filter(r.match, dataframe.columns.values))
     if date is None:
-        dataframe[columns_to_fillna_names] = dataframe[columns_to_fillna_names].fillna(
-            T0, inplace=False)
+        for col in dataframe[columns_to_fillna_names]:
+            dataframe[col] = dataframe[col].fillna(T0, inplace=False)
+        # dataframe[columns_to_fillna_names] = dataframe[columns_to_fillna_names].fillna(
+        #     T0, inplace=False)
     else:
-        dataframe[columns_to_fillna_names] = dataframe[columns_to_fillna_names].fillna(
-            date, inplace=False)
+        for col in dataframe[columns_to_fillna_names]:
+            dataframe[col] = dataframe[col].fillna(date, inplace=False)
+        # dataframe[columns_to_fillna_names] = dataframe[columns_to_fillna_names].fillna(
+        #     date, inplace=False)
+    return dataframe
 
 
 def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name: str,
@@ -115,10 +125,12 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
         column_to_date = parser.parse(column_to_date)
 
     if column_from_date is None:  # ignore reference_date if from_date exists
-        dataframe[from_date] = dataframe[from_date].apply(parser.parse)
+        if not dataframe[from_date].dtypes == '<M8[ns]':  # to able to use already parsed data from fillna
+            dataframe[from_date] = dataframe[from_date].apply(parser.parse)
         column_from_date = dataframe[from_date]
     if column_to_date is None:  # ignore current_date if to_date exists
-        dataframe[to_date] = dataframe[to_date].apply(parser.parse)
+        if not dataframe[to_date].dtypes == '<M8[ns]':  # to able to use already parsed data from fillna
+            dataframe[to_date] = dataframe[to_date].apply(parser.parse)
         column_to_date = dataframe[to_date]
     dataframe[aggregated_column_name].fillna(
         column_to_date - column_from_date, inplace=True)  # period
