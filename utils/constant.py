@@ -49,6 +49,11 @@ CANADA_5645E_KEY_ABBREVIATION = {
     'Section': 'Sec',
     'Spouse': 'Sps',
     'Child': 'Chd',
+    'Address': 'Addr',
+    'Occupation': 'Occ',
+    'Yes': 'Accomp',
+    'Relationship': 'Rel',
+    
 }
 
 # dict of abbreviation used to shortening length of VALUES in XML to CSV conversion
@@ -111,9 +116,17 @@ CANADA_5257E_DROP_COLUMNS = [
     'P3.Occ.OccRow2.Employer', 'P3.Occ.OccRow3.Employer',
 ]
 
+CANADA_5645E_DROP_COLUMNS = {
+    'xfa:datasets.@xmlns:xfa', 'p1.SecA.Title.@xfa:dataNode', 'p1.SecA.App.AppDOB', 'p1.SecA.App.AppCOB',
+    'p1.SecA.App.AppOcc', 'p1.SecA.App.AppOcc', 'p1.SecB.SecBsignature',
+    'p1.SecB.SecBdate', 'p1.SecC.Title.@xfa:dataNode', 'p1.SecA.SecAsignature',
+    'p1.SecA.SecAdate', 'p1.SecB.Title.@xfa:dataNode', 'p1.SecC.SecCsignature',
+    'p1.SecC.SecCdate', 'p1.SecC.Subform2.@xfa:dataNode'
+}
+
+
+
 # ENUM
-
-
 class DOC_TYPES(Enum):
     """
     Contains all document types which can be used to customize ETL steps for each doc.

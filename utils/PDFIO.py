@@ -199,7 +199,7 @@ class CanadaXFA(XFAPDF):
             xml = re.sub(r"'", '', xml)
             xml = re.sub(r"\\n[ ]*", '', xml)
         
-        elif DOC_TYPES.canada_5645e:
+        elif type == DOC_TYPES.canada_5645e:
             # remove bad characters
             xml = re.sub(r"b'\\n", '', xml)
             xml = re.sub(r"'", '', xml)
