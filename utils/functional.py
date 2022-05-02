@@ -10,6 +10,8 @@ import numpy as np
 from dateutil import parser
 from typing import List, Union
 
+from utils.constant import DOC_TYPES
+
 
 def dict_summarizer(d: dict, cutoff_term: str, KEY_ABBREVIATION_DICT: dict = None,
                     VALUE_ABBREVIATION_DICT: dict = None) -> dict:
@@ -109,7 +111,7 @@ def column_dropper(dataframe: pd.DataFrame, string: str, exclude: str = None,
     return None if inplace else dataframe
 
 
-def fillna_datetime(dataframe: pd.DataFrame, col_base_name: str, date: str,
+def fillna_datetime(dataframe: pd.DataFrame, col_base_name: str, date: str, type: DOC_TYPES,
                     one_sided: str = False, inplace: bool = False) -> Union[None, pd.DataFrame]:
     """
     In a Pandas Dataframe, takes two columns of dates in string form that has no value (None)
@@ -125,12 +127,15 @@ def fillna_datetime(dataframe: pd.DataFrame, col_base_name: str, date: str,
             1. `'right'`: Uses the `current_date` as the final time
             2. `'left'`: Uses the `reference_date` as the starting time
         inplace: whether or not use an inplace operation 
+        type: `DOC_TYPE` used to use rules for matching tags and filling appropriately
     """
 
     if not one_sided:
-        r = re.compile(col_base_name.replace('.', '\.'))
+        r = re.compile(tag_to_regex_compatible(
+            string=col_base_name, type=type))
     else:
-        r = re.compile(col_base_name.replace('.', '\.')+'\.(From|To).+')
+        r = re.compile(tag_to_regex_compatible(
+            string=col_base_name, type=type)+'\.(From|To).+')
     columns_to_fillna_names = list(filter(r.match, dataframe.columns.values))
     for col in dataframe[columns_to_fillna_names]:
         if inplace:
@@ -141,6 +146,7 @@ def fillna_datetime(dataframe: pd.DataFrame, col_base_name: str, date: str,
 
 
 def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name: str,
+                       type: DOC_TYPES,
                        one_sided: str = None, reference_date: str = None,
                        current_date: str = None) -> pd.DataFrame:
     """
@@ -163,15 +169,18 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
             2. `'left'`: Uses the `reference_date` as the starting time
         reference_date: Assumed `reference_date` (t0<t1)
         current_date: Assumed `current_date` (t1>t0)
+        type: `DOC_TYPE` used to use rules for matching tags and filling appropriately
     """
 
     aggregated_column_name = None
     if one_sided is None:
         aggregated_column_name = col_base_name + '.' + new_col_name
-        r = re.compile(col_base_name.replace('.', '\.')+'\.(From|To).+')
+        r = re.compile(tag_to_regex_compatible(
+            string=col_base_name, type=type)+'\.(From|To).+')
     else:  # when one_sided, we no longer have *From* or *To*
         aggregated_column_name = col_base_name + '.' + new_col_name
-        r = re.compile(col_base_name.replace('.', '\.'))
+        r = re.compile(tag_to_regex_compatible(
+            string=col_base_name, type=type))
     columns_to_aggregate_names = list(
         filter(r.match, dataframe.columns.values))
     dataframe[aggregated_column_name] = np.nan  # combination of dates
@@ -190,8 +199,6 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
             col for col in columns_to_aggregate_names if 'From' in col][0]
         to_date = [col for col in columns_to_aggregate_names if 'To' in col][0]
 
-    if isinstance(column_from_date, str):
-        column_from_date = parser.parse(column_from_date)
     if isinstance(column_to_date, str):
         column_to_date = parser.parse(column_to_date)
 
@@ -200,11 +207,19 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
         if not dataframe[from_date].dtypes == '<M8[ns]':
             dataframe[from_date] = dataframe[from_date].apply(parser.parse)
         column_from_date = dataframe[from_date]
+    else:
+        if isinstance(column_from_date, str):
+            column_from_date = parser.parse(column_from_date)
+
     if column_to_date is None:  # ignore current_date if to_date exists
         # to able to use already parsed data from fillna
         if not dataframe[to_date].dtypes == '<M8[ns]':
             dataframe[to_date] = dataframe[to_date].apply(parser.parse)
         column_to_date = dataframe[to_date]
+    else:
+        if isinstance(column_to_date, str):
+            column_to_date = parser.parse(column_to_date)
+
     dataframe[aggregated_column_name].fillna(
         column_to_date - column_from_date, inplace=True)  # period
     dataframe[aggregated_column_name] = dataframe[aggregated_column_name].dt.days.astype(
@@ -213,3 +228,19 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
     dataframe.drop(columns_to_aggregate_names, axis=1,
                    inplace=True)  # drop from/to columns
     return dataframe
+
+
+def tag_to_regex_compatible(string: str, type: DOC_TYPES) -> str:
+    """
+    Takes a string and makes it regex compatible for 
+
+    args:
+        string: input string to get manipulated
+        type: specified `DOC_TYPE` to determine regex rules 
+    """
+
+    if type == DOC_TYPES.canada_5257e or type == DOC_TYPES.canada_5645e or type == DOC_TYPES.canada:
+        string = string.replace('.', '\.').replace(
+            '[', '\[').replace(']', '\]')
+
+    return string

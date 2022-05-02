@@ -121,7 +121,7 @@ CANADA_5645E_DROP_COLUMNS = {
     'p1.SecA.App.AppOcc', 'p1.SecA.App.AppOcc', 'p1.SecB.SecBsignature',
     'p1.SecB.SecBdate', 'p1.SecC.Title.@xfa:dataNode', 'p1.SecA.SecAsignature',
     'p1.SecA.SecAdate', 'p1.SecB.Title.@xfa:dataNode', 'p1.SecC.SecCsignature',
-    'p1.SecC.SecCdate', 'p1.SecC.Subform2.@xfa:dataNode'
+    'p1.SecC.Subform2.@xfa:dataNode', 'p1.SecA.Sps.ChdMStatus',
 }
 
 
@@ -132,9 +132,9 @@ class DOC_TYPES(Enum):
     Contains all document types which can be used to customize ETL steps for each doc.
     Remark: Order of docs is meaningless.
     """
-
-    canada_5257e = 1  # application for visitor visa (temporary resident visa)
-    canada_5645e = 2  # Family information
+    canada = 1        # refering to all Canada docs in general
+    canada_5257e = 2  # application for visitor visa (temporary resident visa)
+    canada_5645e = 3  # Family information
 
 # Cutoff terms for both keys and values
 
