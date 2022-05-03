@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from dateutil import parser
 from typing import Union
+from types import FunctionType
 
 from utils import functional
 from utils.constant import *
@@ -111,10 +112,39 @@ class DataframePreprocessor:
 
         raise NotImplementedError
 
+    def change_dtype(self, col_name: str, dtype: FunctionType, inplace: str,
+                     if_nan: Union[str, FunctionType] = 'skip'):
+        """
+        Takes a column name and changes the dataframe's column data type where for 
+            None (nan) values behave based on `if_nan` argument.
+
+        args:
+            col_name: Column name of the dataframe
+            dtype: target data type as a function e.g. `np.float32`
+            if_nan: What to do with `None`s (NaN). Could be a function or predfined states as follow:\n
+                1. 'skip': do nothing (i.e. ignore `None`'s)
+                2. 
+        """
+
+        return functional.change_dtype(dataframe=self.dataframe, col_name=col_name,
+                                       dtype=dtype, inplace=inplace, if_nan=if_nan)
+
 
 class CanadaDataframePreprocessor(DataframePreprocessor):
     def __init__(self) -> None:
         super().__init__()
+
+    def fillna_child_marriage_status(self, col_base_name: str, status: str, inplace: bool = False):
+        """
+        Fills the None values for `ChdMStatus` using given value or the following logics:\n
+            1. take the average age of people and check if they are married. If our candidate has
+                more age than average married people, then call married
+            2. TODO: use data analysis methods to see who are married people and infer nan's
+        """
+        # TODO: might wanna move it to `DataframePreprocessor` since might be common between all
+        # countries
+
+        raise NotImplementedError
 
     def file_specific_basic_transform(self, type: DOC_TYPES, path: str) -> pd.DataFrame:
         canada_xfa = CanadaXFA()  # Canada PDF to XML
@@ -194,7 +224,8 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             dataframe['P1.PD.PrevCOR.Row2.Status'] = dataframe['P1.PD.PrevCOR.Row2.Status'].astype(
                 'string').fillna('0')
             # previous country of residency 02 period (P1.PD.PrevCOR.Row2): none -> random date -> int days
-            dataframe = self.fillna_datetime(col_base_name='P1.PD.PrevCOR.Row2', one_sided=True)
+            dataframe = self.fillna_datetime(
+                col_base_name='P1.PD.PrevCOR.Row2', one_sided=True)
             dataframe = self.aggregate_datetime(col_base_name='P1.PD.PrevCOR.Row2',
                                                 new_col_name='Period', reference_date=None,
                                                 current_date=None)
@@ -225,13 +256,14 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             dataframe['P1.PD.CWA.Row2.Other'] = dataframe['P1.PD.CWA.Row2.Other'].astype(
                 'string')
             # country where applying period: datetime -> int days
-            dataframe = self.aggregate_datetime(col_base_name='P1.PD.CWA.Row2', new_col_name='Period')
+            dataframe = self.aggregate_datetime(
+                col_base_name='P1.PD.CWA.Row2', new_col_name='Period')
             # delete tnx to P1.PD.CWA.Row2
             self.column_dropper(string='P1.PD.CWADates', inplace=True)
             # marriage period: datetime -> int days
             dataframe = self.aggregate_datetime(col_base_name='P1.MS.SecA.DateOfMarr',
-                                           one_sided='right', new_col_name='Period', reference_date=None,
-                                           current_date=dataframe['P3.Sign.C1CertificateIssueDate'])
+                                                one_sided='right', new_col_name='Period', reference_date=None,
+                                                current_date=dataframe['P3.Sign.C1CertificateIssueDate'])
             # delete tnx to P1.MS.SecA.DateOfMarr
             self.column_dropper(string='P1.MS.SecA.MarrDate.From')
             # previous marriage: Y=True, N=False
@@ -240,16 +272,16 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
 
             # previous spouse age: none -> random date -> int days
             dataframe = self.fillna_datetime(date=dataframe['P3.Sign.C1CertificateIssueDate'],
-                                        col_base_name='P2.MS.SecA.PrevSpouseDOB.DOBYear', one_sided=False)
+                                             col_base_name='P2.MS.SecA.PrevSpouseDOB.DOBYear', one_sided=False)
             dataframe = self.aggregate_datetime(col_base_name='P2.MS.SecA.PrevSpouseDOB.DOBYear',
-                                           new_col_name='Period', reference_date=None, one_sided='right',
-                                           current_date=dataframe['P3.Sign.C1CertificateIssueDate'], )
+                                                new_col_name='Period', reference_date=None, one_sided='right',
+                                                current_date=dataframe['P3.Sign.C1CertificateIssueDate'], )
 
             # previous marriage period: none -> random date -> int days
             dataframe = self.fillna_datetime(col_base_name='P2.MS.SecA')
             dataframe = self.aggregate_datetime(col_base_name='P2.MS.SecA',
-                                           new_col_name='Period', reference_date=None,
-                                           current_date=None)
+                                                new_col_name='Period', reference_date=None,
+                                                current_date=None)
             # delete tnx to P2.MS.SecA.FromDate and P2.MS.SecA.ToDate.ToDate
             self.column_dropper(string='P2.MS.SecA.Prevly', inplace=True)
             # passport country of issue: string -> categorical
@@ -257,8 +289,8 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                 'string')
             # expiray remaining period: datetime -> int days
             dataframe = self.aggregate_datetime(col_base_name='P2.MS.SecA.Psprt.ExpiryDate',
-                                           one_sided='left', new_col_name='Remaining',
-                                           reference_date=dataframe['P3.Sign.C1CertificateIssueDate'])
+                                                one_sided='left', new_col_name='Remaining',
+                                                reference_date=dataframe['P3.Sign.C1CertificateIssueDate'])
             # Taiwan doc: bool -> binary
             dataframe['P2.MS.SecA.Psprt.TaiwanPIN'] = dataframe['P2.MS.SecA.Psprt.TaiwanPIN'].apply(
                 lambda x: True if (x is not None) and (x == 'Y') else False)
@@ -284,7 +316,8 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             dataframe['P2.USCard.q1.usCardIndicator'] = dataframe['P2.USCard.q1.usCardIndicator'].apply(
                 lambda x: True if x == 'Y' else False)
             # drop contact information except having US Canada phone number
-            self.column_dropper(string='P2.CI.cntct', exclude='CanadaUS', inplace=True)
+            self.column_dropper(string='P2.CI.cntct',
+                                exclude='CanadaUS', inplace=True)
             # US Canada phone number: bool -> binary
             dataframe['P2.CI.cntct.PhnNums.Phn.CanadaUS'] = dataframe['P2.CI.cntct.PhnNums.Phn.CanadaUS'].apply(
                 lambda x: True if x == '1' else False)
@@ -298,7 +331,8 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             dataframe['P3.DOV.PrpsRow1.Other.Other'] = dataframe['P3.DOV.PrpsRow1.Other.Other'].apply(
                 lambda x: True if x is not None else False)
             # how long going to stay: datetime -> int days
-            dataframe = self.aggregate_datetime(col_base_name='P3.DOV.PrpsRow1.HLS', new_col_name='Period')
+            dataframe = self.aggregate_datetime(
+                col_base_name='P3.DOV.PrpsRow1.HLS', new_col_name='Period')
             # delete tnx to P3.DOV.PrpsRow1.HLS
             self.column_dropper(string='P3.DOV.PrpsRow1.HLS', inplace=True)
             # fund to integer
@@ -316,8 +350,8 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             # higher education period: none -> string year -> int days
             dataframe = self.fillna_datetime(col_base_name='P3.Edu.Edu_Row1')
             dataframe = self.aggregate_datetime(col_base_name='P3.Edu.Edu_Row1',
-                                           new_col_name='Period', reference_date=None,
-                                           current_date=None)
+                                                new_col_name='Period', reference_date=None,
+                                                current_date=None)
 
             # TODO: add a method that determines the type of study [too general, zero priority].
             #   at the moment, we delete this too. See #1
@@ -331,10 +365,10 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                 'string')
             # occupation period 01: none -> string year -> int days
             dataframe = self.fillna_datetime(col_base_name='P3.Occ.OccRow1', one_sided=True,
-                                        date=dataframe['P3.Sign.C1CertificateIssueDate'])
+                                             date=dataframe['P3.Sign.C1CertificateIssueDate'])
             dataframe = self.aggregate_datetime(col_base_name='P3.Occ.OccRow1',
-                                           new_col_name='Period', reference_date=None,
-                                           current_date=None)
+                                                new_col_name='Period', reference_date=None,
+                                                current_date=None)
             # TODO: add verification and make sure data falls into following categories at the begining at least.
             # occupation type 01: string, employee, student, housewife, entrepreneur, etc -> categorical
             dataframe['P3.Occ.OccRow1.Occ.Occ'] = dataframe['P3.Occ.OccRow1.Occ.Occ'].astype(
@@ -344,10 +378,10 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                 'string')
             # occupation period 02: none -> string year -> int days
             dataframe = self.fillna_datetime(col_base_name='P3.Occ.OccRow2', one_sided=True,
-                                        date=dataframe['P3.Sign.C1CertificateIssueDate'])
+                                             date=dataframe['P3.Sign.C1CertificateIssueDate'])
             dataframe = self.aggregate_datetime(col_base_name='P3.Occ.OccRow2',
-                                           new_col_name='Period', reference_date=None,
-                                           current_date=None)
+                                                new_col_name='Period', reference_date=None,
+                                                current_date=None)
             # occupation type 01: string, employee, student, housewife, entrepreneur, etc -> categorical
             dataframe['P3.Occ.OccRow2.Occ.Occ'] = dataframe['P3.Occ.OccRow2.Occ.Occ'].astype(
                 'string')
@@ -356,10 +390,10 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                 'string')
             # occupation period 03: none -> string year -> int days
             dataframe = self.fillna_datetime(col_base_name='P3.Occ.OccRow3', one_sided=True,
-                                        date=dataframe['P3.Sign.C1CertificateIssueDate'])
+                                             date=dataframe['P3.Sign.C1CertificateIssueDate'])
             dataframe = self.aggregate_datetime(col_base_name='P3.Occ.OccRow3',
-                                           new_col_name='Period', reference_date=None,
-                                           current_date=None)
+                                                new_col_name='Period', reference_date=None,
+                                                current_date=None)
             # occupation type 01: string, employee, student, housewife, entrepreneur, etc -> categorical
             dataframe['P3.Occ.OccRow3.Occ.Occ'] = dataframe['P3.Occ.OccRow3.Occ.Occ'].astype(
                 'string')

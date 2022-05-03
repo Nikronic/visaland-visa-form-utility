@@ -114,32 +114,30 @@ children_tag_list = [c for c in dataframe.columns.values if 'p1.SecB.Chd' in c]
 CHILDREN_MAX_FEATURES = 6
 for i in range(len(children_tag_list) // CHILDREN_MAX_FEATURES):
     # child's marriage status 01: string to integer
-    dataframe['p1.SecB.Chd.['+str(i)+'].ChdMStatus'] = dataframe['p1.SecB.Chd.[' +
-                                                                 str(i)+'].ChdMStatus'].astype('int16')
+    dataframe = change_dtype(dataframe=dataframe, col_name='p1.SecB.Chd.['+str(i)+'].ChdMStatus',
+                             dtype=np.int8, if_nan='skip')
     # child's relationship 01: string -> categorical
-    dataframe['p1.SecB.Chd.['+str(i)+'].ChdRel'] = dataframe['p1.SecB.Chd.[' +
-                                                             str(i)+'].ChdRel'].astype('string')
+    dataframe = change_dtype(dataframe=dataframe, col_name='p1.SecB.Chd.['+str(i)+'].ChdRel',
+                             dtype=str, if_nan='skip')
+
     # child's date of birth 01: string -> datetime
-    dataframe = fillna_datetime(dataframe=dataframe, type=DOC_TYPES.canada,
-                                date=dataframe['p1.SecC.SecCdate'],
-                                col_base_name='p1.SecB.Chd.['+str(i)+'].ChdDOB')
-    # child's date of birth 01: string -> datetime
-    dataframe['p1.SecB.Chd.['+str(i)+'].ChdDOB'] = dataframe['p1.SecB.Chd.[' +
-                                                             str(i)+'].ChdDOB'].apply(lambda x:
-                                                                                      parser.parse if isinstance(x, str) else x)
+    # fill nan's with average age of children
+    # if no date available: fill with average difference age of kids from their parents
+    dataframe = change_dtype(dataframe=dataframe, col_name='p1.SecB.Chd.['+str(i)+'].ChdDOB',
+                             dtype=parser.parse, if_nan='skip')
     # child's age period 01: datetime -> int days
     dataframe = aggregate_datetime(dataframe=dataframe, type=DOC_TYPES.canada,
                                    col_base_name='p1.SecB.Chd.[' +
-                                   str(i)+'].ChdDOB', new_col_name='Period', one_sided='right',
-                                   reference_date=dataframe['p1.SecB.Chd.[' +
-                                                            str(i)+'].ChdDOB'],
-                                   current_date=dataframe['p1.SecC.SecCdate'])
+                                   str(i)+'].ChdDOB', new_col_name='Period', 
+                                   reference_date=None, one_sided='right',
+                                   current_date=dataframe['p1.SecC.SecCdate'],
+                                   if_nan='skip')
     # child's country of birth 01: string -> categorical
-    dataframe['p1.SecB.Chd.['+str(i)+'].ChdCOB'] = dataframe['p1.SecB.Chd.[' +
-                                                             str(i)+'].ChdCOB'].astype('string')
+    dataframe = change_dtype(dataframe=dataframe, col_name='p1.SecB.Chd.['+str(i)+'].ChdCOB',
+                             dtype=str, if_nan='fill', value='IRAN')
     # child's occupation type 01 (issue #1, #2, #3): string, employee, student, housewife, entrepreneur, etc -> categorical
-    dataframe['p1.SecB.Chd.['+str(i)+'].ChdOcc'] = dataframe['p1.SecB.Chd.[' +
-                                                             str(i)+'].ChdOcc'].astype('string')
+    dataframe = change_dtype(dataframe=dataframe, col_name='p1.SecB.Chd.['+str(i)+'].ChdOcc',
+                             dtype=str, if_nan='skip')
     # child's accompanying 01: coming=True or not_coming=False
     dataframe['p1.SecB.Chd.['+str(i)+'].ChdAccomp'] = dataframe['p1.SecB.Chd.['+str(i)+'].ChdAccomp'].apply(
         lambda x: False if x == '0' else True)
@@ -149,28 +147,27 @@ siblings_tag_list = [c for c in dataframe.columns.values if 'p1.SecC.Chd' in c]
 SIBLINGS_MAX_FEATURES = 6
 for i in range(len(siblings_tag_list) // CHILDREN_MAX_FEATURES):
     # sibling's marriage status 01: string to integer
-    dataframe['p1.SecC.Chd.['+str(i)+'].ChdMStatus'] = dataframe['p1.SecC.Chd.[' +
-                                                                 str(i)+'].ChdMStatus'].astype('int16')
+    dataframe = change_dtype(dataframe=dataframe, col_name='p1.SecC.Chd.['+str(i)+'].ChdMStatus',
+                             dtype=np.int8, if_nan='skip')
     # sibling's relationship 01: string -> categorical
-    dataframe['p1.SecC.Chd.['+str(i)+'].ChdRel'] = dataframe['p1.SecC.Chd.[' +
-                                                             str(i)+'].ChdRel'].astype('string')
+    dataframe = change_dtype(dataframe=dataframe, col_name='p1.SecC.Chd.['+str(i)+'].ChdRel',
+                             dtype=str, if_nan='skip')
     # sibling's date of birth 01: string -> datetime
-    dataframe['p1.SecC.Chd.['+str(i)+'].ChdDOB'] = dataframe['p1.SecC.Chd.[' +
-                                                             str(i)+'].ChdDOB'].apply(parser.parse)
+    dataframe = change_dtype(dataframe=dataframe, col_name='p1.SecC.Chd.['+str(i)+'].ChdDOB',
+                             dtype=parser.parse, if_nan='skip')
     # sibling's age period 01: datetime -> int days
-    dataframe = aggregate_datetime(dataframe=dataframe, type=DOC_TYPES.canada, 
+    dataframe = aggregate_datetime(dataframe=dataframe, type=DOC_TYPES.canada,
                                    col_base_name='p1.SecC.Chd.[' +
-                                   str(i)+'].ChdDOB',
-                                   new_col_name='Period', one_sided='right',
-                                   reference_date=dataframe['p1.SecC.Chd.[' +
-                                                            str(i)+'].ChdDOB'],
-                                   current_date=dataframe['p1.SecC.SecCdate'])
+                                   str(i)+'].ChdDOB', new_col_name='Period', 
+                                   reference_date=None, one_sided='right',
+                                   current_date=dataframe['p1.SecC.SecCdate'],
+                                   if_nan='skip')
     # sibling's country of birth 01: string -> categorical
-    dataframe['p1.SecC.Chd.['+str(i)+'].ChdCOB'] = dataframe['p1.SecC.Chd.[' +
-                                                             str(i)+'].ChdCOB'].astype('string')
+    dataframe = change_dtype(dataframe=dataframe, col_name='p1.SecC.Chd.['+str(i)+'].ChdCOB',
+                             dtype=str, if_nan='fill', value='IRAN')
     # sibling's occupation type 01 (issue #1, #2, #3): string, employee, student, housewife, entrepreneur, etc -> categorical
-    dataframe['p1.SecC.Chd.['+str(i)+'].ChdOcc'] = dataframe['p1.SecC.Chd.[' +
-                                                             str(i)+'].ChdOcc'].astype('string')
+    dataframe = change_dtype(dataframe=dataframe, col_name='p1.SecC.Chd.['+str(i)+'].ChdOcc',
+                             dtype=str, if_nan='skip')
     # sibling's accompanying: coming=True or not_coming=False
     dataframe['p1.SecC.Chd.['+str(i)+'].ChdAccomp'] = dataframe['p1.SecC.Chd.['+str(i)+'].ChdAccomp'].apply(
         lambda x: False if x == '0' else True)
