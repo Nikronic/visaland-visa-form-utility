@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 from dateutil import parser
 from typing import List, Union
+from types import FunctionType
 
 from utils.constant import DOC_TYPES
 
@@ -146,7 +147,7 @@ def fillna_datetime(dataframe: pd.DataFrame, col_base_name: str, date: str, type
 
 
 def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name: str,
-                       type: DOC_TYPES,
+                       type: DOC_TYPES, if_nan: Union[str, FunctionType] = 'skip',
                        one_sided: str = None, reference_date: str = None,
                        current_date: str = None) -> pd.DataFrame:
     """
@@ -170,6 +171,8 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
         reference_date: Assumed `reference_date` (t0<t1)
         current_date: Assumed `current_date` (t1>t0)
         type: `DOC_TYPE` used to use rules for matching tags and filling appropriately
+        if_nan: What to do with `None`s (NaN). Could be a function or predfined states as follow:\n
+            1. 'skip': do nothing (i.e. ignore `None`'s)
     """
 
     aggregated_column_name = None
@@ -183,7 +186,6 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
             string=col_base_name, type=type))
     columns_to_aggregate_names = list(
         filter(r.match, dataframe.columns.values))
-    dataframe[aggregated_column_name] = np.nan  # combination of dates
 
     # *.FromDate and *.ToDate --> *.Period
     column_from_date = reference_date
@@ -205,7 +207,8 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
     if column_from_date is None:  # ignore reference_date if from_date exists
         # to able to use already parsed data from fillna
         if not dataframe[from_date].dtypes == '<M8[ns]':
-            dataframe[from_date] = dataframe[from_date].apply(parser.parse)
+            dataframe[from_date] = dataframe[from_date].apply(
+                lambda x: parser.parse(x) if x is not None else x)
         column_from_date = dataframe[from_date]
     else:
         if isinstance(column_from_date, str):
@@ -214,12 +217,18 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
     if column_to_date is None:  # ignore current_date if to_date exists
         # to able to use already parsed data from fillna
         if not dataframe[to_date].dtypes == '<M8[ns]':
-            dataframe[to_date] = dataframe[to_date].apply(parser.parse)
+            dataframe[to_date] = dataframe[to_date].apply(
+                lambda x: parser.parse(x) if x is not None else x)
         column_to_date = dataframe[to_date]
     else:
         if isinstance(column_to_date, str):
             column_to_date = parser.parse(column_to_date)
 
+    if if_nan == 'skip':
+        if column_from_date.isna().all() or column_to_date.isna().all():
+            return dataframe
+
+    dataframe[aggregated_column_name] = np.nan  # combination of dates
     dataframe[aggregated_column_name].fillna(
         column_to_date - column_from_date, inplace=True)  # period
     dataframe[aggregated_column_name] = dataframe[aggregated_column_name].dt.days.astype(
@@ -244,3 +253,37 @@ def tag_to_regex_compatible(string: str, type: DOC_TYPES) -> str:
             '[', '\[').replace(']', '\]')
 
     return string
+
+
+def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: FunctionType,
+                 if_nan: Union[str, FunctionType] = 'skip', **kwargs):
+    """
+    Takes a column name and changes the dataframe's column data type where for 
+        None (nan) values behave based on `if_nan` argument.
+
+    args:
+        col_name: Column name of the dataframe
+        dtype: target data type as a function e.g. `np.float32`
+        if_nan: What to do with `None`s (NaN). Could be a function or predfined states as follow:\n
+            1. 'skip': do nothing (i.e. ignore `None`'s)
+            2. 'value': fill the `None` with `value` argument via `kwargs`
+    """
+
+    # the function to be used in `.apply` method of dataframe
+    func = None if isinstance(if_nan, str) else if_nan
+
+    # define `func` for different cases of predfined logics
+    if isinstance(if_nan, str):  # predefined `if_nan` cases
+        if if_nan == 'skip':
+            def func(x): return x
+        if if_nan == 'fill':
+            value = kwargs['value']
+            assert isinstance(value, dtype)  # 'fill' `value` must be of type `type` 
+            def func(x): return value 
+
+    # apply the rules and data type change
+
+    dataframe[col_name] = dataframe[col_name].apply(
+        lambda x: dtype(x) if x is not None else func(x))
+
+    return dataframe
