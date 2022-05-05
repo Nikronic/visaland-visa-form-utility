@@ -1,3 +1,4 @@
+from xml.etree.ElementInclude import include
 import pandas as pd
 import numpy as np
 from dateutil import parser
@@ -310,18 +311,12 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                                                 type=DOC_TYPES.canada, new_col_name='Remaining',
                                                 current_date=None, one_sided='left',
                                                 reference_date=dataframe['P3.Sign.C1CertificateIssueDate'])
-            # Taiwan doc: bool -> binary
-            dataframe['P2.MS.SecA.Psprt.TaiwanPIN'] = dataframe['P2.MS.SecA.Psprt.TaiwanPIN'].apply(
-                lambda x: True if (x is not None) and (x == 'Y') else False)
-            # Isreal doc: bool -> binary
-            dataframe['P2.MS.SecA.Psprt.IsraelPsprtIndicator'] = dataframe['P2.MS.SecA.Psprt.IsraelPsprtIndicator'].apply(
-                lambda x: True if (x is not None) and (x == 'Y') else False)
             # native lang: string -> categorical
-            dataframe['P2.MS.SecA.Langs.languages.nativeLang.nativeLang'] = dataframe['P2.MS.SecA.Langs.languages.nativeLang.nativeLang'].astype(
-                'string')
-            # communication lang: Eng, Fren, both, none -> categorical
-            dataframe['P2.MS.SecA.Langs.languages.ableToCommunicate.ableToCommunicate'] = dataframe['P2.MS.SecA.Langs.languages.ableToCommunicate.ableToCommunicate'].astype(
-                'string')
+            dataframe = self.change_dtype(col_name='P2.MS.SecA.Langs.languages.nativeLang.nativeLang',
+                                          dtype=str, if_nan='fill', value='IRAN')
+            # communication lang: Eng, Fr, both, none -> categorical
+            dataframe = self.change_dtype(col_name='P2.MS.SecA.Langs.languages.ableToCommunicate.ableToCommunicate',
+                                          dtype=str, if_nan='fill', value='NEITHER')
             # language official test: bool -> binary
             dataframe['P2.MS.SecA.Langs.LangTest'] = dataframe['P2.MS.SecA.Langs.LangTest'].apply(
                 lambda x: True if x == 'Y' else False)
@@ -329,8 +324,8 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             dataframe['P2.natID.q1.natIDIndicator'] = dataframe['P2.natID.q1.natIDIndicator'].apply(
                 lambda x: True if x == 'Y' else False)
             # national ID country of issue: string -> categorical
-            dataframe['P2.natID.natIDdocs.CountryofIssue.CountryofIssue'] = dataframe['P2.natID.natIDdocs.CountryofIssue.CountryofIssue'].astype(
-                'string')
+            dataframe = self.change_dtype(col_name='P2.natID.natIDdocs.CountryofIssue.CountryofIssue',
+                                          dtype=str, if_nan='fill', value='IRAN')
             # United States doc: bool -> binary
             dataframe['P2.USCard.q1.usCardIndicator'] = dataframe['P2.USCard.q1.usCardIndicator'].apply(
                 lambda x: True if x == 'Y' else False)
@@ -344,87 +339,81 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             dataframe['P2.CI.cntct.PhnNums.AltPhn.CanadaUS'] = dataframe['P2.CI.cntct.PhnNums.AltPhn.CanadaUS'].apply(
                 lambda x: True if x == '1' else False)
             # purpose of visit: string, 8 states -> categorical
-            dataframe['P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit'] = dataframe['P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit'].astype(
-                'string')
+            dataframe = self.change_dtype(col_name='P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit',
+                                          dtype=np.int8, if_nan='fill',
+                                          value=np.int8(7))  # 7 is other in the form
             # purpose of visit description: string -> binary
-            dataframe['P3.DOV.PrpsRow1.Other.Other'] = dataframe['P3.DOV.PrpsRow1.Other.Other'].apply(
-                lambda x: True if x is not None else False)
+            dataframe = self.change_dtype(col_name='P3.DOV.PrpsRow1.Other.Other', dtype=bool,
+                                          if_nan='fill', value=False)
             # how long going to stay: datetime -> int days
-            dataframe = self.aggregate_datetime(
-                col_base_name='P3.DOV.PrpsRow1.HLS', new_col_name='Period')
+            dataframe = self.aggregate_datetime(col_base_name='P3.DOV.PrpsRow1.HLS',
+                                                type=DOC_TYPES.canada, new_col_name='Period',
+                                                reference_date=None, current_date=None)
             # delete tnx to P3.DOV.PrpsRow1.HLS
-            self.column_dropper(string='P3.DOV.PrpsRow1.HLS', inplace=True)
+            self.column_dropper(string='P3.DOV.PrpsRow1.HLS',
+                                exclude='Period', inplace=True)
             # fund to integer
-            dataframe['P3.DOV.PrpsRow1.Funds.Funds'] = dataframe['P3.DOV.PrpsRow1.Funds.Funds'].astype(
-                'int16')
+            dataframe = self.change_dtype(col_name='P3.DOV.PrpsRow1.Funds.Funds', dtype=np.int32,
+                                          if_nan='skip')
             # relation to applicant of purpose of visit 01: string -> categorical
-            dataframe['P3.DOV.cntcts_Row1.RelationshipToMe.RelationshipToMe'] = dataframe['P3.DOV.cntcts_Row1.RelationshipToMe.RelationshipToMe'].astype(
-                'string')
+            dataframe = self.change_dtype(col_name='P3.DOV.cntcts_Row1.RelationshipToMe.RelationshipToMe',
+                                          dtype=str, if_nan='fill', value='OTHER')
             # relation to applicant of purpose of visit 02: string -> categorical
-            dataframe['P3.cntcts_Row2.Relationship.RelationshipToMe'] = dataframe['P3.cntcts_Row2.Relationship.RelationshipToMe'].astype(
-                'string')
+            dataframe = self.change_dtype(col_name='P3.cntcts_Row2.Relationship.RelationshipToMe',
+                                          dtype=str, if_nan='fill', value='OTHER')
             # higher education: bool -> binary
             dataframe['P3.Edu.EduIndicator'] = dataframe['P3.Edu.EduIndicator'].apply(
                 lambda x: True if x == 'Y' else False)
-            # higher education period: none -> string year -> int days
-            dataframe = self.fillna_datetime(col_base_name='P3.Edu.Edu_Row1')
+            # higher education period: string -> datetime -> int days
+            dataframe = self.change_dtype(col_name='P3.Edu.Edu_Row1.FromYear',
+                                          dtype=parser.parse, if_nan='fill',
+                                          value=dataframe['P3.Sign.C1CertificateIssueDate'])
+            dataframe = self.change_dtype(col_name='P3.Edu.Edu_Row1.ToYear',
+                                          dtype=parser.parse, if_nan='fill',
+                                          value=dataframe['P3.Sign.C1CertificateIssueDate'])
             dataframe = self.aggregate_datetime(col_base_name='P3.Edu.Edu_Row1',
-                                                new_col_name='Period', reference_date=None,
-                                                current_date=None)
-
+                                                type=DOC_TYPES.canada, new_col_name='Period',
+                                                reference_date=None, current_date=None)
+            # higher education country: string -> categorical
+            dataframe = self.change_dtype(col_name='P3.Edu.Edu_Row1.Country.Country',
+                                          dtype=str, if_nan='fill', value='IRAN')
             # TODO: add a method that determines the type of study [too general, zero priority].
             #   at the moment, we delete this too. See #1
             # field of study: string -> extract main keyword: eng, medical, other -> categorical
             # dataframe['P3.Edu.Edu_Row1.FieldOfStudy'] = dataframe['P3.Edu.Edu_Row1.FieldOfStudy'].astype(
             #     'string')
-
             self.column_dropper(string='P3.Edu.Edu_Row1.FieldOfStudy')
-            # higher education country: string -> categorical
-            dataframe['P3.Edu.Edu_Row1.Country.Country'] = dataframe['P3.Edu.Edu_Row1.Country.Country'].astype(
-                'string')
-            # occupation period 01: none -> string year -> int days
-            dataframe = self.fillna_datetime(col_base_name='P3.Occ.OccRow1', one_sided=True,
-                                             date=dataframe['P3.Sign.C1CertificateIssueDate'])
-            dataframe = self.aggregate_datetime(col_base_name='P3.Occ.OccRow1',
-                                                new_col_name='Period', reference_date=None,
-                                                current_date=None)
-            # TODO: add verification and make sure data falls into following categories at the begining at least.
-            # occupation type 01: string, employee, student, housewife, entrepreneur, etc -> categorical
-            dataframe['P3.Occ.OccRow1.Occ.Occ'] = dataframe['P3.Occ.OccRow1.Occ.Occ'].astype(
-                'string')
-            # occupation country: string -> categorical
-            dataframe['P3.Occ.OccRow1.Country.Country'] = dataframe['P3.Occ.OccRow1.Country.Country'].astype(
-                'string')
-            # occupation period 02: none -> string year -> int days
-            dataframe = self.fillna_datetime(col_base_name='P3.Occ.OccRow2', one_sided=True,
-                                             date=dataframe['P3.Sign.C1CertificateIssueDate'])
-            dataframe = self.aggregate_datetime(col_base_name='P3.Occ.OccRow2',
-                                                new_col_name='Period', reference_date=None,
-                                                current_date=None)
-            # occupation type 01: string, employee, student, housewife, entrepreneur, etc -> categorical
-            dataframe['P3.Occ.OccRow2.Occ.Occ'] = dataframe['P3.Occ.OccRow2.Occ.Occ'].astype(
-                'string')
-            # occupation country: string -> categorical
-            dataframe['P3.Occ.OccRow2.Country.Country'] = dataframe['P3.Occ.OccRow2.Country.Country'].astype(
-                'string')
-            # occupation period 03: none -> string year -> int days
-            dataframe = self.fillna_datetime(col_base_name='P3.Occ.OccRow3', one_sided=True,
-                                             date=dataframe['P3.Sign.C1CertificateIssueDate'])
-            dataframe = self.aggregate_datetime(col_base_name='P3.Occ.OccRow3',
-                                                new_col_name='Period', reference_date=None,
-                                                current_date=None)
-            # occupation type 01: string, employee, student, housewife, entrepreneur, etc -> categorical
-            dataframe['P3.Occ.OccRow3.Occ.Occ'] = dataframe['P3.Occ.OccRow3.Occ.Occ'].astype(
-                'string')
-            # occupation country: string -> categorical
-            dataframe['P3.Occ.OccRow3.Country.Country'] = dataframe['P3.Occ.OccRow3.Country.Country'].astype(
-                'string')
+
+            # clean occupation features
+            occupation_tag_list = [
+                c for c in dataframe.columns.values if 'P3.Occ.OccRow' in c]
+            PREV_OCCUPATION_MAX_FEATURES = 4
+            for i in range(len(occupation_tag_list) // PREV_OCCUPATION_MAX_FEATURES):
+                i += 1  # in the form, it starts from Row1 (ie. i+1)
+                # occupation period 01: none -> string year -> int days
+                dataframe = self.change_dtype(col_name='P3.Occ.OccRow'+str(i)+'.FromYear',
+                                              dtype=parser.parse, if_nan='fill',
+                                              value=dataframe['P3.Sign.C1CertificateIssueDate'])
+                dataframe = self.change_dtype(col_name='P3.Occ.OccRow'+str(i)+'.ToYear',
+                                              dtype=parser.parse, if_nan='fill',
+                                              value=dataframe['P3.Sign.C1CertificateIssueDate'])
+                dataframe = self.aggregate_datetime(col_base_name='P3.Occ.OccRow'+str(i),
+                                                    type=DOC_TYPES.canada, new_col_name='Period',
+                                                    reference_date=None, current_date=None)
+                # TODO: add verification and make sure data falls into following categories at the begining at least.
+                # occupation type 01: string, employee, student, housewife, entrepreneur, etc -> categorical
+                dataframe = self.change_dtype(col_name='P3.Occ.OccRow' + str(i)+'.Occ.Occ', dtype=str,
+                                              if_nan='fill', value='OTHER')
+                # occupation country: string -> categorical
+                dataframe = self.change_dtype(col_name='P3.Occ.OccRow' + str(i)+'.Country.Country',
+                                              dtype=str, if_nan='fill', value='IRAN')
+
             # medical details: string -> binary
-            dataframe['P3.BGI.Details.MedicalDetails'] = dataframe['P3.BGI.Details.MedicalDetails'].apply(
-                lambda x: True if x is not None else False)
+            dataframe = self.change_dtype(col_name='P3.BGI.Details.MedicalDetails', dtype=bool,
+                                          if_nan='fill', value=False)
             # other than medical: string -> binary
-            dataframe['P3.BGI.otherThanMedic'] = dataframe['P3.BGI.otherThanMedic'].apply(
-                lambda x: True if x is not None else False)
+            dataframe = self.change_dtype(col_name='P3.BGI.otherThanMedic', dtype=bool,
+                                          if_nan='fill', value=False)
             # without authentication stay, work, etc: bool -> binary
             dataframe['P3.noAuthStay'] = dataframe['P3.noAuthStay'].apply(
                 lambda x: True if x == 'Y' else False)
@@ -482,73 +471,70 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             cols = [col for col in dataframe.columns.values if 'p1.Subform1' in col]
             dataframe[cols] = dataframe[cols].astype(np.int16)
             # drop all names
-            functional.column_dropper(
-                dataframe=dataframe, string='Name', inplace=True)
+            self.column_dropper(string='Name', inplace=True)
             # drop all addresses
-            functional.column_dropper(
-                dataframe=dataframe, string='Addr', inplace=True)
+            self.column_dropper(string='Addr', inplace=True)
             # drop all Accompany=No and only rely on Accompany=Yes using binary state
-            functional.column_dropper(
-                dataframe=dataframe, string='No', inplace=True)
+            self.column_dropper(string='No', inplace=True)
             # drop tail of section (it's too much to consider 3rd sibling of someone's job/DOB/etc)
             # TODO: convert this into another variable that says someone "has foreigner sibling"
             #   also can convert it into "sibling living in foreign country"
 
             # applicant marriage status: string to integer
-            dataframe = self.change_dtype(dataframe=dataframe, col_name='p1.SecA.App.ChdMStatus',
+            dataframe = self.change_dtype(col_name='p1.SecA.App.ChdMStatus',
                                           dtype=np.int16, if_nan='fill',
                                           value=np.int16(CANADA_FILLNA.ChdMStatus_5645e.value))
             # spouse date of birth: string -> datetime
-            dataframe = self.change_dtype(dataframe=dataframe, col_name='p1.SecA.Sps.SpsDOB',
+            dataframe = self.change_dtype(col_name='p1.SecA.Sps.SpsDOB',
                                           dtype=parser.parse, if_nan='skip')
             # validation date of information, i.e. current date: datetime
-            dataframe = self.change_dtype(dataframe=dataframe, col_name='p1.SecC.SecCdate',
+            dataframe = self.change_dtype(col_name='p1.SecC.SecCdate',
                                           dtype=parser.parse, if_nan='skip')
             # spouse age period: datetime -> int days
-            dataframe = self.aggregate_datetime(dataframe=dataframe, col_base_name='p1.SecA.Sps.SpsDOB',
+            dataframe = self.aggregate_datetime(col_base_name='p1.SecA.Sps.SpsDOB',
                                                 type=DOC_TYPES.canada, new_col_name='Period',
                                                 reference_date=dataframe['p1.SecA.Sps.SpsDOB'],
                                                 current_date=dataframe['p1.SecC.SecCdate'], one_sided='right')
             # spouse country of birth: string -> categorical
-            dataframe = self.change_dtype(dataframe=dataframe, col_name='p1.SecA.Sps.SpsCOB',
+            dataframe = self.change_dtype(col_name='p1.SecA.Sps.SpsCOB',
                                           dtype=str, if_nan='skip')
             # spouse occupation type (issue #1, #2, #3): string, employee, student, housewife, entrepreneur, etc -> categorical
-            dataframe = self.change_dtype(dataframe=dataframe, col_name='p1.SecA.Sps.SpsOcc',
+            dataframe = self.change_dtype(col_name='p1.SecA.Sps.SpsOcc',
                                           dtype=str, if_nan='fill', value='OTHER')
             # spouse accompanying: coming=True or not_coming=False
             dataframe['p1.SecA.Sps.SpsAccomp'] = dataframe['p1.SecA.Sps.SpsAccomp'].apply(
                 lambda x: False if x == '0' else True)
             # mother date of birth: string -> datetime
-            dataframe = self.change_dtype(dataframe=dataframe, col_name='p1.SecA.Mo.MoDOB',
+            dataframe = self.change_dtype(col_name='p1.SecA.Mo.MoDOB',
                                           dtype=parser.parse, if_nan='skip')
             # mother age period: datetime -> int days
-            dataframe = self.aggregate_datetime(dataframe=dataframe, col_base_name='p1.SecA.Mo.MoDOB',
+            dataframe = self.aggregate_datetime(col_base_name='p1.SecA.Mo.MoDOB',
                                                 type=DOC_TYPES.canada, new_col_name='Period',
                                                 reference_date=dataframe['p1.SecA.Mo.MoDOB'],
                                                 current_date=dataframe['p1.SecC.SecCdate'], one_sided='right')
             # mother occupation type (issue #1, #2, #3): string, employee, student, housewife, entrepreneur, etc -> categorical
-            dataframe = self.change_dtype(dataframe=dataframe, col_name='p1.SecA.Mo.MoOcc',
+            dataframe = self.change_dtype(col_name='p1.SecA.Mo.MoOcc',
                                           dtype=str, if_nan='fill', value='OTHER')
             # mother marriage status: int -> categorical
-            dataframe = self.change_dtype(dataframe=dataframe, col_name='p1.SecA.Mo.ChdMStatus',
+            dataframe = self.change_dtype(col_name='p1.SecA.Mo.ChdMStatus',
                                           dtype=np.int16, if_nan='fill',
                                           value=np.int16(CANADA_FILLNA.ChdMStatus_5645e.value))
             # mother accompanying: coming=True or not_coming=False
             dataframe['p1.SecA.Mo.MoAccomp'] = dataframe['p1.SecA.Mo.MoAccomp'].apply(
                 lambda x: False if x == '0' else True)
             # father date of birth: string -> datetime
-            dataframe = self.change_dtype(dataframe=dataframe, col_name='p1.SecA.Fa.FaDOB',
+            dataframe = self.change_dtype(col_name='p1.SecA.Fa.FaDOB',
                                           dtype=parser.parse, if_nan='skip')
             # father age period: datetime -> int days
-            dataframe = self.aggregate_datetime(dataframe=dataframe, col_base_name='p1.SecA.Fa.FaDOB',
+            dataframe = self.aggregate_datetime(col_base_name='p1.SecA.Fa.FaDOB',
                                                 type=DOC_TYPES.canada, new_col_name='Period',
                                                 reference_date=dataframe['p1.SecA.Fa.FaDOB'],
                                                 current_date=dataframe['p1.SecC.SecCdate'], one_sided='right')
             # mother occupation type (issue #1, #2, #3): string, employee, student, housewife, entrepreneur, etc -> categorical
-            dataframe = self.change_dtype(dataframe=dataframe, col_name='p1.SecA.Fa.FaOcc',
+            dataframe = self.change_dtype(col_name='p1.SecA.Fa.FaOcc',
                                           dtype=str, if_nan='fill', value='OTHER')
             # father marriage status: int -> categorical
-            dataframe = self.change_dtype(dataframe=dataframe, col_name='p1.SecA.Fa.ChdMStatus',
+            dataframe = self.change_dtype(col_name='p1.SecA.Fa.ChdMStatus',
                                           dtype=np.int16, if_nan='fill',
                                           value=np.int16(CANADA_FILLNA.ChdMStatus_5645e.value))
             # father accompanying: coming=True or not_coming=False
@@ -561,30 +547,30 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             CHILDREN_MAX_FEATURES = 6
             for i in range(len(children_tag_list) // CHILDREN_MAX_FEATURES):
                 # child's marriage status 01: string to integer
-                dataframe = self.change_dtype(dataframe=dataframe, col_name='p1.SecB.Chd.['+str(i)+'].ChdMStatus',
-                                              dtype=np.int8, if_nan='fill',
+                dataframe = self.change_dtype(col_name='p1.SecB.Chd.['+str(i)+'].ChdMStatus',
+                                              dtype=np.int16, if_nan='fill',
                                               value=np.int16(CANADA_FILLNA.ChdMStatus_5645e.value))
                 # child's relationship 01: string -> categorical
-                dataframe = self.change_dtype(dataframe=dataframe, col_name='p1.SecB.Chd.['+str(i)+'].ChdRel',
+                dataframe = self.change_dtype(col_name='p1.SecB.Chd.['+str(i)+'].ChdRel',
                                               dtype=str, if_nan='fill', value='OTHER')
                 # child's date of birth 01: string -> datetime
-                dataframe = self.change_dtype(dataframe=dataframe, col_name='p1.SecB.Chd.['+str(i)+'].ChdDOB',
+                dataframe = self.change_dtype(col_name='p1.SecB.Chd.['+str(i)+'].ChdDOB',
                                               dtype=parser.parse, if_nan='skip')
                 # child's age period 01: datetime -> int days
-                dataframe = self.aggregate_datetime(dataframe=dataframe, type=DOC_TYPES.canada,
+                dataframe = self.aggregate_datetime(type=DOC_TYPES.canada,
                                                     col_base_name='p1.SecB.Chd.[' +
                                                     str(i)+'].ChdDOB', new_col_name='Period',
                                                     reference_date=None, one_sided='right',
                                                     current_date=dataframe['p1.SecC.SecCdate'],
                                                     if_nan='skip')
                 # child's country of birth 01: string -> categorical
-                dataframe = self.change_dtype(dataframe=dataframe, col_name='p1.SecB.Chd.['+str(i)+'].ChdCOB',
+                dataframe = self.change_dtype(col_name='p1.SecB.Chd.['+str(i)+'].ChdCOB',
                                               dtype=str, if_nan='fill', value='IRAN')
                 # child's occupation type 01 (issue #1, #2, #3): string, employee, student, housewife, entrepreneur, etc -> categorical
-                dataframe = self.change_dtype(dataframe=dataframe, col_name='p1.SecB.Chd.['+str(i)+'].ChdOcc',
+                dataframe = self.change_dtype(col_name='p1.SecB.Chd.['+str(i)+'].ChdOcc',
                                               dtype=str, if_nan='fill', value='OTHER')
                 # child's marriage status: int -> categorical
-                dataframe = self.change_dtype(dataframe=dataframe, col_name='p1.SecB.Chd.['+str(i)+'].ChdMStatus',
+                dataframe = self.change_dtype(col_name='p1.SecB.Chd.['+str(i)+'].ChdMStatus',
                                               dtype=np.int16, if_nan='fill',
                                               value=np.int16(CANADA_FILLNA.ChdMStatus_5645e.value))
                 # child's accompanying 01: coming=True or not_coming=False
@@ -596,11 +582,11 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                         and (dataframe['p1.SecB.Chd.['+str(i)+'].ChdRel'] == 'OTHER').all() \
                         and (dataframe['p1.SecB.Chd.['+str(i)+'].ChdDOB'].isna()).all():
                     # ghost child's date of birth: None -> datetime (current date) -> 0 days
-                    dataframe = self. change_dtype(dataframe=dataframe, col_name='p1.SecB.Chd.['+str(i)+'].ChdDOB',
+                    dataframe = self. change_dtype(col_name='p1.SecB.Chd.['+str(i)+'].ChdDOB',
                                                    dtype=parser.parse, if_nan='fill',
                                                    value=dataframe['p1.SecC.SecCdate'])
                     # ghost child's age period: datetime (current date) -> int 0 days
-                    dataframe = self.aggregate_datetime(dataframe=dataframe, type=DOC_TYPES.canada,
+                    dataframe = self.aggregate_datetime(type=DOC_TYPES.canada,
                                                         col_base_name='p1.SecB.Chd.[' +
                                                         str(i)+'].ChdDOB', new_col_name='Period',
                                                         reference_date=None, one_sided='right',
@@ -633,30 +619,30 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             SIBLINGS_MAX_FEATURES = 6
             for i in range(len(siblings_tag_list) // CHILDREN_MAX_FEATURES):
                 # sibling's marriage status 01: string to integer
-                dataframe = self.change_dtype(dataframe=dataframe, col_name='p1.SecC.Chd.['+str(i)+'].ChdMStatus',
+                dataframe = self.change_dtype(col_name='p1.SecC.Chd.['+str(i)+'].ChdMStatus',
                                               dtype=np.int8, if_nan='fill',
                                               value=np.int16(CANADA_FILLNA.ChdMStatus_5645e.value))
                 # sibling's relationship 01: string -> categorical
-                dataframe = self.change_dtype(dataframe=dataframe, col_name='p1.SecC.Chd.['+str(i)+'].ChdRel',
+                dataframe = self.change_dtype(col_name='p1.SecC.Chd.['+str(i)+'].ChdRel',
                                               dtype=str, if_nan='fill', value='OTHER')
                 # sibling's date of birth 01: string -> datetime
-                dataframe = self.change_dtype(dataframe=dataframe, col_name='p1.SecC.Chd.['+str(i)+'].ChdDOB',
+                dataframe = self.change_dtype(col_name='p1.SecC.Chd.['+str(i)+'].ChdDOB',
                                               dtype=parser.parse, if_nan='skip')
                 # sibling's age period 01: datetime -> int days
-                dataframe = self.aggregate_datetime(dataframe=dataframe, type=DOC_TYPES.canada,
+                dataframe = self.aggregate_datetime(type=DOC_TYPES.canada,
                                                     col_base_name='p1.SecC.Chd.[' +
                                                     str(i)+'].ChdDOB', new_col_name='Period',
                                                     reference_date=None, one_sided='right',
                                                     current_date=dataframe['p1.SecC.SecCdate'],
                                                     if_nan='skip')
                 # sibling's country of birth 01: string -> categorical
-                dataframe = self.change_dtype(dataframe=dataframe, col_name='p1.SecC.Chd.['+str(i)+'].ChdCOB',
+                dataframe = self.change_dtype(col_name='p1.SecC.Chd.['+str(i)+'].ChdCOB',
                                               dtype=str, if_nan='fill', value='IRAN')
                 # sibling's occupation type 01 (issue #1, #2, #3): string, employee, student, housewife, entrepreneur, etc -> categorical
-                dataframe = self.change_dtype(dataframe=dataframe, col_name='p1.SecC.Chd.['+str(i)+'].ChdOcc',
+                dataframe = self.change_dtype(col_name='p1.SecC.Chd.['+str(i)+'].ChdOcc',
                                               dtype=str, if_nan='fill', value='OTHER')
                 # child's marriage status: int -> categorical
-                dataframe = self.change_dtype(dataframe=dataframe, col_name='p1.SecC.Chd.['+str(i)+'].ChdMStatus',
+                dataframe = self.change_dtype(col_name='p1.SecC.Chd.['+str(i)+'].ChdMStatus',
                                               dtype=np.int16, if_nan='fill',
                                               value=np.int16(CANADA_FILLNA.ChdMStatus_5645e.value))
                 # sibling's accompanying: coming=True or not_coming=False
@@ -668,11 +654,11 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                         and (dataframe['p1.SecC.Chd.['+str(i)+'].ChdRel'] == 'OTHER').all() \
                         and (dataframe['p1.SecC.Chd.['+str(i)+'].ChdDOB'].isna()).all():
                     # ghost sibling's date of birth: None -> datetime (current date) -> 0 days
-                    dataframe = self.change_dtype(dataframe=dataframe, col_name='p1.SecC.Chd.['+str(i)+'].ChdDOB',
+                    dataframe = self.change_dtype(col_name='p1.SecC.Chd.['+str(i)+'].ChdDOB',
                                                   dtype=parser.parse, if_nan='fill',
                                                   value=dataframe['p1.SecC.SecCdate'])
                     # ghost sibling's age period: datetime (current date) -> int 0 days
-                    dataframe = self.aggregate_datetime(dataframe=dataframe, type=DOC_TYPES.canada,
+                    dataframe = self.aggregate_datetime(type=DOC_TYPES.canada,
                                                         col_base_name='p1.SecC.Chd.[' +
                                                         str(i)+'].ChdDOB', new_col_name='Period',
                                                         reference_date=None, one_sided='right',
@@ -698,3 +684,5 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                 dataframe[c+'.Period'] = dataframe[dataframe[col_names]
                                                    != 0].mean(axis=1)
                 dataframe.drop(col_names_unprocessed, axis=1, inplace=True)
+
+            return dataframe
