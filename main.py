@@ -19,7 +19,10 @@ canada_xfa.make_machine_readable(
 # 5257e
 # ######
 # file specific loading
-SAMPLE = 'sample/dec_sample/imm5257e.pdf'
+SAMPLE_APPLICANT = 'sample/dec_sample/imm5257e.pdf'
+SAMPLE_FAMILY = 'sample/dec_sample/imm5645e.pdf'
 ca_df_preprocessor = CanadaDataframePreprocessor()
-dataframe = ca_df_preprocessor.file_specific_basic_transform(
-    path=SAMPLE, type=DOC_TYPES.canada_5257e)
+dataframe_applicant = ca_df_preprocessor.file_specific_basic_transform(
+    path=SAMPLE_APPLICANT, type=DOC_TYPES.canada_5257e)
+dataframe_family = ca_df_preprocessor.file_specific_basic_transform(
+    path=SAMPLE_FAMILY, type=DOC_TYPES.canada_5645e)

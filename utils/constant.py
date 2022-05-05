@@ -58,7 +58,9 @@ CANADA_5645E_KEY_ABBREVIATION = {
 
 # dict of abbreviation used to shortening length of VALUES in XML to CSV conversion
 CANADA_5257E_VALUE_ABBREVIATION = {
-    'BIOMETRIC ENROLMENT': 'Bio'
+    'BIOMETRIC ENROLMENT': 'Bio',
+    '223': 'IRAN',
+    '045': 'TURKEY',
 }
 
 # LIST
@@ -113,7 +115,7 @@ CANADA_5257E_DROP_COLUMNS = [
     'P1.MS.SecA.FamilyName', 'P1.MS.SecA.GivenName', 'P2.MS.SecA.PrevSpouseDOB.DOBMonth',
     'P2.MS.SecA.PrevSpouseDOB.DOBDay', 'P2.MS.SecA.Psprt.PsprtNum.PsprtNum',
     'P2.natID.natIDdocs.DocNum.DocNum', 'P2.MS.SecA.Langs.languages.lov', 'P3.Occ.OccRow1.Employer',
-    'P3.Occ.OccRow2.Employer', 'P3.Occ.OccRow3.Employer',
+    'P3.Occ.OccRow2.Employer', 'P3.Occ.OccRow3.Employer', 'P1.Age', 
 ]
 
 CANADA_5645E_DROP_COLUMNS = {
