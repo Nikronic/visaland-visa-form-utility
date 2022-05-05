@@ -68,6 +68,7 @@ class DataframePreprocessor:
                                           one_sided=one_sided, date=date, inplace=inplace)
 
     def aggregate_datetime(self, col_base_name: str, new_col_name: str,
+                           if_nan: Union[str, FunctionType] = None,
                            one_sided: str = None, reference_date: str = None,
                            current_date: str = None) -> pd.DataFrame:
         """
@@ -90,9 +91,12 @@ class DataframePreprocessor:
                 2. `'left'`: Uses the `reference_date` as the starting time
             reference_date: Assumed `reference_date` (t0<t1)
             current_date: Assumed `current_date` (t1>t0)
+            if_nan: What to do with `None`s (NaN). Could be a function or predfined states as follow:\n
+                1. 'skip': do nothing (i.e. ignore `None`'s)
         """
         return functional.aggregate_datetime(dataframe=self.dataframe, col_base_name=col_base_name,
                                              new_col_name=new_col_name, one_sided=one_sided,
+                                             if_nan=if_nan,
                                              reference_date=reference_date,
                                              current_date=current_date)
 
@@ -113,7 +117,7 @@ class DataframePreprocessor:
         raise NotImplementedError
 
     def change_dtype(self, col_name: str, dtype: FunctionType, inplace: str,
-                     if_nan: Union[str, FunctionType] = 'skip'):
+                     if_nan: Union[str, FunctionType] = 'skip', **kwargs):
         """
         Takes a column name and changes the dataframe's column data type where for 
             None (nan) values behave based on `if_nan` argument.
@@ -127,7 +131,8 @@ class DataframePreprocessor:
         """
 
         return functional.change_dtype(dataframe=self.dataframe, col_name=col_name,
-                                       dtype=dtype, inplace=inplace, if_nan=if_nan)
+                                       dtype=dtype, inplace=inplace, if_nan=if_nan,
+                                       **kwargs)
 
 
 class CanadaDataframePreprocessor(DataframePreprocessor):

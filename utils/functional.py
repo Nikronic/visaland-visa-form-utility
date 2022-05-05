@@ -224,9 +224,10 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
         if isinstance(column_to_date, str):
             column_to_date = parser.parse(column_to_date)
 
-    if if_nan == 'skip':
-        if column_from_date.isna().all() or column_to_date.isna().all():
-            return dataframe
+    if if_nan is not None:
+        if if_nan == 'skip':
+            if column_from_date.isna().all() or column_to_date.isna().all():
+                return dataframe
 
     dataframe[aggregated_column_name] = np.nan  # combination of dates
     dataframe[aggregated_column_name].fillna(
@@ -278,11 +279,9 @@ def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: FunctionType,
             def func(x): return x
         if if_nan == 'fill':
             value = kwargs['value']
-            assert isinstance(value, dtype)  # 'fill' `value` must be of type `type` 
-            def func(x): return value 
+            def func(x): return value
 
     # apply the rules and data type change
-
     dataframe[col_name] = dataframe[col_name].apply(
         lambda x: dtype(x) if x is not None else func(x))
 
