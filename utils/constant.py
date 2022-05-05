@@ -53,7 +53,7 @@ CANADA_5645E_KEY_ABBREVIATION = {
     'Occupation': 'Occ',
     'Yes': 'Accomp',
     'Relationship': 'Rel',
-    
+
 }
 
 # dict of abbreviation used to shortening length of VALUES in XML to CSV conversion
@@ -121,9 +121,8 @@ CANADA_5645E_DROP_COLUMNS = {
     'p1.SecA.App.AppOcc', 'p1.SecA.App.AppOcc', 'p1.SecB.SecBsignature',
     'p1.SecB.SecBdate', 'p1.SecC.Title.@xfa:dataNode', 'p1.SecA.SecAsignature',
     'p1.SecA.SecAdate', 'p1.SecB.Title.@xfa:dataNode', 'p1.SecC.SecCsignature',
-    'p1.SecC.Subform2.@xfa:dataNode', 'p1.SecA.Sps.ChdMStatus',
+    'p1.SecC.Subform2.@xfa:dataNode', 'p1.SecA.Sps.ChdMStatus', 'formNum',
 }
-
 
 
 # ENUM
@@ -136,9 +135,8 @@ class DOC_TYPES(Enum):
     canada_5257e = 2  # application for visitor visa (temporary resident visa)
     canada_5645e = 3  # Family information
 
+
 # Cutoff terms for both keys and values
-
-
 class CANADA_CUTOFF_TERMS(Enum):
     """
     Dict of cut off terms for different files that is can be used with
@@ -147,3 +145,11 @@ class CANADA_CUTOFF_TERMS(Enum):
 
     ca5645e = 'IMM_5645'
     ca5257e = 'form1'
+
+
+# values used to fill None's depending on the form structure
+#   remark: we do not use any heuristics here, we just follow what form used and only add another
+# option which should be used as None state (i.e. None as a separate feature in categorical mode).
+class CANADA_FILLNA(Enum):
+
+    ChdMStatus_5645e = 9
