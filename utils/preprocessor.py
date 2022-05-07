@@ -173,7 +173,8 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                 data=[data_dict], orient='columns')
             self.dataframe = dataframe
             # drop pepeg columns
-            dataframe.drop(CANADA_5257E_DROP_COLUMNS, axis=1, inplace=True)
+            #   warning: setting `errors='ignore` ignores errors if columns do not exist!
+            dataframe.drop(CANADA_5257E_DROP_COLUMNS, axis=1, inplace=True, errors='ignore')
 
             # Adult binary state: adult=True or child=False
             dataframe['P1.AdultFlag'] = dataframe['P1.AdultFlag'].apply(
@@ -440,6 +441,8 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             # witness of ill treatment: bool -> binary
             dataframe['P3.PWrapper.witnessIllTreat'] = dataframe['P3.PWrapper.witnessIllTreat'].apply(
                 lambda x: True if x == 'Y' else False)
+            self.column_dropper(
+                string='P3.Sign.C1CertificateIssueDate', inplace=True)
 
             return dataframe
 
@@ -464,7 +467,8 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
 
             # drop pepeg columns
             # 5645e Canada is way easier to programmatically delete columns, hence we avoid hardcoding
-            dataframe.drop(CANADA_5645E_DROP_COLUMNS, axis=1, inplace=True)
+            #   warning: setting `errors='ignore` ignores errors if columns do not exist!
+            dataframe.drop(CANADA_5645E_DROP_COLUMNS, axis=1, inplace=True, errors='ignore')
 
             # transform multiple pleb columns into a single chad one (e.g. *.FromDate and *.ToDate --> *.Period)
             # *.FromDate and *.ToDate --> *.Period
@@ -687,5 +691,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                 dataframe[c+'.Period'] = dataframe[dataframe[col_names]
                                                    != 0].mean(axis=1)
                 dataframe.drop(col_names_unprocessed, axis=1, inplace=True)
+
+            self.column_dropper(string='p1.SecC.SecCdate', inplace=True)
 
             return dataframe
