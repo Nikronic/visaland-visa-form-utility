@@ -141,18 +141,6 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
     def __init__(self) -> None:
         super().__init__()
 
-    def fillna_child_marriage_status(self, col_base_name: str, status: str, inplace: bool = False):
-        """
-        Fills the None values for `ChdMStatus` using given value or the following logics:\n
-            1. take the average age of people and check if they are married. If our candidate has
-                more age than average married people, then call married
-            2. TODO: use data analysis methods to see who are married people and infer nan's
-        """
-        # TODO: might wanna move it to `DataframePreprocessor` since might be common between all
-        # countries
-
-        raise NotImplementedError
-
     def file_specific_basic_transform(self, type: DOC_TYPES, path: str) -> pd.DataFrame:
         canada_xfa = CanadaXFA()  # Canada PDF to XML
         xml = canada_xfa.extract_raw_content(path)
@@ -185,7 +173,8 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             # AliasNameIndicator: 1=True, 0=False
             dataframe['P1.PD.AliasName.AliasNameIndicator.AliasNameIndicator'] = dataframe['P1.PD.AliasName.AliasNameIndicator.AliasNameIndicator'].apply(
                 lambda x: True if x == 'Y' else False)
-            # VisaType: String, We may need to remove it if its all the same everywhere, otherwise categorical
+            # VisaType: String -> categorical
+            #   TODO: We may need to remove it if its all the same everywhere
             dataframe = self.change_dtype(col_name='P1.PD.VisaType.VisaType', dtype=str,
                                           if_nan='fill', value='OTHER')
             # Birth City: String -> categorical
@@ -234,8 +223,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                 c for c in dataframe.columns.values if 'P1.PD.PrevCOR.' in c]
             PREV_COUNTRY_MAX_FEATURES = 4
             for i in range(len(country_tag_list) // PREV_COUNTRY_MAX_FEATURES):
-                # in XLA extracted file, this section start from `Row2` (ie. i+2)
-                i += 2
+                i += 2  # in XLA extracted file, this section start from `Row2` (ie. i+2)
                 # previous country of residency 02: string -> categorical
                 dataframe = self.change_dtype(col_name='P1.PD.PrevCOR.Row'+str(i)+'.Country', dtype=str,
                                               if_nan='fill', value='OTHER')
@@ -383,13 +371,10 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             # higher education country: string -> categorical
             dataframe = self.change_dtype(col_name='P3.Edu.Edu_Row1.Country.Country',
                                           dtype=str, if_nan='fill', value='IRAN')
-            # TODO: add a method that determines the type of study [too general, zero priority].
-            #   at the moment, we delete this too. See #1
-            # field of study: string -> extract main keyword: eng, medical, other -> categorical
-            # dataframe['P3.Edu.Edu_Row1.FieldOfStudy'] = dataframe['P3.Edu.Edu_Row1.FieldOfStudy'].astype(
-            #     'string')
+            # TODO: see #1 
+            # field of study: string -> categorical
+            # dataframe['P3.Edu.Edu_Row1.FieldOfStudy'] = dataframe['P3.Edu.Edu_Row1.FieldOfStudy'].astype('string')
             self.column_dropper(string='P3.Edu.Edu_Row1.FieldOfStudy')
-
             # clean occupation features
             occupation_tag_list = [
                 c for c in dataframe.columns.values if 'P3.Occ.OccRow' in c]
@@ -406,8 +391,8 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                 dataframe = self.aggregate_datetime(col_base_name='P3.Occ.OccRow'+str(i),
                                                     type=DOC_TYPES.canada, new_col_name='Period',
                                                     reference_date=None, current_date=None)
-                # TODO: add verification and make sure data falls into following categories at the begining at least.
-                # occupation type 01: string, employee, student, housewife, entrepreneur, etc -> categorical
+                # TODO: see #2
+                # occupation type 01: string -> categorical
                 dataframe = self.change_dtype(col_name='P3.Occ.OccRow' + str(i)+'.Occ.Occ', dtype=str,
                                               if_nan='fill', value='OTHER')
                 # occupation country: string -> categorical
@@ -441,6 +426,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             # witness of ill treatment: bool -> binary
             dataframe['P3.PWrapper.witnessIllTreat'] = dataframe['P3.PWrapper.witnessIllTreat'].apply(
                 lambda x: True if x == 'Y' else False)
+            # drop the time form was filled
             self.column_dropper(
                 string='P3.Sign.C1CertificateIssueDate', inplace=True)
 
@@ -457,8 +443,6 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             data_dict = functional.dict_summarizer(data_dict, cutoff_term=CANADA_CUTOFF_TERMS.ca5645e.value,
                                                    KEY_ABBREVIATION_DICT=CANADA_5645E_KEY_ABBREVIATION,
                                                    VALUE_ABBREVIATION_DICT=None)
-            # write to csv
-            # functional.dict_to_csv(d=data_dict, path='sample/csv/5645e.csv')
 
             # convert each data dict to a dataframe
             dataframe = pd.DataFrame.from_dict(
@@ -466,15 +450,11 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             self.dataframe = dataframe
 
             # drop pepeg columns
-            # 5645e Canada is way easier to programmatically delete columns, hence we avoid hardcoding
             #   warning: setting `errors='ignore` ignores errors if columns do not exist!
             dataframe.drop(CANADA_5645E_DROP_COLUMNS, axis=1, inplace=True, errors='ignore')
 
-            # transform multiple pleb columns into a single chad one (e.g. *.FromDate and *.ToDate --> *.Period)
-            # *.FromDate and *.ToDate --> *.Period
-            # column dtypes
-
-            # type of application -> onehot (str) -> onehot (int16)
+            # transform multiple pleb columns into a single chad one and fixing column dtypes
+            # type of application -> onehot -> int
             cols = [col for col in dataframe.columns.values if 'p1.Subform1' in col]
             dataframe[cols] = dataframe[cols].astype(np.int16)
             # drop all names
@@ -483,10 +463,6 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             self.column_dropper(string='Addr', inplace=True)
             # drop all Accompany=No and only rely on Accompany=Yes using binary state
             self.column_dropper(string='No', inplace=True)
-            # drop tail of section (it's too much to consider 3rd sibling of someone's job/DOB/etc)
-            # TODO: convert this into another variable that says someone "has foreigner sibling"
-            #   also can convert it into "sibling living in foreign country"
-
             # applicant marriage status: string to integer
             dataframe = self.change_dtype(col_name='p1.SecA.App.ChdMStatus',
                                           dtype=np.int16, if_nan='fill',
@@ -505,7 +481,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             # spouse country of birth: string -> categorical
             dataframe = self.change_dtype(col_name='p1.SecA.Sps.SpsCOB',
                                           dtype=str, if_nan='skip')
-            # spouse occupation type (issue #1, #2, #3): string, employee, student, housewife, entrepreneur, etc -> categorical
+            # spouse occupation type (issue #2): string -> categorical
             dataframe = self.change_dtype(col_name='p1.SecA.Sps.SpsOcc',
                                           dtype=str, if_nan='fill', value='OTHER')
             # spouse accompanying: coming=True or not_coming=False
@@ -519,7 +495,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                                                 type=DOC_TYPES.canada, new_col_name='Period',
                                                 reference_date=dataframe['p1.SecA.Mo.MoDOB'],
                                                 current_date=dataframe['p1.SecC.SecCdate'], one_sided='right')
-            # mother occupation type (issue #1, #2, #3): string, employee, student, housewife, entrepreneur, etc -> categorical
+            # mother occupation type (issue #2): string -> categorical
             dataframe = self.change_dtype(col_name='p1.SecA.Mo.MoOcc',
                                           dtype=str, if_nan='fill', value='OTHER')
             # mother marriage status: int -> categorical
@@ -537,7 +513,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                                                 type=DOC_TYPES.canada, new_col_name='Period',
                                                 reference_date=dataframe['p1.SecA.Fa.FaDOB'],
                                                 current_date=dataframe['p1.SecC.SecCdate'], one_sided='right')
-            # mother occupation type (issue #1, #2, #3): string, employee, student, housewife, entrepreneur, etc -> categorical
+            # mother occupation type (issue #2): string -> categorical
             dataframe = self.change_dtype(col_name='p1.SecA.Fa.FaOcc',
                                           dtype=str, if_nan='fill', value='OTHER')
             # father marriage status: int -> categorical
@@ -573,7 +549,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                 # child's country of birth 01: string -> categorical
                 dataframe = self.change_dtype(col_name='p1.SecB.Chd.['+str(i)+'].ChdCOB',
                                               dtype=str, if_nan='fill', value='IRAN')
-                # child's occupation type 01 (issue #1, #2, #3): string, employee, student, housewife, entrepreneur, etc -> categorical
+                # child's occupation type 01 (issue #2): string -> categorical
                 dataframe = self.change_dtype(col_name='p1.SecB.Chd.['+str(i)+'].ChdOcc',
                                               dtype=str, if_nan='fill', value='OTHER')
                 # child's marriage status: int -> categorical
@@ -645,7 +621,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                 # sibling's country of birth 01: string -> categorical
                 dataframe = self.change_dtype(col_name='p1.SecC.Chd.['+str(i)+'].ChdCOB',
                                               dtype=str, if_nan='fill', value='IRAN')
-                # sibling's occupation type 01 (issue #1, #2, #3): string, employee, student, housewife, entrepreneur, etc -> categorical
+                # sibling's occupation type 01 (issue #2): string -> categorical
                 dataframe = self.change_dtype(col_name='p1.SecC.Chd.['+str(i)+'].ChdOcc',
                                               dtype=str, if_nan='fill', value='OTHER')
                 # child's marriage status: int -> categorical
@@ -691,7 +667,8 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                 dataframe[c+'.Period'] = dataframe[dataframe[col_names]
                                                    != 0].mean(axis=1)
                 dataframe.drop(col_names_unprocessed, axis=1, inplace=True)
-
+            
+            # drop the time form was filled
             self.column_dropper(string='p1.SecC.SecCdate', inplace=True)
 
             return dataframe
