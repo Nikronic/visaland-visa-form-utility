@@ -1,4 +1,5 @@
-from xml.etree.ElementInclude import include
+__all__ = ['DataframePreprocessor', 'CanadaDataframePreprocessor', 'T0']
+
 import pandas as pd
 import numpy as np
 from dateutil import parser
@@ -284,6 +285,10 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             # previous marriage: Y=True, N=False
             dataframe['P2.MS.SecA.PrevMarrIndicator'] = dataframe['P2.MS.SecA.PrevMarrIndicator'].apply(
                 lambda x: True if x == 'Y' else False)
+            # previous marriage type of relationship
+            dataframe = self.change_dtype(col_name='P2.MS.SecA.TypeOfRelationship',
+                                          dtype=str, if_nan='fill',
+                                          value='OTHER')
             # previous spouse age period: string -> datetime -> int days
             dataframe = self.change_dtype(col_name='P2.MS.SecA.PrevSpouseDOB.DOBYear',
                                           dtype=parser.parse, if_nan='fill',
@@ -455,9 +460,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             # convert each data dict to a dataframe
             dataframe = pd.DataFrame.from_dict(
                 data=[data_dict], orient='columns')
-
-            # add rows to main dataframe
-            dataframe2 = pd.concat(objs=[dataframe, dataframe], axis=0)
+            self.dataframe = dataframe
 
             # drop pepeg columns
             # 5645e Canada is way easier to programmatically delete columns, hence we avoid hardcoding

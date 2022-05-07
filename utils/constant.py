@@ -115,7 +115,8 @@ CANADA_5257E_DROP_COLUMNS = [
     'P1.MS.SecA.FamilyName', 'P1.MS.SecA.GivenName', 'P2.MS.SecA.PrevSpouseDOB.DOBMonth',
     'P2.MS.SecA.PrevSpouseDOB.DOBDay', 'P2.MS.SecA.Psprt.PsprtNum.PsprtNum',
     'P2.natID.natIDdocs.DocNum.DocNum', 'P2.MS.SecA.Langs.languages.lov', 'P3.Occ.OccRow1.Employer',
-    'P3.Occ.OccRow2.Employer', 'P3.Occ.OccRow3.Employer', 'P1.Age', 
+    'P3.Occ.OccRow2.Employer', 'P3.Occ.OccRow3.Employer', 'P1.Age',
+    'P2.MS.SecA.Psprt.TaiwanPIN', 'P2.MS.SecA.Psprt.IsraelPsprtIndicator',
 ]
 
 CANADA_5645E_DROP_COLUMNS = {
@@ -123,8 +124,7 @@ CANADA_5645E_DROP_COLUMNS = {
     'p1.SecA.App.AppOcc', 'p1.SecA.App.AppOcc', 'p1.SecB.SecBsignature',
     'p1.SecB.SecBdate', 'p1.SecC.Title.@xfa:dataNode', 'p1.SecA.SecAsignature',
     'p1.SecA.SecAdate', 'p1.SecB.Title.@xfa:dataNode', 'p1.SecC.SecCsignature',
-    'p1.SecC.Subform2.@xfa:dataNode', 'p1.SecA.Sps.ChdMStatus', 'formNum', 
-    # 'P2.MS.SecA.Psprt.TaiwanPIN', 'P2.MS.SecA.Psprt.IsraelPsprtIndicator', 
+    'p1.SecC.Subform2.@xfa:dataNode', 'p1.SecA.Sps.ChdMStatus', 'formNum',
 }
 
 

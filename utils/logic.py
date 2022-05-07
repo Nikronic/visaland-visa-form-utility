@@ -1,3 +1,5 @@
+__all__ = ['Logics', 'Discretizer', 'Merger']
+
 from typing import List, Union
 import pandas as pd
 
@@ -46,9 +48,10 @@ class Logics:
 
 class Discretizer:
     """
-    
-    
+
+
     """
+
     def __init__(self) -> None:
         pass
 
@@ -61,10 +64,9 @@ class Discretizer:
 
 class Merger:
     """
-    
-    
+
+
     """
+
     def __init__(self) -> None:
         pass
-
-    
