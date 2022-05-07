@@ -1,10 +1,10 @@
 __all__ = ['PDFIO', 'XFAPDF', 'CanadaXFA']
 
 # import packages
-from typing import Union
+from types import FunctionType
 from enum import Enum
 import os
-from pickle import DICT
+from fnmatch import fnmatch
 
 # preprocessing
 import re
@@ -61,7 +61,7 @@ class XFAPDF(PDFIO):
     def __init__(self) -> None:
         super().__init__()
 
-    def make_machine_readable(self, file_name: Union[str, None], src_path: str, des_path: str) -> None:
+    def make_machine_readable(self, src: str, dst: str) -> None:
         """
         Method that reads a 'content-copy' protected PDF and removes this restriction
         by saving a "printed" version of.
@@ -70,17 +70,44 @@ class XFAPDF(PDFIO):
 
         args:
             file_name: file name, if None, considers all files in `src_path`
-            src_path: directory address of files
-            des_path: destination directory address 
+            src: source file path
+            dst: destination (processed) file path 
         """
 
-        if file_name is None:
-            files = [f for f in os.listdir(src_path)]
-            for file_name in files:
-                pdf = pikepdf.open(src_path+file_name,
-                                   allow_overwriting_input=True)
-                pdf.save(des_path+file_name)
-        return None
+        pdf = pikepdf.open(src, allow_overwriting_input=True)
+        pdf.save(dst)
+
+    def process_directory(self, src_dir: str, dst_dir: str,
+                          func: FunctionType, pattern: str = '*'):
+        """
+        Iterate through `src_dir`, processing all files that match pattern via
+            given function `func` (for single file) and store them,
+            including their parent directories in `dst_dir`.
+
+        args:
+            src_dir: Source directory to be processed
+            dst_dir: Destination directory to write processed files
+            pattern: pattern to match files, default to '*' for all files
+
+        ref: https://stackoverflow.com/a/24041933/18971263
+        """
+
+        assert src_dir != dst_dir, 'Source and destination dir must differ.'
+        if src_dir[-1] != '/':
+            src_dir += '/'
+        for dirpath, dirnames, filenames in os.walk(src_dir):
+            # filter out files that match pattern only
+            filenames = filter(lambda fname: fnmatch(
+                fname, pattern), filenames)
+
+            if filenames:
+                dir_ = os.path.join(dst_dir, dirpath.replace(src_dir, ''))
+                os.makedirs(dir_, exist_ok=True)
+                for fname in filenames:
+                    in_fname = os.path.join(dirpath, fname)
+                    out_fname = os.path.join(dir_, fname)
+                    func(in_fname, out_fname)
+                    # print(in_fname, out_fname)
 
     def extract_raw_content(self, pdf_path: str) -> str:
         """
