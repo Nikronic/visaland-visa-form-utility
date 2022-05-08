@@ -8,9 +8,11 @@ Contains implementation of functions that could be used for processing data ever
 """
 
 import re
+import os
 import csv
 import pandas as pd
 import numpy as np
+from collections import OrderedDict
 from dateutil import parser
 from typing import List, Union
 from types import FunctionType
@@ -74,7 +76,7 @@ def dict_to_csv(d: dict, path: str) -> None:
 
     args:
         d: A dictionary
-        path: String to where file should be saved
+        path: Path to the output file (will be created if not exist)
     """
 
     with open(path, 'w') as f:
@@ -290,3 +292,71 @@ def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: FunctionType,
         lambda x: dtype(x) if x is not None else func(x))
 
     return dataframe
+
+
+def dump_directory_structure_csv(src: str, shallow: bool = True) -> None:
+    """
+    Takes a `src` directory path, creates a tree of dir structure and writes
+        it down to a csv file with name 'label.csv' with
+        default value of '0' for each path
+
+    args:
+        src: Source directory path
+        shallow: If only dive one level of depth (False: recursive)
+    """
+
+    dic = create_directory_structure_tree(src=src, shallow=shallow)
+    flat_dic = flatten_dict(dic)
+    flat_dic = {k: v for k, v in flat_dic.items() if v is not None}
+    dict_to_csv(d=flat_dic, path=src+'/label.csv')
+
+
+def create_directory_structure_tree(src: str, shallow: bool = False) -> dict:
+    """
+    Takes a path to directory and creates a dictionary of it its tree directory structure
+
+    ref: https://stackoverflow.com/a/25226267/18971263
+    args:
+        src: Path to source directory
+        shallow: Whether or not just dive to root dir's subdir
+    """
+    d = {'name': os.path.basename(src) if os.path.isdir(
+        src) else None}  # ignore files, only dir
+    if os.path.isdir(src):
+        if shallow:
+            d['children'] = [{x: '0'} for x in os.listdir(src)]
+        else:  # recursively walk into all dirs and subdirs
+            d['children'] = [create_directory_structure_tree(
+                os.path.join(src, x)) for x in os.listdir(src)]
+    else:
+        pass
+        # d['type'] = "file"
+    return d
+
+
+def flatten_dict(d: dict) -> OrderedDict:
+    """
+    Takes a (nested) multilevel dictionary and flattens it where the final keys are key.key....
+        and values are the leaf values of dictionary.
+
+    ref: https://stackoverflow.com/a/67744709/18971263
+    args:
+        d: A dictionary  
+    """
+
+    def items():
+        if isinstance(d, dict):
+            for key, value in d.items():
+                # nested subtree
+                if isinstance(value, dict):
+                    for subkey, subvalue in flatten_dict(value).items():
+                        yield '{}.{}'.format(key, subkey), subvalue
+                # nested list
+                elif isinstance(value, list):
+                    for num, elem in enumerate(value):
+                        for subkey, subvalue in flatten_dict(elem).items():
+                            yield '{}.[{}].{}'.format(key, num, subkey), subvalue
+                # everything else (only leafs should remain)
+                else:
+                    yield key, value
+    return OrderedDict(items())
