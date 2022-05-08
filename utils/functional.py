@@ -368,12 +368,7 @@ def unit_converter(sparse: float, dense: float, factor: float) -> float:
     """
     convert `sparse` or `dense` to each other using
         the rule of thump of `dense = (factor) sparse` or `sparse = (1./factor) dense`.
-
-    # TODO: convert it into a class and place it in preprocessor.py
-    # class UnitConverter: 1. constants, 2. this method
-    # class FinancialUnitConverter: 1. rent2deposit, 2. deposit2worth, etc
-
-
+    
     args:
         sparse: the smaller/sparser amount which is a percentage of `dense`,\n
             if provided calculates `sparse = (factor) dense`.

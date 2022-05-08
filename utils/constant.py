@@ -128,10 +128,8 @@ CANADA_5645E_DROP_COLUMNS = {
 }
 
 # dictionaries containing factors in used in heuristic calculations using domain knowledge
+# Ratios used to convert rent, deposit, and total worth to each other
 FINANCIAL_RATIOS = {
-    """
-    Ratios used to convert rent, deposit, and total worth to each other
-    """
     # house related
     'rent2deposit': 100./3.,  # rule of thumb provided online
     'deposit2rent': 3./100.,

@@ -137,6 +137,93 @@ class DataframePreprocessor:
                                        dtype=dtype, if_nan=if_nan, **kwargs)
 
 
+class UnitConverter:
+    """
+    Contains utility tools for converting different units to each other.
+
+    For including domain specific rules of conversion, extend this class for
+        each category.e.g. for finance.
+    """
+
+    def __init__(self) -> None:
+        pass
+
+    def unit_converter(self, sparse: float, dense: float, factor: float) -> float:
+        """
+        convert `sparse` or `dense` to each other using
+            the rule of thump of `dense = (factor) sparse`.
+
+        args:
+            sparse: the smaller/sparser amount which is a percentage of `dense`,\n
+                if provided calculates `sparse = (factor) dense`.
+            dense: the larger/denser amount which is a multiplication of `sparse`,\n
+                if provided calculates `dense = (factor) sparse`
+            factor: sparse to dense factor, either directly provided as a\n
+                float number or as a perdefined factor given by `constant.FINANCIAL_RATIOS`
+        """
+        # only sparse or dense must exist
+        assert not (sparse is not None and dense is not None)
+
+        if sparse is not None:
+            dense = factor * sparse
+            return dense
+        if dense is not None:
+            sparse = factor * dense
+            return sparse
+
+
+class FinancialUnitConverter(UnitConverter):
+    """
+    Contains utility tools for converting different financial units to each other.
+
+    All functions that you implement should take the factor value using
+        `self.CONSTANTS['function_name']`. E.g.::
+
+        def rent2deposit(self, rent: float) -> float:
+            self.unit_converter(sparse=rent, dense=None, factor=self.CONSTANTS['rent2deposit'])
+
+    """
+
+    def __init__(self, CONSTANTS: Union[dict, Enum] = FINANCIAL_RATIOS) -> None:
+        """
+        Gets constant values needed for conversion
+        """
+        super().__init__()
+        self.CONSTANTS = CONSTANTS
+
+    def rent2deposit(self, rent: float) -> float:
+        return self.unit_converter(sparse=rent, dense=None,
+                                   factor=self.CONSTANTS['rent2deposit'])
+
+    def deposit2rent(self, deposit: float) -> float:
+        return self.unit_converter(sparse=None, dense=deposit,
+                                   factor=self.CONSTANTS['deposit2rent'])
+
+    def deposit2worth(self, deposit: float) -> float:
+        return self.unit_converter(sparse=deposit, dense=None,
+                                   factor=self.CONSTANTS['deposit2worth'])
+
+    def worth2deposit(self, worth: float) -> float:
+        return self.unit_converter(sparse=None, dense=worth,
+                                   factor=self.CONSTANTS['worth2deposit'])
+
+    def tax2income(self, tax: float) -> float:
+        return self.unit_converter(sparse=tax, dense=None,
+                                   factor=self.CONSTANTS['tax2income'])
+
+    def income2tax(self, income: float) -> float:
+        return self.unit_converter(sparse=None, dense=income,
+                                   factor=self.CONSTANTS['income2tax'])
+
+    def income2worth(self, income: float) -> float:
+        return self.unit_converter(sparse=income, dense=None,
+                                   factor=self.CONSTANTS['income2worth'])
+
+    def worth2income(self, worth: float) -> float:
+        return self.unit_converter(sparse=None, dense=worth,
+                                   factor=self.CONSTANTS['worth2income'])
+
+
 class CanadaDataframePreprocessor(DataframePreprocessor):
     def __init__(self) -> None:
         super().__init__()
@@ -667,7 +754,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                 dataframe[c+'.Period'] = dataframe[dataframe[col_names]
                                                    != 0].mean(axis=1)
                 dataframe.drop(col_names_unprocessed, axis=1, inplace=True)
-            
+
             # drop the time form was filled
             self.column_dropper(string='p1.SecC.SecCdate', inplace=True)
 
