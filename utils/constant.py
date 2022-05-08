@@ -127,6 +127,25 @@ CANADA_5645E_DROP_COLUMNS = {
     'p1.SecC.Subform2.@xfa:dataNode', 'p1.SecA.Sps.ChdMStatus', 'formNum',
 }
 
+# dictionaries containing factors in used in heuristic calculations using domain knowledge
+FINANCIAL_RATIOS = {
+    """
+    Ratios used to convert rent, deposit, and total worth to each other
+    """
+    # house related
+    'rent2deposit': 100./3.,  # rule of thumb provided online
+    'deposit2rent': 3./100.,
+    'deposit2worth': 5.,      # rule of thumb provided online
+    'worth2deposit': 1./5.,
+
+    # company related
+    'tax2income': 100./15.,  # 10% for small, 20% for larger, we use average 15% tax rate
+    'income2tax': 15./100.,
+    # a company worth 15x of its income for minimum: C[T/E]O suggestion
+    'income2worth': 15.,
+    'worth2income': 1./15.,
+}
+
 
 # ENUM
 class DOC_TYPES(Enum):

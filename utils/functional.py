@@ -7,6 +7,7 @@ Contains implementation of functions that could be used for processing data ever
 
 """
 
+from curses import REPORT_MOUSE_POSITION
 import re
 import os
 import csv
@@ -16,6 +17,7 @@ from collections import OrderedDict
 from dateutil import parser
 from typing import List, Union
 from types import FunctionType
+from utils import constant
 
 from utils.constant import DOC_TYPES
 
@@ -360,3 +362,32 @@ def flatten_dict(d: dict) -> OrderedDict:
                 else:
                     yield key, value
     return OrderedDict(items())
+
+
+def unit_converter(sparse: float, dense: float, factor: float) -> float:
+    """
+    convert `sparse` or `dense` to each other using
+        the rule of thump of `dense = (factor) sparse` or `sparse = (1./factor) dense`.
+
+    # TODO: convert it into a class and place it in preprocessor.py
+    # class UnitConverter: 1. constants, 2. this method
+    # class FinancialUnitConverter: 1. rent2deposit, 2. deposit2worth, etc
+
+
+    args:
+        sparse: the smaller/sparser amount which is a percentage of `dense`,\n
+            if provided calculates `sparse = (factor) dense`.
+        dense: the larger/denser amount which is a multiplication of `sparse`,\n
+            if provided calculates `dense = (1/factor) sparse`
+        factor: sparse to dense factor, either directly provided as a\n
+            float number or as a perdefined factor given by `constant.FINANCIAL_RATIOS`
+    """
+    # only sparse or dense must exist
+    assert not (sparse is not None and dense is not None)
+
+    if sparse is not None:
+        dense = factor * sparse
+        return dense
+    if dense is not None:
+        sparse = (1./factor) * dense
+        return sparse
