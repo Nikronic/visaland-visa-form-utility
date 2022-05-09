@@ -1,4 +1,5 @@
-__all__ = ['DataframePreprocessor', 'CanadaDataframePreprocessor', 'T0']
+__all__ = ['DataframePreprocessor', 'CanadaDataframePreprocessor', 'UnitConverter',
+           'FinancialUnitConverter', 'T0']
 
 import pandas as pd
 import numpy as np
@@ -249,7 +250,8 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             self.dataframe = dataframe
             # drop pepeg columns
             #   warning: setting `errors='ignore` ignores errors if columns do not exist!
-            dataframe.drop(CANADA_5257E_DROP_COLUMNS, axis=1, inplace=True, errors='ignore')
+            dataframe.drop(CANADA_5257E_DROP_COLUMNS, axis=1,
+                           inplace=True, errors='ignore')
 
             # Adult binary state: adult=True or child=False
             dataframe['P1.AdultFlag'] = dataframe['P1.AdultFlag'].apply(
@@ -310,7 +312,8 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                 c for c in dataframe.columns.values if 'P1.PD.PrevCOR.' in c]
             PREV_COUNTRY_MAX_FEATURES = 4
             for i in range(len(country_tag_list) // PREV_COUNTRY_MAX_FEATURES):
-                i += 2  # in XLA extracted file, this section start from `Row2` (ie. i+2)
+                # in XLA extracted file, this section start from `Row2` (ie. i+2)
+                i += 2
                 # previous country of residency 02: string -> categorical
                 dataframe = self.change_dtype(col_name='P1.PD.PrevCOR.Row'+str(i)+'.Country', dtype=str,
                                               if_nan='fill', value='OTHER')
@@ -458,7 +461,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             # higher education country: string -> categorical
             dataframe = self.change_dtype(col_name='P3.Edu.Edu_Row1.Country.Country',
                                           dtype=str, if_nan='fill', value='IRAN')
-            # TODO: see #1 
+            # TODO: see #1
             # field of study: string -> categorical
             # dataframe['P3.Edu.Edu_Row1.FieldOfStudy'] = dataframe['P3.Edu.Edu_Row1.FieldOfStudy'].astype('string')
             self.column_dropper(string='P3.Edu.Edu_Row1.FieldOfStudy')
@@ -538,7 +541,8 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
 
             # drop pepeg columns
             #   warning: setting `errors='ignore` ignores errors if columns do not exist!
-            dataframe.drop(CANADA_5645E_DROP_COLUMNS, axis=1, inplace=True, errors='ignore')
+            dataframe.drop(CANADA_5645E_DROP_COLUMNS, axis=1,
+                           inplace=True, errors='ignore')
 
             # transform multiple pleb columns into a single chad one and fixing column dtypes
             # type of application -> onehot -> int

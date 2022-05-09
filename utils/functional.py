@@ -1,5 +1,6 @@
 __all__ = ['dict_summarizer', 'dict_to_csv', 'column_dropper', 'fillna_datetime', 'aggregate_datetime',
-           'tag_to_regex_compatible', 'change_dtype', ]
+           'tag_to_regex_compatible', 'change_dtype', 'unit_converter', 'flatten_dict',
+           'create_directory_structure_tree', 'dump_directory_structure_csv', ]
 
 """
 Contains implementation of functions that could be used for processing data everywhere and
@@ -7,7 +8,6 @@ Contains implementation of functions that could be used for processing data ever
 
 """
 
-from curses import REPORT_MOUSE_POSITION
 import re
 import os
 import csv
@@ -17,7 +17,6 @@ from collections import OrderedDict
 from dateutil import parser
 from typing import List, Union
 from types import FunctionType
-from utils import constant
 
 from utils.constant import DOC_TYPES
 
@@ -368,7 +367,7 @@ def unit_converter(sparse: float, dense: float, factor: float) -> float:
     """
     convert `sparse` or `dense` to each other using
         the rule of thump of `dense = (factor) sparse` or `sparse = (1./factor) dense`.
-    
+
     args:
         sparse: the smaller/sparser amount which is a percentage of `dense`,\n
             if provided calculates `sparse = (factor) dense`.
