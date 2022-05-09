@@ -13,10 +13,8 @@ import os
 import csv
 import pandas as pd
 import numpy as np
-from collections import OrderedDict
 from dateutil import parser
-from typing import List, Union
-from types import FunctionType
+from typing import Callable, List, Union
 
 from utils.constant import DOC_TYPES
 
@@ -120,7 +118,7 @@ def column_dropper(dataframe: pd.DataFrame, string: str, exclude: str = None,
 
 
 def fillna_datetime(dataframe: pd.DataFrame, col_base_name: str, date: str, type: DOC_TYPES,
-                    one_sided: str = False, inplace: bool = False) -> Union[None, pd.DataFrame]:
+                    one_sided: Union[str, bool] = False, inplace: bool = False) -> Union[None, pd.DataFrame]:
     """
     In a Pandas Dataframe, takes two columns of dates in string form that has no value (None)
         and sets them to the same date which further ahead, in transformation operations
@@ -154,7 +152,7 @@ def fillna_datetime(dataframe: pd.DataFrame, col_base_name: str, date: str, type
 
 
 def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name: str,
-                       type: DOC_TYPES, if_nan: Union[str, FunctionType] = 'skip',
+                       type: DOC_TYPES, if_nan: Union[str, Callable, None] = 'skip',
                        one_sided: str = None, reference_date: str = None,
                        current_date: str = None) -> pd.DataFrame:
     """
@@ -209,7 +207,7 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
         to_date = [col for col in columns_to_aggregate_names if 'To' in col][0]
 
     if isinstance(column_to_date, str):
-        column_to_date = parser.parse(column_to_date)
+        column_to_date = parser.parse(column_to_date)  # type: ignore
 
     if column_from_date is None:  # ignore reference_date if from_date exists
         # to able to use already parsed data from fillna
@@ -219,7 +217,7 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
         column_from_date = dataframe[from_date]
     else:
         if isinstance(column_from_date, str):
-            column_from_date = parser.parse(column_from_date)
+            column_from_date = parser.parse(column_from_date)  # type: ignore
 
     if column_to_date is None:  # ignore current_date if to_date exists
         # to able to use already parsed data from fillna
@@ -229,16 +227,16 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
         column_to_date = dataframe[to_date]
     else:
         if isinstance(column_to_date, str):
-            column_to_date = parser.parse(column_to_date)
+            column_to_date = parser.parse(column_to_date)  # type: ignore
 
     if if_nan is not None:
         if if_nan == 'skip':
-            if column_from_date.isna().all() or column_to_date.isna().all():
+            if column_from_date.isna().all() or column_to_date.isna().all():  # type: ignore
                 return dataframe
 
     dataframe[aggregated_column_name] = np.nan  # combination of dates
-    dataframe[aggregated_column_name].fillna(
-        column_to_date - column_from_date, inplace=True)  # period
+    dataframe[aggregated_column_name].fillna(  # period
+        column_to_date - column_from_date, inplace=True)  # type: ignore
     dataframe[aggregated_column_name] = dataframe[aggregated_column_name].dt.days.astype(
         'int32')  # change to int of days
 
@@ -263,8 +261,8 @@ def tag_to_regex_compatible(string: str, type: DOC_TYPES) -> str:
     return string
 
 
-def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: FunctionType,
-                 if_nan: Union[str, FunctionType] = 'skip', **kwargs):
+def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: Callable,
+                 if_nan: Union[str, Callable] = 'skip', **kwargs):
     """
     Takes a column name and changes the dataframe's column data type where for 
         None (nan) values behave based on `if_nan` argument.
@@ -277,16 +275,19 @@ def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: FunctionType,
             2. 'value': fill the `None` with `value` argument via `kwargs`
     """
 
-    # the function to be used in `.apply` method of dataframe
-    func = None if isinstance(if_nan, str) else if_nan
-
     # define `func` for different cases of predfined logics
     if isinstance(if_nan, str):  # predefined `if_nan` cases
         if if_nan == 'skip':
+            # the function to be used in `.apply` method of dataframe
             def func(x): return x
-        if if_nan == 'fill':
+        elif if_nan == 'fill':
             value = kwargs['value']
+            # the function to be used in `.apply` method of dataframe
             def func(x): return value
+        else:
+            raise ValueError('Unknown mode "{}".'.format(if_nan))
+    else:
+        pass
 
     # apply the rules and data type change
     dataframe[col_name] = dataframe[col_name].apply(
@@ -325,9 +326,9 @@ def create_directory_structure_tree(src: str, shallow: bool = False) -> dict:
         src) else None}  # ignore files, only dir
     if os.path.isdir(src):
         if shallow:
-            d['children'] = [{x: '0'} for x in os.listdir(src)]
+            d['children'] = [{x: '0'} for x in os.listdir(src)]  # type: ignore
         else:  # recursively walk into all dirs and subdirs
-            d['children'] = [create_directory_structure_tree(
+            d['children'] = [create_directory_structure_tree(  # type: ignore
                 os.path.join(src, x)) for x in os.listdir(src)]
     else:
         pass
@@ -335,7 +336,7 @@ def create_directory_structure_tree(src: str, shallow: bool = False) -> dict:
     return d
 
 
-def flatten_dict(d: dict) -> OrderedDict:
+def flatten_dict(d: dict) -> dict:
     """
     Takes a (nested) multilevel dictionary and flattens it where the final keys are key.key....
         and values are the leaf values of dictionary.
@@ -360,7 +361,7 @@ def flatten_dict(d: dict) -> OrderedDict:
                 # everything else (only leafs should remain)
                 else:
                     yield key, value
-    return OrderedDict(items())
+    return dict(items())
 
 
 def unit_converter(sparse: float, dense: float, factor: float) -> float:

@@ -8,6 +8,7 @@ from fnmatch import fnmatch
 
 # preprocessing
 import re
+from typing import Callable
 import xml.etree.ElementTree as et
 import xmltodict
 from collections import OrderedDict
@@ -29,7 +30,7 @@ class PDFIO:
     def __init__(self) -> None:
         pass
 
-    def extract_raw_content(pdf_path: str) -> None:
+    def extract_raw_content(self, pdf_path: str) -> str:
         """
         Extracts unprocessed data from a PDF file
 
@@ -78,7 +79,7 @@ class XFAPDF(PDFIO):
         pdf.save(dst)
 
     def process_directory(self, src_dir: str, dst_dir: str,
-                          func: FunctionType, pattern: str = '*'):
+                          func: Callable, pattern: str = '*'):
         """
         Iterate through `src_dir`, processing all files that match pattern via
             given function `func` (for single file) and store them,
@@ -95,10 +96,10 @@ class XFAPDF(PDFIO):
         assert src_dir != dst_dir, 'Source and destination dir must differ.'
         if src_dir[-1] != '/':
             src_dir += '/'
-        for dirpath, dirnames, filenames in os.walk(src_dir):
+        for dirpath, dirnames, all_filenames in os.walk(src_dir):
             # filter out files that match pattern only
             filenames = filter(lambda fname: fnmatch(
-                fname, pattern), filenames)
+                fname, pattern), all_filenames)
 
             if filenames:
                 dir_ = os.path.join(dst_dir, dirpath.replace(src_dir, ''))
@@ -124,7 +125,7 @@ class XFAPDF(PDFIO):
         xml = str(xml)  # convert bytes to str
         return xml
 
-    def clean_xml_for_csv(self, xml: str, type: str) -> str:
+    def clean_xml_for_csv(self, xml: str, type: Enum) -> str:
         """
         Cleans the XML file extracted from XFA forms
         Remark: since each form has its own format and issues, this method needs
@@ -139,7 +140,7 @@ class XFAPDF(PDFIO):
         raise NotImplementedError
 
     @deprecated('Use `flatten_dict`')
-    def flatten_dict_basic(self, d: dict) -> OrderedDict:
+    def flatten_dict_basic(self, d: dict) -> dict:
         """
         Takes a (nested) dictionary and flattens it where the final keys are key.key....
             and values are the leaf values of dictionary.
@@ -158,9 +159,9 @@ class XFAPDF(PDFIO):
                 else:
                     yield key, value
 
-        return OrderedDict(items())
+        return dict(items())
 
-    def flatten_dict(self, d: dict) -> OrderedDict:
+    def flatten_dict(self, d: dict) -> dict:
         """
         Takes a (nested) multilevel dictionary and flattens it where the final keys are key.key....
             and values are the leaf values of dictionary.
@@ -186,9 +187,9 @@ class XFAPDF(PDFIO):
                     # everything else (only leafs should remain)
                     else:
                         yield key, value
-        return OrderedDict(items())
+        return dict(items())
 
-    def xml_to_flattened_dict(self, xml: str) -> OrderedDict:
+    def xml_to_flattened_dict(self, xml: str) -> dict:
         """
         Takes a (nested) XML and flattens it to a dict where the final keys are key.key....
             and values are the leaf values of XML tree.

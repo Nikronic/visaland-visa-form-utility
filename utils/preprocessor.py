@@ -4,7 +4,7 @@ __all__ = ['DataframePreprocessor', 'CanadaDataframePreprocessor', 'UnitConverte
 import pandas as pd
 import numpy as np
 from dateutil import parser
-from typing import Union
+from typing import Callable, Union
 from types import FunctionType
 
 from utils import functional
@@ -46,8 +46,8 @@ class DataframePreprocessor:
         return functional.column_dropper(dataframe=self.dataframe, string=string,
                                          exclude=exclude, regex=regex, inplace=inplace)
 
-    def fillna_datetime(self, col_base_name: str, one_sided: str = False,
-                        date: str = None, inplace: bool = False) -> None:
+    def fillna_datetime(self, col_base_name: str, type: DOC_TYPES, one_sided: Union[str, bool],
+                        date: str = None, inplace: bool = False) -> Union[None, pd.DataFrame]:
         """
         In a Pandas Dataframe, takes two columns of dates in string form that has no value (None)
             and sets them to the same date which further ahead, in transformation operations
@@ -67,11 +67,12 @@ class DataframePreprocessor:
         if date is None:
             date = T0
 
-        return functional.fillna_datetime(dataframe=self.dataframe, col_base_name=col_base_name,
-                                          one_sided=one_sided, date=date, inplace=inplace)
+        return functional.fillna_datetime(dataframe=self.dataframe,
+                                          col_base_name=col_base_name, one_sided=one_sided,
+                                          date=date, inplace=inplace, type=type)
 
     def aggregate_datetime(self, col_base_name: str, new_col_name: str,
-                           type: DOC_TYPES, if_nan: Union[str, FunctionType] = None,
+                           type: DOC_TYPES, if_nan: Union[str, Callable, None] = None,
                            one_sided: str = None, reference_date: str = None,
                            current_date: str = None) -> pd.DataFrame:
         """
@@ -104,7 +105,7 @@ class DataframePreprocessor:
                                              reference_date=reference_date,
                                              current_date=current_date)
 
-    def file_specific_basic_transform(self, type: DOC_TYPES) -> pd.DataFrame:
+    def file_specific_basic_transform(self, type: DOC_TYPES, path: str) -> pd.DataFrame:
         """
         Takes a specific file (see `DOC_TYPES`), then does data type fixing,
             missing value filling, descretization, etc.
@@ -120,8 +121,8 @@ class DataframePreprocessor:
 
         raise NotImplementedError
 
-    def change_dtype(self, col_name: str, dtype: FunctionType,
-                     if_nan: Union[str, FunctionType] = 'skip', **kwargs):
+    def change_dtype(self, col_name: str, dtype: Callable,
+                     if_nan: Union[str, Callable] = 'skip', **kwargs):
         """
         Takes a column name and changes the dataframe's column data type where for 
             None (nan) values behave based on `if_nan` argument.
@@ -149,7 +150,8 @@ class UnitConverter:
     def __init__(self) -> None:
         pass
 
-    def unit_converter(self, sparse: float, dense: float, factor: float) -> float:
+    def unit_converter(self, sparse: Union[float, None], dense: Union[float, None],
+                       factor: float) -> float:
         """
         convert `sparse` or `dense` to each other using
             the rule of thump of `dense = (factor) sparse`.
@@ -162,15 +164,15 @@ class UnitConverter:
             factor: sparse to dense factor, either directly provided as a\n
                 float number or as a perdefined factor given by `constant.FINANCIAL_RATIOS`
         """
-        # only sparse or dense must exist
-        assert not (sparse is not None and dense is not None)
 
         if sparse is not None:
             dense = factor * sparse
             return dense
-        if dense is not None:
+        elif dense is not None:
             sparse = factor * dense
             return sparse
+        else:
+            raise ValueError('Only `sparse` or `dense` can be None.')
 
 
 class FinancialUnitConverter(UnitConverter):
@@ -185,7 +187,7 @@ class FinancialUnitConverter(UnitConverter):
 
     """
 
-    def __init__(self, CONSTANTS: Union[dict, Enum] = FINANCIAL_RATIOS) -> None:
+    def __init__(self, CONSTANTS: dict = FINANCIAL_RATIOS) -> None:
         """
         Gets constant values needed for conversion
         """
