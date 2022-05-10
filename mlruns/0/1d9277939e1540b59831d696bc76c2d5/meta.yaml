@@ -1,0 +1,15 @@
+artifact_uri: file:///home/nik/visaland-visa-form-utility/mlruns/0/1d9277939e1540b59831d696bc76c2d5/artifacts
+end_time: 1652163452060
+entry_point_name: ''
+experiment_id: '0'
+lifecycle_stage: active
+name: ''
+run_id: 1d9277939e1540b59831d696bc76c2d5
+run_uuid: 1d9277939e1540b59831d696bc76c2d5
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1652163440816
+status: 3
+tags: []
+user_id: nik
