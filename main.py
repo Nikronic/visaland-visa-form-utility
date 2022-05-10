@@ -3,12 +3,30 @@ from utils.PDFIO import CanadaXFA
 from utils.constant import DOC_TYPES
 from utils.preprocessor import CanadaDataframePreprocessor
 
+import dvc.api
+import mlflow
 import pandas as pd
 
 
 SRC_DIR = '/mnt/e/dataset/processed/10-5-2022-h/'  # path to source encrypted pdf
 DST_DIR = 'raw-dataset/10-5-2022-h/'  # path to decrypted pdf
 
+# MLFlow configs
+# data versioning config
+PATH = DST_DIR[:-1] + '.pkl'  # path to source data, e.g. data.pkl file
+REPO = '/home/nik/visaland-visa-form-utility'
+VERSION = 'v0.0.1'
+
+# log experiment configs
+MLFLOW_EXPERIMENT_NAME = 'real case dataset data extraction'
+mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
+MLFLOW_TAGS = {
+    'stage': 'dev'  # dev, beta, production
+}
+mlflow.set_tags(MLFLOW_TAGS)
+
+
+# main code
 # Canada protected PDF to machine readable for all entries
 canada_xfa = CanadaXFA()
 canada_xfa.process_directory(src_dir=SRC_DIR, dst_dir=DST_DIR, pattern='*.pdf',
@@ -47,3 +65,18 @@ for dirpath, dirnames, all_filenames in os.walk(SRC_DIR):
 # save dataframe to disc as pickle
 dataset_path = DST_DIR[:-1] + '.pkl'
 dataframe.to_pickle(dataset_path)
+
+
+# get url data from DVC data storage
+data_url = dvc.api.get_url(path=PATH, repo=REPO, rev=VERSION)
+
+# read dataset from remote (local) data storage 
+dataframe = pd.read_pickle(data_url)
+
+# log data params
+mlflow.log_param('data_url', data_url)
+mlflow.log_param('raw_dataset_dir', DST_DIR)
+mlflow.log_param('data_version', VERSION)
+mlflow.log_param('input_shape', dataframe.shape)
+mlflow.log_param('input_columns', dataframe.columns.values)
+mlflow.log_param('input_dtypes', dataframe.dtypes.values)
