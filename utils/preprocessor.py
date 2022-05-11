@@ -7,12 +7,17 @@ from dateutil import parser
 from dateutil.relativedelta import *
 from typing import Callable, Union
 from types import FunctionType
+import logging
 
 from utils import functional
 from utils.constant import *
 from utils.PDFIO import CanadaXFA
 from utils import *
+from utils.helpers import loggingdecorator
 
+
+# logging
+logger = logging.getLogger('__main__')
 
 T0 = '19000202T000000'  # a default meaningless time to fill the `None`s
 
@@ -28,7 +33,9 @@ class DataframePreprocessor:
 
     def __init__(self, dataframe: pd.DataFrame = None) -> None:
         self.dataframe = dataframe
+        self.logger = logging.getLogger(logger.name+'.DataframePreprocessor')
 
+    @loggingdecorator(logger.name+'.DataframePreprocessor.func', level=logging.DEBUG, output=False, input=True)
     def column_dropper(self, string: str, exclude: str = None, regex: bool = False,
                        inplace: bool = True) -> Union[None, pd.DataFrame]:
         """
@@ -47,6 +54,7 @@ class DataframePreprocessor:
         return functional.column_dropper(dataframe=self.dataframe, string=string,
                                          exclude=exclude, regex=regex, inplace=inplace)
 
+    @loggingdecorator(logger.name+'.DataframePreprocessor.func', level=logging.DEBUG, output=False)
     def fillna_datetime(self, col_base_name: str, type: DOC_TYPES, one_sided: Union[str, bool],
                         date: str = None, inplace: bool = False) -> Union[None, pd.DataFrame]:
         """
@@ -72,6 +80,7 @@ class DataframePreprocessor:
                                           col_base_name=col_base_name, one_sided=one_sided,
                                           date=date, inplace=inplace, type=type)
 
+    @loggingdecorator(logger.name+'.DataframePreprocessor.func', level=logging.DEBUG, output=False)
     def aggregate_datetime(self, col_base_name: str, new_col_name: str,
                            type: DOC_TYPES, if_nan: Union[str, Callable, None] = None,
                            one_sided: str = None, reference_date: str = None,
@@ -122,6 +131,7 @@ class DataframePreprocessor:
 
         raise NotImplementedError
 
+    @loggingdecorator(logger.name+'.DataframePreprocessor.func', level=logging.DEBUG, output=False, input=True)
     def change_dtype(self, col_name: str, dtype: Callable,
                      if_nan: Union[str, Callable] = 'skip', **kwargs):
         """
@@ -231,9 +241,12 @@ class FinancialUnitConverter(UnitConverter):
 class CanadaDataframePreprocessor(DataframePreprocessor):
     def __init__(self) -> None:
         super().__init__()
+        self.logger_name = '.CanadaDataframePreprocessor'
+        self.logger = logging.getLogger(logger.name+self.logger_name)
 
         self.base_date = None  # the time forms were filled, considered "today" for forms
 
+    @loggingdecorator(logger.name+'.CanadaDataframePreprocessor.func', level=logging.INFO, output=False, input=True)
     def file_specific_basic_transform(self, type: DOC_TYPES, path: str) -> pd.DataFrame:
         canada_xfa = CanadaXFA()  # Canada PDF to XML
         xml = canada_xfa.extract_raw_content(path)
@@ -356,11 +369,11 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                                           if_nan='fill', value=False)
             # country where applying period: datetime -> int days
             dataframe = self.change_dtype(col_name='P1.PD.CWA.Row2.FromDate',
-                                              dtype=parser.parse, if_nan='fill',
-                                              value=dataframe['P3.Sign.C1CertificateIssueDate'])
+                                          dtype=parser.parse, if_nan='fill',
+                                          value=dataframe['P3.Sign.C1CertificateIssueDate'])
             dataframe = self.change_dtype(col_name='P1.PD.CWA.Row2.ToDate',
-                                              dtype=parser.parse, if_nan='fill',
-                                              value=dataframe['P3.Sign.C1CertificateIssueDate'])
+                                          dtype=parser.parse, if_nan='fill',
+                                          value=dataframe['P3.Sign.C1CertificateIssueDate'])
             # TODO: if None (here .Period=0): fill with average statistically
             dataframe = self.aggregate_datetime(col_base_name='P1.PD.CWA.Row2',
                                                 type=DOC_TYPES.canada, new_col_name='Period',
@@ -410,7 +423,8 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                                           dtype=str, if_nan='fill', value='OTHER')
             # expiry remaining period: datetime -> int days
             # if None, fill with 1 year ago, ie. period=1year
-            temp_date = dataframe['P3.Sign.C1CertificateIssueDate'].apply(lambda x: x+relativedelta(years=-1))
+            temp_date = dataframe['P3.Sign.C1CertificateIssueDate'].apply(
+                lambda x: x+relativedelta(years=-1))
             dataframe = self.change_dtype(col_name='P2.MS.SecA.Psprt.ExpiryDate',
                                           dtype=parser.parse, if_nan='fill',
                                           value=temp_date)
@@ -572,8 +586,8 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             cols = [col for col in dataframe.columns.values if 'p1.Subform1' in col]
             for c in cols:
                 dataframe = self.change_dtype(col_name=c,
-                                            dtype=np.int16, if_nan='fill',
-                                            value=np.int16('0'))
+                                              dtype=np.int16, if_nan='fill',
+                                              value=np.int16('0'))
             # drop all names
             self.column_dropper(string='Name', inplace=True)
             # drop all addresses

@@ -1,6 +1,7 @@
 import functools
 import inspect
 import warnings
+import logging
 
 string_types = (type(b''), type(u''))
 
@@ -77,3 +78,35 @@ def deprecated(reason):
     else:
         raise TypeError(repr(type(reason)))
 
+# A Python decorator to log the function call and return value
+
+
+def loggingdecorator(name, level=logging.DEBUG, input=False, output=False):
+    """
+
+    args:
+        name: `name` in `logging.GetLogger(name)`
+        level: logging level, eg. INFO, DEBUG, etc
+        input: whether or not include the input of decorated function in logs
+        output: whether or not include the output of decorated function in logs
+
+    ref: https://machinelearningmastery.com/logging-in-python/
+    """
+    logger = logging.getLogger(name)
+
+    def _decor(fn):
+        function_name = fn.__name__
+
+        def _fn(*args, **kwargs):
+            ret = fn(*args, **kwargs)
+            if input:
+                argstr = [str(x) for x in args]
+                argstr += [key+"="+str(val) for key, val in kwargs.items()]
+            else:
+                argstr = ''
+            ret_str = ret if output else ''
+            logger.debug("%s(%s) -> %s", function_name,
+                         ", ".join(argstr), ret_str)
+            return ret
+        return _fn
+    return _decor
