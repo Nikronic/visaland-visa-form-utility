@@ -1,4 +1,9 @@
 import os
+import shutil
+import logging
+import uuid
+import enlighten
+
 from utils.PDFIO import CanadaXFA
 from utils.constant import DOC_TYPES
 from utils.preprocessor import CanadaDataframePreprocessor
@@ -8,6 +13,25 @@ import mlflow
 import pandas as pd
 
 
+# configure logging
+VERBOSITY = logging.INFO
+
+logger = logging.getLogger(__name__)
+logger.setLevel(VERBOSITY)
+# Set up root logger, and add a file handler to root logger
+if not os.path.exists('artifacts'):
+    os.makedirs('artifacts')
+    os.makedirs('artifacts/logs')
+
+log_file_name = uuid.uuid4()
+logger_handler = logging.FileHandler(filename='artifacts/logs/{}.log'.format(log_file_name),
+                                     mode='w')
+logger.addHandler(logger_handler)
+manager = enlighten.get_manager()  # setup progress bar
+
+logger.info(
+    '\t\t↓↓↓ Starting setting up configs: dirs, mlflow, dvc, etc ↓↓↓')
+# main path
 SRC_DIR = '/mnt/e/dataset/processed/10-5-2022-h/'  # path to source encrypted pdf
 DST_DIR = 'raw-dataset/10-5-2022-h/'  # path to decrypted pdf
 
@@ -18,23 +42,36 @@ REPO = '/home/nik/visaland-visa-form-utility'
 VERSION = 'v0.0.1'
 
 # log experiment configs
-MLFLOW_EXPERIMENT_NAME = 'real case dataset data extraction'
+MLFLOW_EXPERIMENT_NAME = 'setting up logging integrated into mlflow'
 mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
 MLFLOW_TAGS = {
     'stage': 'dev'  # dev, beta, production
 }
 mlflow.set_tags(MLFLOW_TAGS)
 
+logger.info('MLflow experiment name: {}'.format(MLFLOW_EXPERIMENT_NAME))
+logger.info('MLflow experiment id: {}'.format(mlflow.active_run().info.run_id))
+logger.info('MLflow data version: {}'.format(VERSION))
+logger.info('MLflow repo (root): {}'.format(REPO))
+logger.info('MLflow data source path: {}'.format(PATH))
+logger.info(
+    '\t\t↑↑↑ Finished setting up configs: dirs, mlflow, dvc, etc ↑↑↑')
 
 # main code
+logger.info('\t\t↓↓↓ Starting data extraction ↓↓↓')
 # Canada protected PDF to machine readable for all entries
 canada_xfa = CanadaXFA()
 canada_xfa.process_directory(src_dir=SRC_DIR, dst_dir=DST_DIR, pattern='*.pdf',
                              func=canada_xfa.make_machine_readable)
 
 # convert PDFs to pandas dataframes
+data_iter_logger = logging.getLogger(logger.name+'.data_iter')
+
 SRC_DIR = DST_DIR[:-1]
 dataframe = pd.DataFrame()
+progress_bar = manager.counter(total=len(next(os.walk(DST_DIR), (None, [], None))[1]),
+                               desc='Ticks', unit='ticks')
+i = 0  # for progress bar
 for dirpath, dirnames, all_filenames in os.walk(SRC_DIR):
     dataframe_entry = pd.DataFrame()
 
@@ -61,22 +98,38 @@ for dirpath, dirnames, all_filenames in os.walk(SRC_DIR):
     # concat the dataframe_entry into the main dataframe (i.e. adding rows)
     dataframe = pd.concat(objs=[dataframe, dataframe_entry], axis=0,
                           verify_integrity=True, ignore_index=True)
+    # logging
+    i += 1
+    data_iter_logger.info('Processed {}th data point ...'.format(i))
+    progress_bar.update()
 
 # save dataframe to disc as pickle
+logger.info('\t\t↓↓↓ Starting saving dataframe to disc ↓↓↓')
 dataset_path = DST_DIR[:-1] + '.pkl'
 dataframe.to_pickle(dataset_path)
-
+logger.info('Dataframe saved to path={}'.format(dataset_path))
+logger.info('\t\t↑↑↑ Finished saving dataframe to disc ↑↑↑')
 
 # get url data from DVC data storage
 data_url = dvc.api.get_url(path=PATH, repo=REPO, rev=VERSION)
 
-# read dataset from remote (local) data storage 
+# read dataset from remote (local) data storage
 dataframe = pd.read_pickle(data_url)
+logger.info('\t\t↑↑↑ Finished data extraction ↑↑↑')
 
 # log data params
+logger.info('\t\t↓↓↓ Starting logging with MLFlow ↓↓↓')
+
 mlflow.log_param('data_url', data_url)
 mlflow.log_param('raw_dataset_dir', DST_DIR)
 mlflow.log_param('data_version', VERSION)
 mlflow.log_param('input_shape', dataframe.shape)
 mlflow.log_param('input_columns', dataframe.columns.values)
 mlflow.log_param('input_dtypes', dataframe.dtypes.values)
+
+logger.info('\t\t↑↑↑ Finished logging with MLFlow ↑↑↑')
+
+# Log artifacts (logs, saved files, etc)
+mlflow.log_artifacts('artifacts/')
+# delete redundant logs, files that are logged as artifact
+shutil.rmtree('artifacts')

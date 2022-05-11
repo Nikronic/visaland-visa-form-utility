@@ -4,6 +4,7 @@ __all__ = ['PDFIO', 'XFAPDF', 'CanadaXFA']
 from types import FunctionType
 from enum import Enum
 import os
+import logging
 from fnmatch import fnmatch
 
 # preprocessing
@@ -19,7 +20,10 @@ import PyPDF2 as pypdf
 
 # our modules
 from utils.constant import DOC_TYPES
-from utils.helpers import deprecated
+from utils.helpers import deprecated, loggingdecorator
+
+# logging
+logger = logging.getLogger('__main__')
 
 
 class PDFIO:
@@ -61,7 +65,9 @@ class XFAPDF(PDFIO):
 
     def __init__(self) -> None:
         super().__init__()
+        self.logger = logging.getLogger(logger.name+'.XFAPDF')
 
+    @loggingdecorator(logger.name+'.XFAPDF.func', level=logging.DEBUG, input=True, output=True)
     def make_machine_readable(self, src: str, dst: str) -> None:
         """
         Method that reads a 'content-copy' protected PDF and removes this restriction
@@ -78,6 +84,7 @@ class XFAPDF(PDFIO):
         pdf = pikepdf.open(src, allow_overwriting_input=True)
         pdf.save(dst)
 
+    @loggingdecorator(logger.name+'.XFAPDF.func', level=logging.INFO, input=True, output=True)
     def process_directory(self, src_dir: str, dst_dir: str,
                           func: Callable, pattern: str = '*'):
         """
@@ -108,8 +115,8 @@ class XFAPDF(PDFIO):
                     in_fname = os.path.join(dirpath, fname)
                     out_fname = os.path.join(dir_, fname)
                     func(in_fname, out_fname)
-                    # print(in_fname, out_fname)
 
+    @loggingdecorator(logger.name+'.XFAPDF.func', level=logging.DEBUG, output=False)
     def extract_raw_content(self, pdf_path: str) -> str:
         """
         Extracts RAW content of XFA PDF files which are in XML.
@@ -161,6 +168,7 @@ class XFAPDF(PDFIO):
 
         return dict(items())
 
+    @loggingdecorator(logger.name+'.XFAPDF.func', level=logging.DEBUG, output=False)
     def flatten_dict(self, d: dict) -> dict:
         """
         Takes a (nested) multilevel dictionary and flattens it where the final keys are key.key....
@@ -189,6 +197,7 @@ class XFAPDF(PDFIO):
                         yield key, value
         return dict(items())
 
+    @loggingdecorator(logger.name+'.XFAPDF.func', level=logging.DEBUG, output=False)
     def xml_to_flattened_dict(self, xml: str) -> dict:
         """
         Takes a (nested) XML and flattens it to a dict where the final keys are key.key....
@@ -206,7 +215,9 @@ class XFAPDF(PDFIO):
 class CanadaXFA(XFAPDF):
     def __init__(self) -> None:
         super().__init__()
+        self.logger = logging.getLogger(logger.name+'.CanadaXFA')
 
+    @loggingdecorator(logger.name+'.CanadaXFA.func', level=logging.DEBUG, output=False)
     def clean_xml_for_csv(self, xml: str, type: Enum) -> str:
         if type == DOC_TYPES.canada_5257e:
             # remove bad characters

@@ -15,10 +15,17 @@ import pandas as pd
 import numpy as np
 from dateutil import parser
 from typing import Callable, List, Union
+import logging
 
 from utils.constant import DOC_TYPES
+from utils.helpers import loggingdecorator
 
 
+# set logger
+logger = logging.getLogger('__main__')
+
+
+@loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=False)
 def dict_summarizer(d: dict, cutoff_term: str, KEY_ABBREVIATION_DICT: dict = None,
                     VALUE_ABBREVIATION_DICT: dict = None) -> dict:
     """
@@ -69,6 +76,7 @@ def dict_summarizer(d: dict, cutoff_term: str, KEY_ABBREVIATION_DICT: dict = Non
     return dict((new_keys[key], new_values[value]) for (key, value) in d.items())
 
 
+@loggingdecorator(logger.name+'.func', level=logging.INFO, output=False)
 def dict_to_csv(d: dict, path: str) -> None:
     """
     Takes a flattened dictionary and writes it to a CSV file.
@@ -296,6 +304,7 @@ def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: Callable,
     return dataframe
 
 
+@loggingdecorator(logger.name+'.func', level=logging.INFO, output=False)
 def dump_directory_structure_csv(src: str, shallow: bool = True) -> None:
     """
     Takes a `src` directory path, creates a tree of dir structure and writes
