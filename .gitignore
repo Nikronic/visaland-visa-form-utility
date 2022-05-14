@@ -66,6 +66,7 @@ sample/dec_sample
 
 # ignore entire unprotected PDF files (also manually ignored by DVC)
 raw-dataset/10-5-2022-h
+raw-dataset/h0
 
 # ignore logs, they are going to be recorded as artifacts using DVC
 logs
