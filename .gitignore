@@ -66,3 +66,6 @@ sample/dec_sample
 
 # ignore logs, they are going to be recorded as artifacts using DVC
 logs
+
+# ignore raw-dataset/*files
+raw-dataset/all

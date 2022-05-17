@@ -3,3 +3,4 @@
 # https://dvc.org/doc/user-guide/dvcignore
 
 # ignore unprotected PDF files
+raw-dataset/all
