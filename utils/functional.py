@@ -1,6 +1,6 @@
 __all__ = ['dict_summarizer', 'dict_to_csv', 'column_dropper', 'fillna_datetime', 'aggregate_datetime',
            'tag_to_regex_compatible', 'change_dtype', 'unit_converter', 'flatten_dict',
-           'create_directory_structure_tree', 'dump_directory_structure_csv', ]
+           'create_directory_structure_tree', 'dump_directory_structure_csv', 'process_directory']
 
 """
 Contains implementation of functions that could be used for processing data everywhere and
@@ -14,7 +14,6 @@ import csv
 import pandas as pd
 import numpy as np
 from dateutil import parser
-import shutil
 from fnmatch import fnmatch
 from typing import Callable, List, Union
 import logging

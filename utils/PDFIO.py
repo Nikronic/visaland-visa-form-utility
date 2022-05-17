@@ -1,21 +1,15 @@
 __all__ = ['PDFIO', 'XFAPDF', 'CanadaXFA']
 
 # import packages
-from types import FunctionType
 from enum import Enum
-import os
 import logging
-from fnmatch import fnmatch
 
 # preprocessing
 import re
-from typing import Callable
 import xml.etree.ElementTree as et
 import xmltodict
-from collections import OrderedDict
 
 # PDF tools
-import pikepdf
 import PyPDF2 as pypdf
 
 # our modules
