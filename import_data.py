@@ -10,23 +10,28 @@ In simple terms, if you added new samples, changed columns or anything that shou
     this version (or any version you want).
 """
 
-from utils.PDFIO import CanadaXFA
-from utils.preprocessor import CanadaDataframePreprocessor
 from utils.constant import DOC_TYPES
+from utils import functional
+from utils.preprocessor import *
 
 import os
 import pandas as pd
 
 
 # main path
-SRC_DIR = '/mnt/e/dataset/processed/h0/'  # path to source encrypted pdf
-DST_DIR = 'raw-dataset/h0/'  # path to decrypted pdf
+SRC_DIR = '/mnt/e/dataset/processed/all/'  # path to source encrypted pdf
+DST_DIR = 'raw-dataset/all/'  # path to decrypted pdf
 
 # main code
-# Canada protected PDF to machine readable for all entries
-canada_xfa = CanadaXFA()
-canada_xfa.process_directory(src_dir=SRC_DIR, dst_dir=DST_DIR, pattern='*.pdf',
-                             func=canada_xfa.make_machine_readable)
+# Canada protected PDF to machine readable for all entries and transfering other files as it is
+compose = {
+    CopyFile(mode='cf'): '.csv',
+    CopyFile(mode='cf'): '.txt',
+    MakeContentCopyProtectedMachineReadable(): '.pdf'
+}
+file_transform_compose = FileTransformCompose(transforms=compose)
+functional.process_directory(src_dir=SRC_DIR, dst_dir=DST_DIR,
+                             compose=file_transform_compose, file_pattern='*')
 
 SRC_DIR = DST_DIR[:-1]
 dataframe = pd.DataFrame()
@@ -37,26 +42,31 @@ for dirpath, dirnames, all_filenames in os.walk(SRC_DIR):
     filenames = all_filenames
     if filenames:
         files = [os.path.join(dirpath, fname) for fname in filenames]
-        # process files
-        # take automated forms
+        # applicant info
         in_fname = [f for f in files if '5257' in f][0]
         df_preprocessor = CanadaDataframePreprocessor()
-        if len(in_fname) != 0:  # applicant form
+        if len(in_fname) != 0:  
             dataframe_applicant = df_preprocessor.file_specific_basic_transform(
                 path=in_fname, type=DOC_TYPES.canada_5257e)
+        # applicant family info
         in_fname = [f for f in files if '5645' in f][0]
         if len(in_fname) != 0:
             dataframe_family = df_preprocessor.file_specific_basic_transform(
                 path=in_fname, type=DOC_TYPES.canada_5645e)
+        # manually added labels
+        in_fname = [f for f in files if 'label' in f][0]
+        if len(in_fname) != 0:
+            dataframe_label = df_preprocessor.file_specific_basic_transform(
+                path=in_fname, type=DOC_TYPES.canada_label)
 
-        # concatenate common forms column wise
+        # final dataframe: concatenate common forms and label column wise
         dataframe_entry = pd.concat(
-            objs=[dataframe_applicant, dataframe_family], axis=1, verify_integrity=True)
+            objs=[dataframe_applicant, dataframe_family, dataframe_label],
+            axis=1, verify_integrity=True)
 
     # concat the dataframe_entry into the main dataframe (i.e. adding rows)
     dataframe = pd.concat(objs=[dataframe, dataframe_entry], axis=0,
                           verify_integrity=True, ignore_index=True)
-    
 
 # save dataframe to disc as pickle
 dataset_path = DST_DIR[:-1] + '.pkl'

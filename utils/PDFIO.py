@@ -67,55 +67,6 @@ class XFAPDF(PDFIO):
         super().__init__()
         self.logger = logging.getLogger(logger.name+'.XFAPDF')
 
-    @loggingdecorator(logger.name+'.XFAPDF.func', level=logging.DEBUG, input=True, output=True)
-    def make_machine_readable(self, src: str, dst: str) -> None:
-        """
-        Method that reads a 'content-copy' protected PDF and removes this restriction
-        by saving a "printed" version of.
-
-        Ref: https://www.reddit.com/r/Python/comments/t32z2o/simple_code_to_unlock_all_readonly_pdfs_in/
-
-        args:
-            file_name: file name, if None, considers all files in `src_path`
-            src: source file path
-            dst: destination (processed) file path 
-        """
-
-        pdf = pikepdf.open(src, allow_overwriting_input=True)
-        pdf.save(dst)
-
-    @loggingdecorator(logger.name+'.XFAPDF.func', level=logging.INFO, input=True, output=True)
-    def process_directory(self, src_dir: str, dst_dir: str,
-                          func: Callable, pattern: str = '*'):
-        """
-        Iterate through `src_dir`, processing all files that match pattern via
-            given function `func` (for single file) and store them,
-            including their parent directories in `dst_dir`.
-
-        args:
-            src_dir: Source directory to be processed
-            dst_dir: Destination directory to write processed files
-            pattern: pattern to match files, default to '*' for all files
-
-        ref: https://stackoverflow.com/a/24041933/18971263
-        """
-
-        assert src_dir != dst_dir, 'Source and destination dir must differ.'
-        if src_dir[-1] != '/':
-            src_dir += '/'
-        for dirpath, dirnames, all_filenames in os.walk(src_dir):
-            # filter out files that match pattern only
-            filenames = filter(lambda fname: fnmatch(
-                fname, pattern), all_filenames)
-
-            if filenames:
-                dir_ = os.path.join(dst_dir, dirpath.replace(src_dir, ''))
-                os.makedirs(dir_, exist_ok=True)
-                for fname in filenames:
-                    in_fname = os.path.join(dirpath, fname)
-                    out_fname = os.path.join(dir_, fname)
-                    func(in_fname, out_fname)
-
     @loggingdecorator(logger.name+'.XFAPDF.func', level=logging.DEBUG, output=False)
     def extract_raw_content(self, pdf_path: str) -> str:
         """

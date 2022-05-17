@@ -14,11 +14,14 @@ import csv
 import pandas as pd
 import numpy as np
 from dateutil import parser
+import shutil
+from fnmatch import fnmatch
 from typing import Callable, List, Union
 import logging
 
 from utils.constant import DOC_TYPES
 from utils.helpers import loggingdecorator
+from utils.preprocessor import FileTransformCompose
 
 
 # set logger
@@ -395,3 +398,39 @@ def unit_converter(sparse: float, dense: float, factor: float) -> float:
     if dense is not None:
         sparse = (1./factor) * dense
         return sparse
+
+# methods used for handling files from manually processed dataset to raw-dataset
+#   see class `FileTransformers` in `preprocessor.py` for more information
+
+
+def process_directory(src_dir: str, dst_dir: str, compose: FileTransformCompose,
+                      file_pattern: str = '*'):
+    """
+    Iterates through `src_dir`, processing all files that match pattern, the applies
+        given transformation composition `compose` and stores them,
+        including their parent directories in `dst_dir`.
+
+    args:
+        src_dir: Source directory to be processed
+        dst_dir: Destination directory to write processed files
+        file_pattern: pattern to match files, default to '*' for all files
+        compose: An instance of transform composer, see `preprocessor.Compose`
+
+    ref: https://stackoverflow.com/a/24041933/18971263
+    """
+
+    assert src_dir != dst_dir, 'Source and destination dir must differ.'
+    if src_dir[-1] != '/':
+        src_dir += '/'
+    for dirpath, dirnames, all_filenames in os.walk(src_dir):
+        # filter out files that match pattern only
+        filenames = filter(lambda fname: fnmatch(
+            fname, file_pattern), all_filenames)
+
+        if filenames:
+            dir_ = os.path.join(dst_dir, dirpath.replace(src_dir, ''))
+            os.makedirs(dir_, exist_ok=True)
+            for fname in filenames:
+                in_fname = os.path.join(dirpath, fname)
+                out_fname = os.path.join(dir_, fname)
+                compose(in_fname, out_fname)
