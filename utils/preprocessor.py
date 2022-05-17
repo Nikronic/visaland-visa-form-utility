@@ -1,18 +1,19 @@
 __all__ = ['DataframePreprocessor', 'CanadaDataframePreprocessor', 'UnitConverter',
-           'FinancialUnitConverter', 'T0']
+           'FinancialUnitConverter', 'T0', 'FileTransformCompose', 'FileTransform', 'CopyFile',
+           'MakeContentCopyProtectedMachineReadable']
 
+import shutil
 import pandas as pd
 import numpy as np
 from dateutil import parser
 from dateutil.relativedelta import *
-from typing import Callable, Union
-from types import FunctionType
+from typing import Callable, Union, Any
 import logging
 
 from utils import functional
 from utils.constant import *
 from utils.PDFIO import CanadaXFA
-from utils import *
+import pikepdf
 from utils.helpers import loggingdecorator
 
 
@@ -249,10 +250,10 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
     @loggingdecorator(logger.name+'.CanadaDataframePreprocessor.func', level=logging.INFO, output=False, input=True)
     def file_specific_basic_transform(self, type: DOC_TYPES, path: str) -> pd.DataFrame:
         canada_xfa = CanadaXFA()  # Canada PDF to XML
-        xml = canada_xfa.extract_raw_content(path)
 
         if type == DOC_TYPES.canada_5257e:
             # XFA to XML
+            xml = canada_xfa.extract_raw_content(path)
             xml = canada_xfa.clean_xml_for_csv(
                 xml=xml, type=DOC_TYPES.canada_5257e)
             # XML to flattened dict
@@ -561,6 +562,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
 
         if type == DOC_TYPES.canada_5645e:
             # XFA to XML
+            xml = canada_xfa.extract_raw_content(path)
             xml = canada_xfa.clean_xml_for_csv(
                 xml=xml, type=DOC_TYPES.canada_5645e)
             # XML to flattened dict
@@ -812,3 +814,112 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             self.column_dropper(string='p1.SecC.SecCdate', inplace=True)
 
             return dataframe
+
+        if type == DOC_TYPES.canada_label:
+            dataframe = pd.read_csv(path, sep=' ', names=['VisaResult'])
+            functional.change_dtype(dataframe=dataframe, col_name='VisaResult', dtype=np.int8,
+                                    if_nan='fill', value=np.int8(0))
+            return dataframe
+
+
+class FileTransform:
+    """
+    A base class for applying transforms as a composable object over files. Any behavior
+        over the files itself (not the content by any means) must extend this class.
+
+    """
+
+    def __init__(self) -> None:
+        self.logger = logging.getLogger(logger.name+'.FileTransform')
+        pass
+
+    def __call__(self, src: str, dst: str, *args: Any, **kwds: Any) -> Any:
+        """
+
+        Args:
+            src: source file to be processed
+            dst: the pass that the processed file to be saved 
+        """
+        pass
+
+
+class CopyFile(FileTransform):
+    """
+    Only copies a file, a wrapper around `shutil`'s copying methods. 
+    Default is set to 'cf', i.e. `shutil.copyfile`
+    """
+
+    def __init__(self, mode: str) -> None:
+        super().__init__()
+
+        # see https://stackoverflow.com/a/30359308/18971263
+        self.COPY_MODES = ['c', 'cf', 'c2']
+        self.mode = mode if mode is not None else 'cf'
+        self.__check_mode(mode=mode)
+
+    @loggingdecorator(logger.name+'.FileTransform.CopyFile', level=logging.DEBUG,
+                      input=True, output=False)
+    def __call__(self, src: str, dst: str,  *args: Any, **kwds: Any) -> Any:
+        if self.mode == 'c':
+            shutil.copy(src=src, dst=dst)
+        elif self.mode == 'cf':
+            shutil.copyfile(src=src, dst=dst)
+        elif self.mode == 'c2':
+            shutil.copy2(src=src, dst=dst)
+
+    def __check_mode(self, mode: str):
+        """
+        Checks copying mode to be in `shutil`
+        """
+        if not mode in self.COPY_MODES:
+            raise ValueError(
+                'Mode {} does not exist, choose one of "{}".'.format(mode, self.COPY_MODES))
+
+
+class MakeContentCopyProtectedMachineReadable(FileTransform):
+    """
+    reads a 'content-copy' protected PDF and removes this restriction
+        by saving a "printed" version of.
+
+    Ref: https://www.reddit.com/r/Python/comments/t32z2o/simple_code_to_unlock_all_readonly_pdfs_in/
+
+    args:
+        file_name: file name, if None, considers all files in `src_path`
+        src: source file path
+        dst: destination (processed) file path 
+    """
+
+    def __init__(self) -> None:
+        super().__init__()
+
+    @loggingdecorator(logger.name+'.FileTransform.MakeContentCopyProtectMachineReadable',
+                      level=logging.DEBUG, input=True, output=False)
+    def __call__(self, src: str, dst: str, *args: Any, **kwds: Any) -> Any:
+        pdf = pikepdf.open(src, allow_overwriting_input=True)
+        pdf.save(dst)
+
+
+class FileTransformCompose:
+    """
+    Composes several transforms operating on files together, only applying functions
+        on files that match the keyword using a dictionary
+
+    """
+
+    def __init__(self, transforms: dict) -> None:
+        """
+        Transformation dictionary over files in the following structure::
+        {FileTransform: 'filter_str', ...}
+        """
+        if transforms is not None:
+            for k in transforms.keys():
+                if not issubclass(k.__class__, FileTransform):
+                    raise TypeError(
+                        'Keys must be {} instance.'.format(FileTransform))
+
+        self.transforms = transforms
+
+    def __call__(self, src: str, dst: str, *args: Any, **kwds: Any) -> Any:
+        for transform, file_filter in self.transforms.items():
+            if file_filter in src:
+                transform(src, dst)
