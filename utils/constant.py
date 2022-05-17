@@ -154,6 +154,7 @@ class DOC_TYPES(Enum):
     canada = 1        # refering to all Canada docs in general
     canada_5257e = 2  # application for visitor visa (temporary resident visa)
     canada_5645e = 3  # Family information
+    canada_label = 4  # containing labels
 
 
 # Cutoff terms for both keys and values
