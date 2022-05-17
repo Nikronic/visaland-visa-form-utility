@@ -312,11 +312,18 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             # date of birth in year: string -> datetime
             dataframe = self.change_dtype(col_name='P1.PD.DOBYear', dtype=parser.parse,
                                           if_nan='skip')
+            # current country of residency period: None -> Datetime (=age period) 
+            dataframe = self.change_dtype(col_name='P1.PD.CurrCOR.Row2.FromDate',
+                                              dtype=parser.parse, if_nan='fill',
+                                              value=dataframe['P1.PD.DOBYear'])
+            dataframe = self.change_dtype(col_name='P1.PD.CurrCOR.Row2.ToDate',
+                                            dtype=parser.parse, if_nan='fill',
+                                            value=dataframe['P3.Sign.C1CertificateIssueDate'])
             # current country of residency period: Datetime -> int days
             dataframe = self.aggregate_datetime(col_base_name='P1.PD.CurrCOR.Row2',
                                                 type=DOC_TYPES.canada, new_col_name='Period',
-                                                reference_date=dataframe['P1.PD.DOBYear'],
-                                                current_date=dataframe['P3.Sign.C1CertificateIssueDate'])
+                                                reference_date=None,
+                                                current_date=None)
             # date of birth in year: datetime -> int days
             dataframe = self.aggregate_datetime(col_base_name='P1.PD.DOBYear',
                                                 type=DOC_TYPES.canada, new_col_name='Period',
@@ -467,6 +474,14 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             # purpose of visit description: string -> binary
             dataframe = self.change_dtype(col_name='P3.DOV.PrpsRow1.Other.Other', dtype=bool,
                                           if_nan='fill', value=False)
+            # how long going to stay: None -> datetime (0 days)
+            # TODO: it needs to be filled statistically since it has to have >0 value
+            dataframe = self.change_dtype(col_name='P3.DOV.PrpsRow1.HLS.FromDate',
+                                          dtype=parser.parse, if_nan='fill',
+                                          value=dataframe['P3.Sign.C1CertificateIssueDate'])
+            dataframe = self.change_dtype(col_name='P3.DOV.PrpsRow1.HLS.ToDate',
+                                          dtype=parser.parse, if_nan='fill',
+                                          value=dataframe['P3.Sign.C1CertificateIssueDate'])
             # how long going to stay: datetime -> int days
             dataframe = self.aggregate_datetime(col_base_name='P3.DOV.PrpsRow1.HLS',
                                                 type=DOC_TYPES.canada, new_col_name='Period',
@@ -622,7 +637,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                                           dtype=str, if_nan='fill', value='OTHER')
             # spouse accompanying: coming=True or not_coming=False
             dataframe['p1.SecA.Sps.SpsAccomp'] = dataframe['p1.SecA.Sps.SpsAccomp'].apply(
-                lambda x: False if x == '0' else True)
+                lambda x: True if x == '1' else False)
             # mother date of birth: string -> datetime
             dataframe = self.change_dtype(col_name='p1.SecA.Mo.MoDOB',
                                           dtype=parser.parse, if_nan='fill',
@@ -643,7 +658,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                                           value=np.int16(CANADA_FILLNA.ChdMStatus_5645e.value))
             # mother accompanying: coming=True or not_coming=False
             dataframe['p1.SecA.Mo.MoAccomp'] = dataframe['p1.SecA.Mo.MoAccomp'].apply(
-                lambda x: False if x == '0' else True)
+                lambda x: True if x == '1' else False)
             # father date of birth: string -> datetime
             dataframe = self.change_dtype(col_name='p1.SecA.Fa.FaDOB',
                                           dtype=parser.parse, if_nan='fill',
@@ -664,7 +679,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                                           value=np.int16(CANADA_FILLNA.ChdMStatus_5645e.value))
             # father accompanying: coming=True or not_coming=False
             dataframe['p1.SecA.Fa.FaAccomp'] = dataframe['p1.SecA.Fa.FaAccomp'].apply(
-                lambda x: False if x == '0' else True)
+                lambda x: True if x == '1' else False)
 
             # children's status
             children_tag_list = [
@@ -700,12 +715,13 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                                               value=np.int16(CANADA_FILLNA.ChdMStatus_5645e.value))
                 # child's accompanying 01: coming=True or not_coming=False
                 dataframe['p1.SecB.Chd.['+str(i)+'].ChdAccomp'] = dataframe['p1.SecB.Chd.['+str(i)+'].ChdAccomp'].apply(
-                    lambda x: False if x == '0' else True)
+                    lambda x: True if x == '1' else False)
 
                 # check if the child does not exist and fill it properly (ghost case monkaS)
                 if (dataframe['p1.SecB.Chd.['+str(i)+'].ChdMStatus'] == CANADA_FILLNA.ChdMStatus_5645e.value).all() \
                         and (dataframe['p1.SecB.Chd.['+str(i)+'].ChdRel'] == 'OTHER').all() \
-                        and (dataframe['p1.SecB.Chd.['+str(i)+'].ChdDOB'].isna()).all():
+                        and (dataframe['p1.SecB.Chd.['+str(i)+'].ChdDOB'].isna()).all() \
+                        and (dataframe['p1.SecC.Chd.['+str(i)+'].ChdAccomp'] == False).all():
                     # ghost child's date of birth: None -> datetime (current date) -> 0 days
                     dataframe = self. change_dtype(col_name='p1.SecB.Chd.['+str(i)+'].ChdDOB',
                                                    dtype=parser.parse, if_nan='fill',
@@ -736,7 +752,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                 # average of family children as the heuristic
                 dataframe[c+'.Period'] = dataframe[dataframe[col_names]
                                                    != 0].mean(axis=1, numeric_only=True)
-                dataframe.drop(col_names_unprocessed, axis=1, inplace=True)
+                dataframe.drop(c, axis=1, inplace=True)
 
             # siblings' status
             siblings_tag_list = [
@@ -772,12 +788,13 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                                               value=np.int16(CANADA_FILLNA.ChdMStatus_5645e.value))
                 # sibling's accompanying: coming=True or not_coming=False
                 dataframe['p1.SecC.Chd.['+str(i)+'].ChdAccomp'] = dataframe['p1.SecC.Chd.['+str(i)+'].ChdAccomp'].apply(
-                    lambda x: False if x == '0' else True)
+                    lambda x: True if x == '1' else False)
 
                 # check if the sibling does not exist and fill it properly (ghost case monkaS)
                 if (dataframe['p1.SecC.Chd.['+str(i)+'].ChdMStatus'] == CANADA_FILLNA.ChdMStatus_5645e.value).all() \
                         and (dataframe['p1.SecC.Chd.['+str(i)+'].ChdRel'] == 'OTHER').all() \
-                        and (dataframe['p1.SecC.Chd.['+str(i)+'].ChdDOB'].isna()).all():
+                        and (dataframe['p1.SecC.Chd.['+str(i)+'].ChdOcc'].isna()).all() \
+                        and (dataframe['p1.SecC.Chd.['+str(i)+'].ChdAccomp'] == False).all():
                     # ghost sibling's date of birth: None -> datetime (current date) -> 0 days
                     dataframe = self.change_dtype(col_name='p1.SecC.Chd.['+str(i)+'].ChdDOB',
                                                   dtype=parser.parse, if_nan='fill',

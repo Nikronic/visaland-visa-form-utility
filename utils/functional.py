@@ -15,7 +15,7 @@ import pandas as pd
 import numpy as np
 from dateutil import parser
 from fnmatch import fnmatch
-from typing import Callable, List, Union
+from typing import Any, Callable, List, Union
 import logging
 
 from utils.constant import DOC_TYPES
@@ -298,10 +298,34 @@ def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: Callable,
             raise ValueError('Unknown mode "{}".'.format(if_nan))
     else:
         pass
+    
+    def standardize(value: Any):
+        """
+        Takes a value and make it standard for the target function that is going to parse it
 
+        Remark: This is mostly hardcoded and cannot be written better (I think!). So, you can
+            remove it entirely, and see what errors you get, and change this accordingly to 
+            errors and exceptions you get.
+        
+        args:
+            value: the input value that need to be standardized
+        """
+        if dtype == parser.parse:  # datetime parser
+            try:
+                parser.parse(value)    
+            except ValueError:  # bad input format for `parser.parse`
+                # we want YYYY-MM-DD
+                if len(value) == 8 and value.isnumeric():  # MMDDYYYY format (Canada Common Forms)
+                    value = '{}-{}-{}'.format(value[4:], value[2:4], value[0:2])
+
+                # fix values
+                if value[5:7] == '02' and value[8:10] == '30':  # using >28 for February
+                    value = '28'.join(value.rsplit('30', 1))
+        return value
+    
     # apply the rules and data type change
     dataframe[col_name] = dataframe[col_name].apply(
-        lambda x: dtype(x) if x is not None else func(x))
+        lambda x: dtype(standardize(x)) if x is not None else func(x))
 
     return dataframe
 
