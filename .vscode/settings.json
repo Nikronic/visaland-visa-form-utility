@@ -15,7 +15,9 @@
         "Prps",
         "Psprt",
         "pypdf",
+        "skipna",
         "Subform",
+        "subindicator",
         "XFAPDF"
     ],
     "python.linting.mypyEnabled": true,
