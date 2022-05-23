@@ -1,6 +1,7 @@
 __all__ = ['dict_summarizer', 'dict_to_csv', 'column_dropper', 'fillna_datetime', 'aggregate_datetime',
            'tag_to_regex_compatible', 'change_dtype', 'unit_converter', 'flatten_dict',
-           'create_directory_structure_tree', 'dump_directory_structure_csv', 'process_directory']
+           'create_directory_structure_tree', 'dump_directory_structure_csv', 'process_directory',
+           'search_dict', 'config_csv_to_dict']
 
 """
 Contains implementation of functions that could be used for processing data everywhere and
@@ -18,7 +19,7 @@ from fnmatch import fnmatch
 from typing import Any, Callable, List, Union
 import logging
 
-from vizard_utils.constant import DOC_TYPES
+from vizard_utils.constant import DOC_TYPES, CONFIGS_PATH
 from vizard_utils.helpers import loggingdecorator
 from vizard_utils.preprocessor import FileTransformCompose
 
@@ -459,3 +460,32 @@ def process_directory(src_dir: str, dst_dir: str, compose: FileTransformCompose,
                 in_fname = os.path.join(dirpath, fname)
                 out_fname = os.path.join(dir_, fname)
                 compose(in_fname, out_fname)
+
+
+@loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=True, input=True)
+def search_dict(string: str, dic: dict, if_nan: str) -> str:
+    """
+    Converts the (custom and non-standard) code of a country to its name given the XFA docs LOV section.
+    args:
+        string: input code string
+        dic: dictionary to be searched throw the keys for `string`
+        if_nan: if `string` could not be found in `dic`, return `if_nan`
+    """
+    country = [c for c in dic.keys() if string in c]
+    if country:
+        return dic[country[0]]
+    else:
+        logger.debug('"{}" key could not be found, filled with "{}".'.format(string, if_nan))
+        return if_nan
+
+@loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=False, input=True)
+def config_csv_to_dict(path: str) -> dict:
+    """
+    Takes a config CSV and return a dictionary of key and values
+
+    args:
+        path: string path to config file
+    """
+
+    config_df = pd.read_csv(path)
+    return dict(zip(config_df[config_df.columns[0]], config_df[config_df.columns[1]]))

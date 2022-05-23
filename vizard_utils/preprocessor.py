@@ -331,6 +331,12 @@ class WorldBankDataframeProcessor:
                                                              numeric_only=True)
         dataframe.drop(dataframe.columns[1:-1], axis=1, inplace=True)
 
+        # add a default row when input country name is 'Unknown` (this value was hardcoded in XFA PDF LOV field)
+        df_unknown = pd.DataFrame(
+            {dataframe.columns[0]: ['Unknown'], dataframe.columns[1]: [None]})
+        dataframe = pd.concat(objs=[dataframe, df_unknown], axis=0,
+                              verify_integrity=True, ignore_index=True)
+
         # fillna since there is no info in the past years of that country -> unknown country
         if not self.subindicator_rank:  # fillna with lowest score = 1.
             dataframe = dataframe.fillna(value=1.)
@@ -363,7 +369,8 @@ class EducationCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
             drops corresponding columns used for filtering.
         """
         dataframe = self.indicator_filter(indicator_name=self.INDICATOR_NAME)
-        dataframe = dataframe[dataframe.columns[0]].apply(lambda x: x.lower())
+        dataframe[dataframe.columns[0]] = dataframe[dataframe.columns[0]].apply(
+            lambda x: x.lower())
         return dict(zip(dataframe[dataframe.columns[0]], dataframe[dataframe.columns[1]]))
 
     @loggingdecorator(logger.name+'.WorldBankDataframeProcessor.EducationCountryScoreDataframePreprocessor.func',
@@ -372,14 +379,12 @@ class EducationCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
         """
         Converts the name of a country into a numerical value.
         """
+        if string is None:
+            string = 'Unknown'
         string = string.lower()
-        country = [c for c in self.country_name_to_numeric_dict.keys()
-                   if string in c]
-        if country:
-            return self.country_name_to_numeric_dict[country]
-        else:
-            raise ValueError(
-                '"{}" is not a valid country name.'.format(string))
+        # see `self.indicator_filter` for description of `1.` and `150` magic numbers
+        return functional.search_dict(string=string, dic=self.country_name_to_numeric_dict,
+                                      if_nan=1. if not self.subindicator_rank else 150)
 
     @loggingdecorator(logger.name+'.WorldBankDataframeProcessor.EducationCountryScoreDataframePreprocessor.func',
                       level=logging.DEBUG, output=False, input=False)
