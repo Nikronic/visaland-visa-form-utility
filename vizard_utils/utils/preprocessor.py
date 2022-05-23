@@ -2,8 +2,8 @@ __all__ = ['DataframePreprocessor', 'CanadaDataframePreprocessor', 'UnitConverte
            'FinancialUnitConverter', 'T0', 'FileTransformCompose', 'FileTransform', 'CopyFile',
            'MakeContentCopyProtectedMachineReadable']
 
-from itertools import count
 import shutil
+import pikepdf
 import pandas as pd
 import numpy as np
 from dateutil import parser
@@ -11,11 +11,10 @@ from dateutil.relativedelta import *
 from typing import Callable, List, Union, Any
 import logging
 
-from utils import functional
-from utils.constant import *
-from utils.PDFIO import CanadaXFA
-import pikepdf
-from utils.helpers import loggingdecorator
+from vizard_utils.utils import functional
+from vizard_utils.utils.constant import *
+from vizard_utils.utils.PDFIO import CanadaXFA
+from vizard_utils.utils.helpers import loggingdecorator
 
 
 # logging
@@ -409,7 +408,8 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
         args:
             string: input code string
         """
-        logger = logging.getLogger(self.logger.name+'.convert_country_code_to_name')
+        logger = logging.getLogger(
+            self.logger.name+'.convert_country_code_to_name')
 
         country = [c for c in self.CANADA_COUNTRY_CODE_TO_NAME.keys()
                    if string in c]
@@ -419,7 +419,6 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             logger.debug('"{}" country code could not be found in the config file="{}".'.format(
                 string, self.config_path))
             return 'Unknown'  # '000' code in XFA forms
-        
 
     @loggingdecorator(logger.name+'.CanadaDataframePreprocessor.func', level=logging.INFO, output=False, input=True)
     def file_specific_basic_transform(self, type: DOC_TYPES, path: str) -> pd.DataFrame:

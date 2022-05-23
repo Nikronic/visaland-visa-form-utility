@@ -4,9 +4,9 @@ import logging
 import uuid
 import enlighten
 
-from utils.constant import DOC_TYPES
-from utils import functional
-from utils.preprocessor import *
+from vizard_utils.utils.constant import DOC_TYPES
+from vizard_utils.utils import functional
+from vizard_utils.utils.preprocessor import *
 
 import dvc.api
 import mlflow
