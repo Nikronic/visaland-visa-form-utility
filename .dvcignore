@@ -5,3 +5,6 @@
 # ignore unprotected PDF files
 raw-dataset/all
 raw-dataset/field_data
+
+# ignore redundant logs
+notebooks/mlruns
