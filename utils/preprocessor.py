@@ -151,6 +151,18 @@ class DataframePreprocessor:
         return functional.change_dtype(dataframe=self.dataframe, col_name=col_name,
                                        dtype=dtype, if_nan=if_nan, **kwargs)
 
+    @loggingdecorator(logger.name+'.DataframePreprocessor.func', level=logging.DEBUG, output=False, input=True)
+    def __config_csv_to_dict(self, path: str) -> dict:
+        """
+        Take a config CSV and return a dictionary of key and values
+
+        args:
+            path: string path to config file
+        """
+
+        config_df = pd.read_csv(path)
+        return dict(zip(config_df[config_df.columns[0]], config_df[config_df.columns[1]]))
+
 
 class UnitConverter:
     """
@@ -377,12 +389,37 @@ class EducationCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
 
 
 class CanadaDataframePreprocessor(DataframePreprocessor):
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, dataframe: pd.DataFrame = None) -> None:
+        super().__init__(dataframe)
         self.logger_name = '.CanadaDataframePreprocessor'
         self.logger = logging.getLogger(logger.name+self.logger_name)
 
         self.base_date = None  # the time forms were filled, considered "today" for forms
+
+        # get country code to name dict
+        self.config_path = CONFIGS_PATH.CANADA_COUNTRY_CODE_TO_NAME.value
+        self.CANADA_COUNTRY_CODE_TO_NAME = self.__config_csv_to_dict(
+            self.config_path)
+
+    @loggingdecorator(logger.name+'.CanadaDataframePreprocessor.func', level=logging.INFO, output=True, input=True)
+    def convert_country_code_to_name(self, string: str) -> str:
+        """
+        Converts the (custom and non-standard) code of a country to its name given the XFA docs LOV section.
+        # TODO: integrate this into `file_specific...` after verifying it in `'notebooks/data_exploration_dev.ipynb'`
+        args:
+            string: input code string
+        """
+        logger = logging.getLogger(self.logger.name+'.convert_country_code_to_name')
+
+        country = [c for c in self.CANADA_COUNTRY_CODE_TO_NAME.keys()
+                   if string in c]
+        if country:
+            return self.CANADA_COUNTRY_CODE_TO_NAME[country]
+        else:
+            logger.debug('"{}" country code could not be found in the config file="{}".'.format(
+                string, self.config_path))
+            return 'Unknown'  # '000' code in XFA forms
+        
 
     @loggingdecorator(logger.name+'.CanadaDataframePreprocessor.func', level=logging.INFO, output=False, input=True)
     def file_specific_basic_transform(self, type: DOC_TYPES, path: str) -> pd.DataFrame:

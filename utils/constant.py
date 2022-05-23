@@ -174,3 +174,8 @@ class CANADA_CUTOFF_TERMS(Enum):
 class CANADA_FILLNA(Enum):
 
     ChdMStatus_5645e = 9
+
+
+# configs path
+class CONFIGS_PATH(Enum):
+    CANADA_COUNTRY_CODE_TO_NAME = 'configs/canada-country-code-to-name.csv'
