@@ -107,7 +107,7 @@ class DataframePreprocessor:
                 2. `'left'`: Uses the `reference_date` as the starting time
             reference_date: Assumed `reference_date` (t0<t1)
             current_date: Assumed `current_date` (t1>t0)
-            if_nan: What to do with `None`s (NaN). Could be a function or predfined states as follow:\n
+            if_nan: What to do with `None`s (NaN). Could be a function or predefined states as follow:\n
                 1. 'skip': do nothing (i.e. ignore `None`'s)
             type: `DOC_TYPE` used to use rules for matching tags and filling appropriately
         """
@@ -123,7 +123,7 @@ class DataframePreprocessor:
             missing value filling, descretization, etc.
 
         Remark: Since each files has its own unique tags and requirements,
-            it is expected that all these transforation being hardcoded for each file,
+            it is expected that all these transformation being hardcoded for each file,
             hence this method exists to just improve readability without any generalization
             to other problems or even files.
 
@@ -143,7 +143,7 @@ class DataframePreprocessor:
         args:
             col_name: Column name of the dataframe
             dtype: target data type as a function e.g. `np.float32`
-            if_nan: What to do with `None`s (NaN). Could be a function or predfined states as follow:\n
+            if_nan: What to do with `None`s (NaN). Could be a function or predefined states as follow:\n
                 1. 'skip': do nothing (i.e. ignore `None`'s)
                 2. 
         """
@@ -175,7 +175,7 @@ class UnitConverter:
             dense: the larger/denser amount which is a multiplication of `sparse`,\n
                 if provided calculates `dense = (factor) sparse`
             factor: sparse to dense factor, either directly provided as a\n
-                float number or as a perdefined factor given by `constant.FINANCIAL_RATIOS`
+                float number or as a predefined factor given by `constant.FINANCIAL_RATIOS`
         """
 
         if sparse is not None:
@@ -260,7 +260,7 @@ class WorldBankDataframeProcessor:
                 or score (continuous) for given `indicator_name`. Defaults to `False`.
         """
         # set constants
-        self.dataframe = dataframe 
+        self.dataframe = dataframe
         self.INDICATOR = 'Indicator'
         self.SUBINDICATOR = 'Subindicator Type'
         self.subindicator_rank = subindicator_rank
@@ -281,14 +281,15 @@ class WorldBankDataframeProcessor:
         """
         Processes a dataframe to only include years given tuple of `years`
             where `years=(start, end)`. Works inplace, hence manipulates original dataframe.
-        
+
         years: A tuple of `(start, end)` to limit years of data. If `None` (=default),
                 all years will be included
         """
         # figure out start and end year index of columns names values
         start_year, end_year = [
             str(y) for y in years] if years is not None else (None, None)
-        column_years = [c for c in self.dataframe.columns.values if c.isnumeric()]
+        column_years = [
+            c for c in self.dataframe.columns.values if c.isnumeric()]
         start_year_index = column_years.index(
             start_year) if start_year is not None else 0
         end_year_index = column_years.index(
@@ -305,7 +306,7 @@ class WorldBankDataframeProcessor:
         """
         Filters the rows by given `indicator_name` and drops corresponding columns used
             for filtering. Then aggregates using mean operation.
-        
+
         args:
             indicator_name: A string containing an indicator's full name
         """
@@ -332,6 +333,7 @@ class EducationCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
     Handles `'Quality of the education system'` indicator of a `WorldBankDataframeProcessor`
         dataframe. The value ranges from 1 to 7 as score where higher is better.
     """
+
     def __init__(self, dataframe: pd.DataFrame, subindicator_rank: bool = False) -> None:
         super().__init__(dataframe, subindicator_rank)
 
@@ -360,12 +362,14 @@ class EducationCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
         Converts the name of a country into a numerical value.
         """
         string = string.lower()
-        country = [c for c in self.country_name_to_numeric_dict.keys() if string in c]
+        country = [c for c in self.country_name_to_numeric_dict.keys()
+                   if string in c]
         if country:
             return self.country_name_to_numeric_dict[country]
         else:
-            raise ValueError('"{}" is not a valid country name.'.format(string))
-    
+            raise ValueError(
+                '"{}" is not a valid country name.'.format(string))
+
     @loggingdecorator(logger.name+'.WorldBankDataframeProcessor.EducationCountryScoreDataframePreprocessor.func',
                       level=logging.DEBUG, output=False, input=False)
     def convert_country_name_to_numeric_batch(self) -> dict:
@@ -415,7 +419,6 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             dataframe['P1.PD.AliasName.AliasNameIndicator.AliasNameIndicator'] = dataframe['P1.PD.AliasName.AliasNameIndicator.AliasNameIndicator'].apply(
                 lambda x: True if x == 'Y' else False)
             # VisaType: String -> categorical
-            #   TODO: We may need to remove it if its all the same everywhere
             dataframe = self.change_dtype(col_name='P1.PD.VisaType.VisaType', dtype=str,
                                           if_nan='fill', value='OTHER')
             # Birth City: String -> categorical
@@ -433,7 +436,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             # current country of residency status: string -> categorical
             dataframe = self.change_dtype(col_name='P1.PD.CurrCOR.Row2.Status', dtype=np.int8,
                                           if_nan='fill', value=np.int8(6))  # 6=OTHER in the form
-            # current country of residency other descritpion: bool -> categorical
+            # current country of residency other description: bool -> categorical
             dataframe = self.change_dtype(col_name='P1.PD.CurrCOR.Row2.Other', dtype=bool,
                                           if_nan='fill', value=False)
             # validation date of information, i.e. current date: datetime
@@ -445,13 +448,13 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             # date of birth in year: string -> datetime
             dataframe = self.change_dtype(col_name='P1.PD.DOBYear', dtype=parser.parse,
                                           if_nan='skip')
-            # current country of residency period: None -> Datetime (=age period) 
+            # current country of residency period: None -> Datetime (=age period)
             dataframe = self.change_dtype(col_name='P1.PD.CurrCOR.Row2.FromDate',
-                                              dtype=parser.parse, if_nan='fill',
-                                              value=dataframe['P1.PD.DOBYear'])
+                                          dtype=parser.parse, if_nan='fill',
+                                          value=dataframe['P1.PD.DOBYear'])
             dataframe = self.change_dtype(col_name='P1.PD.CurrCOR.Row2.ToDate',
-                                            dtype=parser.parse, if_nan='fill',
-                                            value=dataframe['P3.Sign.C1CertificateIssueDate'])
+                                          dtype=parser.parse, if_nan='fill',
+                                          value=dataframe['P3.Sign.C1CertificateIssueDate'])
             # current country of residency period: Datetime -> int days
             dataframe = self.aggregate_datetime(col_base_name='P1.PD.CurrCOR.Row2',
                                                 type=DOC_TYPES.canada, new_col_name='Period',
@@ -505,7 +508,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             # country where applying status: string -> categorical
             dataframe = self.change_dtype(col_name='P1.PD.CWA.Row2.Status',
                                           dtype=np.int8, if_nan='fill', value=np.int8(6))
-            # country where applying other: string -> categorical # TODO: maybe delete?
+            # country where applying other: string -> categorical
             dataframe = self.change_dtype(col_name='P1.PD.CWA.Row2.Other', dtype=bool,
                                           if_nan='fill', value=False)
             # country where applying period: datetime -> int days
@@ -608,7 +611,6 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             dataframe = self.change_dtype(col_name='P3.DOV.PrpsRow1.Other.Other', dtype=bool,
                                           if_nan='fill', value=False)
             # how long going to stay: None -> datetime (0 days)
-            # TODO: it needs to be filled statistically since it has to have >0 value
             dataframe = self.change_dtype(col_name='P3.DOV.PrpsRow1.HLS.FromDate',
                                           dtype=parser.parse, if_nan='fill',
                                           value=dataframe['P3.Sign.C1CertificateIssueDate'])

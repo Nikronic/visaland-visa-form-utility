@@ -186,7 +186,7 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
         reference_date: Assumed `reference_date` (t0<t1)
         current_date: Assumed `current_date` (t1>t0)
         type: `DOC_TYPE` used to use rules for matching tags and filling appropriately
-        if_nan: What to do with `None`s (NaN). Could be a function or predfined states as follow:\n
+        if_nan: What to do with `None`s (NaN). Could be a function or predefined states as follow:\n
             1. 'skip': do nothing (i.e. ignore `None`'s)
     """
 
@@ -280,12 +280,12 @@ def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: Callable,
     args:
         col_name: Column name of the dataframe
         dtype: target data type as a function e.g. `np.float32`
-        if_nan: What to do with `None`s (NaN). Could be a function or predfined states as follow:\n
+        if_nan: What to do with `None`s (NaN). Could be a function or predefined states as follow:\n
             1. 'skip': do nothing (i.e. ignore `None`'s)
             2. 'value': fill the `None` with `value` argument via `kwargs`
     """
 
-    # define `func` for different cases of predfined logics
+    # define `func` for different cases of predefined logics
     if isinstance(if_nan, str):  # predefined `if_nan` cases
         if if_nan == 'skip':
             # the function to be used in `.apply` method of dataframe
@@ -298,7 +298,7 @@ def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: Callable,
             raise ValueError('Unknown mode "{}".'.format(if_nan))
     else:
         pass
-    
+
     def standardize(value: Any):
         """
         Takes a value and make it standard for the target function that is going to parse it
@@ -306,23 +306,25 @@ def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: Callable,
         Remark: This is mostly hardcoded and cannot be written better (I think!). So, you can
             remove it entirely, and see what errors you get, and change this accordingly to 
             errors and exceptions you get.
-        
+
         args:
             value: the input value that need to be standardized
         """
         if dtype == parser.parse:  # datetime parser
             try:
-                parser.parse(value)    
+                parser.parse(value)
             except ValueError:  # bad input format for `parser.parse`
                 # we want YYYY-MM-DD
-                if len(value) == 8 and value.isnumeric():  # MMDDYYYY format (Canada Common Forms)
-                    value = '{}-{}-{}'.format(value[4:], value[2:4], value[0:2])
+                # MMDDYYYY format (Canada Common Forms)
+                if len(value) == 8 and value.isnumeric():
+                    value = '{}-{}-{}'.format(value[4:],
+                                              value[2:4], value[0:2])
 
                 # fix values
                 if value[5:7] == '02' and value[8:10] == '30':  # using >28 for February
                     value = '28'.join(value.rsplit('30', 1))
         return value
-    
+
     # apply the rules and data type change
     dataframe[col_name] = dataframe[col_name].apply(
         lambda x: dtype(standardize(x)) if x is not None else func(x))
@@ -410,7 +412,7 @@ def unit_converter(sparse: float, dense: float, factor: float) -> float:
         dense: the larger/denser amount which is a multiplication of `sparse`,\n
             if provided calculates `dense = (1/factor) sparse`
         factor: sparse to dense factor, either directly provided as a\n
-            float number or as a perdefined factor given by `constant.FINANCIAL_RATIOS`
+            float number or as a predefined factor given by `constant.FINANCIAL_RATIOS`
     """
     # only sparse or dense must exist
     assert not (sparse is not None and dense is not None)

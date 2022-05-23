@@ -1,7 +1,7 @@
 """
 Only run this code for generating [dataset_name].pkl file, every time we want to create a new version
     of our dataset, then after this step, we use DVC to version it.
-In main.py, we just retrun this step but integrated into MLFlow to track which version we are
+In main.py, we just rerun this step but integrated into MLFlow to track which version we are
     USING (than generating).
 
 In simple terms, if you added new samples, changed columns or anything that should be considered
@@ -23,7 +23,7 @@ SRC_DIR = '/mnt/e/dataset/processed/all/'  # path to source encrypted pdf
 DST_DIR = 'raw-dataset/all/'  # path to decrypted pdf
 
 # main code
-# Canada protected PDF to machine readable for all entries and transfering other files as it is
+# Canada protected PDF to machine readable for all entries and transferring other files as it is
 compose = {
     CopyFile(mode='cf'): '.csv',
     CopyFile(mode='cf'): '.txt',
@@ -45,7 +45,7 @@ for dirpath, dirnames, all_filenames in os.walk(SRC_DIR):
         # applicant info
         in_fname = [f for f in files if '5257' in f][0]
         df_preprocessor = CanadaDataframePreprocessor()
-        if len(in_fname) != 0:  
+        if len(in_fname) != 0:
             dataframe_applicant = df_preprocessor.file_specific_basic_transform(
                 path=in_fname, type=DOC_TYPES.canada_5257e)
         # applicant family info

@@ -151,7 +151,7 @@ class DOC_TYPES(Enum):
     Contains all document types which can be used to customize ETL steps for each doc.
     Remark: Order of docs is meaningless.
     """
-    canada = 1        # refering to all Canada docs in general
+    canada = 1        # referring to all Canada docs in general
     canada_5257e = 2  # application for visitor visa (temporary resident visa)
     canada_5645e = 3  # Family information
     canada_label = 4  # containing labels

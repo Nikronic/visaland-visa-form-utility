@@ -1,6 +1,7 @@
 {
     "cSpell.words": [
         "Accomp",
+        "argstr",
         "Cdate",
         "cntct",
         "cntcts",
@@ -15,9 +16,12 @@
         "Prps",
         "Psprt",
         "pypdf",
+        "relativedelta",
         "skipna",
         "Subform",
         "subindicator",
+        "subkey",
+        "subvalue",
         "XFAPDF"
     ],
     "python.linting.mypyEnabled": true,
