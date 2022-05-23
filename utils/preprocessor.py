@@ -2,12 +2,13 @@ __all__ = ['DataframePreprocessor', 'CanadaDataframePreprocessor', 'UnitConverte
            'FinancialUnitConverter', 'T0', 'FileTransformCompose', 'FileTransform', 'CopyFile',
            'MakeContentCopyProtectedMachineReadable']
 
+from itertools import count
 import shutil
 import pandas as pd
 import numpy as np
 from dateutil import parser
 from dateutil.relativedelta import *
-from typing import Callable, Union, Any
+from typing import Callable, List, Union, Any
 import logging
 
 from utils import functional
@@ -237,6 +238,138 @@ class FinancialUnitConverter(UnitConverter):
     def worth2income(self, worth: float) -> float:
         return self.unit_converter(sparse=None, dense=worth,
                                    factor=self.CONSTANTS['worth2income'])
+
+
+class WorldBankDataframeProcessor:
+    """
+    A Pandas Dataframe processor which is customized to handle data dumped from 
+        https://govdata360.worldbank.org (since it's used by mainstream, works for us too)
+
+    It's recommended to extend this class to work with particular indicator by
+        first filtering by a "indicator", then manipulating the resulting dataframe.
+    """
+
+    def __init__(self, dataframe: pd.DataFrame, subindicator_rank: bool = False) -> None:
+        """
+        Gets a raw dataframe, drops redundant columns, and prepares for extracting subsets
+            given `include_years` and `filter_indicator`.
+
+        args:
+        dataframe: Main Pandas DataFrame to be processed
+        subindicator_rank: Whether or not use ranking (discrete)
+                or score (continuous) for given `indicator_name`. Defaults to `False`.
+        """
+        # set constants
+        self.dataframe = dataframe 
+        self.INDICATOR = 'Indicator'
+        self.SUBINDICATOR = 'Subindicator Type'
+        self.subindicator_rank = subindicator_rank
+        self.SUBINDICATOR_TYPE = 'Rank' if subindicator_rank else '1-7 Best'
+        # drop useless columns
+        columns_to_drop = ['Country ISO3', 'Indicator Id', ]
+        columns_to_drop = columns_to_drop + \
+            [c for c in dataframe.columns.values if '-' in c]
+        self.dataframe.drop(columns_to_drop, axis=1, inplace=True)
+
+        # logging
+        self.logger_name = '.WorldBankDataframeProcessor'
+        self.logger = logging.getLogger(logger.name+self.logger_name)
+
+    @loggingdecorator(logger.name+'.WorldBankDataframeProcessor.func', level=logging.INFO,
+                      output=True, input=True)
+    def include_years(self, years: tuple[Union[int, None], Union[int, None]] = None) -> None:
+        """
+        Processes a dataframe to only include years given tuple of `years`
+            where `years=(start, end)`. Works inplace, hence manipulates original dataframe.
+        
+        years: A tuple of `(start, end)` to limit years of data. If `None` (=default),
+                all years will be included
+        """
+        # figure out start and end year index of columns names values
+        start_year, end_year = [
+            str(y) for y in years] if years is not None else (None, None)
+        column_years = [c for c in self.dataframe.columns.values if c.isnumeric()]
+        start_year_index = column_years.index(
+            start_year) if start_year is not None else 0
+        end_year_index = column_years.index(
+            end_year) if end_year is not None else -1
+        # dataframe with desired years
+        sub_column_years = column_years[start_year_index: end_year_index+1]
+        columns_to_drop = [c for c in list(
+            set(column_years) - set(sub_column_years)) if c.isnumeric()]
+        self.dataframe.drop(columns_to_drop, axis=True, inplace=True)
+
+    @loggingdecorator(logger.name+'.WorldBankDataframeProcessor.func', level=logging.INFO,
+                      output=False, input=True)
+    def indicator_filter(self, indicator_name: str) -> pd.DataFrame:
+        """
+        Filters the rows by given `indicator_name` and drops corresponding columns used
+            for filtering. Then aggregates using mean operation.
+        
+        args:
+            indicator_name: A string containing an indicator's full name
+        """
+        # filter rows that only contain the provided `indicator_name` with type `rank` or `score`
+        dataframe = self.dataframe[(self.dataframe[self.INDICATOR] == indicator_name) &
+                                   (self.dataframe[self.SUBINDICATOR] == self.SUBINDICATOR_TYPE)]
+        dataframe.drop([self.INDICATOR, self.SUBINDICATOR],
+                       axis=1, inplace=True)
+        # drop scores/ranks and aggregate them into one column
+        dataframe[indicator_name + '_mean'] = dataframe.mean(axis=1, skipna=True,
+                                                             numeric_only=True)
+        dataframe.drop(dataframe.columns[1:-1], axis=1, inplace=True)
+
+        # fillna since there is no info in the past years of that country -> unknown country
+        if not self.subindicator_rank:  # fillna with lowest score = 1.
+            dataframe = dataframe.fillna(value=1.)
+        else:  # fillna with highest rank = 150
+            dataframe = dataframe.fillna(value=150)
+        return dataframe
+
+
+class EducationCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
+    """
+    Handles `'Quality of the education system'` indicator of a `WorldBankDataframeProcessor`
+        dataframe. The value ranges from 1 to 7 as score where higher is better.
+    """
+    def __init__(self, dataframe: pd.DataFrame, subindicator_rank: bool = False) -> None:
+        super().__init__(dataframe, subindicator_rank)
+
+        self.INDICATOR_NAME = 'Quality of the education system, 1-7 (best)'
+        self.country_name_to_numeric_dict = self.__indicator_filter()
+
+        # logging
+        self.logger_name = '.WorldBankDataframeProcessor.EducationCountryScoreDataframePreprocessor'
+        self.logger = logging.getLogger(logger.name+self.logger_name)
+
+    @loggingdecorator(logger.name+'.WorldBankDataframeProcessor.EducationCountryScoreDataframePreprocessor.func',
+                      level=logging.DEBUG, output=False, input=True)
+    def __indicator_filter(self) -> dict:
+        """
+        Filters the rows by a constant `INDICATOR_NAME` defined by class type and
+            drops corresponding columns used for filtering.
+        """
+        dataframe = self.indicator_filter(indicator_name=self.INDICATOR_NAME)
+        dataframe = dataframe[dataframe.columns[0]].apply(lambda x: x.lower())
+        return dict(zip(dataframe[dataframe.columns[0]], dataframe[dataframe.columns[1]]))
+
+    @loggingdecorator(logger.name+'.WorldBankDataframeProcessor.EducationCountryScoreDataframePreprocessor.func',
+                      level=logging.DEBUG, output=True, input=True)
+    def convert_country_name_to_numeric(self, string: str) -> float:
+        """
+        Converts the name of a country into a numerical value.
+        """
+        string = string.lower()
+        country = [c for c in self.country_name_to_numeric_dict.keys() if string in c]
+        if country:
+            return self.country_name_to_numeric_dict[country]
+        else:
+            raise ValueError('"{}" is not a valid country name.'.format(string))
+    
+    @loggingdecorator(logger.name+'.WorldBankDataframeProcessor.EducationCountryScoreDataframePreprocessor.func',
+                      level=logging.DEBUG, output=False, input=False)
+    def convert_country_name_to_numeric_batch(self) -> dict:
+        raise NotImplementedError
 
 
 class CanadaDataframePreprocessor(DataframePreprocessor):
