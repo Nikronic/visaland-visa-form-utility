@@ -18,9 +18,9 @@ from fnmatch import fnmatch
 from typing import Any, Callable, List, Union
 import logging
 
-from utils.constant import DOC_TYPES
-from utils.helpers import loggingdecorator
-from utils.preprocessor import FileTransformCompose
+from vizard_utils.constant import DOC_TYPES
+from vizard_utils.helpers import loggingdecorator
+from vizard_utils.preprocessor import FileTransformCompose
 
 
 # set logger
