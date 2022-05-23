@@ -11,10 +11,10 @@ from dateutil.relativedelta import *
 from typing import Callable, List, Union, Any
 import logging
 
-from vizard_utils.utils import functional
-from vizard_utils.utils.constant import *
-from vizard_utils.utils.PDFIO import CanadaXFA
-from vizard_utils.utils.helpers import loggingdecorator
+from vizard_utils import functional
+from vizard_utils.constant import *
+from vizard_utils.PDFIO import CanadaXFA
+from vizard_utils.helpers import loggingdecorator
 
 
 # logging

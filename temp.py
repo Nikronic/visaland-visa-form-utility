@@ -5,9 +5,9 @@ import logging
 import uuid
 import enlighten
 
-from vizard_utils.utils.constant import *
-from vizard_utils.utils import functional
-from vizard_utils.utils.preprocessor import *
+from vizard_utils.constant import *
+from vizard_utils import functional
+from vizard_utils.preprocessor import *
 
 import pandas as pd
 

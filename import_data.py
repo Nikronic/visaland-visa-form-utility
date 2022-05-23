@@ -10,9 +10,9 @@ In simple terms, if you added new samples, changed columns or anything that shou
     this version (or any version you want).
 """
 
-from vizard_utils.utils.constant import DOC_TYPES
-from vizard_utils.utils import functional
-from vizard_utils.utils.preprocessor import *
+from vizard_utils.constant import DOC_TYPES
+from vizard_utils import functional
+from vizard_utils.preprocessor import *
 
 import os
 import pandas as pd

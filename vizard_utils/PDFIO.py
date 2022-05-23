@@ -13,8 +13,8 @@ import xmltodict
 import PyPDF2 as pypdf
 
 # our modules
-from vizard_utils.utils.constant import DOC_TYPES
-from vizard_utils.utils.helpers import deprecated, loggingdecorator
+from vizard_utils.constant import DOC_TYPES
+from vizard_utils.helpers import deprecated, loggingdecorator
 
 # logging
 logger = logging.getLogger('__main__')
