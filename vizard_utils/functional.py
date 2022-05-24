@@ -1,7 +1,7 @@
 __all__ = ['dict_summarizer', 'dict_to_csv', 'column_dropper', 'fillna_datetime', 'aggregate_datetime',
            'tag_to_regex_compatible', 'change_dtype', 'unit_converter', 'flatten_dict',
-           'create_directory_structure_tree', 'dump_directory_structure_csv', 'process_directory',
-           'search_dict', 'config_csv_to_dict']
+           'xml_to_flattened_dict', 'create_directory_structure_tree', 'dump_directory_structure_csv',
+           'process_directory', 'search_dict', 'config_csv_to_dict']
 
 """
 Contains implementation of functions that could be used for processing data everywhere and
@@ -12,6 +12,7 @@ Contains implementation of functions that could be used for processing data ever
 import re
 import os
 import csv
+import xmltodict
 import pandas as pd
 import numpy as np
 from dateutil import parser
@@ -400,6 +401,18 @@ def flatten_dict(d: dict) -> dict:
                 else:
                     yield key, value
     return dict(items())
+
+def xml_to_flattened_dict(xml: str) -> dict:
+        """
+        Takes a (nested) XML and flattens it to a dict where the final keys are key.key....
+            and values are the leaf values of XML tree.
+
+        args:
+            xml: A XML string
+        """
+        flattened_dict = xmltodict.parse(xml)  # XML to dict
+        flattened_dict = flatten_dict(flattened_dict)
+        return flattened_dict
 
 
 def unit_converter(sparse: float, dense: float, factor: float) -> float:

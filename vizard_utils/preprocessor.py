@@ -251,6 +251,124 @@ class FinancialUnitConverter(UnitConverter):
                                    factor=self.CONSTANTS['worth2income'])
 
 
+class WorldBankXMLProcessor:
+    """
+    An XML processor which is customized ot handle data dumped from
+        https://data.worldbank.org/indicator (since it is used by mainstream, works for us too.)
+
+    It's recommended to extend this class to work with particular indicator by
+        first filtering by a "indicator", then manipulating the resulting dataframe.
+
+    *Remark:* we prefer querying over `Pandas` dataframe than `lxml`
+    """
+
+    def __init__(self, dataframe: pd.DataFrame) -> None:
+        """
+        args:
+            dataframe: Main Pandas DataFrame to be processed
+        """
+        self.dataframe = dataframe
+
+        # logging
+        self.logger_name = '.WorldBankXMLProcessor'
+        self.logger = logging.getLogger(logger.name+self.logger_name)
+
+        # populate processed dict
+        self.country_name_to_numeric_dict = self.indicator_filter()
+
+    @loggingdecorator(logger.name+'.WorldBankXMLProcessor.func', level=logging.INFO,
+                      output=False, input=True)
+    def indicator_filter(self) -> dict:
+        """
+        Aggregates using mean operation over all columns except name/index. Also,
+            values have to be scaled into [1, 7] range to match other
+            world bank data processors.
+
+        In this scenario, pivots a row-based dataframe to column based for 'Years' and 
+            aggregates over them to achieve a 2-columns dataframe.
+
+        """
+        dataframe = self.dataframe
+        # pivot XML attributes of `<field>` tag
+        dataframe = dataframe.pivot(columns='name', values='field')
+        dataframe = dataframe.drop('Item', axis=1)
+        # fill None s created by pivoting (onehot to stacked) only over country names
+        dataframe['Country or Area'] = dataframe['Country or Area'].ffill().bfill()
+        dataframe = dataframe.drop_duplicates()  # drop repetition of onehots
+        dataframe = dataframe.ffill().bfill()  # fill None of values of countries
+        dataframe = self.__include_years(dataframe=dataframe)  # exclude old years
+        # dataframe = dataframe[dataframe['Year'].astype(int) >= 2017]
+        dataframe = dataframe.drop_duplicates(subset=['Country or Area', 'Year'],
+                                              keep='last').reset_index()
+        # pivot `Years` values as a set of separate columns i.e.
+        #   from [name, years] -> [name, year1, year2, ...]
+        df2 = dataframe.pivot(index='index', columns='Year', values='Value')
+        # add names to pivoted years
+        dataframe.drop('index', axis=1, inplace=True)
+        dataframe.reset_index(inplace=True)
+        df2.reset_index(inplace=True)
+        dataframe = df2.join(dataframe['Country or Area'])
+        # fill None s after pivoting `Years`
+        country_names = dataframe['Country or Area'].unique()
+
+        for cn in country_names:
+            dataframe[dataframe['Country or Area'] ==
+                      cn] = dataframe[dataframe['Country or Area'] == cn].ffill().bfill()
+        # drop duplicates caused by filling None s of pivoting
+        dataframe = dataframe.drop_duplicates(subset=['Country or Area'])
+
+        # aggregation
+        # drop scores/ranks and aggregate them into one column
+        dataframe['mean'] = dataframe.mean(
+            axis=1, skipna=True, numeric_only=True)
+        dataframe.drop(dataframe.columns[:-1], axis=1, inplace=True)
+
+        dataframe[dataframe.columns[-1]] = dataframe[dataframe.columns[-1]].apply(
+            lambda x: x.lower())
+
+        # scale to [1-7] (standard of World Data Bank)
+        column_max = dataframe['mean'].max()
+        column_min = dataframe['mean'].min()
+
+        def standardize(x):
+            return (((x - column_min) * (7. - 1.)) / (column_max - column_min)) + 1.
+        dataframe['mean'] = dataframe['mean'].apply(standardize)
+        return dict(zip(dataframe[dataframe.columns[0]], dataframe[dataframe.columns[1]]))
+
+    @loggingdecorator(logger.name+'.WorldBankXMLProcessor.func', level=logging.INFO,
+                      output=True, input=True)
+    def __include_years(dataframe: pd.DataFrame, start: Union[int, None],
+                        end: Union[int, None]) -> pd.DataFrame:
+        """
+        Processes a dataframe to only include years given tuple of years
+            where `years=(start, end)`. Works inplace, hence manipulates original dataframe.
+
+        *REMARK*: Currently only supports starting date. Defaults to `2017`. # TODO:
+        args:
+            dataframe: Pandas dataframe to be processed
+            years: A tuple of `(start, end)` to limit years of data.
+                If `None` (=default), all years will be included
+        """
+        start_year = 2017 if start is None else start
+
+        assert end is None  # TODO: include end year
+        dataframe = dataframe[dataframe['Year'].astype(int) >= start]
+        return dataframe
+
+    @loggingdecorator(logger.name+'.WorldBankXMLProcessor.func',
+                      level=logging.DEBUG, output=True, input=True)
+    def convert_country_name_to_numeric(self, string: str) -> float:
+        """
+        Converts the name of a country into a numerical value.
+        """
+        if string is None:
+            string = 'Unknown'
+        string = string.lower()
+        # see `self.indicator_filter` for description of `1.` and `150` magic numbers
+        return functional.search_dict(string=string,
+                                      dic=self.country_name_to_numeric_dict, if_nan=1.)
+
+
 class WorldBankDataframeProcessor:
     """
     A Pandas Dataframe processor which is customized to handle data dumped from 
@@ -266,8 +384,8 @@ class WorldBankDataframeProcessor:
             given `include_years` and `filter_indicator`.
 
         args:
-        dataframe: Main Pandas DataFrame to be processed
-        subindicator_rank: Whether or not use ranking (discrete)
+            dataframe: Main Pandas DataFrame to be processed
+            subindicator_rank: Whether or not use ranking (discrete)
                 or score (continuous) for given `indicator_name`. Defaults to `False`.
         """
         # set constants
@@ -293,8 +411,9 @@ class WorldBankDataframeProcessor:
         Processes a dataframe to only include years given tuple of `years`
             where `years=(start, end)`. Works inplace, hence manipulates original dataframe.
 
-        years: A tuple of `(start, end)` to limit years of data. If `None` (=default),
-                all years will be included
+        args:
+            years: A tuple of `(start, end)` to limit years of data.
+                If `None` (=default), all years will be included
         """
         # figure out start and end year index of columns names values
         start_year, end_year = [
@@ -378,6 +497,9 @@ class EducationCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
     def convert_country_name_to_numeric(self, string: str) -> float:
         """
         Converts the name of a country into a numerical value.
+
+        args:
+            string: country name in string. If `None`, will be filled with `'Unknown'`
         """
         if string is None:
             string = 'Unknown'
@@ -386,10 +508,48 @@ class EducationCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
         return functional.search_dict(string=string, dic=self.country_name_to_numeric_dict,
                                       if_nan=1. if not self.subindicator_rank else 150)
 
-    @loggingdecorator(logger.name+'.WorldBankDataframeProcessor.EducationCountryScoreDataframePreprocessor.func',
-                      level=logging.DEBUG, output=False, input=False)
-    def convert_country_name_to_numeric_batch(self) -> dict:
-        raise NotImplementedError
+
+class EconomyCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
+    """
+    Handles `'Global Competitiveness Index'` indicator of
+        a `WorldBankDataframeProcessor` dataframe. The value ranges from 1 to 7 as the score
+        where higher is better.
+    """
+
+    def __init__(self, dataframe: pd.DataFrame, subindicator_rank: bool = False) -> None:
+        super().__init__(dataframe, subindicator_rank)
+
+        self.INDICATOR_NAME = 'Global Competitiveness Index'
+        self.country_name_to_numeric_dict = self.__indicator_filter()
+
+        # logging
+        self.logger_name = '.WorldBankDataframeProcessor.EconomyCountryScoreDataframePreprocessor'
+        self.logger = logging.getLogger(logger.name+self.logger_name)
+
+    @loggingdecorator(logger.name+'.WorldBankDataframeProcessor.EconomyCountryScoreDataframePreprocessor.func',
+                      level=logging.DEBUG, output=False, input=True)
+    def __indicator_filter(self) -> dict:
+        """
+        Filters the rows by a constant `INDICATOR_NAME` defined by class type and
+            drops corresponding columns used for filtering.
+        """
+        dataframe = self.indicator_filter(indicator_name=self.INDICATOR_NAME)
+        dataframe[dataframe.columns[0]] = dataframe[dataframe.columns[0]].apply(
+            lambda x: x.lower())
+        return dict(zip(dataframe[dataframe.columns[0]], dataframe[dataframe.columns[1]]))
+
+    @loggingdecorator(logger.name+'.WorldBankDataframeProcessor.EconomyCountryScoreDataframePreprocessor.func',
+                      level=logging.DEBUG, output=True, input=True)
+    def convert_country_name_to_numeric(self, string: str) -> float:
+        """
+        Converts the name of a country into a numerical value.
+        """
+        if string is None:
+            string = 'Unknown'
+        string = string.lower()
+        # see `self.indicator_filter` for description of `1.` and `150` magic numbers
+        return functional.search_dict(string=string, dic=self.country_name_to_numeric_dict,
+                                      if_nan=1. if not self.subindicator_rank else 150)
 
 
 class CanadaDataframePreprocessor(DataframePreprocessor):
@@ -688,6 +848,8 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                                                 type=DOC_TYPES.canada, new_col_name='Period',
                                                 reference_date=None, current_date=None)
             # higher education country: string -> categorical
+            # TODO: skip here, and only fill with 'IRAN' for those who have 'P3.Edu.EduIndicator' = True
+            #   see ### P3.Edu.Edu_Row1.Country.Country -> categorical in notebooks for more info
             dataframe = self.change_dtype(col_name='P3.Edu.Edu_Row1.Country.Country',
                                           dtype=str, if_nan='fill', value='IRAN')
             # TODO: see #1

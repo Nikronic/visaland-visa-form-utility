@@ -7,12 +7,12 @@ import logging
 # preprocessing
 import re
 import xml.etree.ElementTree as et
-import xmltodict
 
 # PDF tools
 import PyPDF2 as pypdf
 
 # our modules
+from vizard_utils import functional
 from vizard_utils.constant import DOC_TYPES
 from vizard_utils.helpers import deprecated, loggingdecorator
 
@@ -124,23 +124,7 @@ class XFAPDF(PDFIO):
             d: A dictionary  
             return: An ordered dict
         """
-
-        def items():
-            if isinstance(d, dict):
-                for key, value in d.items():
-                    # nested subtree
-                    if isinstance(value, dict):
-                        for subkey, subvalue in self.flatten_dict(value).items():
-                            yield '{}.{}'.format(key, subkey), subvalue
-                    # nested list
-                    elif isinstance(value, list):
-                        for num, elem in enumerate(value):
-                            for subkey, subvalue in self.flatten_dict(elem).items():
-                                yield '{}.[{}].{}'.format(key, num, subkey), subvalue
-                    # everything else (only leafs should remain)
-                    else:
-                        yield key, value
-        return dict(items())
+        return functional.flatten_dict(d=d)
 
     @loggingdecorator(logger.name+'.XFAPDF.func', level=logging.DEBUG, output=False)
     def xml_to_flattened_dict(self, xml: str) -> dict:
@@ -149,12 +133,9 @@ class XFAPDF(PDFIO):
             and values are the leaf values of XML tree.
 
         args:
-            d: A XML string
-            return: A flattened ordered dict
+            xml: A XML string
         """
-        flattened_dict = xmltodict.parse(xml)  # XML to dict
-        flattened_dict = self.flatten_dict(flattened_dict)
-        return flattened_dict
+        return functional.xml_to_flattened_dict(xml=xml)
 
 
 class CanadaXFA(XFAPDF):
