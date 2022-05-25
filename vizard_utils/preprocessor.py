@@ -310,7 +310,6 @@ class WorldBankXMLProcessor:
         dataframe = df2.join(dataframe['Country or Area'])
         # fill None s after pivoting `Years`
         country_names = dataframe['Country or Area'].unique()
-
         for cn in country_names:
             dataframe[dataframe['Country or Area'] ==
                       cn] = dataframe[dataframe['Country or Area'] == cn].ffill().bfill()
@@ -319,11 +318,12 @@ class WorldBankXMLProcessor:
 
         # aggregation
         # drop scores/ranks and aggregate them into one column
-        dataframe['mean'] = dataframe.mean(
-            axis=1, skipna=True, numeric_only=True)
-        dataframe.drop(dataframe.columns[:-1], axis=1, inplace=True)
+        dataframe.drop('index', axis=1, inplace=True)
+        mean_columns = [c for c in dataframe.columns.values if c.isnumeric()]
+        dataframe['mean'] = dataframe[mean_columns].astype(float).mean(axis=1)
+        dataframe.drop(dataframe.columns[:-2], axis=1, inplace=True)
 
-        dataframe[dataframe.columns[-1]] = dataframe[dataframe.columns[-1]].apply(
+        dataframe[dataframe.columns[0]] = dataframe[dataframe.columns[0]].apply(
             lambda x: x.lower())
 
         # scale to [1-7] (standard of World Data Bank)
@@ -335,10 +335,11 @@ class WorldBankXMLProcessor:
         dataframe['mean'] = dataframe['mean'].apply(standardize)
         return dict(zip(dataframe[dataframe.columns[0]], dataframe[dataframe.columns[1]]))
 
+    @staticmethod
     @loggingdecorator(logger.name+'.WorldBankXMLProcessor.func', level=logging.INFO,
-                      output=True, input=True)
-    def __include_years(dataframe: pd.DataFrame, start: Union[int, None],
-                        end: Union[int, None]) -> pd.DataFrame:
+                      output=False, input=False)
+    def __include_years(dataframe: pd.DataFrame, start: Union[int, None] = None,
+                        end: Union[int, None] = None) -> pd.DataFrame:
         """
         Processes a dataframe to only include years given tuple of years
             where `years=(start, end)`. Works inplace, hence manipulates original dataframe.
@@ -349,7 +350,7 @@ class WorldBankXMLProcessor:
             years: A tuple of `(start, end)` to limit years of data.
                 If `None` (=default), all years will be included
         """
-        start_year = 2017 if start is None else start
+        start = 2017 if start is None else start
 
         assert end is None  # TODO: include end year
         dataframe = dataframe[dataframe['Year'].astype(int) >= start]
