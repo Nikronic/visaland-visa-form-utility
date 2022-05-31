@@ -1,0 +1,5 @@
+artifact_location: file:///home/nik/visaland-visa-form-utility/mlruns/3
+experiment_id: '3'
+lifecycle_stage: active
+name: full dataset construction from raw documents to csv data tables (prior to data
+  analysis)
