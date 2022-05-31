@@ -151,7 +151,7 @@ class DataframePreprocessor:
                                        dtype=dtype, if_nan=if_nan, **kwargs)
 
     @loggingdecorator(logger.name+'.DataframePreprocessor.func', level=logging.DEBUG, output=False, input=True)
-    def __config_csv_to_dict(self, path: str) -> dict:
+    def config_csv_to_dict(self, path: str) -> dict:
         """
         Take a config CSV and return a dictionary of key and values
 
@@ -563,7 +563,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
 
         # get country code to name dict
         self.config_path = CONFIGS_PATH.CANADA_COUNTRY_CODE_TO_NAME.value
-        self.CANADA_COUNTRY_CODE_TO_NAME = self.__config_csv_to_dict(
+        self.CANADA_COUNTRY_CODE_TO_NAME = self.config_csv_to_dict(
             self.config_path)
 
     @loggingdecorator(logger.name+'.CanadaDataframePreprocessor.func', level=logging.INFO, output=True, input=True)
