@@ -1060,7 +1060,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                 if (dataframe['p1.SecB.Chd.['+str(i)+'].ChdMStatus'] == CANADA_FILLNA.ChdMStatus_5645e.value).all() \
                         and (dataframe['p1.SecB.Chd.['+str(i)+'].ChdRel'] == 'OTHER').all() \
                         and (dataframe['p1.SecB.Chd.['+str(i)+'].ChdDOB'].isna()).all() \
-                        and (dataframe['p1.SecC.Chd.['+str(i)+'].ChdAccomp'] == False).all():
+                        and (dataframe['p1.SecB.Chd.['+str(i)+'].ChdAccomp'] == False).all():
                     # ghost child's date of birth: None -> datetime (current date) -> 0 days
                     dataframe = self. change_dtype(col_name='p1.SecB.Chd.['+str(i)+'].ChdDOB',
                                                    dtype=parser.parse, if_nan='fill',
@@ -1100,7 +1100,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             for i in range(len(siblings_tag_list) // CHILDREN_MAX_FEATURES):
                 # sibling's marriage status 01: string to integer
                 dataframe = self.change_dtype(col_name='p1.SecC.Chd.['+str(i)+'].ChdMStatus',
-                                              dtype=np.int8, if_nan='fill',
+                                              dtype=np.int16, if_nan='fill',
                                               value=np.int16(CANADA_FILLNA.ChdMStatus_5645e.value))
                 # sibling's relationship 01: string -> categorical
                 dataframe = self.change_dtype(col_name='p1.SecC.Chd.['+str(i)+'].ChdRel',
@@ -1121,10 +1121,6 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                 # sibling's occupation type 01 (issue #2): string -> categorical
                 dataframe = self.change_dtype(col_name='p1.SecC.Chd.['+str(i)+'].ChdOcc',
                                               dtype=str, if_nan='fill', value='OTHER')
-                # child's marriage status: int -> categorical
-                dataframe = self.change_dtype(col_name='p1.SecC.Chd.['+str(i)+'].ChdMStatus',
-                                              dtype=np.int16, if_nan='fill',
-                                              value=np.int16(CANADA_FILLNA.ChdMStatus_5645e.value))
                 # sibling's accompanying: coming=True or not_coming=False
                 dataframe['p1.SecC.Chd.['+str(i)+'].ChdAccomp'] = dataframe['p1.SecC.Chd.['+str(i)+'].ChdAccomp'].apply(
                     lambda x: True if x == '1' else False)

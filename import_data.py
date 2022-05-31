@@ -49,7 +49,7 @@ DST_DIR = 'raw-dataset/all/'  # path to decrypted pdf
 # data versioning config
 PATH = DST_DIR[:-1] + '.pkl'  # path to source data, e.g. data.pkl file
 REPO = '/home/nik/visaland-visa-form-utility'
-VERSION = 'v1.0.1'  # the version it is GOING TO BE (the version you gonna `dvc add` and `git tag`)
+VERSION = 'v1.0.2'  # the version it is GOING TO BE (the version you gonna `dvc add` and `git tag`)
 # run `git tag` and use a newer version than anything with this pattern `vx.x.x` (without `-field-*`)
 
 # log experiment configs
