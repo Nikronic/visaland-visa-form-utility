@@ -8,6 +8,9 @@ from typing import Any, DefaultDict, List, Mapping, Optional
 from snorkel.types import Config
 
 
+logger = logging.getLogger(__name__)
+
+
 class LogWriterConfig(Config):
     """Manager for checkpointing model.
 
@@ -122,7 +125,7 @@ class LogWriter:
             Name of file in logging directory to write to
         """
         if not filename.endswith(".json"):  # pragma: no cover
-            logging.warning(
+            logger.warning(
                 f"Using write_json() method with a filename without a .json extension: {filename}"
             )
         log_path = os.path.join(self.log_dir, filename)

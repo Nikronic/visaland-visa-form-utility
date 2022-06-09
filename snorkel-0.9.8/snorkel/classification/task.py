@@ -11,6 +11,8 @@ from snorkel.analysis import Scorer
 Outputs = Mapping[str, List[torch.FloatTensor]]
 
 
+logger = logging.getLogger(__name__)
+
 class Operation:
     """A single operation (forward pass of a module) to execute in a Task.
 
@@ -118,7 +120,7 @@ class Task:
         self.output_func = output_func or partial(F.softmax, dim=1)
         self.scorer = scorer
 
-        logging.info(f"Created task: {self.name}")
+        logger.info(f"Created task: {self.name}")
 
     def __repr__(self) -> str:
         cls_name = type(self).__name__

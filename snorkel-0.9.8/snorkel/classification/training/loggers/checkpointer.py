@@ -8,6 +8,7 @@ from snorkel.classification.multitask_classifier import MultitaskClassifier
 from snorkel.types import Config
 
 Metrics = Dict[str, float]
+logger = logging.getLogger(__name__)
 
 
 class CheckpointerConfig(Config):
@@ -91,13 +92,13 @@ class Checkpointer:
                 f"must be greater than 0."
             )
 
-        logging.info(
+        logger.info(
             f"Save checkpoints at '{self.checkpoint_dir}' every "
             f"{self.checkpoint_freq} {self.checkpoint_unit}."
         )
 
         if self.checkpoint_runway > 0:
-            logging.info(
+            logger.info(
                 f"No checkpoints will be saved before {self.checkpoint_runway} "
                 f"{self.checkpoint_unit}."
             )
@@ -123,13 +124,13 @@ class Checkpointer:
             return
         elif not self.checkpoint_condition_met and iteration >= self.checkpoint_runway:
             self.checkpoint_condition_met = True
-            logging.info(
+            logger.info(
                 "checkpoint_runway condition has been met. Start checkpointing."
             )
 
         checkpoint_path = f"{self.checkpoint_dir}/checkpoint_{iteration}.pth"
         model.save(checkpoint_path)
-        logging.info(
+        logger.info(
             f"Save checkpoint at {iteration} {self.checkpoint_unit} "
             f"at {checkpoint_path}."
         )
@@ -145,7 +146,7 @@ class Checkpointer:
                     f"{metric.replace('/', '_')}.pth",
                 )
 
-                logging.info(
+                logger.info(
                     f"Save best model of metric {metric} at {self.checkpoint_dir}"
                     f"/best_model_{metric.replace('/', '_')}.pth"
                 )
@@ -178,7 +179,7 @@ class Checkpointer:
     def clear(self) -> None:
         """Clear existing checkpoint files, besides the best-yet model."""
         if self.checkpoint_clear:
-            logging.info("Clear all checkpoints other than best so far.")
+            logger.info("Clear all checkpoints other than best so far.")
             file_list = glob.glob(f"{self.checkpoint_dir}/checkpoint_*.pth")
             for fname in file_list:
                 os.remove(fname)
@@ -187,13 +188,13 @@ class Checkpointer:
         """Load the best model from the checkpoint."""
         metric = list(self.checkpoint_metric.keys())[0]
         if metric not in self.best_metric_dict:  # pragma: no cover
-            logging.info("No best model found, use the original model.")
+            logger.info("No best model found, use the original model.")
         else:
             # Load the best model of checkpoint_metric
             best_model_path = (
                 f"{self.checkpoint_dir}/best_model_{metric.replace('/', '_')}.pth"
             )
-            logging.info(f"Loading the best model from {best_model_path}.")
+            logger.info(f"Loading the best model from {best_model_path}.")
             model.load(best_model_path)
 
         return model

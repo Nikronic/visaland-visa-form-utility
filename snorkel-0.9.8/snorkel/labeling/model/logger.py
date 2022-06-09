@@ -19,9 +19,10 @@ class Logger:
         Running total of number of units passed without logging
     """
 
-    def __init__(self, log_freq: int) -> None:
+    def __init__(self, log_freq: int, logger: logging.Logger, class_name: str) -> None:
         self.log_freq = log_freq
         self.unit_count = -1
+        self.logger = logging.getLogger(f'{logger.name}.{class_name}')
 
     def check(self) -> bool:
         """Check if the logging frequency has been met.
@@ -76,4 +77,4 @@ class Logger:
         if score_strings["valid"]:
             valid_scores = f"{', '.join(score_strings['valid'])}"
             string += f" VALID:[{valid_scores}]"
-        logging.info(string)
+        self.logger.info(string)

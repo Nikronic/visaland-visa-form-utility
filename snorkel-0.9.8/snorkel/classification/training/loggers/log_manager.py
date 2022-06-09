@@ -8,6 +8,9 @@ from .checkpointer import Checkpointer
 from .log_writer import LogWriter
 
 
+logger = logging.getLogger(__name__)
+
+
 class LogManagerConfig(Config):
     """Manager for checkpointing model.
 
@@ -59,7 +62,7 @@ class LogManager:
 
         # Set up evaluation frequency
         self.evaluation_freq = self.config.evaluation_freq
-        logging.info(f"Evaluating every {self.evaluation_freq} {self.counter_unit}.")
+        logger.info(f"Evaluating every {self.evaluation_freq} {self.counter_unit}.")
 
         # Set up number of X passed since last evaluation/checkpointing and total
         self.point_count = 0

@@ -21,6 +21,7 @@ from snorkel.utils.lr_schedulers import LRSchedulerConfig
 from snorkel.utils.optimizers import OptimizerConfig
 
 Metrics = Dict[str, float]
+logger = logging.getLogger(__name__)
 
 
 class TrainConfig(Config):
@@ -60,7 +61,7 @@ class TrainConfig(Config):
     lr_scheduler: str = "constant"
     lr_scheduler_config: LRSchedulerConfig = LRSchedulerConfig()  # type: ignore
     prec_init: Union[float, List[float], np.ndarray, torch.Tensor] = 0.7
-    seed: int = np.random.randint(1e6)
+    seed: int = np.random.randint(1e6)  # type: ignore
     log_freq: int = 10
     mu_eps: Optional[float] = None
 
@@ -621,9 +622,11 @@ class LabelModel(nn.Module, BaseLabeler):
         return metrics_dict
 
     def _set_logger(self) -> None:
-        self.logger = Logger(self.train_config.log_freq)
-        if self.config.verbose:
-            logging.basicConfig(level=logging.INFO)
+        self.logger = Logger(log_freq=self.train_config.log_freq,
+                             logger=logger,
+                             class_name=self.__class__.__name__)
+        # if self.config.verbose:  # set level from application side, not lib
+        #     self.logger.logger.setLevel(logging.INFO)
 
     def _set_optimizer(self) -> None:
         parameters = filter(lambda p: p.requires_grad, self.parameters())
@@ -710,7 +713,7 @@ class LabelModel(nn.Module, BaseLabeler):
                 self.optimizer, linear_warmup_func
             )
             if self.config.verbose:  # pragma: no cover
-                logging.info(f"Warmup {self.warmup_steps} steps.")
+                self.logger.logger.info(f"Warmup {self.warmup_steps} steps.")
 
         elif self.train_config.lr_scheduler_config.warmup_percentage:
             warmup_percentage = self.train_config.lr_scheduler_config.warmup_percentage
@@ -720,7 +723,7 @@ class LabelModel(nn.Module, BaseLabeler):
                 self.optimizer, linear_warmup_func
             )
             if self.config.verbose:  # pragma: no cover
-                logging.info(f"Warmup {self.warmup_steps} steps.")
+                self.logger.logger.info(f"Warmup {self.warmup_steps} steps.")
 
         else:
             warmup_scheduler = None
@@ -893,20 +896,20 @@ class LabelModel(nn.Module, BaseLabeler):
             )
 
         self._set_constants(L_shift)
-        self._set_class_balance(class_balance, Y_dev)
+        self._set_class_balance(class_balance, Y_dev)  # type: ignore
         self._create_tree()
         lf_analysis = LFAnalysis(L_train)
         self.coverage = lf_analysis.lf_coverages()
 
         # Compute O and initialize params
         if self.config.verbose:  # pragma: no cover
-            logging.info("Computing O...")
+            self.logger.logger.info("Computing O...")
         self._generate_O(L_shift)
         self._init_params()
 
         # Estimate \mu
         if self.config.verbose:  # pragma: no cover
-            logging.info(r"Estimating \mu...")
+            self.logger.logger.info(r"Estimating \mu...")
 
         # Set model to train mode
         self.train()
@@ -914,7 +917,7 @@ class LabelModel(nn.Module, BaseLabeler):
         # Move model to GPU
         self.mu_init = self.mu_init.to(self.config.device)
         if self.config.verbose and self.config.device != "cpu":  # pragma: no cover
-            logging.info("Using GPU...")
+            self.logger.logger.info("Using GPU...")
         self.to(self.config.device)
 
         # Set training components
@@ -972,4 +975,4 @@ class LabelModel(nn.Module, BaseLabeler):
 
         # Print confusion matrix if applicable
         if self.config.verbose:  # pragma: no cover
-            logging.info("Finished Training")
+            self.logger.logger.info("Finished Training")

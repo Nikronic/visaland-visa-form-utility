@@ -7,6 +7,8 @@ import numpy as np
 from snorkel.utils import to_int_label_array
 
 
+logger = logging.getLogger(__name__)
+
 def get_label_buckets(*y: np.ndarray) -> Dict[Tuple[int, ...], np.ndarray]:
     """Return data point indices bucketed by label combinations.
 
@@ -112,7 +114,7 @@ def get_label_instances(
     try:
         indices = buckets[bucket]
     except KeyError:
-        logging.warning("Bucket" + str(bucket) + " does not exist.")
+        logger.warning("Bucket" + str(bucket) + " does not exist.")
         return np.array([])
     instances = x[indices]
     return instances

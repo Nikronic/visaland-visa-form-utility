@@ -29,6 +29,7 @@ from snorkel.utils import probs_to_preds
 from .task import Operation, Task
 
 OutputDict = Dict[str, Union[Any, Mapping[str, Any]]]
+logger = logging.getLogger(__name__)
 
 
 class ClassifierConfig(Config):
@@ -101,7 +102,7 @@ class MultitaskClassifier(nn.Module):
         unique_ops = set(all_ops)
         all_mods = [mod_name for t in tasks for mod_name in t.module_pool]
         unique_mods = set(all_mods)
-        logging.info(
+        logger.info(
             f"Created multi-task model {self.name} that contains "
             f"task(s) {self.task_names} from "
             f"{len(unique_ops)} operations ({len(all_ops) - len(unique_ops)} shared) and "
@@ -420,7 +421,7 @@ class MultitaskClassifier(nn.Module):
             # What labels in Y_dict are we ignoring?
             extra_labels = set(Y_dict.keys()).difference(set(labels_to_tasks.keys()))
             if extra_labels:
-                logging.info(
+                logger.info(
                     f"Ignoring extra labels in dataloader ({dataloader.dataset.split}): {extra_labels}"  # type: ignore
                 )
 
@@ -483,10 +484,10 @@ class MultitaskClassifier(nn.Module):
         device = self.config.device
         if device >= 0:
             if torch.cuda.is_available():
-                logging.info(f"Moving model to GPU (cuda:{device}).")
+                logger.info(f"Moving model to GPU (cuda:{device}).")
                 self.to(torch.device(f"cuda:{device}"))
             else:
-                logging.info("No cuda device available. Switch to cpu instead.")
+                logger.info("No cuda device available. Switch to cpu instead.")
 
     def save(self, model_path: str) -> None:
         """Save the model to the specified file path.
@@ -507,9 +508,9 @@ class MultitaskClassifier(nn.Module):
         try:
             torch.save(self.state_dict(), model_path)
         except BaseException:  # pragma: no cover
-            logging.warning("Saving failed... continuing anyway.")
+            logger.warning("Saving failed... continuing anyway.")
 
-        logging.info(f"[{self.name}] Model saved in {model_path}")
+        logger.info(f"[{self.name}] Model saved in {model_path}")
 
     def load(self, model_path: str) -> None:
         """Load a saved model from the provided file path and moves it to a device.
@@ -525,10 +526,10 @@ class MultitaskClassifier(nn.Module):
             )
         except BaseException:  # pragma: no cover
             if not os.path.exists(model_path):
-                logging.error("Loading failed... Model does not exist.")
+                logger.error("Loading failed... Model does not exist.")
             else:
-                logging.error(f"Loading failed... Cannot load model from {model_path}")
+                logger.error(f"Loading failed... Cannot load model from {model_path}")
             raise
 
-        logging.info(f"[{self.name}] Model loaded from {model_path}")
+        logger.info(f"[{self.name}] Model loaded from {model_path}")
         self._move_to_device()

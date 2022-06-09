@@ -9,6 +9,9 @@ from snorkel.analysis import Scorer
 from snorkel.utils import probs_to_preds
 
 
+logger = logging.getLogger(__name__)
+
+
 class BaseLabeler(ABC):
     """Abstract baseline label voter class."""
 
@@ -98,7 +101,7 @@ class BaseLabeler(ABC):
             A dictionary mapping metric names to metric scores
         """
         if tie_break_policy == "abstain":  # pragma: no cover
-            logging.warning(
+            logger.warning(
                 "Metrics calculated over data points with non-abstain labels only"
             )
 

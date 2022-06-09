@@ -30,7 +30,7 @@ from .loggers import (
 from .schedulers import batch_schedulers
 
 Metrics = Dict[str, float]
-
+logger = logging.getLogger(__name__)
 
 class TrainerConfig(Config):
     """Settings for the Trainer.
@@ -179,7 +179,7 @@ class Trainer:
         # Set to training mode
         model.train()
 
-        logging.info("Start training...")
+        logger.info("Start training...")
 
         self.metrics: Dict[str, float] = dict()
         self._reset_losses()
@@ -330,7 +330,7 @@ class Trainer:
         else:
             raise ValueError(f"Unrecognized optimizer option '{optimizer_name}'")
 
-        logging.info(f"Using optimizer {optimizer}")
+        logger.info(f"Using optimizer {optimizer}")
 
         self.optimizer = optimizer
 
@@ -386,7 +386,7 @@ class Trainer:
             warmup_scheduler = optim.lr_scheduler.LambdaLR(  # type: ignore
                 self.optimizer, linear_warmup_func
             )
-            logging.info(f"Warmup {self.warmup_steps} batches.")
+            logger.info(f"Warmup {self.warmup_steps} batches.")
         elif self.config.lr_scheduler_config.warmup_percentage:
             warmup_percentage = self.config.lr_scheduler_config.warmup_percentage
             self.warmup_steps = int(
@@ -396,7 +396,7 @@ class Trainer:
             warmup_scheduler = optim.lr_scheduler.LambdaLR(  # type: ignore
                 self.optimizer, linear_warmup_func
             )
-            logging.info(f"Warmup {self.warmup_steps} batches.")
+            logger.info(f"Warmup {self.warmup_steps} batches.")
         else:
             warmup_scheduler = None
             self.warmup_steps = 0
@@ -533,9 +533,9 @@ class Trainer:
                 trainer_path,
             )
         except BaseException:  # pragma: no cover
-            logging.warning("Saving failed... continuing anyway.")
+            logger.warning("Saving failed... continuing anyway.")
 
-        logging.info(f"[{self.name}] Trainer config saved in {trainer_path}")
+        logger.info(f"[{self.name}] Trainer config saved in {trainer_path}")
 
     def load(self, trainer_path: str, model: Optional[MultitaskClassifier]) -> None:
         """Load trainer config and optimizer state from the specified json file path to the trainer object. The optimizer state is stored, too. However, it only makes sense if loaded with the correct model again.
@@ -563,22 +563,22 @@ class Trainer:
             saved_state = torch.load(trainer_path)
         except BaseException:
             if not os.path.exists(trainer_path):
-                logging.error("Loading failed... Trainer config does not exist.")
+                logger.error("Loading failed... Trainer config does not exist.")
             else:
-                logging.error(
+                logger.error(
                     f"Loading failed... Cannot load trainer config from {trainer_path}"
                 )
             raise
 
         self.config = TrainerConfig(**saved_state["trainer_config"])
-        logging.info(f"[{self.name}] Trainer config loaded from {trainer_path}")
+        logger.info(f"[{self.name}] Trainer config loaded from {trainer_path}")
 
         if model is not None:
             try:
                 self._set_optimizer(model)
                 self.optimizer.load_state_dict(saved_state["optimizer_state_dict"])
-                logging.info(f"[{self.name}] Optimizer loaded from {trainer_path}")
+                logger.info(f"[{self.name}] Optimizer loaded from {trainer_path}")
             except BaseException:
-                logging.error(
+                logger.error(
                     "Loading the optimizer for your model failed. Optimizer state NOT loaded."
                 )
