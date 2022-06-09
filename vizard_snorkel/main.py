@@ -23,13 +23,12 @@ import shutil
 SEED = 322
 
 # configure logging
-VERBOSITY = logging.INFO
-
 logger = logging.getLogger(__name__)
-logger.setLevel(VERBOSITY)
+logger.setLevel(logging.INFO)
+# set snorkel logger to log to our logging config
+snorkel_logger = logging.getLogger('snorkel')  # simply top-level module name
+snorkel_logger.setLevel(logging.INFO)
 
-logger.info(
-    '\t\t↓↓↓ Starting setting up configs: dirs, mlflow, dvc, etc ↓↓↓')
 # Set up root logger, and add a file handler to root logger
 if not os.path.exists('artifacts'):
     os.makedirs('artifacts')
@@ -38,11 +37,14 @@ if not os.path.exists('artifacts'):
 log_file_name = uuid.uuid4()
 logger_handler = logging.FileHandler(filename='artifacts/logs/{}-snorkel.log'.format(log_file_name),
                                      mode='w')
-logger.addHandler(logger_handler)
+logger.parent.addHandler(logger_handler)  # type: ignore
+
+logger.info(
+    '\t\t↓↓↓ Starting setting up configs: dirs, mlflow, dvc, etc ↓↓↓')
 
 # MLFlow configs
 # data versioning config
-PATH = 'raw-dataset/all-dev.pkl'  # path to source data, e.g. data.pkl file
+PATH = 'raw-dataset/all-dev.pkl'
 REPO = '/home/nik/visaland-visa-form-utility'
 VERSION = 'v1.1.0-dev'
 # log experiment configs
@@ -66,22 +68,27 @@ logger.info('\t\t↓↓↓ Starting reading data from DVC remote storage ↓↓�
 data_url = dvc.api.get_url(path=PATH, repo=REPO, rev=VERSION)
 # read dataset from remote (local) data storage
 data = pd.read_pickle(data_url)
+logger.info('DVC data URL used to load saved file: \n{}'.format(data_url))
 logger.info('\t\t↑↑↑ Finishing reading data from DVC remote storage ↑↑↑')
 
 logger.info('\t\t↓↓↓ Starting preparing train and test data based on labels ↓↓↓')
+logger.info(
+    'create *labeled* and *unlabeled* dataset and use labeled as a way to evaluate `LabelFunction`s')
 output_name = 'VisaResult'
 # exclude labeled data (only include weak labels and no labels)
 data_unlabeled = data[(data[output_name] != 'acc') &
                       (data[output_name] != 'rej')]
 data_labeled = data[(data[output_name] == 'acc') |
                     (data[output_name] == 'rej')]
-# Remark: only should be used for evaluation of trained `LabelModel` and no where else
-# convert strong to weak temporary so `lf_weak_*` can work
+logger.info('convert strong to weak temporary so `lf_weak_*` so `LabelFunction`s can work i.e. convert `acc` and `rej` in *labeled* dataset to `w-acc` and `w-rej`')
+logger.info(
+    '*remark*: the preprocessing on this data is used only for evaluation of snorkel `LabelModel`')
 data_labeled[output_name] = data_labeled[output_name].apply(
     lambda x: 'w-acc' if x == 'acc' else 'w-rej')
 logger.info('\t\t↑↑↑ Finishing preparing train and test data based on labels ↑↑↑')
 
-logger.info('\t\t↓↓↓ Starting extracting label matrices (L) by applying label functions (LFs) ↓↓↓')
+logger.info(
+    '\t\t↓↓↓ Starting extracting label matrices (L) by applying `LabelFunction`s ↓↓↓')
 # label functions
 lfs = [labeling.lf_weak_accept, labeling.lf_weak_reject, labeling.lf_no_idea]
 # apply LFs to the unlabeled (for `LabelModel` training) and labeled (for `LabelModel` test)
@@ -94,45 +101,49 @@ y_test = data_labeled[output_name].apply(
 y_train = data_unlabeled[output_name].apply(
     lambda x: labeling.ACC if x == 'w-acc' else labeling.REJ).values
 # LF reports
-logging.info(LFAnalysis(L=label_matrix_train, lfs=lfs).lf_summary())
-logger.info('\t\t↑↑↑ Finishing extracting label matrices (L) by applying label functions (LFs) ↑↑↑')
+logger.info(LFAnalysis(L=label_matrix_train, lfs=lfs).lf_summary())
+logger.info(
+    '\t\t↑↑↑ Finishing extracting label matrices (L) by applying `LabelFunction`s ↑↑↑')
 
-logger.info('\t\t↓↓↓ Starting training LabelModel ↓↓↓')
+logger.info('\t\t↓↓↓ Starting training `LabelModel` ↓↓↓')
 # train the label model and compute the training labels
 LM_N_EPOCHS = 1000  # LM = LabelModel
 LM_LOG_FREQ = 100
 LM_LR = 1e-4
 LM_OPTIM = 'adam'
-label_model = LabelModel(cardinality=2, verbose=True)
+label_model = LabelModel(cardinality=2, verbose=True)  # TODO: use GPU
 label_model.train()
 label_model.fit(label_matrix_train, n_epochs=LM_N_EPOCHS, log_freq=LM_LOG_FREQ, lr=LM_LR,
                 optimizer=LM_OPTIM, seed=SEED)
 logger.info('\t\t↑↑↑ Finishing training LabelModel ↑↑↑')
 
-logger.info('\t\t↓↓↓ Starting testing LabelModel ↓↓↓')
+logger.info('\t\t↓↓↓ Starting inference on LabelModel ↓↓↓')
 # test the label model
 with torch.inference_mode():
     # predict labels for unlabeled data
     label_model.eval()
-    data_unlabeled['AL'] = label_model.predict(
+    auto_label_column_name = 'AL'
+    logger.info('ModelLabel prediction is saved in "{}" column.'.format(
+        auto_label_column_name))
+    data_unlabeled[auto_label_column_name] = label_model.predict(
         L=label_matrix_train, tie_break_policy='abstain')
 
     # report train accuracy (train data here is our unlabeled data)
     metrics = ['accuracy', 'coverage', 'precision', 'recall', 'f1']
-    modeling.report_label_model(label_model=label_model, label_matrix=label_matrix_train, 
-                       gold_labels=y_train, metrics=metrics, set='train')
+    modeling.report_label_model(label_model=label_model, label_matrix=label_matrix_train,
+                                gold_labels=y_train, metrics=metrics, set='train')
 
     # report test accuracy (test data here is our labeled data which is larger (good!))
-    modeling.report_label_model(label_model=label_model, label_matrix=label_matrix_test, 
-                       gold_labels=y_test, metrics=metrics, set='test')
-
-logger.info('\t\t↑↑↑ Finishing testing LabelModel ↑↑↑')
+    modeling.report_label_model(label_model=label_model, label_matrix=label_matrix_test,
+                                gold_labels=y_test, metrics=metrics, set='test')
+logger.info('\t\t↑↑↑ Finishing inference on LabelModel ↑↑↑')
 
 # log data params
 logger.info('\t\t↓↓↓ Starting logging with MLFlow ↓↓↓')
 # DVC params
 mlflow.log_param('data_url', data_url)
 mlflow.log_param('data_version', VERSION)
+mlflow.log_param('labeled_dataframe_shape', data_labeled.shape)
 mlflow.log_param('unlabeled_dataframe_shape', data_unlabeled.shape)
 # LabelModel params
 mlflow.log_param('LabelModel_n_epochs', LM_N_EPOCHS)

@@ -12,10 +12,8 @@ import logging
 
 
 # configure logging
-VERBOSITY = logging.INFO
-
 logger = logging.getLogger(__name__)
-logger.setLevel(VERBOSITY)
+logger.setLevel(logging.INFO)
 
 @loggingdecorator(logger.name+'.func', level=logging.INFO, output=False, input=False)
 def report_label_model(label_model: LabelModel, label_matrix, gold_labels: np.ndarray,
@@ -35,7 +33,7 @@ def report_label_model(label_model: LabelModel, label_matrix, gold_labels: np.nd
     label_model_metrics = label_model.score(L=label_matrix, Y=gold_labels,
                                             tie_break_policy=tie_break_policy,
                                             metrics=metrics)
-    logging.info('Label Model {}ing stats: '.format(set))
+    logger.info('Label Model {}ing stats: '.format(set))
     for m in metrics:
-        logging.info('Label Model {}ing {}: {:.1f}%'.format(
+        logger.info('Label Model {}ing {}: {:.1f}%'.format(
             set, m, label_model_metrics[m] * 100))
