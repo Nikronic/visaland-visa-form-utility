@@ -111,7 +111,9 @@ LM_N_EPOCHS = 1000  # LM = LabelModel
 LM_LOG_FREQ = 100
 LM_LR = 1e-4
 LM_OPTIM = 'adam'
-label_model = LabelModel(cardinality=2, verbose=True)  # TODO: use GPU
+LM_DEVICE = 'cuda'
+logger.info(f'Training using device="{LM_DEVICE}"')
+label_model = LabelModel(cardinality=2, verbose=True, device=LM_DEVICE)
 label_model.train()
 label_model.fit(label_matrix_train, n_epochs=LM_N_EPOCHS, log_freq=LM_LOG_FREQ, lr=LM_LR,
                 optimizer=LM_OPTIM, seed=SEED)
@@ -150,6 +152,7 @@ mlflow.log_param('LabelModel_n_epochs', LM_N_EPOCHS)
 mlflow.log_param('LabelModel_log_freq', LM_LOG_FREQ)
 mlflow.log_param('LabelModel_lr', LM_LR)
 mlflow.log_param('LabelModel_optim', LM_OPTIM)
+mlflow.log_param('LabelModel_device', LM_DEVICE)
 logger.info('\t\t↑↑↑ Finished logging with MLFlow ↑↑↑')
 
 # Log artifacts (logs, saved files, etc)
