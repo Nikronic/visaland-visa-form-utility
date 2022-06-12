@@ -80,9 +80,9 @@ logger.info(
 output_name = 'VisaResult'
 # exclude labeled data (only include weak labels and no labels)
 data_unlabeled = data[(data[output_name] != 'acc') &
-                      (data[output_name] != 'rej')]
+                      (data[output_name] != 'rej')].copy()
 data_labeled = data[(data[output_name] == 'acc') |
-                    (data[output_name] == 'rej')]
+                    (data[output_name] == 'rej')].copy()
 logger.info('convert strong to weak temporary so `lf_weak_*` so `LabelFunction`s can work i.e. convert `acc` and `rej` in *labeled* dataset to `w-acc` and `w-rej`')
 logger.info(
     '*remark*: the preprocessing on this data is used only for evaluation of snorkel `LabelModel`')
@@ -130,7 +130,7 @@ with torch.inference_mode():
     auto_label_column_name = 'AL'
     logger.info('ModelLabel prediction is saved in "{}" column.'.format(
         auto_label_column_name))
-    data_unlabeled[auto_label_column_name] = label_model.predict(
+    data_unlabeled.loc[:, auto_label_column_name] = label_model.predict(
         L=label_matrix_train, tie_break_policy='abstain')
 
     # report train accuracy (train data here is our unlabeled data)
@@ -166,7 +166,7 @@ logger.info(
     '\t\t↑↑↑ Finishing augmentation by applying `TransformationFunction`s ↑↑↑')
 
 # log data params
-logger.info('\t\t↓↓↓ Starting logging with MLFlow ↓↓↓')
+logger.info('\t\t↓↓↓ Starting logging hyperparams and params with MLFlow ↓↓↓')
 # DVC params
 mlflow.log_param('data_url', data_url)
 mlflow.log_param('data_version', VERSION)
@@ -178,7 +178,7 @@ mlflow.log_param('LabelModel_log_freq', LM_LOG_FREQ)
 mlflow.log_param('LabelModel_lr', LM_LR)
 mlflow.log_param('LabelModel_optim', LM_OPTIM)
 mlflow.log_param('LabelModel_device', LM_DEVICE)
-logger.info('\t\t↑↑↑ Finished logging with MLFlow ↑↑↑')
+logger.info('\t\t↑↑↑ Finished logging hyperparams and params with MLFlow ↑↑↑')
 
 # Log artifacts (logs, saved files, etc)
 mlflow.log_artifacts('artifacts/')
