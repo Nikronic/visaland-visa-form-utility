@@ -3,7 +3,7 @@ from typing import Iterator, List
 from tqdm import tqdm
 
 from snorkel.augmentation.policy.core import Policy
-from snorkel.augmentation.tf import BaseTransformationFunction
+from snorkel.augmentation.tf import TransformationFunction
 from snorkel.types import DataPoint, DataPoints
 from snorkel.utils.data_operators import check_unique_names
 
@@ -29,7 +29,7 @@ class BaseTFApplier:
         If names of TFs are not unique
     """
 
-    def __init__(self, tfs: List[BaseTransformationFunction], policy: Policy) -> None:
+    def __init__(self, tfs: List[TransformationFunction], policy: Policy) -> None:
         self._tfs = tfs
         self._tf_names = [tf.name for tf in tfs]
         check_unique_names(self._tf_names)
