@@ -1,6 +1,8 @@
 from snorkel.labeling.model import LabelModel
 from snorkel.labeling import PandasLFApplier
 from snorkel.labeling import LFAnalysis
+from snorkel.augmentation import RandomPolicy
+from snorkel.augmentation import PandasTFApplier
 
 import mlflow
 import dvc.api
@@ -10,6 +12,7 @@ import pandas as pd
 
 # our packages
 from vizard_snorkel import labeling
+from vizard_snorkel import augmentation
 from vizard_snorkel import modeling
 
 # utils
@@ -139,6 +142,28 @@ with torch.inference_mode():
     modeling.report_label_model(label_model=label_model, label_matrix=label_matrix_test,
                                 gold_labels=y_test, metrics=metrics, set='test')
 logger.info('\t\t↑↑↑ Finishing inference on LabelModel ↑↑↑')
+
+logger.info(
+    '\t\t↓↓↓ Starting augmentation by applying `TransformationFunction`s (TFs) ↓↓↓')
+# transformation functions
+augmentation.series_noise_utils.set_dataframe(df=data)
+tfs = [augmentation.Funds_lf, augmentation.DOBYear]
+# define policy for applying TFs
+# set `sequence_length = n_tfs` so all continuous fields of a entry get manipulated
+# set `n_per_original << n_tfs` so every change in continuous field does not create a new
+#   data; e.g. for changing 10 continuous fields (ages), generate only 2/3 new instances
+#   TODO: #20
+random_policy = RandomPolicy(n_tfs=len(tfs), sequence_length=len(tfs),
+                             n_per_original=1, keep_original=True)
+
+# apply TFs to all data (labels are not used, so no worries currently)
+tf_applier = PandasTFApplier(tfs, random_policy)
+data_augmented = tf_applier.apply(data)
+# TF reports
+logger.info(f'Original dataset size: {len(data)}')
+logger.info(f'Augmented dataset size: {len(data_augmented)}')
+logger.info(
+    '\t\t↑↑↑ Finishing augmentation by applying `TransformationFunction`s ↑↑↑')
 
 # log data params
 logger.info('\t\t↓↓↓ Starting logging with MLFlow ↓↓↓')
