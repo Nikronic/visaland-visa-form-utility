@@ -83,5 +83,5 @@ def make_add_normal_noise_tf(column: str) -> TransformationFunction:
     )
 
 
-Funds_lf = make_add_normal_noise_tf('P3.DOV.PrpsRow1.Funds.Funds')
-DOBYear = make_add_normal_noise_tf('P1.PD.DOBYear.Period')
+Funds_tf = make_add_normal_noise_tf('P3.DOV.PrpsRow1.Funds.Funds')
+DOBYear_tf = make_add_normal_noise_tf('P1.PD.DOBYear.Period')

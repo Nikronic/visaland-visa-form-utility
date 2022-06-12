@@ -147,7 +147,7 @@ logger.info(
     '\t\t↓↓↓ Starting augmentation by applying `TransformationFunction`s (TFs) ↓↓↓')
 # transformation functions
 augmentation.series_noise_utils.set_dataframe(df=data)
-tfs = [augmentation.Funds_lf, augmentation.DOBYear]
+tfs = [augmentation.Funds_tf, augmentation.DOBYear_tf]
 # define policy for applying TFs
 # set `sequence_length = n_tfs` so all continuous fields of a entry get manipulated
 # set `n_per_original << n_tfs` so every change in continuous field does not create a new
