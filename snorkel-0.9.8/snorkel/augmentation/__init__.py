@@ -5,3 +5,4 @@ from .apply.pandas import PandasTFApplier  # noqa: F401
 from .policy.core import ApplyAllPolicy, ApplyEachPolicy, ApplyOnePolicy  # noqa: F401
 from .policy.sampling import MeanFieldPolicy, RandomPolicy  # noqa: F401
 from .tf.core import TransformationFunction, transformation_function  # noqa: F401
+from .utils import preview_tfs  # noqa: F401

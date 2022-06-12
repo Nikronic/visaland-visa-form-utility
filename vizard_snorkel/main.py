@@ -3,6 +3,7 @@ from snorkel.labeling import PandasLFApplier
 from snorkel.labeling import LFAnalysis
 from snorkel.augmentation import RandomPolicy
 from snorkel.augmentation import PandasTFApplier
+from snorkel.augmentation import preview_tfs
 
 import mlflow
 import dvc.api
@@ -162,6 +163,7 @@ data_augmented = tf_applier.apply(data)
 # TF reports
 logger.info(f'Original dataset size: {len(data)}')
 logger.info(f'Augmented dataset size: {len(data_augmented)}')
+logger.info(preview_tfs(dataframe=data, tfs=tfs, n_samples=2))
 logger.info(
     '\t\t↑↑↑ Finishing augmentation by applying `TransformationFunction`s ↑↑↑')
 
