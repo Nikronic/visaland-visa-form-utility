@@ -8,7 +8,7 @@ import pandas as pd
 import numpy as np
 from dateutil import parser
 from dateutil.relativedelta import *
-from typing import Callable, List, Union, Any
+from typing import Callable, List, Optional, Tuple, Union, Any
 import logging
 
 from vizard_utils import functional
@@ -407,7 +407,7 @@ class WorldBankDataframeProcessor:
 
     @loggingdecorator(logger.name+'.WorldBankDataframeProcessor.func', level=logging.INFO,
                       output=True, input=True)
-    def include_years(self, years: tuple[Union[int, None], Union[int, None]] = None) -> None:
+    def include_years(self, years: Tuple[Optional[int], Optional[int]] = None) -> None:
         """
         Processes a dataframe to only include years given tuple of `years`
             where `years=(start, end)`. Works inplace, hence manipulates original dataframe.
@@ -855,8 +855,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                                           dtype=str, if_nan='fill', value='IRAN')
             # TODO: see #1
             # field of study: string -> categorical
-            # dataframe['P3.Edu.Edu_Row1.FieldOfStudy'] = dataframe['P3.Edu.Edu_Row1.FieldOfStudy'].astype('string')
-            self.column_dropper(string='P3.Edu.Edu_Row1.FieldOfStudy')
+            dataframe['P3.Edu.Edu_Row1.FieldOfStudy'] = dataframe['P3.Edu.Edu_Row1.FieldOfStudy'].astype('string')
             # clean occupation features
             occupation_tag_list = [
                 c for c in dataframe.columns.values if 'P3.Occ.OccRow' in c]
