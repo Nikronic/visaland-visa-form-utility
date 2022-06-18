@@ -1,9 +1,13 @@
+from snorkel.analysis import Scorer
 from snorkel.labeling.model import LabelModel
 from snorkel.labeling import PandasLFApplier
 from snorkel.labeling import LFAnalysis
 from snorkel.augmentation import RandomPolicy
 from snorkel.augmentation import PandasTFApplier
 from snorkel.augmentation import preview_tfs
+from snorkel.slicing import PandasSFApplier
+from snorkel.slicing import slice_dataframe
+
 
 import mlflow
 import dvc.api
@@ -15,6 +19,7 @@ import pandas as pd
 from vizard_snorkel import labeling
 from vizard_snorkel import augmentation
 from vizard_snorkel import modeling
+from vizard_snorkel import slicing
 
 # utils
 import logging
@@ -166,6 +171,18 @@ logger.info(f'Augmented dataset size: {len(data_augmented)}')
 logger.info(preview_tfs(dataframe=data, tfs=tfs, n_samples=2))
 logger.info(
     '\t\t↑↑↑ Finishing augmentation by applying `TransformationFunction`s ↑↑↑')
+
+logger.info('\t\t↓↓↓ Starting slicing by applying `SlicingFunction`s (SFs) ↓↓↓')
+single_person_slice = slice_dataframe(data_augmented, slicing.single_person)
+logger.info(single_person_slice.sample(5))
+sfs = [slicing.single_person]
+sf_applier = PandasSFApplier(sfs)
+data_augmented_sliced = sf_applier.apply(data_augmented)
+scorer = Scorer(metrics=metrics)
+# TODO: use slicing `scorer` only for `test` set
+# logger.info(scorer.score_slices(S=S_test, golds=Y_test,
+#             preds=preds_test, probs=probs_test, as_dataframe=True))
+logger.info('\t\t↑↑↑ Finishing slicing by applying `SlicingFunction`s (SFs) ↑↑↑')
 
 # log data params
 logger.info('\t\t↓↓↓ Starting logging hyperparams and params with MLFlow ↓↓↓')
