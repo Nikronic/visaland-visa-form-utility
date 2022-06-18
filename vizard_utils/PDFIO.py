@@ -71,9 +71,9 @@ class XFAPDF(PDFIO):
 
         pdfobject = open(pdf_path, 'rb')
         pdf = pypdf.PdfFileReader(pdfobject)
-        xfa = self.find_in_dict('/XFA', pdf.resolvedObjects)
+        xfa = self.find_in_dict('/XFA', pdf.resolved_objects)
         # `datasets` keyword contains filled forms in XFA array
-        xml = xfa[xfa.index('datasets')+1].getObject().getData()
+        xml = xfa[xfa.index('datasets')+1].get_object().get_data()
         xml = str(xml)  # convert bytes to str
         return xml
 
