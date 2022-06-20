@@ -29,6 +29,7 @@
         "subkey",
         "subvalue",
         "Tikhonov",
+        "violinplot",
         "XFAPDF"
     ],
     "python.linting.mypyEnabled": true,
