@@ -16,11 +16,14 @@ import xmltodict
 import pandas as pd
 import numpy as np
 from dateutil import parser
+import datetime
 from fnmatch import fnmatch
 from typing import Any, Callable, List, Union
 import logging
 
-from vizard_data.constant import DOC_TYPES, CONFIGS_PATH
+from vizard_data.constant import DOC_TYPES
+from vizard_data.constant import DATEUTIL_DEFAULT_DATETIME
+
 from vizard_utils.helpers import loggingdecorator
 from vizard_data.preprocessor import FileTransformCompose
 
@@ -166,7 +169,7 @@ def fillna_datetime(dataframe: pd.DataFrame, col_base_name: str, date: str, type
 def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name: str,
                        type: DOC_TYPES, if_nan: Union[str, Callable, None] = 'skip',
                        one_sided: str = None, reference_date: str = None,
-                       current_date: str = None) -> pd.DataFrame:
+                       current_date: str = None, **kwargs) -> pd.DataFrame:
     """
     In a Pandas Dataframe, takes two columns of dates in string form and calculates
         the period of these two dates and represent it in integer form. The two columns
@@ -190,7 +193,13 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
         type: `DOC_TYPE` used to use rules for matching tags and filling appropriately
         if_nan: What to do with `None`s (NaN). Could be a function or predefined states as follow:\n
             1. 'skip': do nothing (i.e. ignore `None`'s)
+        default_datetime: accepts `datetime.datetime` to set default date for `dtype=parser.parse`
     """
+
+    default_datetime = datetime.datetime(year=DATEUTIL_DEFAULT_DATETIME['year'],
+                                         month=DATEUTIL_DEFAULT_DATETIME['month'],
+                                         day=DATEUTIL_DEFAULT_DATETIME['day'])
+    default_datetime = kwargs.get('default_datetime', default_datetime)
 
     aggregated_column_name = None
     if one_sided is None:
@@ -219,27 +228,27 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
         to_date = [col for col in columns_to_aggregate_names if 'To' in col][0]
 
     if isinstance(column_to_date, str):
-        column_to_date = parser.parse(column_to_date)  # type: ignore
+        column_to_date = parser.parse(column_to_date, default=default_datetime)  # type: ignore
 
     if column_from_date is None:  # ignore reference_date if from_date exists
         # to able to use already parsed data from fillna
         if not dataframe[from_date].dtypes == '<M8[ns]':
             dataframe[from_date] = dataframe[from_date].apply(
-                lambda x: parser.parse(x) if x is not None else x)
+                lambda x: parser.parse(x, default=default_datetime) if x is not None else x)
         column_from_date = dataframe[from_date]
     else:
         if isinstance(column_from_date, str):
-            column_from_date = parser.parse(column_from_date)  # type: ignore
+            column_from_date = parser.parse(column_from_date, default=default_datetime)  # type: ignore
 
     if column_to_date is None:  # ignore current_date if to_date exists
         # to able to use already parsed data from fillna
         if not dataframe[to_date].dtypes == '<M8[ns]':
             dataframe[to_date] = dataframe[to_date].apply(
-                lambda x: parser.parse(x) if x is not None else x)
+                lambda x: parser.parse(x, default=default_datetime) if x is not None else x)
         column_to_date = dataframe[to_date]
     else:
         if isinstance(column_to_date, str):
-            column_to_date = parser.parse(column_to_date)  # type: ignore
+            column_to_date = parser.parse(column_to_date, default=default_datetime)  # type: ignore
 
     if if_nan is not None:
         if if_nan == 'skip':
@@ -285,7 +294,13 @@ def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: Callable,
         if_nan: What to do with `None`s (NaN). Could be a function or predefined states as follow:\n
             1. 'skip': do nothing (i.e. ignore `None`'s)
             2. 'value': fill the `None` with `value` argument via `kwargs`
+        default_datetime: accepts `datetime.datetime` to set default date for `dtype=parser.parse`
     """
+
+    default_datetime = datetime.datetime(year=DATEUTIL_DEFAULT_DATETIME['year'],
+                                         month=DATEUTIL_DEFAULT_DATETIME['month'],
+                                         day=DATEUTIL_DEFAULT_DATETIME['day'])
+    default_datetime = kwargs.get('default_datetime', default_datetime)
 
     # define `func` for different cases of predefined logics
     if isinstance(if_nan, str):  # predefined `if_nan` cases
@@ -327,9 +342,17 @@ def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: Callable,
                     value = '28'.join(value.rsplit('30', 1))
         return value
 
+    def apply_dtype(x: Any) -> Any:
+        """
+        Handles `default` `datetime.datetime` for `dateutil.parser.parse`
+        """
+        if dtype == parser.parse:
+            return dtype(x, default=default_datetime)
+        return dtype(x)
+
     # apply the rules and data type change
     dataframe[col_name] = dataframe[col_name].apply(
-        lambda x: dtype(standardize(x)) if x is not None else func(x))
+        lambda x: apply_dtype(standardize(x)) if x is not None else func(x))
 
     return dataframe
 

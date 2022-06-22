@@ -1,10 +1,12 @@
 __all__ = [
     'CANADA_5257E_KEY_ABBREVIATION', 'CANADA_5645E_KEY_ABBREVIATION', 'CANADA_5257E_VALUE_ABBREVIATION',
     'CANADA_5257E_DROP_COLUMNS', 'CANADA_5645E_DROP_COLUMNS', 'FINANCIAL_RATIOS', 'DOC_TYPES',
-    'CANADA_CUTOFF_TERMS', 'CANADA_FILLNA', 'CONFIGS_PATH'
+    'CANADA_CUTOFF_TERMS', 'CANADA_FILLNA', 'CONFIGS_PATH', 'DATEUTIL_DEFAULT_DATETIME',
+
 ]
 
 from enum import Enum
+import datetime
 
 # DICTIONARY
 # dict of abbreviation used to shortening length of KEYS in XML to CSV conversion
@@ -60,6 +62,13 @@ CANADA_5645E_KEY_ABBREVIATION = {
     'Yes': 'Accomp',
     'Relationship': 'Rel',
 
+}
+
+# see #29
+DATEUTIL_DEFAULT_DATETIME = {
+    'day': 18,  # no reason for this value (CluelessClown)
+    'month': 6,  # no reason for this value (CluelessClown)
+    'year': datetime.MINYEAR
 }
 
 # dict of abbreviation used to shortening length of VALUES in XML to CSV conversion
