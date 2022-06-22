@@ -4,9 +4,9 @@ import logging
 import uuid
 import enlighten
 
-from vizard_utils.constant import DOC_TYPES
-from vizard_utils import functional
-from vizard_utils.preprocessor import *
+from vizard_data.constant import DOC_TYPES
+from vizard_data import functional
+from vizard_data.preprocessor import *
 
 import dvc.api
 import mlflow
@@ -49,11 +49,11 @@ MLFLOW_TAGS = {
 }
 mlflow.set_tags(MLFLOW_TAGS)
 
-logger.info('MLflow experiment name: {}'.format(MLFLOW_EXPERIMENT_NAME))
-logger.info('MLflow experiment id: {}'.format(mlflow.active_run().info.run_id))
-logger.info('MLflow data version: {}'.format(VERSION))
-logger.info('MLflow repo (root): {}'.format(REPO))
-logger.info('MLflow data source path: {}'.format(PATH))
+logger.info('MLFlow experiment name: {}'.format(MLFLOW_EXPERIMENT_NAME))
+logger.info('MLFlow experiment id: {}'.format(mlflow.active_run().info.run_id))
+logger.info('DVC data version: {}'.format(VERSION))
+logger.info('DVC repo (root): {}'.format(REPO))
+logger.info('DVC data source path: {}'.format(PATH))
 logger.info(
     '\t\t↑↑↑ Finished setting up configs: dirs, mlflow, dvc, etc ↑↑↑')
 
