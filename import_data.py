@@ -10,9 +10,9 @@ In simple terms, if you added new samples, changed columns or anything that shou
     this version (or any version you want).
 """
 
-from vizard_utils.constant import DOC_TYPES
-from vizard_utils import functional
-from vizard_utils.preprocessor import *
+from vizard_data.constant import DOC_TYPES
+from vizard_data import functional
+from vizard_data.preprocessor import *
 import pandas as pd
 
 import os
@@ -62,9 +62,9 @@ mlflow.set_tags(MLFLOW_TAGS)
 
 logger.info('MLflow experiment name: {}'.format(MLFLOW_EXPERIMENT_NAME))
 logger.info('MLflow experiment id: {}'.format(mlflow.active_run().info.run_id))
-logger.info('MLflow data version: {}'.format(VERSION))
-logger.info('MLflow repo (root): {}'.format(REPO))
-logger.info('MLflow data source path: {}'.format(PATH))
+logger.info('DVC data version: {}'.format(VERSION))
+logger.info('DVC repo (root): {}'.format(REPO))
+logger.info('DVC data source path: {}'.format(PATH))
 logger.info(
     '\t\t↑↑↑ Finished setting up configs: dirs, mlflow, dvc, etc ↑↑↑')
 
@@ -146,4 +146,3 @@ logger.info('\t\t↑↑↑ Finished logging with MLFlow ↑↑↑')
 mlflow.log_artifacts('artifacts/')
 # delete redundant logs, files that are logged as artifact
 shutil.rmtree('artifacts')
-print

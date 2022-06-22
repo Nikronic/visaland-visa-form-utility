@@ -1,69 +1,114 @@
-from typing import Union
 import os
 import shutil
 import logging
-import uuid
-from xml.dom.pulldom import IGNORABLE_WHITESPACE
+import sys
 import enlighten
 
-from vizard_utils.constant import *
-from vizard_utils import functional
-from vizard_utils.preprocessor import *
+from vizard_data.constant import DOC_TYPES
+from vizard_data import functional
+from vizard_data.preprocessor import *
 
+import dvc.api
 import pandas as pd
 
+
+# configure logging
+VERBOSITY = logging.INFO
+
+logger = logging.getLogger(__name__)
+logger.setLevel(VERBOSITY)
+
+logger_handler = logging.StreamHandler(sys.stderr)
+logger.addHandler(logger_handler)
+manager = enlighten.get_manager(sys.stderr)  # setup progress bar
+
+logger.info(
+    '\t\t↓↓↓ Starting setting up configs: dirs, dvc, etc ↓↓↓')
 # main path
-FILE_NAME = 'API_NY.GDP.PCAP.CD_DS2_en_xml_v2_4004943.xml'
-SRC_DIR = 'raw-dataset/field_data/'
-SRC_FILE = SRC_DIR + FILE_NAME
+SRC_DIR = '/mnt/e/dataset/processed/all/'  # path to source encrypted pdf
+DST_DIR = 'raw-dataset/all/'  # path to decrypted pdf
+
+
+# data versioning config
+PATH = DST_DIR[:-1] + '.pkl'  # path to source data, e.g. data.pkl file
+REPO = '/home/nik/visaland-visa-form-utility'
+VERSION = 'v1.0.2.1'
+
+logger.info('DVC data version: {}'.format(VERSION))
+logger.info('DVC repo (root): {}'.format(REPO))
+logger.info('DVC data source path: {}'.format(PATH))
+logger.info(
+    '\t\t↑↑↑ Finished setting up configs: dirs, dvc, etc ↑↑↑')
 
 # main code
-dataframe = pd.read_xml(
-    SRC_FILE, xpath='/Root/record/field', elems_only=False, )
+logger.info('\t\t↓↓↓ Starting data extraction ↓↓↓')
+# Canada protected PDF to machine readable for all entries and transfering other files as it is
+compose = {
+    CopyFile(mode='cf'): '.csv',
+    CopyFile(mode='cf'): '.txt',
+    MakeContentCopyProtectedMachineReadable(): '.pdf'
+}
+file_transform_compose = FileTransformCompose(transforms=compose)
+functional.process_directory(src_dir=SRC_DIR, dst_dir=DST_DIR,
+                             compose=file_transform_compose, file_pattern='*')
 
-# save dataframe to disc as pickle
-dataset_path = 'raw-dataset/' + FILE_NAME[:-4] + '.pkl'
-dataframe.to_pickle(dataset_path)
+# convert PDFs to pandas dataframes
+data_iter_logger = logging.getLogger(logger.name+'.data_iter')
 
-# process df
-dataframe = dataframe.pivot(columns='name', values='field')
-dataframe = dataframe.drop('Item', axis=1)
-dataframe['Country or Area'] = dataframe['Country or Area'].ffill().bfill()
-dataframe = dataframe.drop_duplicates()
-dataframe = dataframe.ffill().bfill()
-dataframe = dataframe[dataframe['Year'].astype(int) >= 2017]
-dataframe = dataframe.drop_duplicates(subset=['Country or Area', 'Year'], keep='last').reset_index()
-df2 = dataframe.pivot(index='index', columns='Year', values='Value')
-dataframe.drop('index', axis=1, inplace=True)
-dataframe.reset_index(inplace=True)
-df2.reset_index(inplace=True)
-dataframe = df2.join(dataframe['Country or Area'])
+SRC_DIR = DST_DIR[:-1]
+dataframe = pd.DataFrame()
+progress_bar = manager.counter(total=len(next(os.walk(DST_DIR), (None, [], None))[1]),
+                               desc='Ticks', unit='ticks')
+i = 0  # for progress bar
+for dirpath, dirnames, all_filenames in os.walk(SRC_DIR):
+    dataframe_entry = pd.DataFrame()
 
-country_names = dataframe['Country or Area'].unique()
-for cn in country_names:
-    dataframe[dataframe['Country or Area'] ==
-              cn] = dataframe[dataframe['Country or Area'] == cn].ffill().bfill()
+    # filter all_filenames
+    filenames = all_filenames
+    if filenames:
+        files = [os.path.join(dirpath, fname) for fname in filenames]
+        # applicant form
+        in_fname = [f for f in files if '5257' in f][0]
+        df_preprocessor = CanadaDataframePreprocessor()
+        if len(in_fname) != 0:
+            dataframe_applicant = df_preprocessor.file_specific_basic_transform(
+                path=in_fname, type=DOC_TYPES.canada_5257e)
+        # applicant family info
+        in_fname = [f for f in files if '5645' in f][0]
+        if len(in_fname) != 0:
+            dataframe_family = df_preprocessor.file_specific_basic_transform(
+                path=in_fname, type=DOC_TYPES.canada_5645e)
+        # manually added labels
+        in_fname = [f for f in files if 'label' in f][0]
+        if len(in_fname) != 0:
+            dataframe_label = df_preprocessor.file_specific_basic_transform(
+                path=in_fname, type=DOC_TYPES.canada_label)
 
-# dataframe = dataframe.ffill().bfill()
-dataframe = dataframe.drop_duplicates(subset=['Country or Area'])
-dataframe.drop('index', axis=1, inplace=True)
-mean_columns = [c for c in dataframe.columns.values if c.isnumeric()]
-dataframe['mean'] = dataframe[mean_columns].astype(float).mean(axis=1)
-dataframe.drop(dataframe.columns[:-2], axis=1, inplace=True)
+        # final dataframe: concatenate common forms and label column wise
+        dataframe_entry = pd.concat(
+            objs=[dataframe_applicant, dataframe_family, dataframe_label],
+            axis=1, verify_integrity=True)
 
-dataframe[dataframe.columns[0]] = dataframe[dataframe.columns[0]].apply(
-    lambda x: x.lower())
+    # concat the dataframe_entry into the main dataframe (i.e. adding rows)
+    dataframe = pd.concat(objs=[dataframe, dataframe_entry], axis=0,
+                          verify_integrity=True, ignore_index=True)
+    # logging
+    i += 1
+    data_iter_logger.info('Processed {}th data point ...'.format(i))
+    progress_bar.update()
 
-# scale to [1-7] (Standard of World Data Bank)
-column_max = dataframe['mean'].max()
-column_min = dataframe['mean'].min()
 
-def standardize(x):
-    return (((x - column_min) * (7. - 1.)) /
-                (column_max - column_min)) + 1.
-dataframe['mean'] = dataframe['mean'].apply(standardize)
-dic = dict(zip(dataframe[dataframe.columns[0]], dataframe[dataframe.columns[1]]))
+# get url data from DVC data storage
+data_url = dvc.api.get_url(path=PATH, repo=REPO, rev=VERSION)
+# read dataset from remote (local) data storage
+dataframe_original = pd.read_pickle(data_url)
+logger.info('\t\t↑↑↑ Finished data extraction ↑↑↑')
 
-# # save dataframe to disc as pickle
-# dataset_path = 'raw-dataset/' + FILE_NAME[:-4] + '.pkl'
-# dataframe.to_pickle(dataset_path)
+import pandas.testing as pdt
+for c in dataframe_original.columns.values:
+    try:
+        pdt.assert_series_equal(left=dataframe[c], right=dataframe_original[c],
+                                check_exact=False, rtol=1e-3, atol=1e-4)
+    except AssertionError as e:
+        print(f'column="{c}" {e}\n\n')
+

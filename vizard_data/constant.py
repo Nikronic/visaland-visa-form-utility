@@ -1,0 +1,187 @@
+__all__ = [
+    'CANADA_5257E_KEY_ABBREVIATION', 'CANADA_5645E_KEY_ABBREVIATION', 'CANADA_5257E_VALUE_ABBREVIATION',
+    'CANADA_5257E_DROP_COLUMNS', 'CANADA_5645E_DROP_COLUMNS', 'FINANCIAL_RATIOS', 'DOC_TYPES',
+    'CANADA_CUTOFF_TERMS', 'CANADA_FILLNA', 'CONFIGS_PATH'
+]
+
+from enum import Enum
+
+# DICTIONARY
+# dict of abbreviation used to shortening length of KEYS in XML to CSV conversion
+CANADA_5257E_KEY_ABBREVIATION = {
+    'Page': 'P',
+    'PersonalDetails': 'PD',
+    'CountryWhereApplying': 'CWA',
+    'MaritalStatus': 'MS',
+    'Section': 'Sec',
+    'ContactInformation': 'CI',
+    'DetailsOfVisit': 'DOV',
+    'Education': 'Edu',
+    'PageWrapper': 'PW',
+    'Occupation': 'Occ',
+    'BackgroundInfo': 'BGI',
+    'Current': 'Curr',
+    'Previous': 'Prev',
+    'Marriage': 'Marr',
+    'Married': 'Marr',
+    'Previously': 'Prev',
+    'Passport': 'Psprt',
+    'Language': 'Lang',
+    'Address': 'Addr',
+    'contact': 'cntct',
+    'Contact': 'cntct',
+    'Resident': 'Resi',
+    'Phone': 'Phn',
+    'Number': 'Num',
+    'Purpose': 'Prps',
+    'HowLongStay': 'HLS',
+    'Signature': 'Sign',
+
+    # more meaningful keys
+    'GovPosition.Choice': 'witnessIllTreat',
+    'Occ.Choice': 'politicViol',
+    'BGI3.Choice': 'criminalRec',
+    'Details.VisaChoice3': 'PrevApply',
+    'BGI2.VisaChoice2': 'refuseDeport',
+    'BGI2.VisaChoice1': 'noAuthStay',
+    'backgroundInfoCalc': 'otherThanMedic'
+}
+
+CANADA_5645E_KEY_ABBREVIATION = {
+    'page': 'p',
+    'Applicant': 'App',
+    'Mother': 'Mo',
+    'Father': 'Fa',
+    'Section': 'Sec',
+    'Spouse': 'Sps',
+    'Child': 'Chd',
+    'Address': 'Addr',
+    'Occupation': 'Occ',
+    'Yes': 'Accomp',
+    'Relationship': 'Rel',
+
+}
+
+# dict of abbreviation used to shortening length of VALUES in XML to CSV conversion
+CANADA_5257E_VALUE_ABBREVIATION = {
+    'BIOMETRIC ENROLMENT': 'Bio',
+    '223': 'IRAN',
+    '045': 'TURKEY',
+}
+
+# LIST
+CANADA_5257E_DROP_COLUMNS = [
+    'ns0:datasets.@xmlns:ns0', 'P1.Header.CRCNum', 'P1.FormVersion', 'P1.PrevSpouseAge',
+    'P1.PD.UCIClientID', 'P1.PD.SecHeader.@ns0:dataNode', 'P1.PD.DOBMonth',
+    'P1.PD.DOBDay', 'P1.PD.CurrCOR.Row1.@ns0:dataNode', 'P1.PD.PrevCOR.Row1.@ns0:dataNode',
+    'P1.PD.CWA.Row1.@ns0:dataNode', 'P1.PD.ApplicationValidatedFlag',
+    'P2.MS.SecA.SecHeader.@ns0:dataNode', 'P2.MS.SecA.DateLastValidated.DateCalc',
+    'P2.MS.SecA.DateLastValidated.Year', 'P2.MS.SecA.DateLastValidated.Month',
+    'P2.MS.SecA.DateLastValidated.Day', 'P2.MS.SecA.PsprtSecHeader.@ns0:dataNode',
+    'P2.MS.SecA.Psprt.IssueYYYY', 'P2.MS.SecA.Psprt.IssueMM', 'P2.MS.SecA.Psprt.IssueDD',
+    'P2.MS.SecA.Psprt.expiryYYYY', 'P2.MS.SecA.Psprt.expiryMM', 'P2.MS.SecA.Psprt.expiryDD',
+    'P2.MS.SecA.Langs.languagesHeader.@ns0:dataNode', 'P2.natID.SecHeader.@ns0:dataNode',
+    'P2.natID.natIDdocs.IssueDate.IssueDate', 'P2.natID.natIDdocs.ExpiryDate',
+    'P2.USCard.SecHeader.@ns0:dataNode', 'P2.USCard.SecHeader.@ns0:dataNode',
+    'P2.USCard.usCarddocs.ExpiryDate', 'P2.USCard.usCarddocs.DocNum.DocNum',
+    'P2.CI.cntct.cntctInfoSecHeader.@ns0:dataNode', 'P2.CI.cntct.AddrRow1.POBox.POBox',
+    'P2.CI.cntct.AddrRow1.Apt.AptUnit', 'P2.CI.cntct.AddrRow1.StreetNum.StreetNum',
+    'P2.CI.cntct.AddrRow1.Streetname.Streetname', 'P2.CI.cntct.AddrRow2.ProvinceState.ProvinceState',
+    'P2.CI.cntct.AddrRow2.PostalCode.PostalCode', 'P2.CI.cntct.AddrRow2.District',
+    'P2.CI.cntct.ResiialAddrRow1.AptUnit.AptUnit', 'P2.CI.cntct.ResiialAddrRow1.StreetNum.StreetNum',
+    'P2.CI.cntct.ResiialAddrRow1.StreetName.Streetname', 'P2.CI.cntct.ResiialAddrRow2.District',
+    'P2.CI.cntct.ResiialAddrRow2.ProvinceState.ProvinceState', 'P2.CI.cntct.PhnNums.Phn.NumCountry',
+    'P2.CI.cntct.ResiialAddrRow2.PostalCode.PostalCode', 'P2.CI.cntct.PhnNums.Phn.ActualNum',
+    'P2.CI.cntct.PhnNums.Phn.NANum.AreaCode', 'P2.CI.cntct.PhnNums.Phn.NANum.FirstThree',
+    'P2.CI.cntct.PhnNums.Phn.NANum.LastFive', 'P2.CI.cntct.PhnNums.Phn.IntlNum.IntlNum',
+    'P2.CI.cntct.PhnNums.AltPhn.NumCountry', 'P2.CI.cntct.PhnNums.AltPhn.ActualNum',
+    'P2.CI.cntct.PhnNums.AltPhn.NANum.AreaCode', 'P2.CI.cntct.PhnNums.AltPhn.NANum.FirstThree',
+    'P2.CI.cntct.PhnNums.AltPhn.NANum.LastFive', 'P2.CI.cntct.PhnNums.AltPhn.IntlNum.IntlNum',
+    'P2.CI.cntct.FaxEmail.Phn.CanadaUS', 'P2.CI.cntct.FaxEmail.Phn.Other',
+    'P2.CI.cntct.FaxEmail.Phn.NumExt', 'P2.MS.SecA.Psprt.IssueDate.IssueDate',
+    'P2.CI.cntct.FaxEmail.Phn.NumCountry', 'P2.CI.cntct.FaxEmail.Phn.ActualNum',
+    'P2.CI.cntct.FaxEmail.Phn.NANum.AreaCode', 'P2.CI.cntct.FaxEmail.Phn.NANum.FirstThree',
+    'P2.CI.cntct.FaxEmail.Phn.NANum.LastFive', 'P2.CI.cntct.FaxEmail.Phn.IntlNum.IntlNum',
+    'P2.CI.cntct.FaxEmail.Email', 'P3.SecHeader_DOV.@ns0:dataNode',
+    'P3.DOV.cntcts_Row1.AddrInCanada.AddrInCanada', 'P3.Edu.Edu_SecHeader.@ns0:dataNode',
+    'P3.Occ.SecHeader_CurrOcc.@ns0:dataNode', 'P3.BGI_SecHeader.@ns0:dataNode',
+    'P3.Sign.Consent0.Choice', 'P3.Sign.hand.@ns0:dataNode', 'P3.Sign.TextField2',
+    'P3.Disclosure.@ns0:dataNode', 'P3.ReaderInfo', 'Barcodes.@ns0:dataNode',
+    'P3.BGI2.Details.refusedDetails', 'P3.PWrapper.BGI3.details',
+    'P3.PWrapper.Military.militaryServiceDetails', 'P1.PD.AliasName.AliasGivenName',
+    'P1.PD.AliasName.AliasFamilyName', 'P2.MS.SecA.PMFamilyName', 'P2.MS.SecA.GivenName.PMGivenName',
+    'P3.DOV.cntcts_Row1.Name.Name', 'P3.cntcts_Row2.Name.Name', 'P1.PD.PrevCOR.Row3.Other',
+    'P3.cntcts_Row2.AddrInCanada.AddrInCanada', 'P3.Edu.Edu_Row1.FromMonth', 'P3.Edu.Edu_Row1.ToMonth',
+    'P3.Edu.Edu_Row1.School', 'P3.Edu.Edu_Row1.CityTown', 'P3.Edu.Edu_Row1.ProvState',
+    'P3.Occ.OccRow1.FromMonth', 'P3.Occ.OccRow1.ToMonth', 'P3.Occ.OccRow1.CityTown.CityTown',
+    'P3.Occ.OccRow1.ProvState', 'P3.Occ.OccRow2.FromMonth', 'P3.Occ.OccRow2.ToMonth',
+    'P3.Occ.OccRow2.CityTown.CityTown', 'P3.Occ.OccRow2.ProvState', 'P3.Occ.OccRow3.FromMonth',
+    'P3.Occ.OccRow3.ToMonth', 'P3.Occ.OccRow3.CityTown.CityTown', 'P3.Occ.OccRow3.ProvState',
+    'P1.PD.Name.FamilyName', 'P1.PD.Name.GivenName', 'P1.PD.PrevCOR.Row2.Other',
+    'P1.MS.SecA.FamilyName', 'P1.MS.SecA.GivenName', 'P2.MS.SecA.PrevSpouseDOB.DOBMonth',
+    'P2.MS.SecA.PrevSpouseDOB.DOBDay', 'P2.MS.SecA.Psprt.PsprtNum.PsprtNum',
+    'P2.natID.natIDdocs.DocNum.DocNum', 'P2.MS.SecA.Langs.languages.lov', 'P3.Occ.OccRow1.Employer',
+    'P3.Occ.OccRow2.Employer', 'P3.Occ.OccRow3.Employer', 'P1.Age',
+    'P2.MS.SecA.Psprt.TaiwanPIN', 'P2.MS.SecA.Psprt.IsraelPsprtIndicator',
+]
+
+CANADA_5645E_DROP_COLUMNS = {
+    'xfa:datasets.@xmlns:xfa', 'p1.SecA.Title.@xfa:dataNode', 'p1.SecA.App.AppDOB', 'p1.SecA.App.AppCOB',
+    'p1.SecA.App.AppOcc', 'p1.SecA.App.AppOcc', 'p1.SecB.SecBsignature',
+    'p1.SecB.SecBdate', 'p1.SecC.Title.@xfa:dataNode', 'p1.SecA.SecAsignature',
+    'p1.SecA.SecAdate', 'p1.SecB.Title.@xfa:dataNode', 'p1.SecC.SecCsignature',
+    'p1.SecC.Subform2.@xfa:dataNode', 'p1.SecA.Sps.ChdMStatus', 'formNum',
+}
+
+# dictionaries containing factors in used in heuristic calculations using domain knowledge
+# Ratios used to convert rent, deposit, and total worth to each other
+FINANCIAL_RATIOS = {
+    # house related
+    'rent2deposit': 100./3.,  # rule of thumb provided online
+    'deposit2rent': 3./100.,
+    'deposit2worth': 5.,      # rule of thumb provided online
+    'worth2deposit': 1./5.,
+
+    # company related
+    'tax2income': 100./15.,  # 10% for small, 20% for larger, we use average 15% tax rate
+    'income2tax': 15./100.,
+    # a company worth 15x of its income for minimum: C[T/E]O suggestion
+    'income2worth': 15.,
+    'worth2income': 1./15.,
+}
+
+
+# ENUM
+class DOC_TYPES(Enum):
+    """
+    Contains all document types which can be used to customize ETL steps for each doc.
+    Remark: Order of docs is meaningless.
+    """
+    canada = 1        # referring to all Canada docs in general
+    canada_5257e = 2  # application for visitor visa (temporary resident visa)
+    canada_5645e = 3  # Family information
+    canada_label = 4  # containing labels
+
+
+# Cutoff terms for both keys and values
+class CANADA_CUTOFF_TERMS(Enum):
+    """
+    Dict of cut off terms for different files that is can be used with
+        'dict_summarizer' for `functional`
+    """
+
+    ca5645e = 'IMM_5645'
+    ca5257e = 'form1'
+
+
+# values used to fill None's depending on the form structure
+#   remark: we do not use any heuristics here, we just follow what form used and only add another
+# option which should be used as None state (i.e. None as a separate feature in categorical mode).
+class CANADA_FILLNA(Enum):
+
+    ChdMStatus_5645e = 9
+
+
+# configs path
+class CONFIGS_PATH(Enum):
+    CANADA_COUNTRY_CODE_TO_NAME = 'configs/canada-country-code-to-name.csv'
