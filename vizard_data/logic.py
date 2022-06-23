@@ -1,7 +1,9 @@
 __all__ = ['Logics', 'Discretizer', 'Merger']
 
-from typing import List, Union
+# core
 import pandas as pd
+# helpers
+from typing import List, Union
 
 
 # TODO: implement issues #1 and #2 here

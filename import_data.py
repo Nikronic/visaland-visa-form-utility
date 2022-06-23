@@ -10,17 +10,20 @@ In simple terms, if you added new samples, changed columns or anything that shou
     this version (or any version you want).
 """
 
+# core
+import pandas as pd
+# ours: data
 from vizard_data.constant import DOC_TYPES
 from vizard_data import functional
 from vizard_data.preprocessor import *
-import pandas as pd
-
+# devops
+import mlflow
+# helpers
 import os
 import shutil
 import logging
 import uuid
 import enlighten
-import mlflow
 
 
 # configure logging

@@ -1,12 +1,12 @@
 __all__ = ['report_label_model']
 
-
-from snorkel.labeling.model import LabelModel
+# core
 import numpy as np
-
+# snorkel
+from snorkel.labeling.model import LabelModel
+# ours
 from vizard_utils.helpers import loggingdecorator
-
-# utils
+# helpers
 from typing import List
 import logging
 

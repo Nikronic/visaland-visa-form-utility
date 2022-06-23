@@ -9,23 +9,25 @@ Contains implementation of functions that could be used for processing data ever
 
 """
 
-import re
-import os
-import csv
-import xmltodict
+# core
+from dateutil import parser
 import pandas as pd
 import numpy as np
-from dateutil import parser
 import datetime
+import xmltodict
+import csv
+import re
+# ours: data
+from vizard_data.constant import DOC_TYPES
+from vizard_data.constant import DATEUTIL_DEFAULT_DATETIME
+from vizard_data.preprocessor import FileTransformCompose
+# ours: helper
+from vizard_utils.helpers import loggingdecorator
+# helpers
 from fnmatch import fnmatch
 from typing import Any, Callable, List, Union
 import logging
-
-from vizard_data.constant import DOC_TYPES
-from vizard_data.constant import DATEUTIL_DEFAULT_DATETIME
-
-from vizard_utils.helpers import loggingdecorator
-from vizard_data.preprocessor import FileTransformCompose
+import os
 
 
 # set logger

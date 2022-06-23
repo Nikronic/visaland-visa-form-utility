@@ -1,5 +1,11 @@
-import re
+__all__ = [
+    'single_person'
+]
+
+# core
 import pandas as pd
+import re
+# snorkel
 from snorkel.slicing import slicing_function
 from snorkel.slicing import slice_dataframe
 

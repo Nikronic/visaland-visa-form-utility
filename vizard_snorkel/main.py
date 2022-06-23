@@ -1,3 +1,7 @@
+# core
+import pandas as pd
+import torch
+# snorkel
 from snorkel.analysis import Scorer
 from snorkel.labeling.model import LabelModel
 from snorkel.labeling import PandasLFApplier
@@ -7,21 +11,15 @@ from snorkel.augmentation import PandasTFApplier
 from snorkel.augmentation import preview_tfs
 from snorkel.slicing import PandasSFApplier
 from snorkel.slicing import slice_dataframe
-
-
-import mlflow
-import dvc.api
-
-import torch
-import pandas as pd
-
-# our packages
+# ours: snorkel
 from vizard_snorkel import labeling
 from vizard_snorkel import augmentation
 from vizard_snorkel import modeling
 from vizard_snorkel import slicing
-
-# utils
+# devops
+import mlflow
+import dvc.api
+# helpers
 import logging
 import os
 import uuid

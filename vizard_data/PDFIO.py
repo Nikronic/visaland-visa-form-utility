@@ -1,20 +1,19 @@
 __all__ = ['PDFIO', 'XFAPDF', 'CanadaXFA']
 
-# import packages
+# core
+import xml.etree.ElementTree as et
+import PyPDF2 as pypdf
+import re
+# ours: data
+from vizard_data import functional
+from vizard_data.constant import DOC_TYPES
+# ours: helpers
+from vizard_utils.helpers import deprecated
+from vizard_utils.helpers import loggingdecorator
+# helpers
 from enum import Enum
 import logging
 
-# preprocessing
-import re
-import xml.etree.ElementTree as et
-
-# PDF tools
-import PyPDF2 as pypdf
-
-# our modules
-from vizard_data import functional
-from vizard_data.constant import DOC_TYPES
-from vizard_utils.helpers import deprecated, loggingdecorator
 
 # logging
 logger = logging.getLogger(__name__)

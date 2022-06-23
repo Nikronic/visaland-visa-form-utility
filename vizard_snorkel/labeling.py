@@ -1,7 +1,14 @@
-from snorkel.labeling import labeling_function
+__all__ = [
+    'labeling_function', 'lf_weak_reject', 'lf_no_idea', 'ABSTAIN', 'REJ', 'ACC'
+]
+
+# core
 import pandas as pd
+# snorkel
+from snorkel.labeling import labeling_function
 
 
+# TODO: move this to `vizard_snorkel.constant.py`
 # define the label mappings
 ABSTAIN = -1
 REJ = 0  # TODO: cant be 2 so it matches our dataframe already?
