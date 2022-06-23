@@ -37,7 +37,7 @@ logger_handler = logging.FileHandler(filename='artifacts/logs/{}.log'.format(log
                                      mode='w')
 logger.addHandler(logger_handler)
 # set libs to log to our logging config
-__libs = ['vizard_data', 'vizard_models', 'vizard_snorkel']
+__libs = ['snorkel', 'vizard_data', 'vizard_models', 'vizard_snorkel']
 for __l in __libs:
     __libs_logger = logging.getLogger(__l)
     __libs_logger.setLevel(logging.INFO)

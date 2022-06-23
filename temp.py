@@ -20,7 +20,7 @@ logger.setLevel(VERBOSITY)
 logger_handler = logging.StreamHandler(sys.stderr)
 logger.addHandler(logger_handler)
 # set libs to log to our logging config
-__libs = ['vizard_data', 'vizard_models', 'vizard_snorkel']
+__libs = ['snorkel', 'vizard_data', 'vizard_models', 'vizard_snorkel']
 for __l in __libs:
     __libs_logger = logging.getLogger(__l)
     __libs_logger.setLevel(logging.INFO)
