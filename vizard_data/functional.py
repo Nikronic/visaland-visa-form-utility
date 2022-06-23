@@ -25,9 +25,12 @@ from vizard_data.preprocessor import FileTransformCompose
 from vizard_utils.helpers import loggingdecorator
 # helpers
 from fnmatch import fnmatch
-from typing import Any, Callable, List, Union
+from typing import Any, Callable, List, Optional, Union
+from enlighten import Manager
+import enlighten
 import logging
 import os
+import sys
 
 
 # set logger
@@ -466,9 +469,9 @@ def unit_converter(sparse: float, dense: float, factor: float) -> float:
 # methods used for handling files from manually processed dataset to raw-dataset
 #   see class `FileTransformers` in `preprocessor.py` for more information
 
-
+@loggingdecorator(logger.name+'.func', level=logging.INFO, output=False, input=True)
 def process_directory(src_dir: str, dst_dir: str, compose: FileTransformCompose,
-                      file_pattern: str = '*'):
+                      file_pattern: str = '*', manager: Optional[Manager] = None) -> None:
     """
     Iterates through `src_dir`, processing all files that match pattern, the applies
         given transformation composition `compose` and stores them,
@@ -479,6 +482,7 @@ def process_directory(src_dir: str, dst_dir: str, compose: FileTransformCompose,
         dst_dir: Destination directory to write processed files
         file_pattern: pattern to match files, default to '*' for all files
         compose: An instance of transform composer, see `preprocessor.Compose`
+        manager: `enlighten.Manager` for progressbar
 
     ref: https://stackoverflow.com/a/24041933/18971263
     """
@@ -486,11 +490,19 @@ def process_directory(src_dir: str, dst_dir: str, compose: FileTransformCompose,
     assert src_dir != dst_dir, 'Source and destination dir must differ.'
     if src_dir[-1] != '/':
         src_dir += '/'
-    for dirpath, dirnames, all_filenames in os.walk(src_dir):
+    
+    # logging
+    manager = enlighten.get_manager(sys.stderr) if manager is None else manager
+    progress_bar = manager.counter(total=len(next(os.walk(src_dir), (None, [], None))[1]),
+                                   desc='Extracted', unit='data point files')
+    i = 0
+
+    for dirpath, _, all_filenames in os.walk(src_dir):
         # filter out files that match pattern only
         filenames = filter(lambda fname: fnmatch(
             fname, file_pattern), all_filenames)
-
+        dirname = dirpath[len(dirpath) - dirpath[::-1].find('/'):]
+        logger.info(f'Processing directory="{dirname}"...')
         if filenames:
             dir_ = os.path.join(dst_dir, dirpath.replace(src_dir, ''))
             os.makedirs(dir_, exist_ok=True)
@@ -498,7 +510,10 @@ def process_directory(src_dir: str, dst_dir: str, compose: FileTransformCompose,
                 in_fname = os.path.join(dirpath, fname)
                 out_fname = os.path.join(dir_, fname)
                 compose(in_fname, out_fname)
-
+                logger.info(f'Processed file="{fname}"')
+        logger.info(f'Processed "{i}th" data entry.')
+        i += 1
+        progress_bar.update()
 
 @loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=True, input=True)
 def search_dict(string: str, dic: dict, if_nan: str) -> str:
