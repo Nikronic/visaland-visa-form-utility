@@ -17,9 +17,15 @@ VERBOSITY = logging.INFO
 
 logger = logging.getLogger(__name__)
 logger.setLevel(VERBOSITY)
-
 logger_handler = logging.StreamHandler(sys.stderr)
 logger.addHandler(logger_handler)
+# set libs to log to our logging config
+__libs = ['vizard_data', 'vizard_models', 'vizard_snorkel']
+for __l in __libs:
+    __libs_logger = logging.getLogger(__l)
+    __libs_logger.setLevel(logging.INFO)
+    __libs_logger.addHandler(logger_handler)
+
 manager = enlighten.get_manager(sys.stderr)  # setup progress bar
 
 logger.info(
@@ -51,14 +57,16 @@ compose = {
 file_transform_compose = FileTransformCompose(transforms=compose)
 functional.process_directory(src_dir=SRC_DIR, dst_dir=DST_DIR,
                              compose=file_transform_compose, file_pattern='*')
+logger.info('\t\t↑↑↑ Finished data extraction ↑↑↑')
 
+logger.info('\t\t↓↓↓ Starting data preprocessing ↓↓↓')
 # convert PDFs to pandas dataframes
 data_iter_logger = logging.getLogger(logger.name+'.data_iter')
 
 SRC_DIR = DST_DIR[:-1]
 dataframe = pd.DataFrame()
 progress_bar = manager.counter(total=len(next(os.walk(DST_DIR), (None, [], None))[1]),
-                               desc='Ticks', unit='ticks')
+                               desc='Preprocessed', unit='data point')
 i = 0  # for progress bar
 for dirpath, dirnames, all_filenames in os.walk(SRC_DIR):
     dataframe_entry = pd.DataFrame()
@@ -94,7 +102,7 @@ for dirpath, dirnames, all_filenames in os.walk(SRC_DIR):
                           verify_integrity=True, ignore_index=True)
     # logging
     i += 1
-    data_iter_logger.info('Processed {}th data point ...'.format(i))
+    data_iter_logger.info('Processed {}th data point...'.format(i))
     progress_bar.update()
 
 
@@ -102,7 +110,7 @@ for dirpath, dirnames, all_filenames in os.walk(SRC_DIR):
 data_url = dvc.api.get_url(path=PATH, repo=REPO, rev=VERSION)
 # read dataset from remote (local) data storage
 dataframe_original = pd.read_pickle(data_url)
-logger.info('\t\t↑↑↑ Finished data extraction ↑↑↑')
+logger.info('\t\t↑↑↑ Finished data preprocessing ↑↑↑')
 
 import pandas.testing as pdt
 for c in dataframe_original.columns.values:

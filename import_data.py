@@ -20,6 +20,7 @@ from vizard_data.preprocessor import *
 import mlflow
 # helpers
 import os
+import sys
 import shutil
 import logging
 import uuid
@@ -31,16 +32,23 @@ VERBOSITY = logging.DEBUG
 
 logger = logging.getLogger(__name__)
 logger.setLevel(VERBOSITY)
+log_file_name = uuid.uuid4()
+logger_handler = logging.FileHandler(filename='artifacts/logs/{}.log'.format(log_file_name),
+                                     mode='w')
+logger.addHandler(logger_handler)
+# set libs to log to our logging config
+__libs = ['vizard_data', 'vizard_models', 'vizard_snorkel']
+for __l in __libs:
+    __libs_logger = logging.getLogger(__l)
+    __libs_logger.setLevel(logging.INFO)
+    __libs_logger.addHandler(logger_handler)
+
+manager = enlighten.get_manager(sys.stderr)  # setup progress bar
+
 # Set up root logger, and add a file handler to root logger
 if not os.path.exists('artifacts'):
     os.makedirs('artifacts')
-    os.makedirs('artifacts/logs/dataset')
-
-log_file_name = uuid.uuid4()
-logger_handler = logging.FileHandler(filename='artifacts/logs/dataset/{}.log'.format(log_file_name),
-                                     mode='w')
-logger.addHandler(logger_handler)
-manager = enlighten.get_manager()  # setup progress bar
+    os.makedirs('artifacts/logs')
 
 logger.info(
     '\t\t↓↓↓ Starting setting up configs: dirs, mlflow, dvc, etc ↓↓↓')
@@ -82,14 +90,16 @@ compose = {
 file_transform_compose = FileTransformCompose(transforms=compose)
 functional.process_directory(src_dir=SRC_DIR, dst_dir=DST_DIR,
                              compose=file_transform_compose, file_pattern='*')
+logger.info('\t\t↑↑↑ Finished data extraction ↑↑↑')
 
+logger.info('\t\t↓↓↓ Starting data preprocessing ↓↓↓')
 # convert PDFs to pandas dataframes
 data_iter_logger = logging.getLogger(logger.name+'.data_iter')
 
 SRC_DIR = DST_DIR[:-1]
 dataframe = pd.DataFrame()
 progress_bar = manager.counter(total=len(next(os.walk(DST_DIR), (None, [], None))[1]),
-                               desc='Ticks', unit='ticks')
+                               desc='Preprocessed', unit='data point')
 i = 0  # for progress bar
 for dirpath, dirnames, all_filenames in os.walk(SRC_DIR):
     dataframe_entry = pd.DataFrame()
@@ -125,7 +135,7 @@ for dirpath, dirnames, all_filenames in os.walk(SRC_DIR):
                           verify_integrity=True, ignore_index=True)
     # logging
     i += 1
-    data_iter_logger.info('Processed {}th data point ...'.format(i))
+    data_iter_logger.info('Processed {}th data point...'.format(i))
     progress_bar.update()
 
 # save dataframe to disc as pickle
@@ -134,7 +144,7 @@ dataset_path = DST_DIR[:-1] + '.pkl'
 dataframe.to_pickle(dataset_path)
 logger.info('Dataframe saved to path={}'.format(dataset_path))
 logger.info('\t\t↑↑↑ Finished saving dataframe to disc ↑↑↑')
-logger.info('\t\t↑↑↑ Finished data extraction ↑↑↑')
+logger.info('\t\t↑↑↑ Finished data preprocessing ↑↑↑')
 
 # log data params
 logger.info('\t\t↓↓↓ Starting logging with MLFlow ↓↓↓')
