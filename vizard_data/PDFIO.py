@@ -17,7 +17,7 @@ from vizard_data.constant import DOC_TYPES
 from vizard_utils.helpers import deprecated, loggingdecorator
 
 # logging
-logger = logging.getLogger('__main__')
+logger = logging.getLogger(__name__)
 
 
 class PDFIO:

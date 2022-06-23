@@ -29,7 +29,7 @@ from vizard_data.preprocessor import FileTransformCompose
 
 
 # set logger
-logger = logging.getLogger('__main__')
+logger = logging.getLogger(__name__)
 
 
 @loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=False)

@@ -18,7 +18,7 @@ from vizard_utils.helpers import loggingdecorator
 
 
 # logging
-logger = logging.getLogger('__main__')
+logger = logging.getLogger(__name__)
 
 T0 = '19000202T000000'  # a default meaningless time to fill the `None`s
 
