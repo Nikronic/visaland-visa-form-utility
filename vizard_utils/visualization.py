@@ -19,8 +19,9 @@ def add_percentage_axes(ax: plt.Axes, n: int) -> None:
     Reference:
         https://stackoverflow.com/a/63479557/18971263
     """
-    for p in ax.patches:  # 
-        percentage = '{:.1f}%'.format(100 * p.get_height()/float(n))
-        x = p.get_x() + p.get_width()
-        y = p.get_height()
-        ax.annotate(percentage, (x, y), ha='center')
+
+    for p in ax.patches: 
+        percentage = '{:1.1f}%'.format(100 * p.get_height()/float(n))
+        x = p.get_x() + p.get_width() / 2
+        y = p.get_y() + p.get_height() / 2
+        ax.annotate(percentage, (x, y), ha='center', color='black')
