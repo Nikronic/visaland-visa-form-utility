@@ -13,6 +13,7 @@ Contains implementation of functions that could be used for processing data ever
 from dateutil import parser
 import pandas as pd
 import numpy as np
+import collections
 import datetime
 import xmltodict
 import csv
@@ -25,7 +26,7 @@ from vizard_data.preprocessor import FileTransformCompose
 from vizard_utils.helpers import loggingdecorator
 # helpers
 from fnmatch import fnmatch
-from typing import Any, Callable, List, Optional, Union
+from typing import Any, Callable, Iterable, List, Literal, Optional, Union, cast
 from enlighten import Manager
 import enlighten
 import logging
@@ -530,6 +531,69 @@ def search_dict(string: str, dic: dict, if_nan: str) -> str:
     else:
         logger.debug('"{}" key could not be found, filled with "{}".'.format(string, if_nan))
         return if_nan
+
+@loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=True, input=True)
+def extended_dict_get(string: str, dic: dict, if_nan: str,
+                     condition: Union[Callable, bool, None] = None):
+    """Takes a string and looks for it inside a dictionary with default value if condition is satisfied
+
+    Args:
+        string (str): the ``string`` to look for inside dictionary ``dic``
+        dic (dict): the dictionary that ``string`` is expected to be
+        if_nan (str): the value returned if ``string`` could not be found in ``dic``
+        condition (Optional[bool], optional): if ``condition`` is ``True``. then 
+            we look for ``string`` in ``dic``.
+
+    Examples:
+        >>> d = {'1': 'a', '2': 'b', '3': 'c'}
+        >>> extended_dict_get('1', d, 'z', str.isnumeric)
+        'a'
+        >>> extended_dict_get('x', d, 'z', str.isnumeric)
+        'x'
+
+    Returns:
+        Any: Substituted value instead of ``string``
+    """
+    
+    condition = (lambda x: True) if condition is None else condition
+    condition = cast(Callable, condition)
+
+    # check given `condition` is true or not
+    if condition(string):
+        return dic.get(string, if_nan)  # look for `string` if not use `if_nan`
+    else:
+        logger.info((f'"{string}" is not `True` for the given `condition`', 
+                    '==> `false_condition_value` will be applied.'))
+        return string
+
+@loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=True, input=True)
+def fix_typo(string: str, typos: Union[list, dict], fix: Optional[str] = None) -> str:
+    """Fixes typo in a token/word given a list of typos or dictionary of typo: fix
+
+    Args:
+        string (str): the string that is a typo
+        typos (Union[list, dict]): two cases:
+            * list: a list that all are typos and will be replaced by ``fix``
+            * dict: a dictionary that keys are typos and values are corresponding fixes
+        fix (Optional[str], optional): a single token/work string to replace typo. Defaults to None.
+
+    Raises:
+        TypeError: When ``typos`` is ``list``, then ``fix`` must be provided
+        TypeError: If ``typos`` is not ``list`` nor ``dict``
+
+    Returns:
+        str: fixed typo
+    """
+    if isinstance(typos, list) and (fix is None):
+        raise TypeError('`fix` cannot be `None` when `typos` is `list`.')
+    
+    if isinstance(typos, list):
+        fix = cast(str, fix)
+        return fix if string in typos else string
+    elif isinstance(typos, dict):
+        return typos[string]
+    else:
+        raise TypeError(f'type "{type(typos)}" is not recognized.')
 
 @loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=False, input=True)
 def config_csv_to_dict(path: str) -> dict:
