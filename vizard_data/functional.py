@@ -591,7 +591,7 @@ def fix_typo(string: str, typos: Union[list, dict], fix: Optional[str] = None) -
         fix = cast(str, fix)
         return fix if string in typos else string
     elif isinstance(typos, dict):
-        return typos[string]
+        return typos[string] if string in typos.keys() else string
     else:
         raise TypeError(f'type "{type(typos)}" is not recognized.')
 
