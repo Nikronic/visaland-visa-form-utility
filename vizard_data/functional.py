@@ -606,3 +606,36 @@ def config_csv_to_dict(path: str) -> dict:
 
     config_df = pd.read_csv(path)
     return dict(zip(config_df[config_df.columns[0]], config_df[config_df.columns[1]]))
+
+@loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=False, input=False)
+def detect_outliers(df: pd.DataFrame, features: Iterable) -> list:
+    """Takes a dataframe and desired features and finds outliers using percentiles
+
+    Args:
+        df (pd.DataFrame): Dataframe to detect outliers in
+        features (Iterable): Desired columns on dataframe ``df``
+
+    Returns:
+        list: List of outliers
+    """
+
+    outlier_indices = []
+    
+    for c in features:
+        # 1st quartile
+        Q1 = np.percentile(df[c],25)
+        # 3rd quartile
+        Q3 = np.percentile(df[c],75)
+        # IQR
+        IQR = Q3 - Q1
+        # Outlier step
+        outlier_step = IQR * 1.5
+        # detect outlier and their indices
+        outlier_list_col = df[(df[c] < Q1 - outlier_step) | (df[c] > Q3 + outlier_step)].index
+        # store indices
+        outlier_indices.extend(outlier_list_col)
+    
+    outlier_indices_counter = collections.Counter(outlier_indices)
+    multiple_outliers = list(i for i, v in outlier_indices_counter.items() if v > 2)
+    
+    return multiple_outliers
