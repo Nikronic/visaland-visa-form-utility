@@ -1,112 +1,211 @@
-__all__ = ['Logics', 'Discretizer', 'Merger']
+__all__ = [
+    'Logics', 'CanadaLogics'
+]
 
 # core
+from functools import reduce
 import pandas as pd
+import numpy as np
 # helpers
-from typing import List, Union
+from typing import Callable, List, Union, cast
 
 
-# TODO: implement issues #1 and #2 here
 # TODO: extend issue #3 with aggregation methods experts suggest then implement them here
 # check TODOs in preprocessor.py file too
 
 class Logics:
-    """
-    Applies logics on different type of data resulting in summarized, expanded, or
+    """Applies logics on different type of data resulting in summarized, expanded, or
         differently represented data for a specific purpose based on application.
-
+    Methods here are implemented in the way that can be used as ``agg`` function
+        over `Pandas.Series` using ``reduce``.
     """
 
     def __init__(self, dataframe: pd.DataFrame = None) -> None:
-        pass
+        """Init class by setting dataframe globally
 
-    def standardize_occupation(self, string: Union[List[str], str], target: str):
+        Args:
+            dataframe (pd.DataFrame, optional): The dataframe that functions of this class 
+                will be user over its series, i.e. ``Logics.*(series)``. Defaults to None.
         """
-        Takes a list of occupations in string and converts them into predetermined
-            categories, e.g. nurse-> medical, engineer
+        self.df = dataframe
 
+    def __check_df(self, func: str) -> None:
+        """Makes sure that ``self.df`` is initialized when function with name ``func`` is called
 
+        Args:
+            func (str): The name of the function that needs ``self.df`` to be initialized
+
+        Raises:
+            TypeError: If ``self.df`` is not initialized
+        """
+        if self.df is None:
+            raise TypeError(
+                f'`df` attribute cannot be `None` when using "{func}".')
+
+    def reset_dataframe(self, dataframe: pd.DataFrame) -> None:
+        """Takes a new dataframe and replaces the old one
+
+        Note:
+            This should be used when the dataframe is modified outside of functions 
+                provided in this class. E.g.
+                ::
+                    my_df: pd.DataFrame = ...
+                    logics = Logics(dataframe=my_df)
+                    my_df = third_party_tools(my_df)
+                    # now update df in logics
+                    logics.reset_dataframe(dataframe=my_df)
+
+        Args:
+            dataframe (pd.DataFrame): The new dataframe
+        """
+        self.df = dataframe
+
+    def add_agg_column(self, aggregator: Callable,
+                       agg_column_name: str,
+                       columns: list) -> pd.DataFrame:
+        """Aggregate columns and adds it to the original dataframe using an aggregator function
+
+        Args:
+            aggregator (Callable): A function that takes multiple columns of a series and reduces it
+            agg_column_name (str): The name of new aggregated column
+            columns (list): Name of columns to be aggregated (i.e. input to ``aggregator``)
+
+        Note:
+            Although this function updated the dataframe the class initialized with *inplace*,
+                but user must update the main dataframe outside of this class to make sure he/she
+                can use it via different tools. Simply put
+                ::
+                    my_df: pd.DataFrame = ...
+                    logics = Logics(dataframe=my_df)
+                    my_df = logics.add_agg_column(...)
+                    my_df = third_party_tools(my_df)
+                    # now update df in logics
+                    logics.reset_dataframe(dataframe=my_df)
+                    # aggregate again...
+                    my_df = logics.add_agg_column(...)
+
+        Returns:
+            pd.DataFrame: Updated dataframe that contains aggregated data
+        """
+        # check self.df is initialized
+        self.__check_df(func=self.add_agg_column.__name__)
+        self.df = cast(pd.DataFrame, self.df)
+        # aggregate
+        self.df[agg_column_name] = self.df[columns].agg(aggregator, axis=1)
+        self.df = self.df.rename(
+            columns={aggregator.__name__: agg_column_name})
+        # return updated dataframe to be used outside of this class
+        return self.df
+
+    def count_previous_residency_country(self, series: pd.Series) -> int:
+        """Counts the number of previous country of resident
+
+        Args:
+            series (pd.Series): Pandas Series to be processed
+
+        Returns:
+            int: Result of counting
         """
         raise NotImplementedError
 
-    def is_highly_skilled(self, string: str) -> bool:
-        """
-        Takes a job category (from `standardize_occupation`) or job title and tells if it's
-            a highly skilled job or not.
+    def count_foreigner_family(self, series: pd.Series) -> int:
+        """Counts the number of family members born in a foreign country
 
-        """
-        raise NotImplemented
+        Args:
+            series (pd.Series): Pandas Series to be processed
 
-    def determine_skill_level(self, string: str) -> int:
-        """
-        Takes a job category (from `standardize_occupation`) or job title and tells 
-            how high skill the job is. (0=lowest, 1=mediocre, 2=highest)
-
-        """
-
-        raise NotImplementedError
-
-    def standardize_field_of_study(self, string: Union[List[str], str], target: str):
-        """
-        Takes a list of study fields in string and converts them into predetermined
-            categories, e.g. technician, specialist, manager, etc. (see job hirerachy)
-
+        Returns:
+            int: Result of counting
         """
         raise NotImplementedError
 
-    def count_items(self, string: Union[List[str], str], target: str):
-        """
-        Counts items of the same type in a list of strings.\n
-        Note that the input should be already preprocessed using other
-            methods available first.
+    def count_accompanying(self, series: pd.Series) -> int:
+        """Counts the number of people that are accompanying main person
 
+        Args:
+            series (pd.Series): Pandas Series to be processed
+
+        Returns:
+            int: Result of counting
         """
         raise NotImplementedError
 
-    def has_items(self, string: Union[List[str], str], target: str):
-        """
-        Checks whether or not a list of strings contains a specific item.\n 
-        Note that the input should be preprocessed using other methods available first.
+    def count_rel(self, series: pd.Series) -> int:
+        """Counts the number of items for the given relationship
 
+        Args:
+            series (pd.Series): Pandas Series to be processed
+
+        Returns:
+            int: Result of counting
         """
         raise NotImplementedError
 
 
-class Discretizer:
+class CanadaLogics(Logics):
     """
-
-
-    """
-
-    def __init__(self) -> None:
-        pass
-
-
-class Merger(Logics):
-    """
-    Combines multiple features into one by applying the "logic" functions
+    Customize and extend logics defined in ``logic.Logics`` to Canada dataset.
 
     """
 
     def __init__(self, dataframe: pd.DataFrame = None) -> None:
         super().__init__(dataframe)
 
-    def count_items_living_in_foreign_country(self, string: Union[List[str], str], target: str):
-        raise NotImplementedError
+    def count_previous_residency_country(self, series: pd.Series) -> int:
+        """Counts the number of previous residency by counting non-zero periods of residency
 
-    def has_items_living_in_foreign_country(self, string: Union[List[str], str], target: str):
-        raise NotImplementedError
+        When `*.Period == 0`, then we can say that the person has no residency. This way
+            one just needs to count non-zero periods.
 
-    def count_items_born_in_foreign_country(self, string: Union[List[str], str], target: str):
-        raise NotImplementedError
+        Args:
+            series (pd.Series): Pandas Series to be processed containing residency periods
 
-    def has_items_born_in_foreign_country(self, string: Union[List[str], str], target: str):
-        raise NotImplementedError
+        Returns:
+            int: Result of counting
+        """
 
-    def count_highly_skilled_items(self, string: Union[List[str], str], target: str):
-        raise NotImplementedError
+        counter = lambda x, y: np.sum(np.isin([x, y], [0]))
+        return reduce(lambda x, y: 2 - counter(x, y), series)
 
-    def has_highly_skilled_items(self, string: Union[List[str], str], target: str):
-        raise NotImplementedError
+    def count_foreigner_family(self, series: pd.Series) -> int:
+        """Counts the number of family members born in foreign country by checking non-`iran`
+            country of birth.
 
+        Args:
+            series (pd.Series): Pandas Series to be processed containing 
+                country of birth of members
 
+        Returns:
+            int: Result of counting
+        """
+
+        counter = lambda y: np.sum(np.invert(np.isin([y], ['iran', None])))  # type: ignore
+        return reduce(lambda x, y: x + counter(y), series, 0)
+
+    def count_accompanying(self, series: pd.Series) -> int:
+        """Counts the number of people that are accompanying the main person by
+            checking the corresponding bool flag
+
+        Args:
+            series (pd.Series): Pandas Series to be processed containing accompany binary/bool status
+
+        Returns:
+            int: Result of counting
+        """
+
+        counter = lambda y: np.sum(np.isin([y], [True, None]))  # type: ignore
+        return reduce(lambda x, y: x + counter(y), series, False)
+
+    def count_rel(self, series: pd.Series) -> int:
+        """Counts the number of people for the given relationship,
+            e.g. number of children, siblings, etc.
+
+        Args:
+            series (pd.Series): Pandas Series to be processed 
+
+        Returns:
+            int: Result of counting
+        """
+
+        counter = lambda y: np.sum(y != 0.)
+        return reduce(lambda x, y: x + counter(y), series, 0)
