@@ -859,7 +859,6 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             #   see ### P3.Edu.Edu_Row1.Country.Country -> categorical in notebooks for more info
             dataframe = self.change_dtype(col_name='P3.Edu.Edu_Row1.Country.Country',
                                           dtype=str, if_nan='fill', value='IRAN')
-            # TODO: see #1
             # field of study: string -> categorical
             dataframe['P3.Edu.Edu_Row1.FieldOfStudy'] = dataframe['P3.Edu.Edu_Row1.FieldOfStudy'].astype('string')
             # clean occupation features
@@ -878,7 +877,6 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                 dataframe = self.aggregate_datetime(col_base_name='P3.Occ.OccRow'+str(i),
                                                     type=DOC_TYPES.canada, new_col_name='Period',
                                                     reference_date=None, current_date=None)
-                # TODO: see #2
                 # occupation type 01: string -> categorical
                 dataframe = self.change_dtype(col_name='P3.Occ.OccRow' + str(i)+'.Occ.Occ', dtype=str,
                                               if_nan='fill', value='OTHER')
