@@ -447,8 +447,9 @@ class WorldBankDataframeProcessor:
             indicator_name: A string containing an indicator's full name
         """
         # filter rows that only contain the provided `indicator_name` with type `rank` or `score`
-        dataframe = self.dataframe[(self.dataframe[self.INDICATOR] == indicator_name) &
-                                   (self.dataframe[self.SUBINDICATOR] == self.SUBINDICATOR_TYPE)]
+        dataframe = self.dataframe.copy()
+        dataframe = dataframe[(dataframe[self.INDICATOR] == indicator_name) & 
+                              (dataframe[self.SUBINDICATOR] == self.SUBINDICATOR_TYPE)]
         dataframe.drop([self.INDICATOR, self.SUBINDICATOR],
                        axis=1, inplace=True)
         # drop scores/ranks and aggregate them into one column
