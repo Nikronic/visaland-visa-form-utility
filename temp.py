@@ -4,9 +4,9 @@ import logging
 import sys
 import enlighten
 
-from vizard_data.constant import DOC_TYPES
-from vizard_data import functional
-from vizard_data.preprocessor import *
+from vizard.data.constant import DOC_TYPES
+from vizard.data import functional
+from vizard.data.preprocessor import *
 
 import dvc.api
 import pandas as pd
@@ -20,7 +20,7 @@ logger.setLevel(VERBOSITY)
 logger_handler = logging.StreamHandler(sys.stderr)
 logger.addHandler(logger_handler)
 # set libs to log to our logging config
-__libs = ['snorkel', 'vizard_data', 'vizard_models', 'vizard_snorkel']
+__libs = ['snorkel', 'vizard']
 for __l in __libs:
     __libs_logger = logging.getLogger(__l)
     __libs_logger.setLevel(logging.INFO)

@@ -13,18 +13,22 @@ In simple terms, if you added new samples, changed columns or anything that shou
 # core
 import pandas as pd
 # ours: data
-from vizard_data.constant import DOC_TYPES
-from vizard_data import functional
-from vizard_data.preprocessor import *
+from vizard.data.constant import DOC_TYPES
+from vizard.data.preprocessor import MakeContentCopyProtectedMachineReadable
+from vizard.data.preprocessor import CanadaDataframePreprocessor
+from vizard.data.preprocessor import FileTransformCompose
+from vizard.data.preprocessor import CopyFile
+from vizard.data import functional
+
 # devops
 import mlflow
 # helpers
-import os
-import sys
-import shutil
-import logging
-import uuid
 import enlighten
+import logging
+import shutil
+import uuid
+import sys
+import os
 
 
 # configure logging
@@ -37,7 +41,7 @@ logger_handler = logging.FileHandler(filename='artifacts/logs/{}.log'.format(log
                                      mode='w')
 logger.addHandler(logger_handler)
 # set libs to log to our logging config
-__libs = ['snorkel', 'vizard_data', 'vizard_models', 'vizard_snorkel']
+__libs = ['snorkel', 'vizard']
 for __l in __libs:
     __libs_logger = logging.getLogger(__l)
     __libs_logger.setLevel(logging.INFO)

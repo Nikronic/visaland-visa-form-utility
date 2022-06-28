@@ -1,9 +1,9 @@
 # core
 import pandas as pd
 # ours: data
-from vizard_data.constant import DOC_TYPES
-from vizard_data.preprocessor import *
-from vizard_data import functional
+from vizard.data.constant import DOC_TYPES
+from vizard.data.preprocessor import *
+from vizard.data import functional
 # devops
 import dvc.api
 import mlflow
@@ -26,7 +26,7 @@ logger_handler = logging.FileHandler(filename='artifacts/logs/{}.log'.format(log
                                      mode='w')
 logger.addHandler(logger_handler)
 # set libs to log to our logging config
-__libs = ['snorkel', 'vizard_data', 'vizard_models', 'vizard_snorkel']
+__libs = ['snorkel', 'vizard']
 for __l in __libs:
     __libs_logger = logging.getLogger(__l)
     __libs_logger.setLevel(logging.INFO)
