@@ -72,4 +72,5 @@ raw-dataset/all
 raw-dataset/field_data
 
 # ignore redundant logs
+mlruns
 notebooks/mlruns
