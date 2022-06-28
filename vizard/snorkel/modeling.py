@@ -5,7 +5,7 @@ import numpy as np
 # snorkel
 from snorkel.labeling.model import LabelModel
 # ours
-from vizard_utils.helpers import loggingdecorator
+from vizard.utils.helpers import loggingdecorator
 # helpers
 from typing import List
 import logging

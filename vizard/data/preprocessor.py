@@ -5,17 +5,17 @@ __all__ = ['DataframePreprocessor', 'CanadaDataframePreprocessor', 'UnitConverte
            'WorldBankDataframeProcessor', ]
 
 # core
-from dateutil import parser
 from dateutil.relativedelta import *
+from dateutil import parser
 import pandas as pd
 import numpy as np
 import pikepdf
 # ours: data
-from vizard_data import functional
-from vizard_data.constant import *
-from vizard_data.PDFIO import CanadaXFA
+from vizard.data.pdf import CanadaXFA
+from vizard.data import functional
+from vizard.data.constant import *
 # ours: helpers
-from vizard_utils.helpers import loggingdecorator
+from vizard.utils.helpers import loggingdecorator
 # helpers
 from typing import Callable, List, Optional, Tuple, Union, Any
 import shutil

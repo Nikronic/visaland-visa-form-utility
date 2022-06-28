@@ -1,4 +1,6 @@
-__all__ = ['deprecated', 'loggingdecorator']
+__all__ = [
+    'deprecated', 'loggingdecorator'
+]
 
 # helpers
 import functools

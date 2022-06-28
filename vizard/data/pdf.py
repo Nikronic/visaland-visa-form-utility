@@ -1,15 +1,17 @@
-__all__ = ['PDFIO', 'XFAPDF', 'CanadaXFA']
+__all__ = [
+    'PDFIO', 'XFAPDF', 'CanadaXFA'
+]
 
 # core
 import xml.etree.ElementTree as et
 import PyPDF2 as pypdf
 import re
 # ours: data
-from vizard_data import functional
-from vizard_data.constant import DOC_TYPES
+from vizard.data import functional
+from vizard.data.constant import DOC_TYPES
 # ours: helpers
-from vizard_utils.helpers import deprecated
-from vizard_utils.helpers import loggingdecorator
+from vizard.utils.helpers import deprecated
+from vizard.utils.helpers import loggingdecorator
 # helpers
 from enum import Enum
 import logging

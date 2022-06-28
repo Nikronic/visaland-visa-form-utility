@@ -8,7 +8,7 @@ import pandas as pd
 from snorkel.labeling import labeling_function
 
 
-# TODO: move this to `vizard_snorkel.constant.py`
+# TODO: move this to `vizard.snorkel.constant.py`
 # define the label mappings
 ABSTAIN = -1
 REJ = 0  # TODO: cant be 2 so it matches our dataframe already?

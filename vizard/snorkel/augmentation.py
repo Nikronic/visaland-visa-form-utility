@@ -3,8 +3,8 @@ __all__ = [
 ]
 
 # core
-import numpy as np
 import pandas as pd
+import numpy as np
 # snorkel
 from snorkel.augmentation import transformation_function
 from snorkel.augmentation import TransformationFunction

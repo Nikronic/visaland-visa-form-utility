@@ -6,24 +6,24 @@ from snorkel.analysis import Scorer
 from snorkel.labeling.model import LabelModel
 from snorkel.labeling import PandasLFApplier
 from snorkel.labeling import LFAnalysis
-from snorkel.augmentation import RandomPolicy
 from snorkel.augmentation import PandasTFApplier
+from snorkel.augmentation import RandomPolicy
 from snorkel.augmentation import preview_tfs
 from snorkel.slicing import PandasSFApplier
 from snorkel.slicing import slice_dataframe
 # ours: snorkel
-from vizard_snorkel import labeling
-from vizard_snorkel import augmentation
-from vizard_snorkel import modeling
-from vizard_snorkel import slicing
+from vizard.snorkel import augmentation
+from vizard.snorkel import labeling
+from vizard.snorkel import modeling
+from vizard.snorkel import slicing
 # devops
 import mlflow
 import dvc.api
 # helpers
 import logging
-import os
-import uuid
 import shutil
+import uuid
+import os
 
 
 # globals
