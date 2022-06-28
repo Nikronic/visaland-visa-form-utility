@@ -1,14 +1,24 @@
-from setuptools import setup, find_packages
+from setuptools import find_packages
+from setuptools import setup
 from pathlib import Path
+from typing import Dict
+import glob
 
 
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
 
-setup(name='vizard', version='0.3.0-alpha', packages=find_packages(),
+# version.py defines the VERSION and VERSION_SHORT variables.
+# We use exec here so we don't import snorkel.
+VERSION: Dict[str, str] = {}
+with open('vizard/version.py', 'r') as version_file:
+    exec(version_file.read(), VERSION)
+
+setup(name='vizard', version=VERSION["VERSION"], packages=find_packages(),
       description='Vizard: Visa chance predictor, powered by AI!',
       author='Nikan Doosti',
       author_email='nikan.doosti@outlook.com',
       long_description=long_description,
       long_description_content_type='text/markdown',
+      data_files=glob.glob('vizard/configs/**'),
       )
