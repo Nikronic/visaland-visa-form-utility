@@ -77,3 +77,56 @@ class SeriesNoise:
             mean=mean, std=std, size=1).item()  # must be ndim == 0
         s[column] = s[column] + noise
         return s
+
+    def truncated_normal_noise(self, mean: float, std: float,
+                               low: float, upp: float,
+                               size: Union[Tuple[int, ...], int] = 1) -> np.ndarray:
+        """A wrapper around `scipy.stats.truncnorm` with lower/upper bound
+
+        Note:
+            Dev may extend this method by adding features to it; e.g. adding it to 
+                a pandas Series (see `series_add_truncated_normal_noise`)
+
+        Reference:
+            1. https://stackoverflow.com/a/44308018/18971263
+
+        Args:
+            mean (float): mean of normal distribution
+            std (float): standard deviation of normal distribution
+            low (float): lower bound for truncation
+            upp (float): upper bound for truncation
+            size (Union[Tuple[int, ...], int], optional): shape of samples
+
+        Returns:
+            np.ndarray: A truncated normal distribution
+        """
+        return truncnorm((low - mean) / std, (upp - mean) / std,
+                         loc=mean, scale=std).rvs(size)
+
+    def series_add_truncated_normal_noise(self, s: pd.Series, column: str,
+                                          mean: float, std: float, 
+                                          lb: float, ub: float) -> pd.Series:
+        """Takes a pandas Series and corresponding column and adds *truncated normal* noise to it
+
+        Args:
+            s (pd.Series): Pandas Series to be manipulated (from `self.df`)
+            column (str): corresponding column in `self.df` and `s` 
+            mean (float):  mean of normal noise
+            std (float): standard deviation of normal noise
+            lb (float): lower bound for truncation
+            ub (float): higher bound for truncation
+
+        Returns:
+            pd.Series: Noisy `column` of `s`
+        """
+
+        self.__check_dataframe_initialized()
+        # only for mypy: no effect on data/performance
+        self.df = cast(pd.DataFrame, self.df)
+        assert np.isscalar(s[column])
+
+        # add noise
+        noise: float = self.truncated_normal_noise(mean=mean, std=std,
+            low=lb, upp=ub, size=1).item()  # must be ndim == 0
+        s[column] = s[column] + noise
+        return s
