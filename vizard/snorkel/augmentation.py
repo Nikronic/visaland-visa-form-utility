@@ -205,6 +205,42 @@ class TFAugmentation(SeriesNoise):
         super().__init__(dataframe)
 
 
+class CanadaTFAugmentation(TFAugmentation):
+    def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
+        super().__init__(dataframe)
+
+        # values to add noise based on a categorization
+        self.__dob_year_percentage = [0.9]
+
+    def tf_add_normal_noise_dob_year(self, s: pd.Series) -> pd.Series:
+        """Add normal noise to ``'P1.PD.DOBYear.Period'``
+
+        This methods makes sure that by adding noise, the age does not
+            fall into a new category. See `categorize_age` for more info.
+        In other words, we make sure a normal noise is defined within range of
+            each category, hence always noisy data will stay in same category.
+
+        Args:
+            s (pd.Series): A pandas series to get noisy on a fixed column
+
+        Returns:
+            pd.Series: Noisy ``'P1.PD.DOBYear.Period'`` of `s`
+        """
+
+        COLUMN = 'P1.PD.DOBYear.Period'
+        PERCENTAGE = self.__dob_year_percentage[0]
+        age_cat = AGE_CATEGORY.categorize_age(age=s[COLUMN])
+
+        # construct normal distribution over age category
+        lower_bound = age_cat.start - s[COLUMN]  # can only be <= 0
+        upper_bound = age_cat.end - s[COLUMN]    # can only be >= 0
+        bound = upper_bound - lower_bound
+        s = self.series_add_truncated_normal_noise(s=s, column=COLUMN, 
+                                                   mean=0., std=bound/2 * PERCENTAGE,
+                                                   lb=lower_bound, ub=upper_bound)
+        return s
+
+
 class AGE_CATEGORY(Enum):
     """Enumerator for categorizing based on age
 
