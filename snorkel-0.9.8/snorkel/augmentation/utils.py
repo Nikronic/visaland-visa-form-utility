@@ -6,8 +6,6 @@ from snorkel.augmentation import TransformationFunction
 from snorkel.augmentation import PandasTFApplier
 from snorkel.augmentation import ApplyEachPolicy
 
-from vizard_snorkel import augmentation
-
 
 logger = logging.getLogger(__name__)
 
@@ -23,7 +21,6 @@ def preview_tfs(dataframe: pd.DataFrame, tfs: List[TransformationFunction],
         dataframe: The pandas dataframe that `tfs` can be applied on
         tfs: a list of `snorkel.augmentation.tf.TransformationFunction` instances
     """
-    augmentation.series_noise_utils.set_dataframe(df=dataframe)
     columns = ['TF name', 'Original', 'Transformed']
 
     # apply TFs on sampled dataframe
