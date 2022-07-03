@@ -280,6 +280,44 @@ class AddNormalNoiseDOBYear(SeriesNoise, TFAugmentation):
         return s
 
 
+class AddNormalNoiseFunds(SeriesNoise, TFAugmentation):
+    def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
+        super().__init__(dataframe)
+
+        # values to add noise based on a categorization
+        self.__decay = [0.2, 0.1]
+        self.COLUMN = 'P3.DOV.PrpsRow1.Funds.Funds'
+
+    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+        """Add normal noise to ``'P3.DOV.PrpsRow1.Funds.Funds'``
+
+        Following conditions have been used:
+            1. ``'hasInvLttr'``: we can choose larger neighborhood if this is True. 
+                The decay percentage can be found in `__decay`.
+
+        Args:
+            s (pd.Series): A pandas series to get noisy on a fixed column
+
+        Returns:
+            pd.Series: Noisy ``'P3.DOV.PrpsRow1.Funds.Funds'`` of `s`
+        """
+
+        # TODO: add fin.bb to make sure by adding more fund, it does not any issue with
+        #   fin.bb value, i.e. cap the positive addition value if it was too much
+        # fixed column corresponding to this function
+        COLUMN = self.COLUMN
+        COND_COLUMN = ['hasInvLttr']
+        # values to add noise based on a categorization
+        decay = {
+            True: self.__decay[0],
+            False: self.__decay[1],
+        }
+        has_inv_letter = s[COND_COLUMN[0]]  # condition
+        s = self.series_add_normal_noise(s=s, column=COLUMN, mean=0., 
+                                         std=s[COLUMN] * decay[has_inv_letter])
+        return s
+
+
 class AGE_CATEGORY(Enum):
     """Enumerator for categorizing based on age
 
