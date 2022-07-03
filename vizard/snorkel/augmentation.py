@@ -1,8 +1,11 @@
 # for forward reference https://stackoverflow.com/a/50768146/18971263
 from __future__ import annotations
 
+from sqlalchemy import column
+
 __all__ = [
-    'SeriesNoise'
+    'SeriesNoise', 'TFAugmentation', 'ComposeTFAugmentation', 
+    'AddNormalNoiseDOBYear', 'AGE_CATEGORY'
 ]
 
 # core
@@ -13,20 +16,13 @@ import numpy as np
 from snorkel.augmentation import transformation_function
 from snorkel.augmentation import TransformationFunction
 # helpers
-from typing import Any, Callable, Optional, Tuple, Union, cast
+from typing import Any, Callable, Optional, Sequence, Tuple, Union, cast
 from enum import Enum
 
 class SeriesNoise:
     """
     Adds different type noise (multiplicative or additive) to a `Pandas.Series`
 
-    Examples:
-        >>> from vizard.snorkel import augmentation
-        >>> series_noise_augmenter = augmentation.SeriesNoise(dataframe=data)
-        >>> tf_Funds = series_noise_augmenter.make_tf(func=series_noise_augmenter.series_add_normal_noise, 
-                            column='P3.DOV.PrpsRow1.Funds.Funds', mean=0, std=1000.)
-        >>> tf_DOBYear = series_noise_augmenter.make_tf(func=series_noise_augmenter.series_add_normal_noise, 
-                            column='P1.PD.DOBYear.Period', mean=0, std=5.)
     """
 
     def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
@@ -51,39 +47,6 @@ class SeriesNoise:
         **Must be called before calling any of `series_*` functions.**
         """
         self.df = df
-
-    def make_tf(self, func: Callable, **kwargs) -> TransformationFunction:
-        """Make any function an instance of `TransformationFunction`
-
-        Note:
-            Currently only `func`s that work on `pd.Series` that work on single `column`
-                are supported as the API is designed this way. But, it could be easily
-                modified to support any sort of function.
-
-        Args:
-            func (Callable): A callable that
-            column (str): column name of a `pd.Series` that is going to be manipulated.
-                Must be provided if `func` is not setting it internally. E.g. for
-                `CanadaAugmentation.tf_add_normal_noise_dob_year` you don't need to 
-                set `column` since it is being handled internally.
-            kwargs: keyword arguments to `func`
-
-        Returns:
-            TransformationFunction: A callable object that is now compatible with
-                `snorkel` transformation pipeline, e.g. ``Policy`` and ``TFApplier``
-        """
-
-        if 'column' in kwargs:
-            column = kwargs.pop('column')
-            return TransformationFunction(
-                name=f'{func.__name__}_{column}',
-                f=func, resources=dict(column=column, **kwargs),
-        )    
-        else:
-            return TransformationFunction(
-                name=f'{func.__name__}',
-                f=func, resources=dict(**kwargs),
-            )
 
     def normal_noise(self, mean: float, std: float,
                      size: Union[Tuple[int, ...], int]) -> np.ndarray:
@@ -172,15 +135,10 @@ class SeriesNoise:
         return s
 
 
-class TFAugmentation(SeriesNoise):
+class TFAugmentation:
     """Adds augmentation capabilities unique to a country for `snorkel.TransformationFunction`
 
     Notes:
-        Here are different base classes this class subclass to add augmenting features:
-
-        * `SeriesNoise`: for adding noise (continuous for now)
-
-
         User must create new class that subclasses this and write domain/dataset
             specific methods for his/her case. For instance, if you need to add
             augmentation to a class with "age" value, then extend this class,
@@ -195,24 +153,105 @@ class TFAugmentation(SeriesNoise):
 
     """
 
-    def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
-        """
+    def __init__(self) -> None:
+        self.COLUMN = ''
+
+    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+        """Augments a Pandas Series by modifying a single column
 
         Args:
-            dataframe (Optional[pd.DataFrame]): Initialize dataframe that
+            s (pd.Series): Pandas Series to be processed
+
+        Returns:
+            pd.Series: Augmented `s` on column `COLUMN`
+        """
+        raise NotImplementedError
+
+    def make_tf(self, func: Callable,
+                class_name: Optional[str] = None,
+                **kwargs) -> TransformationFunction:
+        """Make any function an instance of `TransformationFunction`
+
+        Note:
+            Currently only `func`s that work on `pd.Series` that work on single `column`
+                are supported as the API is designed this way. But, it could be easily
+                modified to support any sort of function.
+
+        Args:
+            func (Callable): A callable that
+            column (str): column name of a `pd.Series` that is going to be manipulated.
+                Must be provided if `func` is not setting it internally. E.g. for
+                `CanadaAugmentation.tf_add_normal_noise_dob_year` you don't need to 
+                set `column` since it is being handled internally.
+            class_name (str, optional): The name of the class if `func` is a method of it.
+                It is used for better naming given class name alongside `func` name.
+                Defaults to None.
+            kwargs: keyword arguments to `func`
+
+        Returns:
+            TransformationFunction: A callable object that is now compatible with
+                `snorkel` transformation pipeline, e.g. ``Policy`` and ``TFApplier``
         """
 
-        super().__init__(dataframe)
+        column = kwargs.pop('column')
+
+        if class_name is None:
+            return TransformationFunction(
+                name=f'{func.__name__}_{column}',
+                f=func, resources=dict(column=column, **kwargs),
+            )
+        else:
+            return TransformationFunction(
+                name=f'{class_name}_{column}',
+                f=func, resources=dict(column=column, **kwargs),
+            )    
+        
+
+class ComposeTFAugmentation(TFAugmentation):
+    """Composes a list of `TFAugmentation` instances 
+
+    Examples:
+        >>> tf_compose = [
+        >>>     augmentation.AddNormalNoiseDOBYear(dataframe=data)
+        >>> ]
+        >>> tfs = augmentation.ComposeTFAugmentation(augments=tf_compose)()
+        >>> tf_applier = PandasTFApplier(tfs, random_policy)
+
+    """
+    def __init__(self, augments: Sequence[TFAugmentation]) -> None:
+        super().__init__()
+
+        for aug in augments:
+            if not issubclass(aug.__class__, TFAugmentation):
+                raise TypeError(
+                    'Keys must be {} instance.'.format(TFAugmentation))
+
+        self.augments = augments
+    
+    def __call__(self, *args: Any, **kwds: Any) -> list[TransformationFunction]:
+        """Takes a list of `TFAugmentation` and converts to `snorkel.TransformationFunction`
+
+        Returns:
+            list[TransformationFunction]: A list of objects that instantiate
+                `snorkel.TransformationFunction` 
+        """
+        augments_tf: list[TransformationFunction] = []
+        for aug in self.augments:
+            aug = self.make_tf(func=aug.augment, column=aug.COLUMN,
+                               class_name=aug.__class__.__name__)
+            augments_tf.append(aug)
+        return augments_tf
 
 
-class CanadaTFAugmentation(TFAugmentation):
+class AddNormalNoiseDOBYear(SeriesNoise, TFAugmentation):
     def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
         super().__init__(dataframe)
 
         # values to add noise based on a categorization
         self.__dob_year_percentage = [0.9]
+        self.COLUMN = 'P1.PD.DOBYear.Period'
 
-    def tf_add_normal_noise_dob_year(self, s: pd.Series) -> pd.Series:
+    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
         """Add normal noise to ``'P1.PD.DOBYear.Period'``
 
         This methods makes sure that by adding noise, the age does not
@@ -227,7 +266,7 @@ class CanadaTFAugmentation(TFAugmentation):
             pd.Series: Noisy ``'P1.PD.DOBYear.Period'`` of `s`
         """
 
-        COLUMN = 'P1.PD.DOBYear.Period'
+        COLUMN = self.COLUMN
         PERCENTAGE = self.__dob_year_percentage[0]
         age_cat = AGE_CATEGORY.categorize_age(age=s[COLUMN])
 
