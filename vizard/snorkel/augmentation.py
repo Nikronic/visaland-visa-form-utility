@@ -1,15 +1,19 @@
+# for forward reference https://stackoverflow.com/a/50768146/18971263
+from __future__ import annotations
+
 __all__ = [
-    'SeriesNoise', 'series_noise_utils', 'make_add_normal_noise_tf', 'Funds_tf', 'DOBYear_tf'
+    'SeriesNoise'
 ]
 
 # core
+from scipy.stats import truncnorm
 import pandas as pd
 import numpy as np
 # snorkel
 from snorkel.augmentation import transformation_function
 from snorkel.augmentation import TransformationFunction
 # helpers
-from typing import Any, Optional, Tuple, Union, cast
+from typing import Any, Callable, Optional, Tuple, Union, cast
 
 
 class SeriesNoise:
@@ -43,8 +47,7 @@ class SeriesNoise:
 
     def normal_noise(self, mean: float, std: float,
                      size: Union[Tuple[int, ...], int]) -> np.ndarray:
-        """
-        A wrapper around `Numpy.Generator.normal`. 
+        """A wrapper around `numpy.Generator.normal`. 
 
         Dev may extend this method by adding features to it; e.g. adding it to 
             a pandas Series (see `self.add_normal_noise`)
@@ -52,43 +55,25 @@ class SeriesNoise:
         """
         return self.rng.normal(loc=mean, scale=std, size=size)
 
-    def series_add_normal_noise(self, s: pd.Series, column: str) -> pd.Series:
-        """
-        Takes a pandas Series and corresponding column and adds *normal* noise
-            to it with mean and std obtained from original dataframe[column]
-            that `s` extracted from 
+    def series_add_normal_noise(self, s: pd.Series, column: str,
+                                mean: float = 0. , std: float = 1.) -> pd.Series:
+        """Takes a pandas Series and corresponding column and adds *normal* noise to it
 
-        args:
-            s: Pandas Series to be manipulated (from `self.df`)
-            column: corresponding column in `self.df` and `s` 
+        Args:
+            s (pd.Series): Pandas Series to be manipulated (from `self.df`)
+            column (str): corresponding column in `self.df` and `s` 
+            mean (float, optional): mean of normal noise. Defaults to 0.
+            std (float, optional): standard deviation of normal noise. Defaults to 1.
+
+        Returns:
+            pd.Series: Noisy `column` of `s`
         """
         self.__check_dataframe_initialized()
-        self.df = cast(pd.DataFrame, self.df)  # only for mypy: no effect on data/performance
+        self.df = cast(pd.DataFrame, self.df)
         assert np.isscalar(s[column])
 
-        mean, std = self.df[column].mean(), self.df[column].std()
+        # add noise
         noise: float = self.normal_noise(
             mean=mean, std=std, size=1).item()  # must be ndim == 0
         s[column] = s[column] + noise
         return s
-
-# init an instance of `SeriesNoise` to use its functions as `TransformationFunction`
-series_noise_utils = SeriesNoise(dataframe=None)
-
-def make_add_normal_noise_tf(column: str) -> TransformationFunction:
-    """
-    A helper wrapper around `TransformationFunction`, here specifically for
-        `SeriesNoise.series_add_normal_noise` functions that will be only called
-        over continuous columns of the series `s` which can be manipulated using
-        given function `f` (here `=series_add_normal_noise`)
-    
-    """
-    return TransformationFunction(
-        name=f'add_normal_noise_{column}',
-        f=series_noise_utils.series_add_normal_noise,
-        resources=dict(column=column),
-    )
-
-
-Funds_tf = make_add_normal_noise_tf('P3.DOV.PrpsRow1.Funds.Funds')
-DOBYear_tf = make_add_normal_noise_tf('P1.PD.DOBYear.Period')
