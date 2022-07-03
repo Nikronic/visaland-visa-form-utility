@@ -53,7 +53,7 @@ logger.info(
 # data versioning config
 PATH = 'raw-dataset/all-dev.pkl'
 REPO = '/home/nik/visaland-visa-form-utility'
-VERSION = 'v1.1.0-dev'
+VERSION = 'v1.1.0.3-dev'
 # log experiment configs
 MLFLOW_EXPERIMENT_NAME = 'Snorkel for weak supervision of weak and unlabeled data'
 mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
@@ -150,8 +150,13 @@ logger.info('\t\t↑↑↑ Finishing inference on LabelModel ↑↑↑')
 logger.info(
     '\t\t↓↓↓ Starting augmentation by applying `TransformationFunction`s (TFs) ↓↓↓')
 # transformation functions
-augmentation.series_noise_utils.set_dataframe(df=data)
-tfs = [augmentation.Funds_tf, augmentation.DOBYear_tf]
+series_noise_augmenter = augmentation.SeriesNoise(dataframe=data)
+# option 1 of defining TFs
+tf_Funds = series_noise_augmenter.make_tf(func=series_noise_augmenter.series_add_normal_noise, 
+                               column='P3.DOV.PrpsRow1.Funds.Funds', mean=0, std=1000.)
+tf_DOBYear = series_noise_augmenter.make_tf(func=series_noise_augmenter.series_add_normal_noise, 
+                               column='P1.PD.DOBYear.Period', mean=0, std=5.) 
+tfs = [tf_Funds, tf_DOBYear]
 # define policy for applying TFs
 # set `sequence_length = n_tfs` so all continuous fields of a entry get manipulated
 # set `n_per_original << n_tfs` so every change in continuous field does not create a new

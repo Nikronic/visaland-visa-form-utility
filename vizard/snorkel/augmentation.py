@@ -45,6 +45,39 @@ class SeriesNoise:
         """
         self.df = df
 
+    def make_tf(self, func: Callable, **kwargs) -> TransformationFunction:
+        """Make any function an instance of `TransformationFunction`
+
+        Note:
+            Currently only `func`s that work on `pd.Series` that work on single `column`
+                are supported as the API is designed this way. But, it could be easily
+                modified to support any sort of function.
+
+        Args:
+            func (Callable): A callable that
+            column (str): column name of a `pd.Series` that is going to be manipulated.
+                Must be provided if `func` is not setting it internally. E.g. for
+                `CanadaAugmentation.tf_add_normal_noise_dob_year` you don't need to 
+                set `column` since it is being handled internally.
+            kwargs: keyword arguments to `func`
+
+        Returns:
+            TransformationFunction: A callable object that is now compatible with
+                `snorkel` transformation pipeline, e.g. ``Policy`` and ``TFApplier``
+        """
+
+        if 'column' in kwargs:
+            column = kwargs.pop('column')
+            return TransformationFunction(
+                name=f'{func.__name__}_{column}',
+                f=func, resources=dict(column=column, **kwargs),
+        )    
+        else:
+            return TransformationFunction(
+                name=f'{func.__name__}',
+                f=func, resources=dict(**kwargs),
+            )
+
     def normal_noise(self, mean: float, std: float,
                      size: Union[Tuple[int, ...], int]) -> np.ndarray:
         """A wrapper around `numpy.Generator.normal`. 
