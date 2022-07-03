@@ -248,8 +248,12 @@ class AddNormalNoiseDOBYear(SeriesNoise, TFAugmentation):
         super().__init__(dataframe)
 
         # values to add noise based on a categorization
-        self.__dob_year_percentage = [0.9]
+        self.__decay = 0.9
         self.COLUMN = 'P1.PD.DOBYear.Period'
+        self.__std = 2. * self.__decay
+        # neighborhood for truncated normal filled with shortest period
+        __max_bound = AGE_CATEGORY.TEEN.end - AGE_CATEGORY.TEEN.start
+        self.__max_bound = __max_bound * self.__decay
 
     def augment(self, s: pd.Series, column: str = None) -> pd.Series:
         """Add normal noise to ``'P1.PD.DOBYear.Period'``
@@ -267,15 +271,11 @@ class AddNormalNoiseDOBYear(SeriesNoise, TFAugmentation):
         """
 
         COLUMN = self.COLUMN
-        PERCENTAGE = self.__dob_year_percentage[0]
-        age_cat = AGE_CATEGORY.categorize_age(age=s[COLUMN])
-
-        # construct normal distribution over age category
-        lower_bound = age_cat.start - s[COLUMN]  # can only be <= 0
-        upper_bound = age_cat.end - s[COLUMN]    # can only be >= 0
-        bound = upper_bound - lower_bound
+        # construct normal distribution over neighborhood around input
+        lower_bound = -(s[COLUMN] - self.__max_bound)  # can only be <= 0
+        upper_bound = (s[COLUMN] - self.__max_bound)    # can only be >= 0
         s = self.series_add_truncated_normal_noise(s=s, column=COLUMN, 
-                                                   mean=0., std=bound/2 * PERCENTAGE,
+                                                   mean=0., std=self.__std,
                                                    lb=lower_bound, ub=upper_bound)
         return s
 
