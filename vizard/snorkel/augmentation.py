@@ -14,12 +14,19 @@ from snorkel.augmentation import transformation_function
 from snorkel.augmentation import TransformationFunction
 # helpers
 from typing import Any, Callable, Optional, Tuple, Union, cast
-
+from enum import Enum
 
 class SeriesNoise:
     """
     Adds different type noise (multiplicative or additive) to a `Pandas.Series`
 
+    Examples:
+        >>> from vizard.snorkel import augmentation
+        >>> series_noise_augmenter = augmentation.SeriesNoise(dataframe=data)
+        >>> tf_Funds = series_noise_augmenter.make_tf(func=series_noise_augmenter.series_add_normal_noise, 
+                            column='P3.DOV.PrpsRow1.Funds.Funds', mean=0, std=1000.)
+        >>> tf_DOBYear = series_noise_augmenter.make_tf(func=series_noise_augmenter.series_add_normal_noise, 
+                            column='P1.PD.DOBYear.Period', mean=0, std=5.)
     """
 
     def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
@@ -163,3 +170,55 @@ class SeriesNoise:
             low=lb, upp=ub, size=1).item()  # must be ndim == 0
         s[column] = s[column] + noise
         return s
+
+
+class AGE_CATEGORY(Enum):
+    """Enumerator for categorizing based on age
+
+    """
+    KID = (1, 0, 12)
+    TEEN = (2, 13, 20)
+    YOUNG = (3, 20, 31)
+    ADULT = (4, 31, 999)
+
+    def __init__(self, id: int, start: float, end: float) -> None:
+        """Each member of this class is a tuple of (`id`, lower bound, upper bound) of age range
+
+        Args:
+            id (int): ID for each Enum member
+            start (float): Lower bound of age range of a category
+            end (float): Upper bound of age range of a category
+        """
+        self.id = id
+        self.start = start
+        self.end = end
+
+    @classmethod
+    def categorize_age(self, age: float) -> AGE_CATEGORY:
+        """takes an age and categorize it
+
+        Args:
+            age (float): input age to be categorized
+
+        Raises:
+            ValueError: If input is not in any of the categories.
+
+        Returns:
+            str: One of the following categories:
+
+                * kid:    0 <= dob <  12
+                * teen:  13 <= dob <  20
+                * young: 20 <= dob <= 30
+                * adult: 30 <  dob <  inf
+
+        """
+        if AGE_CATEGORY.KID.start <= age <  AGE_CATEGORY.KID.end:
+            return AGE_CATEGORY.KID
+        elif AGE_CATEGORY.TEEN.start <= age < AGE_CATEGORY.TEEN.end:
+            return AGE_CATEGORY.TEEN
+        elif AGE_CATEGORY.YOUNG.start <= age < AGE_CATEGORY.YOUNG.end:
+            return AGE_CATEGORY.YOUNG
+        elif AGE_CATEGORY.ADULT.start <= age:
+            return AGE_CATEGORY.ADULT
+        else:
+            raise ValueError(f'"{age}" is not valid!')
