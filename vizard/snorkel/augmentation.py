@@ -172,6 +172,39 @@ class SeriesNoise:
         return s
 
 
+class TFAugmentation(SeriesNoise):
+    """Adds augmentation capabilities unique to a country for `snorkel.TransformationFunction`
+
+    Notes:
+        Here are different base classes this class subclass to add augmenting features:
+
+        * `SeriesNoise`: for adding noise (continuous for now)
+
+
+        User must create new class that subclasses this and write domain/dataset
+            specific methods for his/her case. For instance, if you need to add
+            augmentation to a class with "age" value, then extend this class,
+            add new method e.g. ``[add_noise_]age``.
+        
+        At the moment, the goal is to use this base to include all core augmentation
+            methods that could be used anywhere but subclassing them,
+            such as continuous noises, shuffling, etc.
+            And make sure that any class that subclass this, should integrate 
+            `snorkel.TransformationFunction` to be usable in `snorkel` pipeline.
+            See `CanadaTFAugmentation` for instance of implementation and usage.
+
+    """
+
+    def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
+        """
+
+        Args:
+            dataframe (Optional[pd.DataFrame]): Initialize dataframe that
+        """
+
+        super().__init__(dataframe)
+
+
 class AGE_CATEGORY(Enum):
     """Enumerator for categorizing based on age
 
