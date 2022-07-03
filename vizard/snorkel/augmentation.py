@@ -1,11 +1,10 @@
 # for forward reference https://stackoverflow.com/a/50768146/18971263
 from __future__ import annotations
 
-from sqlalchemy import column
 
 __all__ = [
     'SeriesNoise', 'TFAugmentation', 'ComposeTFAugmentation', 
-    'AddNormalNoiseDOBYear', 'AGE_CATEGORY'
+    'AddNormalNoiseDOBYear', 'AGE_CATEGORY', 'AddNormalNoiseFunds'
 ]
 
 # core
