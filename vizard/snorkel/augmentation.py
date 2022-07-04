@@ -317,6 +317,37 @@ class AddNormalNoiseFunds(SeriesNoise, TFAugmentation):
         return s
 
 
+class AddNormalNoiseDateOfMarr(SeriesNoise, TFAugmentation):
+    """Add normal noise to ``'P1.MS.SecA.DateOfMarr.Period'``
+
+    Entries where value of `column` in `s` is zero will be ignored. I.e.
+        those who are "single" would stay single where "single" means
+        "non-married" and "previously married"
+
+    """
+    def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
+        super().__init__(dataframe)
+
+        # values to add noise based on a categorization
+        self.__decay = 0.2
+        self.COLUMN = 'P1.MS.SecA.DateOfMarr.Period'
+    
+    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+        """Augment the series for the predetermined column
+
+        Args:
+            s (pd.Series): A pandas series to get noisy on a fixed column
+
+        Returns:
+            pd.Series: Noisy `self.COLUMN` of `s`
+        """
+        COLUMN = self.COLUMN
+        if s[COLUMN] != 0.:
+            s = self.series_add_normal_noise(s=s, column=COLUMN, mean=0., 
+                                             std=s[COLUMN] * self.__decay)
+        return s
+
+
 class AGE_CATEGORY(Enum):
     """Enumerator for categorizing based on age
 
