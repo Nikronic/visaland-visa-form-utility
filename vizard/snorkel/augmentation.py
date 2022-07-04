@@ -18,9 +18,10 @@ from snorkel.augmentation import TransformationFunction
 from typing import Any, Callable, List, Optional, Sequence, Tuple, Union, cast
 from enum import Enum
 
+
 class SeriesNoise:
     """
-    Adds different type noise (multiplicative or additive) to a `Pandas.Series`
+    Adds different type noise (impulse, multiplicative, or additive) to a `Pandas.Series`
 
     """
 
@@ -131,6 +132,36 @@ class SeriesNoise:
         noise: float = self.truncated_normal_noise(mean=mean, std=std,
             low=lb, upp=ub, size=1).item()  # must be ndim == 0
         s[column] = s[column] + noise
+        return s
+
+    def categorical_switch_noise(self, s: pd.Series, column: str,
+                                 categories: dict, **kwargs) -> pd.Series:
+        """Takes a pandas Series and corresponding column and switches it with uniform distribution
+
+        Args:
+            s (pd.Series): Pandas Series to be manipulated (from `self.df`)
+            column (str): corresponding column in `self.df` and `s` 
+            categories (dict): dictionary of categories to switch to
+            kwargs (dict): keyword arguments for [numpy.random.Generator.choice]_
+
+        Returns:
+            pd.Series: Categorically shuffled `column` of `s`
+        
+        .. [#] https://numpy.org/doc/stable/reference/random/generated/numpy.random.Generator.choice.html
+
+        """
+        self.__check_dataframe_initialized()
+        self.df = cast(pd.DataFrame, self.df)
+        if s[column] not in categories.keys():
+            raise ValueError(f'{s[column]} not in {categories}')
+        # TODO: do a proper checking here, if bad input, raise valueerror exception
+        
+
+        if s[column] in categories[s[column]]:
+            raise ValueError((f'key "{s[column]}" cannot also exist in',
+                              f'its values "{categories[s[column]]}"'))
+        # switch
+        s[column] = self.rng.choice([categories[s[column]]], **kwargs)
         return s
 
 
