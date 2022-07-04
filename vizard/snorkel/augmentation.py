@@ -15,7 +15,7 @@ import numpy as np
 from snorkel.augmentation import transformation_function
 from snorkel.augmentation import TransformationFunction
 # helpers
-from typing import Any, Callable, Optional, Sequence, Tuple, Union, cast
+from typing import Any, Callable, List, Optional, Sequence, Tuple, Union, cast
 from enum import Enum
 
 class SeriesNoise:
@@ -204,7 +204,7 @@ class TFAugmentation:
                 name=f'{class_name}_{column}',
                 f=func, resources=dict(column=column, **kwargs),
             )    
-        
+
 
 class ComposeTFAugmentation(TFAugmentation):
     """Composes a list of `TFAugmentation` instances 
@@ -345,6 +345,114 @@ class AddNormalNoiseDateOfMarr(SeriesNoise, TFAugmentation):
         if s[COLUMN] != 0.:
             s = self.series_add_normal_noise(s=s, column=COLUMN, mean=0., 
                                              std=s[COLUMN] * self.__decay)
+        return s
+
+
+class AddNormalNoiseOccRow1Period(SeriesNoise, TFAugmentation):
+    """Add normal noise to ``'P3.Occ.OccRow1.Period'``
+
+    Entries where value of `column` in `s` is zero will be ignored. I.e.
+        those who are "uneducated" would stay educated.
+
+    """
+    def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
+        super().__init__(dataframe)
+
+        # values to add noise based on a categorization
+        self.__decay = 0.2
+        self.COLUMN = 'P3.Occ.OccRow1.Period'
+    
+    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+        """Augment the series for the predetermined column
+
+        Args:
+            s (pd.Series): A pandas series to get noisy on a fixed column
+
+        Returns:
+            pd.Series: Noisy `self.COLUMN` of `s`
+        """
+
+        COLUMN = self.COLUMN
+        std = s[COLUMN] * self.__decay
+        ub = std
+        lb = -ub
+
+        if s[COLUMN] != 0.:
+            s = self.series_add_truncated_normal_noise(s=s, column=COLUMN,
+                                                       mean=0., std=std,
+                                                       lb=lb, ub=ub)
+        return s
+
+
+class AddNormalNoiseOccRow2Period(SeriesNoise, TFAugmentation):
+    """Add normal noise to ``'P3.Occ.OccRow2.Period'``
+
+    Entries where value of `column` in `s` is zero will be ignored. I.e.
+        those who are "uneducated" would stay educated.
+
+    """
+    def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
+        super().__init__(dataframe)
+
+        # values to add noise based on a categorization
+        self.__decay = 0.2
+        self.COLUMN = 'P3.Occ.OccRow2.Period'
+    
+    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+        """Augment the series for the predetermined column
+
+        Args:
+            s (pd.Series): A pandas series to get noisy on a fixed column
+
+        Returns:
+            pd.Series: Noisy `self.COLUMN` of `s`
+        """
+
+        COLUMN = self.COLUMN
+        std = s[COLUMN] * self.__decay
+        ub = std
+        lb = -ub
+
+        if s[COLUMN] != 0.:
+            s = self.series_add_truncated_normal_noise(s=s, column=COLUMN,
+                                                       mean=0., std=std,
+                                                       lb=lb, ub=ub)
+        return s
+
+
+class AddNormalNoiseOccRow3Period(SeriesNoise, TFAugmentation):
+    """Add normal noise to ``'P3.Occ.OccRow3.Period'``
+
+    Entries where value of `column` in `s` is zero will be ignored. I.e.
+        those who are "uneducated" would stay educated.
+
+    """
+    def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
+        super().__init__(dataframe)
+
+        # values to add noise based on a categorization
+        self.__decay = 0.2
+        self.COLUMN = 'P3.Occ.OccRow3.Period'
+    
+    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+        """Augment the series for the predetermined column
+
+        Args:
+            s (pd.Series): A pandas series to get noisy on a fixed column
+
+        Returns:
+            pd.Series: Noisy `self.COLUMN` of `s`
+        """
+
+        COLUMN = self.COLUMN
+        std = s[COLUMN] * self.__decay
+        ub = std
+        lb = -ub
+
+        if s[COLUMN] != 0.:
+            s = self.series_add_truncated_normal_noise(s=s, column=COLUMN,
+                                                       mean=0., std=std,
+                                                       lb=lb, ub=ub)
         return s
 
 
