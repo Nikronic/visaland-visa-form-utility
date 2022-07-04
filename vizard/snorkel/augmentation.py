@@ -4,7 +4,11 @@ from __future__ import annotations
 
 __all__ = [
     'SeriesNoise', 'TFAugmentation', 'ComposeTFAugmentation', 
-    'AddNormalNoiseDOBYear', 'AGE_CATEGORY', 'AddNormalNoiseFunds'
+    'AddNormalNoiseDOBYear', 'AGE_CATEGORY', 'AddNormalNoiseFunds',
+    'AddNormalNoiseDateOfMarr', 'AddNormalNoiseOccRow1Period', 'AddNormalNoiseOccRow2Period',
+    'AddNormalNoiseOccRow3Period', 'AddNormalNoiseHLS', 
+    'AddCategoricalNoiseChildRel0', 'AddCategoricalNoiseChildRel1', 
+    'AddCategoricalNoiseChildRel2', 'AddCategoricalNoiseChildRel3',
 ]
 
 # core
