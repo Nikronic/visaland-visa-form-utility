@@ -541,6 +541,177 @@ class AddNormalNoiseHLS(SeriesNoise, TFAugmentation):
         return s
 
 
+class AddCategoricalNoiseChildRel0(SeriesNoise, TFAugmentation):
+    """Add categorical noise to ``'p1.SecB.Chd.[0].ChdRel'``
+
+    Entries where child exists (i.e. != 'other'), will be shuffled
+        randomly based on Bernoulli trial. Note that it only changes
+        the gender not relation level. Possible cases:
+
+            * 'son' -> 'daughter'
+            * 'step son' -> 'step daughter'
+            * 'daughter' -> 'son'
+            * 'step daughter' -> 'step son'
+
+    """
+    def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
+        super().__init__(dataframe)
+
+        self.COLUMN = 'p1.SecB.Chd.[0].ChdRel'
+        self.CATEGORIES = {
+            'son': 'daughter',
+            'step son': 'step daughter',
+            'daughter': 'son',
+            'step daughter': 'step son',
+            'other': 'other'
+        }
+    
+    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+        """Augment the series for the predetermined column
+
+        Args:
+            s (pd.Series): A pandas series to get noisy on a fixed column
+
+        Returns:
+            pd.Series: Noisy `self.COLUMN` of `s`
+        """
+
+        COLUMN = self.COLUMN
+
+        if s[COLUMN] != 'other':  # if child exists
+            s = self.categorical_switch_noise(s=s, column=COLUMN,
+                                              categories=self.CATEGORIES)
+        return s
+
+
+class AddCategoricalNoiseChildRel1(SeriesNoise, TFAugmentation):
+    """Add categorical noise to ``'p1.SecB.Chd.[1].ChdRel'``
+
+    Entries where child exists (i.e. != 'other'), will be shuffled
+        randomly based on Bernoulli trial. Note that it only changes
+        the gender not relation level. Possible cases:
+
+            * 'son' -> 'daughter'
+            * 'step son' -> 'step daughter'
+            * 'daughter' -> 'son'
+            * 'step daughter' -> 'step son'
+
+    """
+    def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
+        super().__init__(dataframe)
+
+        self.COLUMN = 'p1.SecB.Chd.[1].ChdRel'
+        self.CATEGORIES = {
+            'son': 'daughter',
+            'step son': 'step daughter',
+            'daughter': 'son',
+            'step daughter': 'step son',
+            'other': 'other'
+        }
+    
+    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+        """Augment the series for the predetermined column
+
+        Args:
+            s (pd.Series): A pandas series to get noisy on a fixed column
+
+        Returns:
+            pd.Series: Noisy `self.COLUMN` of `s`
+        """
+
+        COLUMN = self.COLUMN
+
+        if s[COLUMN] != 'other':  # if child exists
+            s = self.categorical_switch_noise(s=s, column=COLUMN,
+                                              categories=self.CATEGORIES)
+        return s
+
+
+class AddCategoricalNoiseChildRel2(SeriesNoise, TFAugmentation):
+    """Add categorical noise to ``'p1.SecB.Chd.[2].ChdRel'``
+
+    Entries where child exists (i.e. != 'other'), will be shuffled
+        randomly based on Bernoulli trial. Note that it only changes
+        the gender not relation level. Possible cases:
+
+            * 'son' -> 'daughter'
+            * 'step son' -> 'step daughter'
+            * 'daughter' -> 'son'
+            * 'step daughter' -> 'step son'
+
+    """
+    def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
+        super().__init__(dataframe)
+
+        self.COLUMN = 'p1.SecB.Chd.[2].ChdRel'
+        self.CATEGORIES = {
+            'son': 'daughter',
+            'step son': 'step daughter',
+            'daughter': 'son',
+            'step daughter': 'step son',
+            'other': 'other'
+        }
+    
+    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+        """Augment the series for the predetermined column
+
+        Args:
+            s (pd.Series): A pandas series to get noisy on a fixed column
+
+        Returns:
+            pd.Series: Noisy `self.COLUMN` of `s`
+        """
+
+        COLUMN = self.COLUMN
+
+        if s[COLUMN] != 'other':  # if child exists
+            s = self.categorical_switch_noise(s=s, column=COLUMN,
+                                              categories=self.CATEGORIES)
+        return s
+
+class AddCategoricalNoiseChildRel3(SeriesNoise, TFAugmentation):
+    """Add categorical noise to ``'p1.SecB.Chd.[3].ChdRel'``
+
+    Entries where child exists (i.e. != 'other'), will be shuffled
+        randomly based on Bernoulli trial. Note that it only changes
+        the gender not relation level. Possible cases:
+
+            * 'son' -> 'daughter'
+            * 'step son' -> 'step daughter'
+            * 'daughter' -> 'son'
+            * 'step daughter' -> 'step son'
+
+    """
+    def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
+        super().__init__(dataframe)
+
+        self.COLUMN = 'p1.SecB.Chd.[3].ChdRel'
+        self.CATEGORIES = {
+            'son': 'daughter',
+            'step son': 'step daughter',
+            'daughter': 'son',
+            'step daughter': 'step son',
+            'other': 'other'
+        }
+    
+    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+        """Augment the series for the predetermined column
+
+        Args:
+            s (pd.Series): A pandas series to get noisy on a fixed column
+
+        Returns:
+            pd.Series: Noisy `self.COLUMN` of `s`
+        """
+
+        COLUMN = self.COLUMN
+
+        if s[COLUMN] != 'other':  # if child exists
+            s = self.categorical_switch_noise(s=s, column=COLUMN,
+                                              categories=self.CATEGORIES)
+        return s
+
+
 class AGE_CATEGORY(Enum):
     """Enumerator for categorizing based on age
 
