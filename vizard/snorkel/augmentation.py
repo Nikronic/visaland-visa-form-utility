@@ -348,6 +348,60 @@ class AddNormalNoiseDateOfMarr(SeriesNoise, TFAugmentation):
         return s
 
 
+class AddNormalNoiseHLS(SeriesNoise, TFAugmentation):
+    """Add normal noise to ``'P3.DOV.PrpsRow1.HLS.Period'``
+
+    Entries where value of `column` in `s` is below 14 (2 weeks)
+        only will receive truncated noise with positive value. Also,
+        no value after getting noisy could be under 14. In simple terms, 
+        all values have to be above 14.
+    I.e. (conditions):
+
+        * if below 14 (or smaller) -> just add + noise
+        * if close 14 -> make sure dont go below 14
+        * if above 21 -> free to do anything
+
+    """
+    def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
+        super().__init__(dataframe)
+
+        # values to add noise based on a categorization
+        self.__std = 7  # we can do +- 7 days 
+        self.COLUMN = 'P3.DOV.PrpsRow1.HLS.Period'
+    
+    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+        """Augment the series for the predetermined column
+
+        Args:
+            s (pd.Series): A pandas series to get noisy on a fixed column
+
+        Returns:
+            pd.Series: Noisy `self.COLUMN` of `s`
+        """
+
+        COLUMN = self.COLUMN
+
+        if (s[COLUMN] > 14.) and (s[COLUMN] < 21.):  # ~75% of entries
+            # add [-[0, 7], 7] days
+            s = self.series_add_truncated_normal_noise(s=s, column=COLUMN, 
+                                                   mean=0., std=self.__std,
+                                                   lb=-(21. - s[COLUMN]), ub=7.)
+        elif s[COLUMN] >= 21.:
+            # add [-7, 7] days
+            s = self.series_add_truncated_normal_noise(s=s, column=COLUMN, 
+                                                   mean=0., std=self.__std,
+                                                   lb=-7., ub=7.)
+        elif s[COLUMN] <= 14.:
+            # add [0, 7] days
+            s = self.series_add_truncated_normal_noise(s=s, column=COLUMN, 
+                                                   mean=0., std=self.__std,
+                                                   lb=0., ub=7.)
+        
+        # must remove float part (must be in 'days')
+        s[COLUMN] = np.int32(s[COLUMN])
+        return s
+
+
 class AGE_CATEGORY(Enum):
     """Enumerator for categorizing based on age
 
