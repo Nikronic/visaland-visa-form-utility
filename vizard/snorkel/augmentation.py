@@ -240,7 +240,23 @@ class TFAugmentation:
             return TransformationFunction(
                 name=f'{class_name}_{column}',
                 f=func, resources=dict(column=column, **kwargs),
-            )    
+            )
+
+    def check_valid_row(self, row: int, lb: int, ub: int) -> None:
+        """Check if the row is valid
+
+        Args:
+            row (int): which row to use for the categorical noise. `row` here
+                means the `row`th column of the dataframe with the same name
+                of the column to be noisy.
+            lb (int): lower bound of the row
+            ub (int): upper bound of the row
+
+        Raises:
+            ValueError: if `row` is not inside the bounds
+        """
+        if row < lb or row > ub:
+            raise ValueError(f'Row must be between {lb} and {ub}, got {row}')
 
 
 class ComposeTFAugmentation(TFAugmentation):
@@ -280,7 +296,21 @@ class ComposeTFAugmentation(TFAugmentation):
 
 
 class AddNormalNoiseDOBYear(SeriesNoise, TFAugmentation):
+    """Add normal noise to ``'P1.PD.DOBYear.Period'``
+
+    This methods makes sure that by adding noise, the age does not
+        fall into a new category. See `categorize_age` for more info.
+    In other words, we make sure a normal noise is defined within range of
+        each category, hence always noisy data will stay in same category.
+    """
     def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
+        """
+
+        Args:
+            row (int): which row to use for the categorical noise. `row` here
+                means the `row`th column of the dataframe with the same name
+                of the column to be noisy.
+        """
         super().__init__(dataframe)
 
         # values to add noise based on a categorization
@@ -292,18 +322,13 @@ class AddNormalNoiseDOBYear(SeriesNoise, TFAugmentation):
         self.__max_bound = __max_bound * self.__decay
 
     def augment(self, s: pd.Series, column: str = None) -> pd.Series:
-        """Add normal noise to ``'P1.PD.DOBYear.Period'``
-
-        This methods makes sure that by adding noise, the age does not
-            fall into a new category. See `categorize_age` for more info.
-        In other words, we make sure a normal noise is defined within range of
-            each category, hence always noisy data will stay in same category.
+        """Augment the series for the predetermined column
 
         Args:
             s (pd.Series): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy ``'P1.PD.DOBYear.Period'`` of `s`
+            pd.Series: Noisy `self.COLUMN` of `s`
         """
 
         COLUMN = self.COLUMN
@@ -334,7 +359,7 @@ class AddNormalNoiseChildDOBX(SeriesNoise, TFAugmentation):
                 of the column to be noisy.
         """
         super().__init__(dataframe)
-        self.__check_valid_row(row)
+        self.check_valid_row(row, lb=0, ub=3)
 
         # values to add noise based on a categorization
         self.__decay = 0.9
@@ -343,20 +368,6 @@ class AddNormalNoiseChildDOBX(SeriesNoise, TFAugmentation):
         # neighborhood for truncated normal filled with shortest period
         __max_bound = AGE_CATEGORY.TEEN.end - AGE_CATEGORY.TEEN.start
         self.__max_bound = __max_bound * self.__decay
-    
-    def __check_valid_row(self, row: int) -> None:
-        """Check if the row is valid
-
-        Args:
-            row (int): which row to use for the categorical noise. `row` here
-                means the `row`th column of the dataframe with the same name
-                of the column to be noisy.
-
-        Raises:
-            ValueError: if `row` is not valid
-        """
-        if row < 0 or row > 3:
-            raise ValueError(f'Row must be between 0 and 3, got {row}')
 
     def augment(self, s: pd.Series, column: str = None) -> pd.Series:
         """Augment the series for the predetermined column
@@ -383,6 +394,13 @@ class AddNormalNoiseChildDOBX(SeriesNoise, TFAugmentation):
 
 
 class AddNormalNoiseFunds(SeriesNoise, TFAugmentation):
+    """Add normal noise to ``'P3.DOV.PrpsRow1.Funds.Funds'``
+
+    Following conditions have been used:
+        1. ``'hasInvLttr'``: we can choose larger neighborhood if this is True. 
+            The decay percentage can be found in `__decay`.
+    
+    """
     def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
         super().__init__(dataframe)
 
@@ -391,17 +409,13 @@ class AddNormalNoiseFunds(SeriesNoise, TFAugmentation):
         self.COLUMN = 'P3.DOV.PrpsRow1.Funds.Funds'
 
     def augment(self, s: pd.Series, column: str = None) -> pd.Series:
-        """Add normal noise to ``'P3.DOV.PrpsRow1.Funds.Funds'``
-
-        Following conditions have been used:
-            1. ``'hasInvLttr'``: we can choose larger neighborhood if this is True. 
-                The decay percentage can be found in `__decay`.
+        """Augment the series for the predetermined column
 
         Args:
             s (pd.Series): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy ``'P3.DOV.PrpsRow1.Funds.Funds'`` of `s`
+            pd.Series: Noisy `self.COLUMN` of `s`
         """
 
         # TODO: add fin.bb to make sure by adding more fund, it does not any issue with
@@ -467,25 +481,11 @@ class AddNormalNoiseOccRowXPeriod(SeriesNoise, TFAugmentation):
                 of the column to be noisy.
         """
         super().__init__(dataframe)
-        self.__check_valid_row(row)
+        self.check_valid_row(row, lb=1, ub=3)
 
         # values to add noise based on a categorization
         self.__decay = 0.2
         self.COLUMN = f'P3.Occ.OccRow{row}.Period'
-    
-    def __check_valid_row(self, row: int) -> None:
-        """Check if the row is valid
-
-        Args:
-            row (int): which row to use for the categorical noise. `row` here
-                means the `row`th column of the dataframe with the same name
-                of the column to be noisy.
-
-        Raises:
-            ValueError: if `row` is not valid
-        """
-        if row < 1 or row > 3:
-            raise ValueError(f'Row must be between 1 and 3, got {row}')
     
     def augment(self, s: pd.Series, column: str = None) -> pd.Series:
         """Augment the series for the predetermined column
@@ -585,7 +585,7 @@ class AddCategoricalNoiseChildRelX(SeriesNoise, TFAugmentation):
                 of the column to be noisy.
         """
         super().__init__(dataframe)
-        self.__check_valid_row(row)
+        self.check_valid_row(row, lb=0, ub=3)
 
         self.COLUMN = f'p1.SecB.Chd.[{row}].ChdRel'
         self.CATEGORIES = {
@@ -595,20 +595,6 @@ class AddCategoricalNoiseChildRelX(SeriesNoise, TFAugmentation):
             'step daughter': 'step son',
             'other': 'other'
         }
-    
-    def __check_valid_row(self, row: int) -> None:
-        """Check if the row is valid
-
-        Args:
-            row (int): which row to use for the categorical noise. `row` here
-                means the `row`th column of the dataframe with the same name
-                of the column to be noisy.
-
-        Raises:
-            ValueError: if `row` is not valid
-        """
-        if row < 0 or row > 3:
-            raise ValueError(f'Row must be between 0 and 3, got {row}')
     
     def augment(self, s: pd.Series, column: str = None) -> pd.Series:
         """Augment the series for the predetermined column
@@ -651,7 +637,7 @@ class AddCategoricalNoiseSiblingRelX(SeriesNoise, TFAugmentation):
                 of the column to be noisy.
         """
         super().__init__(dataframe)
-        self.__check_valid_row(row)
+        self.check_valid_row(row, lb=0, ub=6)
 
         self.COLUMN = f'p1.SecC.Chd.[{row}].ChdRel'
         self.CATEGORIES = {
@@ -661,20 +647,6 @@ class AddCategoricalNoiseSiblingRelX(SeriesNoise, TFAugmentation):
             'step sister': 'step brother',
             'other': 'other'
         }
-    
-    def __check_valid_row(self, row: int) -> None:
-        """Check if the row is valid
-
-        Args:
-            row (int): which row to use for the categorical noise. `row` here
-                means the `row`th column of the dataframe with the same name
-                of the column to be noisy.
-
-        Raises:
-            ValueError: if `row` is not valid
-        """
-        if row < 0 or row > 6:
-            raise ValueError(f'Row must be between 0 and 6, got {row}')
     
     def augment(self, s: pd.Series, column: str = None) -> pd.Series:
         """Augment the series for the predetermined column
@@ -695,7 +667,14 @@ class AddCategoricalNoiseSiblingRelX(SeriesNoise, TFAugmentation):
 
 
 class AGE_CATEGORY(Enum):
-    """Enumerator for categorizing based on age
+    """Enumerator for categorizing age
+
+    Currently, categories are using hardcoded values as follow:
+
+        * kid:    0 <= dob <  12
+        * teen:  13 <= dob <  20
+        * young: 20 <= dob <= 30
+        * adult: 30 <  dob <  inf
 
     """
     KID = (1, 0, 12)
@@ -726,12 +705,7 @@ class AGE_CATEGORY(Enum):
             ValueError: If input is not in any of the categories.
 
         Returns:
-            str: One of the following categories:
-
-                * kid:    0 <= dob <  12
-                * teen:  13 <= dob <  20
-                * young: 20 <= dob <= 30
-                * adult: 30 <  dob <  inf
+            str: category of the input age
 
         """
         if AGE_CATEGORY.KID.start <= age <  AGE_CATEGORY.KID.end:
