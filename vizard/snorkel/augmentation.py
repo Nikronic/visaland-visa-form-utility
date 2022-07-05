@@ -7,7 +7,8 @@ __all__ = [
 
     'AddNormalNoiseDOBYear',  'AddNormalNoiseFunds',           # noise classes
     'AddNormalNoiseDateOfMarr', 'AddNormalNoiseOccRowXPeriod',  
-    'AddNormalNoiseHLS', 'AddCategoricalNoiseChildRelX'
+    'AddNormalNoiseHLS', 'AddCategoricalNoiseChildRelX', 
+    'AddNormalNoiseChildDOBX', 
 
     'AGE_CATEGORY',                                            # helper classes
 ]
@@ -312,6 +313,72 @@ class AddNormalNoiseDOBYear(SeriesNoise, TFAugmentation):
         s = self.series_add_truncated_normal_noise(s=s, column=COLUMN, 
                                                    mean=0., std=self.__std,
                                                    lb=lower_bound, ub=upper_bound)
+        return s
+
+
+class AddNormalNoiseChildDOBX(SeriesNoise, TFAugmentation):
+    """Add normal noise to ``'p1.SecB.Chd.[X].ChdDOB.Period'``
+
+    This methods makes sure that by adding noise, the age does not
+        fall into a new category. See `categorize_age` for more info.
+    In other words, we make sure a normal noise is defined within range of
+        each category, hence always noisy data will stay in same category.
+    
+    """
+    def __init__(self, dataframe: Optional[pd.DataFrame], row: int) -> None:
+        """
+
+        Args:
+            row (int): which row to use for the categorical noise. `row` here
+                means the `row`th column of the dataframe with the same name
+                of the column to be noisy.
+        """
+        super().__init__(dataframe)
+        self.__check_valid_row(row)
+
+        # values to add noise based on a categorization
+        self.__decay = 0.9
+        self.COLUMN = f'p1.SecB.Chd.[{row}].ChdDOB.Period'
+        self.__std = 2. * self.__decay
+        # neighborhood for truncated normal filled with shortest period
+        __max_bound = AGE_CATEGORY.TEEN.end - AGE_CATEGORY.TEEN.start
+        self.__max_bound = __max_bound * self.__decay
+    
+    def __check_valid_row(self, row: int) -> None:
+        """Check if the row is valid
+
+        Args:
+            row (int): which row to use for the categorical noise. `row` here
+                means the `row`th column of the dataframe with the same name
+                of the column to be noisy.
+
+        Raises:
+            ValueError: if `row` is not valid
+        """
+        if row < 0 or row > 3:
+            raise ValueError(f'Row must be between 0 and 3, got {row}')
+
+    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+        """Augment the series for the predetermined column
+
+        Args:
+            s (pd.Series): A pandas series to get noisy on a fixed column
+
+        Returns:
+            pd.Series: Noisy `self.COLUMN` of `s`
+        """
+
+        COLUMN = self.COLUMN
+        if s[COLUMN] <= 0:
+            return s
+        # construct normal distribution over neighborhood around input
+        lower_bound = -abs(s[COLUMN] - self.__max_bound)  # can only be <= 0
+        upper_bound = abs(s[COLUMN] - self.__max_bound)    # can only be >= 0
+        s = self.series_add_truncated_normal_noise(s=s, column=COLUMN, 
+                                                   mean=0., std=self.__std,
+                                                   lb=lower_bound, ub=upper_bound)
+        # zero out if negative age because of noise
+        s[COLUMN] = 0. if s[COLUMN] < 0. else s[COLUMN]
         return s
 
 
