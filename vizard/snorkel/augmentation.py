@@ -5,8 +5,7 @@ from __future__ import annotations
 __all__ = [
     'SeriesNoise', 'TFAugmentation', 'ComposeTFAugmentation', 
     'AddNormalNoiseDOBYear', 'AGE_CATEGORY', 'AddNormalNoiseFunds',
-    'AddNormalNoiseDateOfMarr', 'AddNormalNoiseOccRow1Period', 'AddNormalNoiseOccRow2Period',
-    'AddNormalNoiseOccRow3Period', 'AddNormalNoiseHLS', 
+    'AddNormalNoiseDateOfMarr', 'AddNormalNoiseOccRowXPeriod', 'AddNormalNoiseHLS', 
     'AddCategoricalNoiseChildRel0', 'AddCategoricalNoiseChildRel1', 
     'AddCategoricalNoiseChildRel2', 'AddCategoricalNoiseChildRel3',
 ]
@@ -383,19 +382,41 @@ class AddNormalNoiseDateOfMarr(SeriesNoise, TFAugmentation):
         return s
 
 
-class AddNormalNoiseOccRow1Period(SeriesNoise, TFAugmentation):
-    """Add normal noise to ``'P3.Occ.OccRow1.Period'``
+class AddNormalNoiseOccRowXPeriod(SeriesNoise, TFAugmentation):
+    """Add normal noise to ``'P3.Occ.OccRowX.Period'``
 
     Entries where value of `column` in `s` is zero will be ignored. I.e.
         those who are "uneducated" would stay educated.
 
     """
-    def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
+    def __init__(self, dataframe: Optional[pd.DataFrame], row: int) -> None:
+        """
+
+        Args:
+            row (int): which row to use for the categorical noise. `row` here
+                means the `row`th column of the dataframe with the same name
+                of the column to be noisy.
+        """
         super().__init__(dataframe)
+        self.__check_valid_row(row)
 
         # values to add noise based on a categorization
         self.__decay = 0.2
-        self.COLUMN = 'P3.Occ.OccRow1.Period'
+        self.COLUMN = f'P3.Occ.OccRow{row}.Period'
+    
+    def __check_valid_row(self, row: int) -> None:
+        """Check if the row is valid
+
+        Args:
+            row (int): which row to use for the categorical noise. `row` here
+                means the `row`th column of the dataframe with the same name
+                of the column to be noisy.
+
+        Raises:
+            ValueError: if `row` is not valid
+        """
+        if row < 1 or row > 3:
+            raise ValueError(f'Row must be between 1 and 3, got {row}')
     
     def augment(self, s: pd.Series, column: str = None) -> pd.Series:
         """Augment the series for the predetermined column
