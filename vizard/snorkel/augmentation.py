@@ -388,8 +388,9 @@ class AddNormalNoiseChildDOBX(SeriesNoise, TFAugmentation):
         s = self.series_add_truncated_normal_noise(s=s, column=COLUMN, 
                                                    mean=0., std=self.__std,
                                                    lb=lower_bound, ub=upper_bound)
-        # zero out if negative age because of noise
-        s[COLUMN] = 0. if s[COLUMN] < 0. else s[COLUMN]
+        # take absolute if negative age because of noise
+        #   in fact, this only happens if s[COLUMN] < 0
+        s[COLUMN] = abs(s[COLUMN])
         return s
 
 
