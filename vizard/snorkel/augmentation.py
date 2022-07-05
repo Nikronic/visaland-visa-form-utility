@@ -8,7 +8,7 @@ __all__ = [
     'AddNormalNoiseDOBYear',  'AddNormalNoiseFunds',           # noise classes
     'AddNormalNoiseDateOfMarr', 'AddNormalNoiseOccRowXPeriod',  
     'AddNormalNoiseHLS', 'AddCategoricalNoiseChildRelX', 
-    'AddNormalNoiseChildDOBX', 
+    'AddNormalNoiseChildDOBX', 'AddCategoricalNoiseSiblingRelX',
 
     'AGE_CATEGORY',                                            # helper classes
 ]
@@ -623,6 +623,72 @@ class AddCategoricalNoiseChildRelX(SeriesNoise, TFAugmentation):
         COLUMN = self.COLUMN
 
         if s[COLUMN] != 'other':  # if child exists
+            s = self.categorical_switch_noise(s=s, column=COLUMN,
+                                              categories=self.CATEGORIES)
+        return s
+
+
+class AddCategoricalNoiseSiblingRelX(SeriesNoise, TFAugmentation):
+    """Add categorical noise to ``'p1.SecC.Chd.[row].ChdRel'``
+
+    Entries where sibling exists (i.e. != 'other'), will be shuffled
+        randomly based on Bernoulli trial. Note that it only changes
+        the gender not relation level. Possible cases:
+
+            * 'brother' -> 'sister'
+            * 'step brother' -> 'step sister'
+            * 'sister' -> 'brother'
+            * 'step sister' -> 'step brother'
+            * 'other' -> 'other'
+
+    """
+    def __init__(self, dataframe: Optional[pd.DataFrame], row: int) -> None:
+        """
+
+        Args:
+            row (int): which row to use for the categorical noise. `row` here
+                means the `row`th column of the dataframe with the same name
+                of the column to be noisy.
+        """
+        super().__init__(dataframe)
+        self.__check_valid_row(row)
+
+        self.COLUMN = f'p1.SecC.Chd.[{row}].ChdRel'
+        self.CATEGORIES = {
+            'brother': 'sister',
+            'step brother': 'step sister',
+            'sister': 'brother',
+            'step sister': 'step brother',
+            'other': 'other'
+        }
+    
+    def __check_valid_row(self, row: int) -> None:
+        """Check if the row is valid
+
+        Args:
+            row (int): which row to use for the categorical noise. `row` here
+                means the `row`th column of the dataframe with the same name
+                of the column to be noisy.
+
+        Raises:
+            ValueError: if `row` is not valid
+        """
+        if row < 0 or row > 6:
+            raise ValueError(f'Row must be between 0 and 6, got {row}')
+    
+    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+        """Augment the series for the predetermined column
+
+        Args:
+            s (pd.Series): A pandas series to get noisy on a fixed column
+
+        Returns:
+            pd.Series: Noisy `self.COLUMN` of `s`
+        """
+
+        COLUMN = self.COLUMN
+
+        if s[COLUMN] != 'other':  # if sibling exists
             s = self.categorical_switch_noise(s=s, column=COLUMN,
                                               categories=self.CATEGORIES)
         return s
