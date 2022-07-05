@@ -9,7 +9,7 @@ __all__ = [
     'AddNormalNoiseDateOfMarr', 'AddNormalNoiseOccRowXPeriod',  
     'AddNormalNoiseHLS', 'AddCategoricalNoiseChildRelX', 
     'AddNormalNoiseChildDOBX', 'AddCategoricalNoiseSiblingRelX',
-
+    'AddCategoricalNoiseSex',
     'AGE_CATEGORY',                                            # helper classes
 ]
 
@@ -662,6 +662,55 @@ class AddCategoricalNoiseSiblingRelX(SeriesNoise, TFAugmentation):
         COLUMN = self.COLUMN
 
         if s[COLUMN] != 'other':  # if sibling exists
+            s = self.categorical_switch_noise(s=s, column=COLUMN,
+                                              categories=self.CATEGORIES)
+        return s
+
+
+class AddCategoricalNoiseSex(SeriesNoise, TFAugmentation):
+    """Add categorical noise to ``'P1.PD.Sex.Sex'``
+
+    For entries that are married, swaps the sex of applicant and 
+        his/her spouse. In the current data extraction, there is no information
+        to link an applicant to his/her spouse, so we can easily do this
+        by simply changing the sex of the applicant.
+    
+    To detect if an applicant is married, column `p1.SecA.App.ChdMStatus`
+        is being used for conditioning where `... == 5` means 'married'.
+
+    Possible cases:
+        * 'Male' -> 'Female'
+        * 'Female' -> 'Male'
+    
+    Notes:
+        If in future, we linked families to each other in dataset, this
+            method needs to be extended to change sex of the spouse too. 
+
+    """
+    def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
+        super().__init__(dataframe)
+
+        self.COLUMN = 'P1.PD.Sex.Sex'
+        self.CATEGORIES = {
+            'Male': 'Female',
+            'Female': 'Male'
+        }
+        self.COND_COLUMN = 'p1.SecA.App.ChdMStatus'
+    
+    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+        """Augment the series for the predetermined column
+
+        Args:
+            s (pd.Series): A pandas series to get noisy on a fixed column
+
+        Returns:
+            pd.Series: Noisy `self.COLUMN` of `s`
+        """
+
+        COLUMN = self.COLUMN
+        COND_COLUMN = self.COND_COLUMN
+
+        if s[COND_COLUMN] == 5:  # if married
             s = self.categorical_switch_noise(s=s, column=COLUMN,
                                               categories=self.CATEGORIES)
         return s
