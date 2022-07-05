@@ -3,11 +3,13 @@ from __future__ import annotations
 
 
 __all__ = [
-    'SeriesNoise', 'TFAugmentation', 'ComposeTFAugmentation', 
-    'AddNormalNoiseDOBYear', 'AGE_CATEGORY', 'AddNormalNoiseFunds',
-    'AddNormalNoiseDateOfMarr', 'AddNormalNoiseOccRowXPeriod', 'AddNormalNoiseHLS', 
-    'AddCategoricalNoiseChildRel0', 'AddCategoricalNoiseChildRel1', 
-    'AddCategoricalNoiseChildRel2', 'AddCategoricalNoiseChildRel3',
+    'SeriesNoise', 'TFAugmentation', 'ComposeTFAugmentation',  # base classes
+
+    'AddNormalNoiseDOBYear',  'AddNormalNoiseFunds',           # noise classes
+    'AddNormalNoiseDateOfMarr', 'AddNormalNoiseOccRowXPeriod',  
+    'AddNormalNoiseHLS', 'AddCategoricalNoiseChildRelX'
+
+    'AGE_CATEGORY',                                            # helper classes
 ]
 
 # core
@@ -417,78 +419,6 @@ class AddNormalNoiseOccRowXPeriod(SeriesNoise, TFAugmentation):
         """
         if row < 1 or row > 3:
             raise ValueError(f'Row must be between 1 and 3, got {row}')
-    
-    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
-        """Augment the series for the predetermined column
-
-        Args:
-            s (pd.Series): A pandas series to get noisy on a fixed column
-
-        Returns:
-            pd.Series: Noisy `self.COLUMN` of `s`
-        """
-
-        COLUMN = self.COLUMN
-        std = s[COLUMN] * self.__decay
-        ub = std
-        lb = -ub
-
-        if s[COLUMN] != 0.:
-            s = self.series_add_truncated_normal_noise(s=s, column=COLUMN,
-                                                       mean=0., std=std,
-                                                       lb=lb, ub=ub)
-        return s
-
-
-class AddNormalNoiseOccRow2Period(SeriesNoise, TFAugmentation):
-    """Add normal noise to ``'P3.Occ.OccRow2.Period'``
-
-    Entries where value of `column` in `s` is zero will be ignored. I.e.
-        those who are "uneducated" would stay educated.
-
-    """
-    def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
-        super().__init__(dataframe)
-
-        # values to add noise based on a categorization
-        self.__decay = 0.2
-        self.COLUMN = 'P3.Occ.OccRow2.Period'
-    
-    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
-        """Augment the series for the predetermined column
-
-        Args:
-            s (pd.Series): A pandas series to get noisy on a fixed column
-
-        Returns:
-            pd.Series: Noisy `self.COLUMN` of `s`
-        """
-
-        COLUMN = self.COLUMN
-        std = s[COLUMN] * self.__decay
-        ub = std
-        lb = -ub
-
-        if s[COLUMN] != 0.:
-            s = self.series_add_truncated_normal_noise(s=s, column=COLUMN,
-                                                       mean=0., std=std,
-                                                       lb=lb, ub=ub)
-        return s
-
-
-class AddNormalNoiseOccRow3Period(SeriesNoise, TFAugmentation):
-    """Add normal noise to ``'P3.Occ.OccRow3.Period'``
-
-    Entries where value of `column` in `s` is zero will be ignored. I.e.
-        those who are "uneducated" would stay educated.
-
-    """
-    def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
-        super().__init__(dataframe)
-
-        # values to add noise based on a categorization
-        self.__decay = 0.2
-        self.COLUMN = 'P3.Occ.OccRow3.Period'
     
     def augment(self, s: pd.Series, column: str = None) -> pd.Series:
         """Augment the series for the predetermined column
