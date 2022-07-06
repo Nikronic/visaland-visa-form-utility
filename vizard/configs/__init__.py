@@ -14,3 +14,8 @@ DATA_DIR = parent_dir / 'data'
 #   originally by Canada officials. Hence, this data has been extracted from
 #   their forms.
 CANADA_COUNTRY_CODE_TO_NAME = DATA_DIR / 'canada-country-code-to-name.csv'
+
+# Iran city to province name
+#   The list of cities and their corresponding province have been extracted
+#   from https://en.wikipedia.org/wiki/List_of_cities_in_Iran_by_province
+IRAN_PROVINCE_TO_CITY = DATA_DIR / 'iran-province-to-city.csv'
