@@ -1,7 +1,10 @@
-__all__ = ['dict_summarizer', 'dict_to_csv', 'column_dropper', 'fillna_datetime', 'aggregate_datetime',
-           'tag_to_regex_compatible', 'change_dtype', 'unit_converter', 'flatten_dict',
-           'xml_to_flattened_dict', 'create_directory_structure_tree', 'dump_directory_structure_csv',
-           'process_directory', 'search_dict', 'config_csv_to_dict']
+__all__ = [
+    'dict_summarizer', 'dict_to_csv', 'column_dropper', 'fillna_datetime',
+    'aggregate_datetime', 'tag_to_regex_compatible', 'change_dtype',
+    'unit_converter', 'flatten_dict', 'xml_to_flattened_dict',
+    'create_directory_structure_tree', 'dump_directory_structure_csv',
+    'process_directory', 'search_dict', 'config_csv_to_dict'
+]
 
 """
 Contains implementation of functions that could be used for processing data everywhere and
@@ -45,10 +48,10 @@ def dict_summarizer(d: dict, cutoff_term: str, KEY_ABBREVIATION_DICT: dict = Non
     Args:
         d (dict): The dictionary to be shortened
         cutoff_term (str): The string that used to find in keys and remove anything behind it
-        KEY_ABBREVIATION_DICT (dict, optional): A dictionary containing abbreviation mapping for keys.
-            Defaults to None.
-        VALUE_ABBREVIATION_DICT (dict, optional): A dictionary containing abbreviation mapping for values.
-            Defaults to None.
+        KEY_ABBREVIATION_DICT (dict, optional): A dictionary containing abbreviation 
+            mapping for keys. Defaults to None.
+        VALUE_ABBREVIATION_DICT (dict, optional): A dictionary containing abbreviation
+            mapping for values. Defaults to None.
 
     Returns:
         dict: A dict with shortened keys by throwing away some part and using a
@@ -114,15 +117,17 @@ def column_dropper(dataframe: pd.DataFrame, string: str, exclude: str = None,
     Args:
         dataframe (pd.DataFrame): Pandas dataframe to be processed
         string (str): string to look for in `dataframe` columns
-        exclude (str, optional): string to exclude a subset of columns from being dropped.
-            Defaults to None.
+        exclude (str, optional): string to exclude a subset of columns from
+            being dropped. Defaults to None.
         regex (bool, optional): compile `string` as regex. Defaults to False.
-        inplace (bool, optional): whether or not use and inplace operation. Defaults to True.
+        inplace (bool, optional): whether or not use and inplace
+            operation. Defaults to True.
 
     Returns:
-        Union[None, pd.DataFrame]: Takes a Pandas Dataframe and searches for columns *containing* `string`
-            in them either raw string or regex (in latter case, use `regex=True`) and
-            after `exclude`ing a subset of them, drops the remaining *in-place*.
+        Union[None, pd.DataFrame]: Takes a Pandas Dataframe and searches for
+            columns *containing* `string` in them either raw string or
+            regex (in latter case, use `regex=True`) and after `exclude`ing a
+            subset of them, drops the remaining *in-place*.
     """
 
     if regex:
@@ -166,8 +171,8 @@ def fillna_datetime(dataframe: pd.DataFrame, col_base_name: str, date: str, type
             non existing items (e.g. age of children for single person).
     
     Returns:
-        Union[None, pd.DataFrame]: A Pandas Dataframe that two columns of dates that had no value
-            (None) which was filled to the same date via `date`.
+        Union[None, pd.DataFrame]: A Pandas Dataframe that two columns of dates that
+            had no value (None) which was filled to the same date via `date`.
     """
 
     if not one_sided:
@@ -409,8 +414,8 @@ def dump_directory_structure_csv(src: str, shallow: bool = True) -> None:
     """Saves a tree structure of a directory in csv file
 
     Takes a `src` directory path, creates a tree of dir structure and writes
-        it down to a csv file with name 'label.csv' with
-        default value of '0' for each path
+        it down to a csv file with name ``'label.csv'`` with
+        default value of ``'0'`` for each path
     
     Notes:
         This has been used to manually extract and record labels.
@@ -432,7 +437,8 @@ def create_directory_structure_tree(src: str, shallow: bool = False) -> dict:
 
     Args:
         src (str): Path to source directory
-        shallow (bool, optional): Whether or not just dive to root dir's subdir. Defaults to False.
+        shallow (bool, optional): Whether or not just dive to root dir's subdir.
+            Defaults to False.
 
     Reference:
         1. https://stackoverflow.com/a/25226267/18971263

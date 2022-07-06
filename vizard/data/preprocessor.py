@@ -29,32 +29,45 @@ T0 = '19000202T000000'  # a default meaningless time to fill the `None`s
 
 
 class DataframePreprocessor:
-    """
-    A class that contains methods for dealing with dataframes regarding transformation of data
-        such as filling missing values, dropping columns, or aggregating multiple
-        columns into a single more meaningful one.
-    This class needs to be extended for file specific preprocessing where tags are unique and need
-        to be done entirely manually. In this case, `file_specific_preprocessor` needs to be implemented.
+    """A wrapper around builtin Pandas functions to make it easier for our data values
+
+    A class that contains methods for dealing with dataframes regarding
+        transformation of data such as filling missing values, dropping columns,
+        or aggregating multiple columns into a single more meaningful one.
+    This class needs to be extended for file specific preprocessing where tags are
+        unique and need to be done entirely manually.
+        In this case, `file_specific_preprocessor` needs to be implemented.
     """
 
     def __init__(self, dataframe: pd.DataFrame = None) -> None:
+        """
+
+        Args:
+            dataframe (pd.DataFrame, optional): Main dataframe to be preprocessed.
+                Defaults to None.
+        """
         self.dataframe = dataframe
         self.logger = logging.getLogger(logger.name+'.DataframePreprocessor')
 
     @loggingdecorator(logger.name+'.DataframePreprocessor.func', level=logging.DEBUG, output=False, input=True)
     def column_dropper(self, string: str, exclude: str = None, regex: bool = False,
                        inplace: bool = True) -> Union[None, pd.DataFrame]:
-        """
-        Takes a Pandas Dataframe and searches for columns *containing* `string` in them either 
-            raw string or regex (in latter case, use `regex=True`) and after `exclude`ing a
-            subset of them, drops the remaining *in-place*.
+        """Drop column(s) from a dataframe based on a string or regex
 
-        args:
-            dataframe: Pandas dataframe to be processed
-            string: string to look for in `dataframe` columns
-            exclude: string to exclude a subset of columns from being dropped 
-            regex: compile `string` as regex
-            inplace: whether or not use and inplace operation
+        Takes a Pandas Dataframe and searches for columns *containing* `string` in them either 
+            raw string or regex and after `exclude`ing a subset of them, drops the remaining.
+
+        Args:
+            string (str): string to look for in `dataframe` columns
+            exclude (str, optional): string to exclude a subset of columns from being
+                dropped. Defaults to None.
+            regex (bool, optional): compile `string` as regex.
+                Defaults to False.
+            inplace (bool, optional): whether or not use and inplace operation.
+                Defaults to True.
+
+        Returns:
+            Union[None, pd.DataFrame]: A dataframe if not inplace, otherwise None.
         """
 
         return functional.column_dropper(dataframe=self.dataframe, string=string,
@@ -63,20 +76,24 @@ class DataframePreprocessor:
     @loggingdecorator(logger.name+'.DataframePreprocessor.func', level=logging.DEBUG, output=False)
     def fillna_datetime(self, col_base_name: str, type: DOC_TYPES, one_sided: Union[str, bool],
                         date: str = None, inplace: bool = False) -> Union[None, pd.DataFrame]:
-        """
-        In a Pandas Dataframe, takes two columns of dates in string form that has no value (None)
-            and sets them to the same date which further ahead, in transformation operations
-            such as `aggregate_datetime` function, it would be converted to period of zero.
+        """Fills columns of a dataframe with a datetime value that can handle Nones
 
-        args:
-            dataframe: Pandas Dataframe to be processed
-            col_base_name: Base column name that accepts `From` and `To` for
-                extracting dates of same category
-            date: The desired date
-            one_sided: Different ways of filling empty date columns:\n
+        See `data.functional.fillna_datetime` for more details.
+
+        Args:
+            col_base_name (str): Base column name that
+                accepts ``'From'`` and ``'To'`` for
+            type (DOC_TYPES): type of the document defined
+                in `vizard.data.constant.DOC_TYPES`
+            one_sided (Union[str, bool]): Different ways of filling empty date columns:
                 1. `'right'`: Uses the `current_date` as the final time
                 2. `'left'`: Uses the `reference_date` as the starting time
-            inplace: whether or not use and inplace operation
+            date (str, optional): The desired date. Defaults to None.
+            inplace (bool, optional): whether or not use and inplace operation.
+                Defaults to False.
+
+        Returns:
+            Union[None, pd.DataFrame]: A dataframe if not inplace, otherwise None.
         """
 
         if date is None:
@@ -126,7 +143,8 @@ class DataframePreprocessor:
         Takes a specific file (see `DOC_TYPES`), then does data type fixing,
             missing value filling, descretization, etc.
 
-        Remark: Since each files has its own unique tags and requirements,
+        Note: 
+            Since each files has its own unique tags and requirements,
             it is expected that all these transformation being hardcoded for each file,
             hence this method exists to just improve readability without any generalization
             to other problems or even files.
@@ -205,8 +223,7 @@ class UnitConverter:
 
 
 class FinancialUnitConverter(UnitConverter):
-    """
-    Contains utility tools for converting different financial units to each other.
+    """Contains utility tools for converting different financial units to each other.
 
     All functions that you implement should take the factor value using
         `self.CONSTANTS['function_name']`. E.g.::
@@ -217,41 +234,109 @@ class FinancialUnitConverter(UnitConverter):
     """
 
     def __init__(self, CONSTANTS: dict = FINANCIAL_RATIOS) -> None:
-        """
-        Gets constant values needed for conversion
+        """Gets constant values needed for conversion
+
+        Args:
+            CONSTANTS (dict, optional): A dictionary of {string: float} where keys
+                are function of this module and values are the factor used in conversion
+                Defaults to `data.constant.FINANCIAL_RATIOS`.
         """
         super().__init__()
         self.CONSTANTS = CONSTANTS
 
     def rent2deposit(self, rent: float) -> float:
+        """A wrapper around `UnitConverter.unit_converter` with more meaningful signature.
+
+        Args:
+            rent (float): rent amount (`rent` is `sparse`)
+
+        Returns:
+            float: deposit amount
+        """
         return self.unit_converter(sparse=rent, dense=None,
                                    factor=self.CONSTANTS['rent2deposit'])
 
     def deposit2rent(self, deposit: float) -> float:
+        """A wrapper around `UnitConverter.unit_converter` with more meaningful signature. 
+
+        Args:
+            deposit (float): deposit amount (`deposit` is `dense`)
+
+        Returns:
+            float: rent amount
+        """
         return self.unit_converter(sparse=None, dense=deposit,
                                    factor=self.CONSTANTS['deposit2rent'])
 
     def deposit2worth(self, deposit: float) -> float:
+        """A wrapper around `UnitConverter.unit_converter` with more meaningful signature.
+
+        Args:
+            deposit (float): deposit amount (`deposit` is `sparse`)
+
+        Returns:
+            float: worth amount
+        """
         return self.unit_converter(sparse=deposit, dense=None,
                                    factor=self.CONSTANTS['deposit2worth'])
 
     def worth2deposit(self, worth: float) -> float:
+        """A wrapper around `UnitConverter.unit_converter` with more meaningful signature.
+
+        Args:
+            worth (float): worth amount (`worth` is `dense`)
+
+        Returns:
+            float: deposit amount
+        """
         return self.unit_converter(sparse=None, dense=worth,
                                    factor=self.CONSTANTS['worth2deposit'])
 
     def tax2income(self, tax: float) -> float:
+        """A wrapper around `UnitConverter.unit_converter` with more meaningful signature.
+
+        Args:
+            tax (float): tax amount (`tax` is `sparse`)
+
+        Returns:
+            float: income amount
+        """
         return self.unit_converter(sparse=tax, dense=None,
                                    factor=self.CONSTANTS['tax2income'])
 
     def income2tax(self, income: float) -> float:
+        """A wrapper around `UnitConverter.unit_converter` with more meaningful signature.
+        
+        Args:
+            income (float): income amount (`income` is `dense`)
+        
+        Returns:
+            float: tax amount
+        """
         return self.unit_converter(sparse=None, dense=income,
                                    factor=self.CONSTANTS['income2tax'])
 
     def income2worth(self, income: float) -> float:
+        """A wrapper around `UnitConverter.unit_converter` with more meaningful signature.
+
+        Args:
+            income (float): income amount (`income` is `sparse`)
+
+        Returns:
+            float: worth amount
+        """
         return self.unit_converter(sparse=income, dense=None,
                                    factor=self.CONSTANTS['income2worth'])
 
     def worth2income(self, worth: float) -> float:
+        """A wrapper around `UnitConverter.unit_converter` with more meaningful signature.
+
+        Args:
+            worth (float): worth amount (`worth` is `dense`)
+
+        Returns:
+            float: income amount
+        """
         return self.unit_converter(sparse=None, dense=worth,
                                    factor=self.CONSTANTS['worth2income'])
 
@@ -284,14 +369,18 @@ class WorldBankXMLProcessor:
     @loggingdecorator(logger.name+'.WorldBankXMLProcessor.func', level=logging.INFO,
                       output=False, input=True)
     def indicator_filter(self) -> dict:
-        """
-        Aggregates using mean operation over all columns except name/index. Also,
-            values have to be scaled into [1, 7] range to match other
+        """Aggregates using mean operation over all columns except name/index
+
+        Values are scaled into [1, 7] range to match other
             world bank data processors.
 
-        In this scenario, pivots a row-based dataframe to column based for 'Years' and 
-            aggregates over them to achieve a 2-columns dataframe.
+        In this scenario, pivots a row-based dataframe to column based 
+            for ``'Years'`` and aggregates over them to achieve
+            a 2-columns dataframe.
 
+        Returns:
+            dict: A dictionary of {string: float} where keys are country names
+                and values are the corresponding indicator values.
         """
         dataframe = self.dataframe
         # pivot XML attributes of `<field>` tag
@@ -336,6 +425,9 @@ class WorldBankXMLProcessor:
         column_min = dataframe['mean'].min()
 
         def standardize(x):
+            """Standardize the given value to [1, 7]
+
+            """
             return (((x - column_min) * (7. - 1.)) / (column_max - column_min)) + 1.
         dataframe['mean'] = dataframe['mean'].apply(standardize)
         return dict(zip(dataframe[dataframe.columns[0]], dataframe[dataframe.columns[1]]))
@@ -345,54 +437,83 @@ class WorldBankXMLProcessor:
                       output=False, input=False)
     def __include_years(dataframe: pd.DataFrame, start: Union[int, None] = None,
                         end: Union[int, None] = None) -> pd.DataFrame:
-        """
-        Processes a dataframe to only include years given tuple of years
-            where `years=(start, end)`. Works inplace, hence manipulates original dataframe.
+        """Drop columns to only include years given start and end.
 
-        *REMARK*: Currently only supports starting date. Defaults to `2017`. # TODO:
-        args:
-            dataframe: Pandas dataframe to be processed
-            years: A tuple of `(start, end)` to limit years of data.
-                If `None` (=default), all years will be included
+        Note:
+            Works inplace, hence manipulates original dataframe.
+
+        # TODO:
+            Currently only supports starting date
+
+        Args:
+            dataframe (pd.DataFrame): Pandas dataframe to be processed
+            start (Union[int, None], optional): start of years to include.
+                Defaults to None.
+            end (Union[int, None], optional): end of years to include.
+                Defaults to None.
+
+        Returns:
+            pd.DataFrame: A dataframe with a subset of years filtered on its columns.
         """
         start = 2017 if start is None else start
 
-        assert end is None  # TODO: include end year
+        assert end is None, 'Currently only supports starting date'
         dataframe = dataframe[dataframe['Year'].astype(int) >= start]
         return dataframe
 
     @loggingdecorator(logger.name+'.WorldBankXMLProcessor.func',
                       level=logging.DEBUG, output=True, input=True)
     def convert_country_name_to_numeric(self, string: str) -> float:
-        """
-        Converts the name of a country into a numerical value.
+        """Converts the name of a country into a numerical value
+
+        If input `string` is None, uses the default value ``'Unknown'``. This
+            is the hardcoded value in official form that we extract data from
+            hence for consistency reasons, the same default value have been
+            chosen.
+
+        If the country name could not be found, then value of ``1.0`` will be
+            returned. The reason for this is that we assume that the input country is
+            not "famous" enough, hence we give lowest score in World Bank dataset,
+            i.e. = 1.0.
+
+        Args:
+            string (str): Name of a country
+
+        Returns:
+            float: Numerical value of the country
         """
         if string is None:
             string = 'Unknown'
         string = string.lower()
         # see `self.indicator_filter` for description of `1.` and `150` magic numbers
-        return functional.search_dict(string=string,
-                                      dic=self.country_name_to_numeric_dict, if_nan=1.)
+        return functional.search_dict(string=string, if_nan=1.,
+                                      dic=self.country_name_to_numeric_dict)
 
 
 class WorldBankDataframeProcessor:
     """
-    A Pandas Dataframe processor which is customized to handle data dumped from 
-        https://govdata360.worldbank.org (since it's used by mainstream, works for us too)
+    A Pandas Dataframe processor which is customized to handle data dumped from [World Bank]_ 
+        
+    Note:
+        Since it's used by mainstream, works for us too
 
     It's recommended to extend this class to work with particular indicator by
-        first filtering by a "indicator", then manipulating the resulting dataframe.
+        first filtering by a [indicator]_ , then manipulating the resulting dataframe.
+
+    .. [World Bank]: https://govdata360.worldbank.org
+    .. [indicator]: https://data.worldbank.org/indicator
     """
 
     def __init__(self, dataframe: pd.DataFrame, subindicator_rank: bool = False) -> None:
-        """
-        Gets a raw dataframe, drops redundant columns, and prepares for extracting subsets
-            given `include_years` and `filter_indicator`.
+        """Drops redundant columns of of `dataframe` and prepares a column wise subset of it
 
         args:
             dataframe: Main Pandas DataFrame to be processed
             subindicator_rank: Whether or not use ranking (discrete)
-                or score (continuous) for given `indicator_name`. Defaults to `False`.
+                or score (continuous) for given `indicator_name`. In original World Bank
+                dataset, for some indicators, the score is discrete, while for others,
+                it's continuous and this flag controls which one to extract.
+                Defaults to `False`.
         """
         # set constants
         self.dataframe = dataframe
@@ -413,14 +534,16 @@ class WorldBankDataframeProcessor:
     @loggingdecorator(logger.name+'.WorldBankDataframeProcessor.func', level=logging.INFO,
                       output=True, input=True)
     def include_years(self, years: Tuple[Optional[int], Optional[int]] = None) -> None:
-        """
-        Processes a dataframe to only include years given tuple of `years`
-            where `years=(start, end)`. Works inplace, hence manipulates original dataframe.
+        """Processes a dataframe to only include years given tuple of `years=(start, end)`.
 
-        args:
-            years: A tuple of `(start, end)` to limit years of data.
-                If `None` (=default), all years will be included
+        Works inplace, hence manipulates original dataframe.
+
+        Args:
+            years (Tuple[Optional[int], Optional[int]], optional): A tuple
+                of `(start, end)` to limit years of data. If None,
+                all years will be included. Defaults to None.
         """
+
         # figure out start and end year index of columns names values
         start_year, end_year = [
             str(y) for y in years] if years is not None else (None, None)
@@ -439,12 +562,16 @@ class WorldBankDataframeProcessor:
     @loggingdecorator(logger.name+'.WorldBankDataframeProcessor.func', level=logging.INFO,
                       output=False, input=True)
     def indicator_filter(self, indicator_name: str) -> pd.DataFrame:
-        """
-        Filters the rows by given `indicator_name` and drops corresponding columns used
-            for filtering. Then aggregates using mean operation.
+        """Filters the rows by given `indicator_name` and aggregates using mean operation
 
-        args:
-            indicator_name: A string containing an indicator's full name
+        Also, drops corresponding columns used for filtering.
+
+        Args:
+            indicator_name (string): A string containing an indicator's full name.
+                See class level documents about available indicators.
+        
+        Returns:
+            pd.DataFrame: A filtered dataframe with only a single `indicator`.
         """
         # filter rows that only contain the provided `indicator_name` with type `rank` or `score`
         dataframe = self.dataframe.copy()
@@ -472,12 +599,15 @@ class WorldBankDataframeProcessor:
 
 
 class EducationCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
-    """
-    Handles `'Quality of the education system'` indicator of a `WorldBankDataframeProcessor`
-        dataframe. The value ranges from 1 to 7 as score where higher is better.
+    """Handles ``'Quality of the education system'`` indicator of a `WorldBankDataframeProcessor`
+        dataframe.
+
+    The value ranges from 1 to 7 as score where higher is better.
     """
 
     def __init__(self, dataframe: pd.DataFrame, subindicator_rank: bool = False) -> None:
+        """See `WorldBankDataframeProcessor` for more details.
+        """
         super().__init__(dataframe, subindicator_rank)
 
         self.INDICATOR_NAME = 'Quality of the education system, 1-7 (best)'
@@ -490,9 +620,10 @@ class EducationCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
     @loggingdecorator(logger.name+'.WorldBankDataframeProcessor.EducationCountryScoreDataframePreprocessor.func',
                       level=logging.DEBUG, output=False, input=True)
     def __indicator_filter(self) -> dict:
-        """
-        Filters the rows by a constant `INDICATOR_NAME` defined by class type and
-            drops corresponding columns used for filtering.
+        """Filters the rows by a constant `INDICATOR_NAME`
+
+        Returns: 
+            dict: A dictionary of ``country_name: score`` pairs.
         """
         dataframe = self.indicator_filter(indicator_name=self.INDICATOR_NAME)
         dataframe[dataframe.columns[0]] = dataframe[dataframe.columns[0]].apply(
@@ -502,12 +633,26 @@ class EducationCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
     @loggingdecorator(logger.name+'.WorldBankDataframeProcessor.EducationCountryScoreDataframePreprocessor.func',
                       level=logging.DEBUG, output=True, input=True)
     def convert_country_name_to_numeric(self, string: str) -> float:
-        """
-        Converts the name of a country into a numerical value.
+        """Converts the name of a country into a numerical value
 
-        args:
-            string: country name in string. If `None`, will be filled with `'Unknown'`
+        If input `string` is None, uses the default value ``'Unknown'``. This
+            is the hardcoded value in official form that we extract data from
+            hence for consistency reasons, the same default value have been
+            chosen.
+
+        If the country name could not be found, then value of ``1.0`` will be
+            returned as the **score**. The reason for this is that we assume that
+            the input country is not "famous" enough, hence we give lowest **score**
+            in World Bank dataset, i.e. = 1.0. Now, if instead of score, **rank** is
+            chosen, then the worst rank, i.e. ``150`` will be returned.
+
+        Args:
+            string (str): Name of a country
+
+        Returns:
+            float: Numerical value of the country
         """
+
         if string is None:
             string = 'Unknown'
         string = string.lower()
@@ -517,13 +662,15 @@ class EducationCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
 
 
 class EconomyCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
-    """
-    Handles `'Global Competitiveness Index'` indicator of
-        a `WorldBankDataframeProcessor` dataframe. The value ranges from 1 to 7 as the score
-        where higher is better.
+    """Handles ``'Global Competitiveness Index'`` indicator of
+        a `WorldBankDataframeProcessor` dataframe.
+        
+    The value ranges from 1 to 7 as the score where higher is better.
     """
 
     def __init__(self, dataframe: pd.DataFrame, subindicator_rank: bool = False) -> None:
+        """See `WorldBankDataframeProcessor` for more details.
+        """
         super().__init__(dataframe, subindicator_rank)
 
         self.INDICATOR_NAME = 'Global Competitiveness Index'
@@ -536,9 +683,10 @@ class EconomyCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
     @loggingdecorator(logger.name+'.WorldBankDataframeProcessor.EconomyCountryScoreDataframePreprocessor.func',
                       level=logging.DEBUG, output=False, input=True)
     def __indicator_filter(self) -> dict:
-        """
-        Filters the rows by a constant `INDICATOR_NAME` defined by class type and
-            drops corresponding columns used for filtering.
+        """Filters the rows by a constant `INDICATOR_NAME`
+
+        Returns: 
+            dict: A dictionary of ``country_name: score`` pairs.
         """
         dataframe = self.indicator_filter(indicator_name=self.INDICATOR_NAME)
         dataframe[dataframe.columns[0]] = dataframe[dataframe.columns[0]].apply(
@@ -548,8 +696,24 @@ class EconomyCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
     @loggingdecorator(logger.name+'.WorldBankDataframeProcessor.EconomyCountryScoreDataframePreprocessor.func',
                       level=logging.DEBUG, output=True, input=True)
     def convert_country_name_to_numeric(self, string: str) -> float:
-        """
-        Converts the name of a country into a numerical value.
+        """Converts the name of a country into a numerical value
+
+        If input `string` is None, uses the default value ``'Unknown'``. This
+            is the hardcoded value in official form that we extract data from
+            hence for consistency reasons, the same default value have been
+            chosen.
+
+        If the country name could not be found, then value of ``1.0`` will be
+            returned as the **score**. The reason for this is that we assume that
+            the input country is not "famous" enough, hence we give lowest **score**
+            in World Bank dataset, i.e. = 1.0. Now, if instead of score, **rank** is
+            chosen, then the worst rank, i.e. ``150`` will be returned.
+
+        Args:
+            string (str): Name of a country
+
+        Returns:
+            float: Numerical value of the country
         """
         if string is None:
             string = 'Unknown'
@@ -1179,8 +1343,10 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
 
 class FileTransform:
     """
-    A base class for applying transforms as a composable object over files. Any behavior
-        over the files itself (not the content by any means) must extend this class.
+    A base class for applying transforms as a composable object over files.
+    
+    Any behavior over the files itself (not the content of files)
+        must extend this class.
 
     """
 
@@ -1199,15 +1365,21 @@ class FileTransform:
 
 
 class CopyFile(FileTransform):
-    """
-    Only copies a file, a wrapper around `shutil`'s copying methods. 
+    """Only copies a file, a wrapper around `shutil`'s copying methods
+
     Default is set to 'cf', i.e. `shutil.copyfile`
+
+
+    Reference:
+        1. https://stackoverflow.com/a/30359308/18971263
+        2. https://docs.python.org/3/library/shutil.html#shutil.copyfile
+
     """
 
     def __init__(self, mode: str) -> None:
         super().__init__()
 
-        # see https://stackoverflow.com/a/30359308/18971263
+        # see 
         self.COPY_MODES = ['c', 'cf', 'c2']
         self.mode = mode if mode is not None else 'cf'
         self.__check_mode(mode=mode)
@@ -1223,25 +1395,28 @@ class CopyFile(FileTransform):
             shutil.copy2(src=src, dst=dst)
 
     def __check_mode(self, mode: str):
-        """
-        Checks copying mode to be in `shutil`
+        """Checks copying mode to be available in `shutil` [#]_
+
+        Args:
+            mode: copying mode in `shutil`, one of `'c'`, `'cf'`, `'c2'`
+
+        .. [#] https://docs.python.org/3/library/shutil.html#shutil.copyfile
         """
         if not mode in self.COPY_MODES:
-            raise ValueError(
-                'Mode {} does not exist, choose one of "{}".'.format(mode, self.COPY_MODES))
+            raise ValueError((f'Mode {mode} does not exist,', 
+                              f'choose one of "{self.COPY_MODES}".'))
 
 
 class MakeContentCopyProtectedMachineReadable(FileTransform):
-    """
-    reads a 'content-copy' protected PDF and removes this restriction
-        by saving a "printed" version of.
+    """reads a 'content-copy' protected PDF and removes this restriction
 
-    Ref: https://www.reddit.com/r/Python/comments/t32z2o/simple_code_to_unlock_all_readonly_pdfs_in/
+    Removing the protection is done by saving a "printed" version of via `pikepdf` [#]_
 
-    args:
-        file_name: file name, if None, considers all files in `src_path`
-        src: source file path
-        dst: destination (processed) file path 
+    Reference:
+        1. https://www.reddit.com/r/Python/comments/t32z2o/simple_code_to_unlock_all_readonly_pdfs_in/
+        2. https://pikepdf.readthedocs.io/en/latest/
+
+    .. [#]: https://pikepdf.readthedocs.io/en/latest/
     """
 
     def __init__(self) -> None:
@@ -1250,21 +1425,42 @@ class MakeContentCopyProtectedMachineReadable(FileTransform):
     @loggingdecorator(logger.name+'.FileTransform.MakeContentCopyProtectMachineReadable',
                       level=logging.DEBUG, input=True, output=False)
     def __call__(self, src: str, dst: str, *args: Any, **kwds: Any) -> Any:
+        """
+
+        Args:
+            src (str): source file to be processed
+            dst (str): destination to save the processed file
+
+        Returns:
+            Any: None
+        """
         pdf = pikepdf.open(src, allow_overwriting_input=True)
         pdf.save(dst)
 
 
 class FileTransformCompose:
-    """
-    Composes several transforms operating on files together, only applying functions
-        on files that match the keyword using a dictionary
+    """Composes several transforms operating on files together
 
+    The transforms should be tied to files with keyword and this will be only applying
+        functions on files that match the keyword using a dictionary
+    
+    Transformation dictionary over files in the following structure::
+        {
+            FileTransform: 'filter_str', 
+            ...,
+        }
+
+    Note:
+        Transforms will be applied in order of the keys in the dictionary
     """
 
     def __init__(self, transforms: dict) -> None:
         """
-        Transformation dictionary over files in the following structure::
-        {FileTransform: 'filter_str', ...}
+        
+        Args:
+            transforms: a dictionary of transforms, where the key is the instance of 
+                FileTransform and the value is the keyword that the transform will be
+                applied to
         """
         if transforms is not None:
             for k in transforms.keys():
@@ -1275,6 +1471,15 @@ class FileTransformCompose:
         self.transforms = transforms
 
     def __call__(self, src: str, dst: str, *args: Any, **kwds: Any) -> Any:
+        """Applies transforms in order
+
+        Args:
+            src (str): source file path to be processed
+            dst (str): destination to save the processed file
+
+        Returns:
+            Any: None
+        """
         for transform, file_filter in self.transforms.items():
             if file_filter in src:
                 transform(src, dst)
