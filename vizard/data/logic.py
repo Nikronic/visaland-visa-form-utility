@@ -10,9 +10,6 @@ import numpy as np
 from typing import Callable, List, Union, cast
 
 
-# TODO: extend issue #3 with aggregation methods experts suggest then implement them here
-# check TODOs in preprocessor.py file too
-
 class Logics:
     """Applies logics on different type of data resulting in summarized, expanded, or
         differently represented data
