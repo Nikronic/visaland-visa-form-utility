@@ -19,6 +19,22 @@ ACC = 1
 # convert weak accept to accept (=='w-acc' -> 'acc')
 @labeling_function()
 def lf_weak_accept(x: pd.Series) -> int:
+    """LabelFunction to convert *weak accept* to *accept*
+
+    In our dataset, following labels are used:
+
+        * 'acc': accept
+        * 'rej': reject
+        * 'w-acc': weak accept
+        * 'w-rej': weak reject
+        * 'no-idea': no idea
+
+    Args:
+        x (pd.Series): A series of our dataframe
+
+    Returns:
+        int: Returns `ACC` if the label is ``'w-acc'``, otherwise `ABSTAIN`.
+    """
     if x['VisaResult'] == 'w-acc':    # 3 == weak acc
         return ACC
     else:
@@ -27,6 +43,22 @@ def lf_weak_accept(x: pd.Series) -> int:
 # convert weak reject to reject (=='w-rej' -> 'rej')
 @labeling_function()
 def lf_weak_reject(x: pd.Series) -> int:
+    """LabelFunction to convert *weak reject* to *accept*
+
+    In our dataset, following labels are used:
+
+        * 'acc': accept
+        * 'rej': reject
+        * 'w-acc': weak accept
+        * 'w-rej': weak reject
+        * 'no-idea': no idea
+
+    Args:
+        x (pd.Series): A series of our dataframe
+
+    Returns:
+        int: Returns `REJ` if the label is ``'w-rej'``, otherwise `ABSTAIN`.
+    """
     if x['VisaResult'] == 'w-rej':  # 4 == weak rej
         return REJ
     else:
@@ -36,7 +68,16 @@ def lf_weak_reject(x: pd.Series) -> int:
 @labeling_function()
 def lf_no_idea(x: pd.Series) -> int:
     """
-    Ms. S's suggestion was that if she can't remember, then it's probably a `rej` (=rejected) case
+
+    Note:
+        Ms. S's suggestion was that if she can't remember,
+            then it's probably a `REJ` (=rejected) case
+
+    Args:
+        x (pd.Series): A series of our dataframe
+
+    Returns:
+        int: Returns `REJ` if the label is ``'no idea'``, otherwise `ABSTAIN`.
     """
     if x['VisaResult'] == 'no idea':  # 5 == no idea
         return REJ
