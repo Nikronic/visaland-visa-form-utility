@@ -14,6 +14,7 @@ import pikepdf
 from vizard.data.pdf import CanadaXFA
 from vizard.data import functional
 from vizard.data.constant import *
+from vizard.configs import CANADA_COUNTRY_CODE_TO_NAME
 # ours: helpers
 from vizard.utils.helpers import loggingdecorator
 # helpers
@@ -732,7 +733,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
         self.base_date = None  # the time forms were filled, considered "today" for forms
 
         # get country code to name dict
-        self.config_path = CONFIGS_PATH.CANADA_COUNTRY_CODE_TO_NAME.value
+        self.config_path = CANADA_COUNTRY_CODE_TO_NAME
         self.CANADA_COUNTRY_CODE_TO_NAME = self.config_csv_to_dict(
             self.config_path)
 
@@ -1113,8 +1114,6 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
                                               value=np.int16('0'))
             # drop all names
             self.column_dropper(string='Name', inplace=True)
-            # drop all addresses
-            self.column_dropper(string='Addr', inplace=True)
             # drop all Accompany=No and only rely on Accompany=Yes using binary state
             self.column_dropper(string='No', inplace=True)
             # applicant marriage status: string to integer
@@ -1190,7 +1189,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             # children's status
             children_tag_list = [
                 c for c in dataframe.columns.values if 'p1.SecB.Chd' in c]
-            CHILDREN_MAX_FEATURES = 6
+            CHILDREN_MAX_FEATURES = 7
             for i in range(len(children_tag_list) // CHILDREN_MAX_FEATURES):
                 # child's marriage status 01: string to integer
                 dataframe = self.change_dtype(col_name='p1.SecB.Chd.['+str(i)+'].ChdMStatus',
@@ -1263,8 +1262,8 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             # siblings' status
             siblings_tag_list = [
                 c for c in dataframe.columns.values if 'p1.SecC.Chd' in c]
-            SIBLINGS_MAX_FEATURES = 6
-            for i in range(len(siblings_tag_list) // CHILDREN_MAX_FEATURES):
+            SIBLINGS_MAX_FEATURES = 7
+            for i in range(len(siblings_tag_list) // SIBLINGS_MAX_FEATURES):
                 # sibling's marriage status 01: string to integer
                 dataframe = self.change_dtype(col_name='p1.SecC.Chd.['+str(i)+'].ChdMStatus',
                                               dtype=np.int16, if_nan='fill',

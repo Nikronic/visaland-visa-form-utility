@@ -149,6 +149,41 @@ class Logics:
             int: Result of counting
         """
         raise NotImplementedError
+    
+    def count_long_distance_family_resident(self, series: pd.Series) -> int:
+        """Counts the number of family members that are long distance resident
+        
+        Note:
+            Those who are living in another country may not be considered as
+                long distance resident. In that case, 
+                see `count_foreign_family_resident` for more info.
+
+        Args:
+            series (pd.Series): Pandas Series to be processed
+
+        Returns:
+            int: Result of counting
+        """
+
+        raise NotImplementedError
+
+    def count_foreign_family_resident(self, series: pd.Series) -> int:
+        """Counts the number of family members that are living in a foreign country
+        
+        Note:
+            This is an special case of `count_long_distance_family_resident` 
+                where those who are living in another country are treated
+                separately. In case you don't care, just use 
+                `count_long_distance_family_resident` instead.
+
+        Args:
+            series (pd.Series): Pandas Series to be processed
+
+        Returns:
+            int: Result of counting
+        """
+
+        raise NotImplementedError
 
 
 class CanadaLogics(Logics):
@@ -223,3 +258,85 @@ class CanadaLogics(Logics):
 
         counter = lambda y: np.sum(y != 0.)
         return reduce(lambda x, y: x + counter(y), series, 0)
+    
+    def count_long_distance_family_resident(self, series: pd.Series) -> int:
+        """Counts the number of family members that are long distance resident
+
+        This is being done comparing applicants' province with their families' province.
+        This will ignore 'deceased' too.
+        
+        Note:
+            Those who are living in another country (in our dataset as
+                "foreign") are not considered as long distance resident. In
+                that case, see `count_foreign_family_resident` for more info.
+
+        Args:
+            series (pd.Series): Pandas Series to be processed containing 
+                the residency state/province in string. In practice, 
+                any string different from applicant's province will be counted
+                as difference.
+
+        Examples:
+            >>> import pandas as pd
+            >>> from vizard.data.logic import CanadaLogics
+            >>> f = CanadaLogics().count_long_distance_family_resident
+            >>> s = pd.Series(['alborz', 'alborz', 'alborz', None, None, None, 'gilan', 'isfahan', None],
+            >>>    index=['p1.SecA.App.AppAddr', 1, 2, 3, 4, 5, 6, 7, 8])
+            >>> f(s)
+            2
+            >>> s1 = pd.Series(['alborz', 'alborz', 'alborz', 'alborz'], 
+            >>>    index=['p1.SecA.App.AppAddr', '1', '2', '3'])
+            >>> f(s1)
+            0
+
+        
+        Returns:
+            int: Result of counting
+        """
+
+        self.df = cast(pd.DataFrame, self.df)  # for mypy only
+
+        apps_loc: str = series['p1.SecA.App.AppAddr']
+        counter = lambda y: np.sum(np.invert(np.isin([y],
+                                             [apps_loc, None, 'foreign', 'deceased']),  # type: ignore
+                                             dtype=bool))  
+        return reduce(lambda x, y: x + counter(y), series, 0)
+
+    def count_foreign_family_resident(self, series: pd.Series) -> int:
+        """Counts the number of family members that are long distance resident
+
+        This is being done by only checking the literal value ``'foreign'``` in the
+            ``'*Addr'`` columns (address columns).
+        
+        Note:
+            Those who are living in another city are not considered as "foreign". In
+                that case, see `count_long_distance_family_resident` for more info.
+
+        Args:
+            series (pd.Series): Pandas Series to be processed containing 
+                the residency state/province in string. In practice, 
+                any string different from applicant's province will be counted
+                as difference.
+
+        Examples:
+            >>> import pandas as pd
+            >>> from vizard.data.logic import CanadaLogics
+            >>> f = CanadaLogics().count_foreign_family_resident
+            >>> s = pd.Series(['alborz', 'alborz', 'alborz', None, 'foreign', None, 'gilan', 'isfahan', None])
+            >>> f(s)
+            1
+            >>> s1 = pd.Series(['foreign', 'foreign', 'alborz', 'fars'])
+            >>> f(s1)
+            2
+            >>> s2 = pd.Series([None, None, 'alborz', 'fars'])
+            >>> f(s2)
+            0
+
+        Returns:
+            int: Result of counting
+        """
+
+        self.df = cast(pd.DataFrame, self.df)  # for mypy only
+
+        counter = lambda y: np.sum(np.isin([y], ['foreign']))  # type: ignore
+        return reduce(lambda x, y: x + counter(y), series, 0)  # type: ignore

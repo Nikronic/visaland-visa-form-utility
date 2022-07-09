@@ -14,11 +14,11 @@ In simple terms, if you added new samples, changed columns or anything that shou
 import pandas as pd
 # ours: data
 from vizard.data.constant import DOC_TYPES
+from vizard.data import functional
 from vizard.data.preprocessor import MakeContentCopyProtectedMachineReadable
 from vizard.data.preprocessor import CanadaDataframePreprocessor
 from vizard.data.preprocessor import FileTransformCompose
 from vizard.data.preprocessor import CopyFile
-from vizard.data import functional
 
 # devops
 import mlflow
@@ -33,6 +33,11 @@ import os
 
 # configure logging
 VERBOSITY = logging.DEBUG
+
+# Set up root logger, and add a file handler to root logger
+if not os.path.exists('artifacts'):
+    os.makedirs('artifacts')
+    os.makedirs('artifacts/logs')
 
 logger = logging.getLogger(__name__)
 logger.setLevel(VERBOSITY)
@@ -49,11 +54,6 @@ for __l in __libs:
 
 manager = enlighten.get_manager(sys.stderr)  # setup progress bar
 
-# Set up root logger, and add a file handler to root logger
-if not os.path.exists('artifacts'):
-    os.makedirs('artifacts')
-    os.makedirs('artifacts/logs')
-
 logger.info(
     '\t\t↓↓↓ Starting setting up configs: dirs, mlflow, dvc, etc ↓↓↓')
 # main path
@@ -64,7 +64,7 @@ DST_DIR = 'raw-dataset/all/'  # path to decrypted pdf
 # data versioning config
 PATH = DST_DIR[:-1] + '.pkl'  # path to source data, e.g. data.pkl file
 REPO = '/home/nik/visaland-visa-form-utility'
-VERSION = 'v1.0.2.1'  # the version it is GOING TO BE (the version you gonna `dvc add` and `git tag`)
+VERSION = 'v1.0.3'  # the version it is GOING TO BE (the version you gonna `dvc add` and `git tag`)
 # run `git tag` and use a newer version than anything with this pattern `vx.x.x` (without `-field-*`)
 
 # log experiment configs
