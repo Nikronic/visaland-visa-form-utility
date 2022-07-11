@@ -14,7 +14,7 @@ from typing import Any, Optional, Tuple, Union, cast
 
 class SeriesNoise:
     """
-    Adds different type noise (multiplicative or additive) to a `Pandas.Series`
+    Adds different type noise (multiplicative or additive) to a ``Pandas.Series``
 
     """
 
@@ -29,26 +29,28 @@ class SeriesNoise:
 
     def __check_dataframe_initialized(self) -> None:
         if self.df is None:
-            raise ValueError('You cannot use `series_*` functions before initializing main\
-                             main dataframe (`self.df`). Call `set_dataframe(df)` first.')
+            raise ValueError(('You cannot use `series_*` functions before initializing main',
+                             'main dataframe (`self.df`). Call `set_dataframe(df)` first.'))
 
     def set_dataframe(self, df: pd.DataFrame) -> None:
         """
         To initialize main dataframe if not initialized already at the time of 
-            instance creation, i.e. `... = SeriesNoise(...)`
+            instance creation, i.e. ``... = SeriesNoise(...)``
         
-        **Must be called before calling any of `series_*` functions.**
+        Note: 
+            Must be called before calling any of ``series_*`` functions.
         """
         self.df = df
 
     def normal_noise(self, mean: float, std: float,
                      size: Union[Tuple[int, ...], int]) -> np.ndarray:
         """
-        A wrapper around `Numpy.Generator.normal`. 
+        A wrapper around Numpy.Generator.normal_. 
 
         Dev may extend this method by adding features to it; e.g. adding it to 
             a pandas Series (see `self.add_normal_noise`)
 
+        .. _Numpy.Generator.normal: https://numpy.org/doc/stable/reference/random/generated/numpy.random.Generator.normal.html
         """
         return self.rng.normal(loc=mean, scale=std, size=size)
 
@@ -77,10 +79,12 @@ series_noise_utils = SeriesNoise(dataframe=None)
 
 def make_add_normal_noise_tf(column: str) -> TransformationFunction:
     """
-    A helper wrapper around `TransformationFunction`, here specifically for
-        `SeriesNoise.series_add_normal_noise` functions that will be only called
-        over continuous columns of the series `s` which can be manipulated using
-        given function `f` (here `=series_add_normal_noise`)
+    A helper wrapper around `TransformationFunction`
+    
+    Here specifically for `SeriesNoise.series_add_normal_noise` functions
+    that will be only called over continuous columns of the series ``s``
+    which can be manipulated using given function ``f`` 
+    (here `=series_add_normal_noise`)
     
     """
     return TransformationFunction(

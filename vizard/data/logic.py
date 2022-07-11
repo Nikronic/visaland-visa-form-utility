@@ -52,7 +52,8 @@ class Logics:
 
         Note:
             This should be used when the dataframe is modified outside of functions 
-                provided in this class. E.g.
+            provided in this class. E.g.
+            
                 ::
                     my_df: pd.DataFrame = ...
                     logics = Logics(dataframe=my_df)
@@ -78,8 +79,9 @@ class Logics:
 
         Note:
             Although this function updated the dataframe the class initialized with *inplace*,
-                but user must update the main dataframe outside of this class to make sure he/she
-                can use it via different tools. Simply put
+            but user must update the main dataframe outside of this class to make sure he/she
+            can use it via different tools. Simply put
+
                 ::
                     my_df: pd.DataFrame = ...
                     logics = Logics(dataframe=my_df)

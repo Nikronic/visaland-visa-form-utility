@@ -54,8 +54,8 @@ class PDFIO:
 
 
 class XFAPDF(PDFIO):
-    """
-    Contains functions and utility tools for dealing with XFA PDF documents.
+    """Contains functions and utility tools for dealing with XFA PDF documents.
+    
     """
 
     def __init__(self) -> None:
@@ -87,8 +87,8 @@ class XFAPDF(PDFIO):
         """Cleans the XML file extracted from XFA forms
 
         Since each form has its own format and issues, this method needs
-            to be implemented uniquely for each unique file/form which needs
-            to be specified using argument `type` that can be populated from `DOC_TYPES`.
+        to be implemented uniquely for each unique file/form which needs
+        to be specified using argument `type` that can be populated from `DOC_TYPES`.
 
         Args:
             xml (str): XML content

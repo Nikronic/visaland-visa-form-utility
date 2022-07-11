@@ -54,7 +54,8 @@ def dict_summarizer(d: dict, cutoff_term: str, KEY_ABBREVIATION_DICT: dict = Non
             mapping for values. Defaults to None.
 
     Returns:
-        dict: A dict with shortened keys by throwing away some part and using a
+        dict:
+            A dict with shortened keys by throwing away some part and using a
             abbreviation dictionary for both keys and values.
     """
 
@@ -111,7 +112,7 @@ def dict_to_csv(d: dict, path: str) -> None:
 
 
 def column_dropper(dataframe: pd.DataFrame, string: str, exclude: str = None,
-                   regex: bool = False, inplace: bool = True) -> Union[None, pd.DataFrame]:
+                   regex: bool = False, inplace: bool = True) -> Optional[pd.DataFrame]:
     """Takes a Pandas Dataframe and drops columns matching a pattern
 
     Args:
@@ -124,9 +125,10 @@ def column_dropper(dataframe: pd.DataFrame, string: str, exclude: str = None,
             operation. Defaults to True.
 
     Returns:
-        Union[None, pd.DataFrame]: Takes a Pandas Dataframe and searches for
+        Union[None, pd.DataFrame]:
+            Takes a Pandas Dataframe and searches for
             columns *containing* `string` in them either raw string or
-            regex (in latter case, use `regex=True`) and after `exclude`ing a
+            regex (in latter case, use `regex=True`) and after `exclude` ing a
             subset of them, drops the remaining *in-place*.
     """
 
@@ -171,8 +173,9 @@ def fillna_datetime(dataframe: pd.DataFrame, col_base_name: str, date: str, type
             non existing items (e.g. age of children for single person).
     
     Returns:
-        Union[None, pd.DataFrame]: A Pandas Dataframe that two columns of dates that
-            had no value (None) which was filled to the same date via `date`.
+        Union[None, pd.DataFrame]:
+            A Pandas Dataframe that two columns of dates that had no value (None)
+            which was filled to the same date via `date`.
     """
 
     if not one_sided:
@@ -202,23 +205,31 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
             extracting dates of same category
         new_col_name (str): The column name that extends `col_base_name` and will be
             the final column containing the period.
-        type (DOC_TYPES): `DOC_TYPE` used to use rules for matching tags and
+        type (DOC_TYPES): document type used to use rules for matching tags and
             filling appropriately
-        if_nan (Union[str, Callable, None], optional): What to do with `None`s (NaN).
+        if_nan (Union[str, Callable, None], optional): What to do with None s (NaN).
             Could be a function or predefined states as follow:
-                1. ``'skip'``: do nothing (i.e. ignore `None`'s). Defaults to 'skip'.
-        one_sided (str, optional): Different ways of filling empty date columns:
-                1. ``'right'``: Uses the `current_date` as the final time
-                2. ``'left'``: Uses the `reference_date` as the starting time.
-            Defaults to None.
-        reference_date (str, optional): Assumed `reference_date` (t0<t1).Defaults to None.
+
+            1. ``'skip'``: do nothing (i.e. ignore None s). Defaults to ``'skip'``.
+
+        one_sided (str, optional): Different ways of filling empty date columns.
+        Defaults to None. Could be one of the following:
+
+            1. ``'right'``: Uses the `current_date` as the final time
+            2. ``'left'``: Uses the `reference_date` as the starting time
+            
+        reference_date (str, optional): Assumed `reference_date` (t0<t1). Defaults to None.
         current_date (str, optional): Assumed `current_date` (t1>t0). Defaults to None.
-        default_datetime: accepts `datetime.datetime` to set default date
-            for `dateutil.parser.parse`
+        default_datetime: accepts `datetime.datetime` [#]_ to set default date
+            for `dateutil.parser.parse` [#]_.
 
     Returns:
-        pd.DataFrame: A Pandas Dataframe calculate the period of two columns of dates
+        pd.DataFrame:
+            A Pandas Dataframe calculate the period of two columns of dates
             and represent it in integer form. The two columns used will be dropped.
+
+    .. [#] https://docs.python.org/3/library/datetime.html
+    .. [#] https://dateutil.readthedocs.io/en/stable/parser.html
     """
 
     default_datetime = datetime.datetime(year=DATEUTIL_DEFAULT_DATETIME['year'],
@@ -315,26 +326,31 @@ def tag_to_regex_compatible(string: str, type: DOC_TYPES) -> str:
 
 def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: Callable,
                  if_nan: Union[str, Callable] = 'skip', **kwargs) -> pd.DataFrame:
-    """Changes the data type of a column with ability to fill `None`s
+    """Changes the data type of a column with ability to fill None s
 
     Args:
         dataframe (pd.DataFrame): Dataframe that `column_name` will be searched on
         col_name (str): Desired column name of the dataframe
-        dtype (Callable): target data type as a function e.g. `np.float32`
-        if_nan (Union[str, Callable], optional): What to do with `None`s (NaN).
-            Could be a function or predefined states as follow:
-                1. 'skip': do nothing (i.e. ignore `None`'s)
-                2. 'value': fill the `None` with `value` argument via ``kwargs``
-            Defaults to 'skip'.
-        default_datetime(optional): accepts `datetime.datetime` to set default date
-            for `dateutil.parser.parse`
+        dtype (Callable): target data type as a function e.g. ``np.float32``
+        if_nan (Union[str, Callable], optional): What to do with None s (NaN).
+            Defaults to ``'skip'``. Could be a function or predefined states as follow:
+
+            1. 'skip': do nothing (i.e. ignore None s)
+            2. 'value': fill the None with `value` argument via ``kwargs``
+
+        default_datetime(optional): accepts `datetime.datetime` [#]_ to set default date
+            for `dateutil.parser.parse` [#]_
+
+    .. [#] https://docs.python.org/3/library/datetime.html#datetime.datetime
+    .. [#] https://dateutil.readthedocs.io/en/stable/parser.html
 
     Raises:
         ValueError: if string mode passed to `if_nan` does not exist. It won't
             raise if `if_nan` is `Callable`.
     
     Returns:
-        pd.DataFrame: A Pandas Dataframe calculate the period of two columns of dates
+        pd.DataFrame: 
+            A Pandas Dataframe calculate the period of two columns of dates 
             and represent it in integer form. The two columns used will be dropped.
     """
 

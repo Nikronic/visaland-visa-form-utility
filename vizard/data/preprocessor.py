@@ -33,11 +33,12 @@ class DataframePreprocessor:
     """A wrapper around builtin Pandas functions to make it easier for our data values
 
     A class that contains methods for dealing with dataframes regarding
-        transformation of data such as filling missing values, dropping columns,
-        or aggregating multiple columns into a single more meaningful one.
+    transformation of data such as filling missing values, dropping columns,
+    or aggregating multiple columns into a single more meaningful one.
+
     This class needs to be extended for file specific preprocessing where tags are
-        unique and need to be done entirely manually.
-        In this case, `file_specific_preprocessor` needs to be implemented.
+    unique and need to be done entirely manually.
+    In this case, `file_specific_preprocessor` needs to be implemented.
     """
 
     def __init__(self, dataframe: pd.DataFrame = None) -> None:
@@ -56,7 +57,7 @@ class DataframePreprocessor:
         """Drop column(s) from a dataframe based on a string or regex
 
         Takes a Pandas Dataframe and searches for columns *containing* `string` in them either 
-            raw string or regex and after `exclude`ing a subset of them, drops the remaining.
+        raw string or regex and after `exclude`ing a subset of them, drops the remaining.
 
         Args:
             string (str): string to look for in `dataframe` columns
@@ -192,25 +193,29 @@ class UnitConverter:
     Contains utility tools for converting different units to each other.
 
     For including domain specific rules of conversion, extend this class for
-        each category.e.g. for finance.
+    each category.e.g. for finance.
     """
 
     def __init__(self) -> None:
         pass
 
-    def unit_converter(self, sparse: Union[float, None], dense: Union[float, None],
+    def unit_converter(self, sparse: Optional[float], dense: Optional[float],
                        factor: float) -> float:
-        """
-        convert `sparse` or `dense` to each other using
-            the rule of thump of `dense = (factor) sparse`.
+        """convert `sparse` or `dense` to each other using the rule of thump of ``dense = (factor) sparse``.
 
-        args:
-            sparse: the smaller/sparser amount which is a percentage of `dense`,\n
+        Args:
+            sparse (float, optional): the smaller/sparser amount which is a percentage of `dense`,
                 if provided calculates `sparse = (factor) dense`.
-            dense: the larger/denser amount which is a multiplication of `sparse`,\n
+            dense (float, optional): the larger/denser amount which is a multiplication of `sparse`,
                 if provided calculates `dense = (factor) sparse`
-            factor: sparse to dense factor, either directly provided as a\n
+            factor (float): sparse to dense factor, either directly provided as a
                 float number or as a predefined factor given by `constant.FINANCIAL_RATIOS`
+            
+        Raises:
+            ValueError: if `sparse` and `dense` are both None
+        
+        Returns:
+            float: the converted amount
         """
 
         if sparse is not None:
@@ -227,10 +232,11 @@ class FinancialUnitConverter(UnitConverter):
     """Contains utility tools for converting different financial units to each other.
 
     All functions that you implement should take the factor value using
-        `self.CONSTANTS['function_name']`. E.g.::
-
+    `self.CONSTANTS['function_name']`. E.g.:
+    ::
         def rent2deposit(self, rent: float) -> float:
-            self.unit_converter(sparse=rent, dense=None, factor=self.CONSTANTS['rent2deposit'])
+            self.unit_converter(sparse=rent, dense=None,
+                                factor=self.CONSTANTS['rent2deposit'])
 
     """
 
@@ -343,12 +349,13 @@ class FinancialUnitConverter(UnitConverter):
 
 
 class WorldBankXMLProcessor:
-    """
-    An XML processor which is customized ot handle data dumped from
-        https://data.worldbank.org/indicator (since it is used by mainstream, works for us too.)
+    """An XML processor which is customized ot handle data dumped from https://data.worldbank.org/indicator 
+        
+    Note:
+        Since it is used by mainstream, works for us too.
 
     It's recommended to extend this class to work with particular indicator by
-        first filtering by a "indicator", then manipulating the resulting dataframe.
+    first filtering by a "indicator", then manipulating the resulting dataframe.
 
     *Remark:* we prefer querying over `Pandas` dataframe than `lxml`
     """
@@ -373,14 +380,15 @@ class WorldBankXMLProcessor:
         """Aggregates using mean operation over all columns except name/index
 
         Values are scaled into [1, 7] range to match other
-            world bank data processors.
+        world bank data processors.
 
         In this scenario, pivots a row-based dataframe to column based 
-            for ``'Years'`` and aggregates over them to achieve
-            a 2-columns dataframe.
+        for ``'Years'`` and aggregates over them to achieve
+        a 2-columns dataframe.
 
         Returns:
-            dict: A dictionary of {string: float} where keys are country names
+            dict:
+                A dictionary of ``{string: float}`` where keys are country names
                 and values are the corresponding indicator values.
         """
         dataframe = self.dataframe
@@ -468,14 +476,14 @@ class WorldBankXMLProcessor:
         """Converts the name of a country into a numerical value
 
         If input `string` is None, uses the default value ``'Unknown'``. This
-            is the hardcoded value in official form that we extract data from
-            hence for consistency reasons, the same default value have been
-            chosen.
+        is the hardcoded value in official form that we extract data from
+        hence for consistency reasons, the same default value have been
+        chosen.
 
         If the country name could not be found, then value of ``1.0`` will be
-            returned. The reason for this is that we assume that the input country is
-            not "famous" enough, hence we give lowest score in World Bank dataset,
-            i.e. = 1.0.
+        returned. The reason for this is that we assume that the input country is
+        not "famous" enough, hence we give lowest score in World Bank dataset,
+        i.e. = 1.0.
 
         Args:
             string (str): Name of a country
@@ -492,17 +500,17 @@ class WorldBankXMLProcessor:
 
 
 class WorldBankDataframeProcessor:
-    """
-    A Pandas Dataframe processor which is customized to handle data dumped from [World Bank]_ 
+    """A Pandas Dataframe processor which is customized to handle data dumped from WorldBank_ 
         
+    It's recommended to extend this class to work with particular indicator by
+    first filtering by a indicator_ from WorldBank_ , then manipulating
+    the resulting dataframe.
+
     Note:
         Since it's used by mainstream, works for us too
 
-    It's recommended to extend this class to work with particular indicator by
-        first filtering by a [indicator]_ , then manipulating the resulting dataframe.
-
-    .. [World Bank]: https://govdata360.worldbank.org
-    .. [indicator]: https://data.worldbank.org/indicator
+    .. _WorldBank: https://govdata360.worldbank.org
+    .. _indicator: https://data.worldbank.org/indicator
     """
 
     def __init__(self, dataframe: pd.DataFrame, subindicator_rank: bool = False) -> None:
@@ -514,7 +522,7 @@ class WorldBankDataframeProcessor:
                 or score (continuous) for given `indicator_name`. In original World Bank
                 dataset, for some indicators, the score is discrete, while for others,
                 it's continuous and this flag controls which one to extract.
-                Defaults to `False`.
+                Defaults to False.
         """
         # set constants
         self.dataframe = dataframe
@@ -535,13 +543,13 @@ class WorldBankDataframeProcessor:
     @loggingdecorator(logger.name+'.WorldBankDataframeProcessor.func', level=logging.INFO,
                       output=True, input=True)
     def include_years(self, years: Tuple[Optional[int], Optional[int]] = None) -> None:
-        """Processes a dataframe to only include years given tuple of `years=(start, end)`.
+        """Processes a dataframe to only include years given tuple of ``years=(start, end)``.
 
         Works inplace, hence manipulates original dataframe.
 
         Args:
             years (Tuple[Optional[int], Optional[int]], optional): A tuple
-                of `(start, end)` to limit years of data. If None,
+                of ``(start, end)`` to limit years of data. If None,
                 all years will be included. Defaults to None.
         """
 
@@ -637,15 +645,15 @@ class EducationCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
         """Converts the name of a country into a numerical value
 
         If input `string` is None, uses the default value ``'Unknown'``. This
-            is the hardcoded value in official form that we extract data from
-            hence for consistency reasons, the same default value have been
-            chosen.
+        is the hardcoded value in official form that we extract data from
+        hence for consistency reasons, the same default value have been
+        chosen.
 
         If the country name could not be found, then value of ``1.0`` will be
-            returned as the **score**. The reason for this is that we assume that
-            the input country is not "famous" enough, hence we give lowest **score**
-            in World Bank dataset, i.e. = 1.0. Now, if instead of score, **rank** is
-            chosen, then the worst rank, i.e. ``150`` will be returned.
+        returned as the **score**. The reason for this is that we assume that
+        the input country is not "famous" enough, hence we give lowest **score**
+        in World Bank dataset, i.e. = 1.0. Now, if instead of score, **rank** is
+        chosen, then the worst rank, i.e. ``150`` will be returned.
 
         Args:
             string (str): Name of a country
@@ -663,8 +671,7 @@ class EducationCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
 
 
 class EconomyCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
-    """Handles ``'Global Competitiveness Index'`` indicator of
-        a `WorldBankDataframeProcessor` dataframe.
+    """Handles ``'Global Competitiveness Index'`` indicator of a `WorldBankDataframeProcessor` dataframe.
         
     The value ranges from 1 to 7 as the score where higher is better.
     """
@@ -700,15 +707,15 @@ class EconomyCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
         """Converts the name of a country into a numerical value
 
         If input `string` is None, uses the default value ``'Unknown'``. This
-            is the hardcoded value in official form that we extract data from
-            hence for consistency reasons, the same default value have been
-            chosen.
+        is the hardcoded value in official form that we extract data from
+        hence for consistency reasons, the same default value have been
+        chosen.
 
         If the country name could not be found, then value of ``1.0`` will be
-            returned as the **score**. The reason for this is that we assume that
-            the input country is not "famous" enough, hence we give lowest **score**
-            in World Bank dataset, i.e. = 1.0. Now, if instead of score, **rank** is
-            chosen, then the worst rank, i.e. ``150`` will be returned.
+        returned as the **score**. The reason for this is that we assume that
+        the input country is not "famous" enough, hence we give lowest **score**
+        in World Bank dataset, i.e. = 1.0. Now, if instead of score, **rank** is
+        chosen, then the worst rank, i.e. ``150`` will be returned.
 
         Args:
             string (str): Name of a country
@@ -1366,13 +1373,12 @@ class FileTransform:
 class CopyFile(FileTransform):
     """Only copies a file, a wrapper around `shutil`'s copying methods
 
-    Default is set to 'cf', i.e. `shutil.copyfile`
+    Default is set to 'cf', i.e. `shutil.copyfile`. For more info see
+    shutil_ documentation.
 
 
     Reference:
         1. https://stackoverflow.com/a/30359308/18971263
-        2. https://docs.python.org/3/library/shutil.html#shutil.copyfile
-
     """
 
     def __init__(self, mode: str) -> None:
@@ -1394,12 +1400,12 @@ class CopyFile(FileTransform):
             shutil.copy2(src=src, dst=dst)
 
     def __check_mode(self, mode: str):
-        """Checks copying mode to be available in `shutil` [#]_
+        """Checks copying mode to be available in shutil_
 
         Args:
             mode: copying mode in `shutil`, one of `'c'`, `'cf'`, `'c2'`
 
-        .. [#] https://docs.python.org/3/library/shutil.html#shutil.copyfile
+        .. _shutil: https://docs.python.org/3/library/shutil.html
         """
         if not mode in self.COPY_MODES:
             raise ValueError((f'Mode {mode} does not exist,', 
@@ -1409,13 +1415,13 @@ class CopyFile(FileTransform):
 class MakeContentCopyProtectedMachineReadable(FileTransform):
     """reads a 'content-copy' protected PDF and removes this restriction
 
-    Removing the protection is done by saving a "printed" version of via `pikepdf` [#]_
+    Removing the protection is done by saving a "printed" version of via pikepdf_
 
     Reference:
         1. https://www.reddit.com/r/Python/comments/t32z2o/simple_code_to_unlock_all_readonly_pdfs_in/
         2. https://pikepdf.readthedocs.io/en/latest/
 
-    .. [#]: https://pikepdf.readthedocs.io/en/latest/
+    .. _pikepdf: https://pikepdf.readthedocs.io/en/latest/
     """
 
     def __init__(self) -> None:
@@ -1441,9 +1447,10 @@ class FileTransformCompose:
     """Composes several transforms operating on files together
 
     The transforms should be tied to files with keyword and this will be only applying
-        functions on files that match the keyword using a dictionary
+    functions on files that match the keyword using a dictionary
     
-    Transformation dictionary over files in the following structure::
+    Transformation dictionary over files in the following structure:
+    ::
         {
             FileTransform: 'filter_str', 
             ...,
@@ -1460,6 +1467,9 @@ class FileTransformCompose:
             transforms: a dictionary of transforms, where the key is the instance of 
                 FileTransform and the value is the keyword that the transform will be
                 applied to
+
+        Raises:
+            ValueError: if the keyword is not a string
         """
         if transforms is not None:
             for k in transforms.keys():
@@ -1475,9 +1485,6 @@ class FileTransformCompose:
         Args:
             src (str): source file path to be processed
             dst (str): destination to save the processed file
-
-        Returns:
-            Any: None
         """
         for transform, file_filter in self.transforms.items():
             if file_filter in src:

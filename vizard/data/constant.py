@@ -174,9 +174,8 @@ class DOC_TYPES(Enum):
 
 # Cutoff terms for both keys and values
 class CANADA_CUTOFF_TERMS(Enum):
-    """
-    Dict of cut off terms for different files that is can be used with
-        'dict_summarizer' for `functional`
+    """Dict of cut off terms for different files that is can be used with `dict_summarizer`
+
     """
 
     ca5645e = 'IMM_5645'
