@@ -117,18 +117,18 @@ def column_dropper(dataframe: pd.DataFrame, string: str, exclude: str = None,
 
     Args:
         dataframe (pd.DataFrame): Pandas dataframe to be processed
-        string (str): string to look for in `dataframe` columns
+        string (str): string to look for in :attr:`dataframe` columns
         exclude (str, optional): string to exclude a subset of columns from
             being dropped. Defaults to None.
-        regex (bool, optional): compile `string` as regex. Defaults to False.
+        regex (bool, optional): compile :attr:`string` as regex. Defaults to False.
         inplace (bool, optional): whether or not use and inplace
             operation. Defaults to True.
 
     Returns:
         Union[None, pd.DataFrame]:
             Takes a Pandas Dataframe and searches for
-            columns *containing* `string` in them either raw string or
-            regex (in latter case, use `regex=True`) and after `exclude` ing a
+            columns *containing* :attr:`string` in them either raw string or
+            regex (in latter case, use ``regex=True``) and after :attr:`exclude` ing a
             subset of them, drops the remaining *in-place*.
     """
 
@@ -160,22 +160,22 @@ def fillna_datetime(dataframe: pd.DataFrame, col_base_name: str, date: str, type
             extracting dates of same category
         date (str): The desired date
         type (DOC_TYPES): Different ways of filling empty date columns:
-            1. ``'right'``: Uses the `current_date` as the final time
-            2. ``'left'``: Uses the `reference_date` as the starting time
+            1. ``'right'``: Uses the :attr:`current_date` as the final time
+            2. ``'left'``: Uses the :attr:`reference_date` as the starting time
         one_sided (Union[str, bool], optional): whether or not use an inplace
             operation. Defaults to False.
         inplace (bool, optional): `DOC_TYPE` used to use rules for matching tags and filling
             appropriately. Defaults to False.
 
     Notes:
-        In transformation operations such as `aggregate_datetime` function,
+        In transformation operations such as :func:`aggregate_datetime` function,
             this would be converted to period of zero. It is useful for filling periods of 
             non existing items (e.g. age of children for single person).
     
     Returns:
         Union[None, pd.DataFrame]:
             A Pandas Dataframe that two columns of dates that had no value (None)
-            which was filled to the same date via `date`.
+            which was filled to the same date via :attr:`date`.
     """
 
     if not one_sided:
@@ -203,7 +203,7 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
         dataframe (pd.DataFrame): Pandas dataframe to be processed
         col_base_name (str): Base column name that accepts ``'From'`` and ``'To'`` for
             extracting dates of same category
-        new_col_name (str): The column name that extends `col_base_name` and will be
+        new_col_name (str): The column name that extends :attr:`col_base_name` and will be
             the final column containing the period.
         type (DOC_TYPES): document type used to use rules for matching tags and
             filling appropriately
@@ -215,11 +215,11 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
         one_sided (str, optional): Different ways of filling empty date columns.
         Defaults to None. Could be one of the following:
 
-            1. ``'right'``: Uses the `current_date` as the final time
-            2. ``'left'``: Uses the `reference_date` as the starting time
+            1. ``'right'``: Uses the :atr:`current_date` as the final time
+            2. ``'left'``: Uses the :atr:`reference_date` as the starting time
             
-        reference_date (str, optional): Assumed `reference_date` (t0<t1). Defaults to None.
-        current_date (str, optional): Assumed `current_date` (t1>t0). Defaults to None.
+        reference_date (str, optional): Assumed :atr:`reference_date` (t0<t1). Defaults to None.
+        current_date (str, optional): Assumed :atr:`current_date` (t1>t0). Defaults to None.
         default_datetime: accepts `datetime.datetime` [#]_ to set default date
             for `dateutil.parser.parse` [#]_.
 
@@ -307,7 +307,7 @@ def tag_to_regex_compatible(string: str, type: DOC_TYPES) -> str:
 
     Note:
         This is specialized method and it may be better to override it for
-            your own case.
+        your own case.
 
     Args:
         string (str): input string to get manipulated

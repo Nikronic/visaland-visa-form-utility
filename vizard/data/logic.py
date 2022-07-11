@@ -11,11 +11,10 @@ from typing import Callable, List, Union, cast
 
 
 class Logics:
-    """Applies logics on different type of data resulting in summarized, expanded, or
-        differently represented data
+    """Applies logics on different type of data resulting in summarized, expanded, or transformed data
     
     Methods here are implemented in the way that can be used as `agg` [#]_ function
-        over `Pandas.Series` using `functools.reduce` [#]_.
+    over `Pandas.Series` using `functools.reduce` [#]_.
     
     Note: 
         This is constructed based on domain knowledge hence is designed 
@@ -35,13 +34,13 @@ class Logics:
         self.df = dataframe
 
     def __check_df(self, func: str) -> None:
-        """Checks that `self.df` is initialized when function with the name `func` is being called
+        """Checks that `self.df` is initialized when function with the name :attr:`func` is being called
 
         Args:
-            func (str): The name of the function that operates over `self.df`
+            func (str): The name of the function that operates over :attr:`self.df`
 
         Raises:
-            TypeError: If `self.df` is not initialized
+            TypeError: If :attr:`self.df` is not initialized
         """
         if self.df is None:
             raise TypeError(
@@ -53,13 +52,12 @@ class Logics:
         Note:
             This should be used when the dataframe is modified outside of functions 
             provided in this class. E.g.
-            
-                ::
-                    my_df: pd.DataFrame = ...
-                    logics = Logics(dataframe=my_df)
-                    my_df = third_party_tools(my_df)
-                    # now update df in logics
-                    logics.reset_dataframe(dataframe=my_df)
+            ::
+                my_df: pd.DataFrame = ...
+                logics = Logics(dataframe=my_df)
+                my_df = third_party_tools(my_df)
+                # now update df in logics
+                logics.reset_dataframe(dataframe=my_df)
 
         Args:
             dataframe (pd.DataFrame): The new dataframe
@@ -75,22 +73,21 @@ class Logics:
             aggregator (Callable): A function that takes multiple columns of a
                 series and reduces it
             agg_column_name (str): The name of new aggregated column
-            columns (list): Name of columns to be aggregated (i.e. input to `aggregator`)
+            columns (list): Name of columns to be aggregated (i.e. input to :attr:`aggregator`)
 
         Note:
             Although this function updated the dataframe the class initialized with *inplace*,
             but user must update the main dataframe outside of this class to make sure he/she
             can use it via different tools. Simply put
-
-                ::
-                    my_df: pd.DataFrame = ...
-                    logics = Logics(dataframe=my_df)
-                    my_df = logics.add_agg_column(...)
-                    my_df = third_party_tools(my_df)
-                    # now update df in logics
-                    logics.reset_dataframe(dataframe=my_df)
-                    # aggregate again...
-                    my_df = logics.add_agg_column(...)
+            ::
+                my_df: pd.DataFrame = ...
+                logics = Logics(dataframe=my_df)
+                my_df = logics.add_agg_column(...)
+                my_df = third_party_tools(my_df)
+                # now update df in logics
+                logics.reset_dataframe(dataframe=my_df)
+                # aggregate again...
+                my_df = logics.add_agg_column(...)
 
         Returns:
             pd.DataFrame: Updated dataframe that contains aggregated data
@@ -154,8 +151,8 @@ class Logics:
         
         Note:
             Those who are living in another country may not be considered as
-                long distance resident. In that case, 
-                see `count_foreign_family_resident` for more info.
+            long distance resident. In that case, 
+            see :func:`count_foreign_family_resident` for more info.
 
         Args:
             series (pd.Series): Pandas Series to be processed
@@ -170,10 +167,10 @@ class Logics:
         """Counts the number of family members that are living in a foreign country
         
         Note:
-            This is an special case of `count_long_distance_family_resident` 
-                where those who are living in another country are treated
-                separately. In case you don't care, just use 
-                `count_long_distance_family_resident` instead.
+            This is an special case of :func:`count_long_distance_family_resident` 
+            where those who are living in another country are treated
+            separately. In case you don't care, just use 
+            :func:`count_long_distance_family_resident` instead.
 
         Args:
             series (pd.Series): Pandas Series to be processed
@@ -187,7 +184,7 @@ class Logics:
 
 class CanadaLogics(Logics):
     """
-    Customize and extend logics defined in `logic.Logics` to Canada dataset.
+    Customize and extend logics defined in :class:`Logics` to Canada dataset.
 
     """
 
@@ -198,7 +195,7 @@ class CanadaLogics(Logics):
         """Counts the number of previous residency by counting non-zero periods of residency
 
         When ``*.Period == 0``, then we can say that the person has no residency.
-            This way one just needs to count non-zero periods.
+        This way one just needs to count non-zero periods.
 
         Args:
             series (pd.Series): Pandas Series to be processed containing
@@ -215,7 +212,7 @@ class CanadaLogics(Logics):
         """Counts the number of family members born in foreign country
         
         This has been hardcoded here by checking non-``'iran'``
-            country of birth.
+        country of birth.
 
         Args:
             series (pd.Series): Pandas Series to be processed containing 
@@ -266,8 +263,8 @@ class CanadaLogics(Logics):
         
         Note:
             Those who are living in another country (in our dataset as
-                "foreign") are not considered as long distance resident. In
-                that case, see `count_foreign_family_resident` for more info.
+            "foreign") are not considered as long distance resident. In
+            that case, see :func:`count_foreign_family_resident` for more info.
 
         Args:
             series (pd.Series): Pandas Series to be processed containing 
@@ -305,11 +302,11 @@ class CanadaLogics(Logics):
         """Counts the number of family members that are long distance resident
 
         This is being done by only checking the literal value ``'foreign'``` in the
-            ``'*Addr'`` columns (address columns).
+        ``'*Addr'`` columns (address columns).
         
         Note:
             Those who are living in another city are not considered as "foreign". In
-                that case, see `count_long_distance_family_resident` for more info.
+            that case, see :func:`count_long_distance_family_resident` for more info.
 
         Args:
             series (pd.Series): Pandas Series to be processed containing 
