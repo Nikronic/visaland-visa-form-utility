@@ -1,5 +1,6 @@
 # core
 import pandas as pd
+from snorkel.augmentation.policy.core import ApplyAllPolicy
 import torch
 # snorkel
 from snorkel.analysis import Scorer
@@ -53,7 +54,7 @@ logger.info(
 # data versioning config
 PATH = 'raw-dataset/all-dev.pkl'
 REPO = '/home/nik/visaland-visa-form-utility'
-VERSION = 'v1.1.0-dev'
+VERSION = 'v1.1.0.3-dev'
 # log experiment configs
 MLFLOW_EXPERIMENT_NAME = 'Snorkel for weak supervision of weak and unlabeled data'
 mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
@@ -150,25 +151,26 @@ logger.info('\t\t↑↑↑ Finishing inference on LabelModel ↑↑↑')
 logger.info(
     '\t\t↓↓↓ Starting augmentation by applying `TransformationFunction`s (TFs) ↓↓↓')
 # transformation functions
-augmentation.series_noise_utils.set_dataframe(df=data)
-tfs = [augmentation.Funds_tf, augmentation.DOBYear_tf]
+tf_compose = [
+    augmentation.AddCategoricalNoiseSiblingRelX(dataframe=data, row=0),
+    augmentation.AddCategoricalNoiseChildRelX(dataframe=data, row=0),
+    augmentation.AddNormalNoiseOccRowXPeriod(dataframe=data, row=1),
+    augmentation.AddNormalNoiseChildDOBX(dataframe=data, row=0),
+]
+tfs = augmentation.ComposeTFAugmentation(augments=tf_compose)()  # type: ignore
 # define policy for applying TFs
-# set `sequence_length = n_tfs` so all continuous fields of a entry get manipulated
-# set `n_per_original << n_tfs` so every change in continuous field does not create a new
-#   data; e.g. for changing 10 continuous fields (ages), generate only 2/3 new instances
-#   TODO: #20
-random_policy = RandomPolicy(n_tfs=len(tfs), sequence_length=len(tfs),
-                             n_per_original=1, keep_original=True)
+# TODO: #20
+all_policy = ApplyAllPolicy(n_tfs=len(tfs), #sequence_length=len(tfs),
+                            n_per_original=2, keep_original=True)
 
 # apply TFs to all data (labels are not used, so no worries currently)
-tf_applier = PandasTFApplier(tfs, random_policy)
+tf_applier = PandasTFApplier(tfs, all_policy)
 data_augmented = tf_applier.apply(data)
 # TF reports
 logger.info(f'Original dataset size: {len(data)}')
 logger.info(f'Augmented dataset size: {len(data_augmented)}')
-logger.info(preview_tfs(dataframe=data, tfs=tfs, n_samples=2))
-logger.info(
-    '\t\t↑↑↑ Finishing augmentation by applying `TransformationFunction`s ↑↑↑')
+logger.info(preview_tfs(dataframe=data, tfs=tfs, n_samples=8))
+logger.info('\t\t↑↑↑ Finishing augmentation by applying `TransformationFunction`s ↑↑↑')
 
 logger.info('\t\t↓↓↓ Starting slicing by applying `SlicingFunction`s (SFs) ↓↓↓')
 single_person_slice = slice_dataframe(data_augmented, slicing.single_person)
