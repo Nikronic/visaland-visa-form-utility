@@ -5,6 +5,7 @@ __all__ = [
 # helpers
 import functools
 import inspect
+from typing import Callable
 import warnings
 import logging
 
@@ -86,16 +87,26 @@ def deprecated(reason):
 # A Python decorator to log the function call and return value
 
 
-def loggingdecorator(name, level=logging.DEBUG, input=False, output=False):
-    """
+def loggingdecorator(name: str, level: int = logging.DEBUG,
+                     input: bool = False, output: bool = False) -> Callable:
+    """A decorator to log the function call and return value (i.e. signature)
 
-    args:
-        name: `name` in `logging.GetLogger(name)`
-        level: logging level, eg. INFO, DEBUG, etc
-        input: whether or not include the input of decorated function in logs
-        output: whether or not include the output of decorated function in logs
+    Args:
+        name (str): `name` in `logging.GetLogger(name)`
+        level (int, optional): logging level [#]_, eg. ``INFO``, ``DEBUG``, etc.
+            Defaults to ``DEBUG``.
+        input (bool, optional): whether or not include the input of
+            decorated function in logs. Defaults to False.
+        output (bool, optional): whether or not include the output of
+            decorated function in logs. Defaults to False.
 
-    ref: https://machinelearningmastery.com/logging-in-python/
+    .. [#] https://docs.python.org/3/library/logging.html#levels
+
+    Reference:
+        * https://machinelearningmastery.com/logging-in-python/
+
+    Returns:
+        Callable: A callable decorator
     """
     logger = logging.getLogger(name)
 

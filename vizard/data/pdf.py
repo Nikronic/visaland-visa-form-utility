@@ -22,8 +22,8 @@ logger = logging.getLogger(__name__)
 
 
 class PDFIO:
-    """
-    Base class for dealing with PDF files
+    """Base class for dealing with PDF files
+
     """
 
     def __init__(self) -> None:
@@ -54,8 +54,8 @@ class PDFIO:
 
 
 class XFAPDF(PDFIO):
-    """
-    Contains functions and utility tools for dealing with XFA PDF documents.
+    """Contains functions and utility tools for dealing with XFA PDF documents.
+    
     """
 
     def __init__(self) -> None:
@@ -64,10 +64,15 @@ class XFAPDF(PDFIO):
 
     @loggingdecorator(logger.name+'.XFAPDF.func', level=logging.DEBUG, output=False)
     def extract_raw_content(self, pdf_path: str) -> str:
-        """
-        Extracts RAW content of XFA PDF files which are in XML.
+        """Extracts RAW content of XFA PDF files which are in XML format.
 
-        Ref: https://towardsdatascience.com/how-to-extract-data-from-pdf-forms-using-python-10b5e5f26f70
+        Args:
+            pdf_path (str): path to the pdf file
+
+        Reference:
+            * https://towardsdatascience.com/how-to-extract-data-from-pdf-forms-using-python-10b5e5f26f70
+        Returns:
+            str: XFA object of the pdf file in XML format
         """
 
         pdfobject = open(pdf_path, 'rb')
@@ -79,15 +84,19 @@ class XFAPDF(PDFIO):
         return xml
 
     def clean_xml_for_csv(self, xml: str, type: Enum) -> str:
-        """
-        Cleans the XML file extracted from XFA forms
-        Remark: since each form has its own format and issues, this method needs
-            to be implemented uniquely for each unique file/form which needs
-            to be specified using argument `type` that can be populated from `DOC_TYPES`.
+        """Cleans the XML file extracted from XFA forms
 
-        args:
-            xml: A string containing XML code
-            str: The type of XFA form (e.g. 5257e, 5645e,)
+        Since each form has its own format and issues, this method needs
+        to be implemented uniquely for each unique file/form which needs
+        to be specified using argument `type` that can be populated from `DOC_TYPES`.
+
+        Args:
+            xml (str): XML content
+            type (Enum): type of the document defined
+                in `vizard.data.constant.DOC_TYPES`
+
+        Returns:
+            str: cleaned XML content to be used in CSV file
         """
 
         raise NotImplementedError
@@ -116,36 +125,56 @@ class XFAPDF(PDFIO):
 
     @loggingdecorator(logger.name+'.XFAPDF.func', level=logging.DEBUG, output=False)
     def flatten_dict(self, d: dict) -> dict:
-        """
-        Takes a (nested) multilevel dictionary and flattens it where the final keys are key.key....
-            and values are the leaf values of dictionary.
+        """Takes a (nested) multilevel dictionary and flattens it
 
-        ref: https://stackoverflow.com/a/67744709/18971263
-        args:
-            d: A dictionary  
-            return: An ordered dict
+        The final keys are ``key.key...`` and values are the leaf values of dictionary
+
+        Args:
+            d (dict): A dictionary
+
+        Reference:
+            * https://stackoverflow.com/a/67744709/18971263
+
+        Returns:
+            dict: A flattened dictionary
         """
         return functional.flatten_dict(d=d)
 
     @loggingdecorator(logger.name+'.XFAPDF.func', level=logging.DEBUG, output=False)
     def xml_to_flattened_dict(self, xml: str) -> dict:
-        """
-        Takes a (nested) XML and flattens it to a dict where the final keys are key.key....
-            and values are the leaf values of XML tree.
+        """Takes a (nested) XML and converts it to a flattened dictionary
 
-        args:
-            xml: A XML string
+        The final keys are ``key.key...`` and values are the leaf values of XML tree
+
+        Args:
+            xml (str): A XML string
+
+        Returns:
+            dict: A flattened dictionary
         """
         return functional.xml_to_flattened_dict(xml=xml)
 
 
 class CanadaXFA(XFAPDF):
+    """Handles Canada XFA PDF files
+
+    """
     def __init__(self) -> None:
         super().__init__()
         self.logger = logging.getLogger(logger.name+'.CanadaXFA')
 
     @loggingdecorator(logger.name+'.CanadaXFA.func', level=logging.DEBUG, output=False)
     def clean_xml_for_csv(self, xml: str, type: Enum) -> str:
+        """Hardcoded cleaning of Canada XFA XML files to be XML compatible with CSV
+
+        Args:
+            xml (str): XML content
+            type (Enum): type of the document defined
+                in `vizard.data.constant.DOC_TYPES`
+
+        Returns:
+            str: cleaned XML content to be used in CSV file
+        """
         if type == DOC_TYPES.canada_5257e:
             # remove bad characters
             xml = re.sub(r"b'\\n", '', xml)
