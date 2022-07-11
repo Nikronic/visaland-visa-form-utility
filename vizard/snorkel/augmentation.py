@@ -148,20 +148,18 @@ class SeriesNoise:
             s (pd.Series): Pandas Series to be manipulated (from `self.df`)
             column (str): corresponding column in `self.df` and `s` 
             categories (dict): dictionary of categories to switch to
-            kwargs (dict): keyword arguments for [numpy.random.Generator.choice]_
+            kwargs (dict): keyword arguments for _numpy.random.Generator.choice
 
         Returns:
             pd.Series: Categorically shuffled `column` of `s`
         
-        .. [#] https://numpy.org/doc/stable/reference/random/generated/numpy.random.Generator.choice.html
+        .. [numpy.random.Generator.choice]: https://numpy.org/doc/stable/reference/random/generated/numpy.random.Generator.choice.html
 
         """
         self.__check_dataframe_initialized()
         self.df = cast(pd.DataFrame, self.df)
         if s[column] not in categories.keys():
             raise ValueError(f'{s[column]} not in {categories}')
-        # TODO: do a proper checking here, if bad input, raise valueerror exception
-        
 
         if s[column] in categories[s[column]]:
             raise ValueError((f'key "{s[column]}" cannot also exist in',
@@ -176,16 +174,16 @@ class TFAugmentation:
 
     Notes:
         User must create new class that subclasses this and write domain/dataset
-            specific methods for his/her case. For instance, if you need to add
-            augmentation to a class with "age" value, then extend this class,
-            add new method e.g. ``[add_noise_]age``.
+        specific methods for his/her case. For instance, if you need to add
+        augmentation to a class with "age" value, then extend this class,
+        add new method e.g. ``[add_noise_]age``.
         
         At the moment, the goal is to use this base to include all core augmentation
-            methods that could be used anywhere but subclassing them,
-            such as continuous noises, shuffling, etc.
-            And make sure that any class that subclass this, should integrate 
-            `snorkel.TransformationFunction` to be usable in `snorkel` pipeline.
-            See `CanadaTFAugmentation` for instance of implementation and usage.
+        methods that could be used anywhere but subclassing them,
+        such as continuous noises, shuffling, etc.
+        And make sure that any class that subclass this, should integrate 
+        `snorkel.TransformationFunction` to be usable in `snorkel` pipeline.
+        See `CanadaTFAugmentation` for instance of implementation and usage.
 
     """
 
@@ -210,8 +208,8 @@ class TFAugmentation:
 
         Note:
             Currently only `func`s that work on `pd.Series` that work on single `column`
-                are supported as the API is designed this way. But, it could be easily
-                modified to support any sort of function.
+            are supported as the API is designed this way. But, it could be easily
+            modified to support any sort of function.
 
         Args:
             func (Callable): A callable that
@@ -225,8 +223,9 @@ class TFAugmentation:
             kwargs: keyword arguments to `func`
 
         Returns:
-            TransformationFunction: A callable object that is now compatible with
-                `snorkel` transformation pipeline, e.g. ``Policy`` and ``TFApplier``
+            TransformationFunction:
+            A callable object that is now compatible with
+            `snorkel` transformation pipeline, e.g. ``Policy`` and ``TFApplier``
         """
 
         column = kwargs.pop('column')
@@ -284,8 +283,8 @@ class ComposeTFAugmentation(TFAugmentation):
         """Takes a list of `TFAugmentation` and converts to `snorkel.TransformationFunction`
 
         Returns:
-            list[TransformationFunction]: A list of objects that instantiate
-                `snorkel.TransformationFunction` 
+            list[TransformationFunction]:
+            A list of objects that instantiate `snorkel.TransformationFunction` 
         """
         augments_tf: list[TransformationFunction] = []
         for aug in self.augments:
@@ -299,9 +298,9 @@ class AddNormalNoiseDOBYear(SeriesNoise, TFAugmentation):
     """Add normal noise to ``'P1.PD.DOBYear.Period'``
 
     This methods makes sure that by adding noise, the age does not
-        fall into a new category. See `categorize_age` for more info.
+    fall into a new category. See `categorize_age` for more info.
     In other words, we make sure a normal noise is defined within range of
-        each category, hence always noisy data will stay in same category.
+    each category, hence always noisy data will stay in same category.
     """
     def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
         """
@@ -345,9 +344,9 @@ class AddNormalNoiseChildDOBX(SeriesNoise, TFAugmentation):
     """Add normal noise to ``'p1.SecB.Chd.[X].ChdDOB.Period'``
 
     This methods makes sure that by adding noise, the age does not
-        fall into a new category. See `categorize_age` for more info.
+    fall into a new category. See `categorize_age` for more info.
     In other words, we make sure a normal noise is defined within range of
-        each category, hence always noisy data will stay in same category.
+    each category, hence always noisy data will stay in same category.
     
     """
     def __init__(self, dataframe: Optional[pd.DataFrame], row: int) -> None:
@@ -439,8 +438,8 @@ class AddNormalNoiseDateOfMarr(SeriesNoise, TFAugmentation):
     """Add normal noise to ``'P1.MS.SecA.DateOfMarr.Period'``
 
     Entries where value of `column` in `s` is zero will be ignored. I.e.
-        those who are "single" would stay single where "single" means
-        "non-married" and "previously married"
+    those who are "single" would stay single where "single" means
+    "non-married" and "previously married"
 
     """
     def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
@@ -470,7 +469,7 @@ class AddNormalNoiseOccRowXPeriod(SeriesNoise, TFAugmentation):
     """Add normal noise to ``'P3.Occ.OccRowX.Period'``
 
     Entries where value of `column` in `s` is zero will be ignored. I.e.
-        those who are "uneducated" would stay educated.
+    those who are "uneducated" would stay educated.
 
     """
     def __init__(self, dataframe: Optional[pd.DataFrame], row: int) -> None:
@@ -514,9 +513,9 @@ class AddNormalNoiseHLS(SeriesNoise, TFAugmentation):
     """Add normal noise to ``'P3.DOV.PrpsRow1.HLS.Period'``
 
     Entries where value of `column` in `s` is below 14 (2 weeks)
-        only will receive truncated noise with positive value. Also,
-        no value after getting noisy could be under 14. In simple terms, 
-        all values have to be above 14.
+    only will receive truncated noise with positive value. Also,
+    no value after getting noisy could be under 14. In simple terms, 
+    all values have to be above 14.
     I.e. (conditions):
 
         * if below 14 (or smaller) -> just add + noise
@@ -568,13 +567,13 @@ class AddCategoricalNoiseChildRelX(SeriesNoise, TFAugmentation):
     """Add categorical noise to ``'p1.SecB.Chd.[row].ChdRel'``
 
     Entries where child exists (i.e. != 'other'), will be shuffled
-        randomly based on Bernoulli trial. Note that it only changes
-        the gender not relation level. Possible cases:
+    randomly based on Bernoulli trial. Note that it only changes
+    the gender not relation level. Possible cases:
 
-            * 'son' -> 'daughter'
-            * 'step son' -> 'step daughter'
-            * 'daughter' -> 'son'
-            * 'step daughter' -> 'step son'
+        * 'son' -> 'daughter'
+        * 'step son' -> 'step daughter'
+        * 'daughter' -> 'son'
+        * 'step daughter' -> 'step son'
 
     """
     def __init__(self, dataframe: Optional[pd.DataFrame], row: int) -> None:
@@ -619,14 +618,14 @@ class AddCategoricalNoiseSiblingRelX(SeriesNoise, TFAugmentation):
     """Add categorical noise to ``'p1.SecC.Chd.[row].ChdRel'``
 
     Entries where sibling exists (i.e. != 'other'), will be shuffled
-        randomly based on Bernoulli trial. Note that it only changes
-        the gender not relation level. Possible cases:
+    randomly based on Bernoulli trial. Note that it only changes
+    the gender not relation level. Possible cases:
 
-            * 'brother' -> 'sister'
-            * 'step brother' -> 'step sister'
-            * 'sister' -> 'brother'
-            * 'step sister' -> 'step brother'
-            * 'other' -> 'other'
+        * 'brother' -> 'sister'
+        * 'step brother' -> 'step sister'
+        * 'sister' -> 'brother'
+        * 'step sister' -> 'step brother'
+        * 'other' -> 'other'
 
     """
     def __init__(self, dataframe: Optional[pd.DataFrame], row: int) -> None:
@@ -671,20 +670,21 @@ class AddCategoricalNoiseSex(SeriesNoise, TFAugmentation):
     """Add categorical noise to ``'P1.PD.Sex.Sex'``
 
     For entries that are married, swaps the sex of applicant and 
-        his/her spouse. In the current data extraction, there is no information
-        to link an applicant to his/her spouse, so we can easily do this
-        by simply changing the sex of the applicant.
-    
-    To detect if an applicant is married, column `p1.SecA.App.ChdMStatus`
-        is being used for conditioning where `... == 5` means 'married'.
+    his/her spouse. In the current data extraction, there is no information
+    to link an applicant to his/her spouse, so we can easily do this
+    by simply changing the sex of the applicant.
+
+    To detect if an applicant is married, column ``'p1.SecA.App.ChdMStatus'``
+    is being used for conditioning where ``... == 5`` means 'married'.
 
     Possible cases:
+
         * 'Male' -> 'Female'
         * 'Female' -> 'Male'
     
     Notes:
         If in future, we linked families to each other in dataset, this
-            method needs to be extended to change sex of the spouse too. 
+        method needs to be extended to change sex of the spouse too. 
 
     """
     def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
