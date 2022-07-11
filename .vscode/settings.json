@@ -36,5 +36,6 @@
         "XFAPDF"
     ],
     "python.linting.mypyEnabled": true,
-    "python.linting.enabled": true
+    "python.linting.enabled": true,
+    "terminal.integrated.shellIntegration.enabled": true
 }
