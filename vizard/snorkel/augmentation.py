@@ -170,6 +170,75 @@ class SeriesNoise:
         # switch
         s[column] = self.rng.choice([categories[s[column]]], **kwargs)
         return s
+    
+    def ordered_noise(self, x: int, lb: int, ub: int) -> int:
+        """Adds ±1 noise with respect to given lower/upper bound
+
+        Note:
+            lower bound is inclusive, upper bound is exclusive. Also, if
+            no noise can be added, the original value is returned which only
+            occurs when the noisy value is outside of the lower/upper bound.
+
+        Example:
+            >>> noise = SeriesNoise()
+            >>> noise.ordered_noise(lb=1, ub=4, x=2)
+            3 or 2
+            >>> noise.ordered_noise(lb=1, ub=4, x=1)
+            2
+            >>> noise.ordered_noise(lb=1, ub=4, x=3)
+            2
+
+        Args:
+            x (int): the value to add noise too (has to be inside ``[lb, ub]``)
+            lb (int): lower bound for noisy value
+            ub (int): upper bound for noise value
+
+        Returns:
+            int: `x` ± 1
+        """
+        # check if lb <= x <= ub
+        if lb > x or x > ub:
+            raise ValueError(f'{lb} <= {x} <= {ub}')
+
+        noise_neg = x - 1
+        noise_pos = x + 1
+        rand = self.rng.random()
+        has_neg_noise = False
+        has_pos_noise = False
+        if noise_neg >= lb:
+            has_neg_noise = True
+        if noise_pos < ub:
+            has_pos_noise = True
+        if has_neg_noise and has_pos_noise:
+            return noise_neg if rand < 0.5 else noise_pos
+        if has_neg_noise and not has_pos_noise:
+            return noise_neg
+        if not has_neg_noise and has_pos_noise:
+            return noise_pos
+        return x
+
+    def series_add_ordered_noise(self, s: pd.Series, column: str, lb: int, ub: int) -> pd.Series:
+        """Takes a pandas Series and corresponding column and replaces it with ordered noise of it
+
+        For more information on ordered noise, see :func:`ordered_noise`.
+
+        Args:
+            s (pd.Series): Pandas Series to be manipulated (from `self.df`)
+            column (str): corresponding column in `self.df` and `s` 
+            lb (int): lower bound for noisy value
+            ub (int): upper bound for noise value
+
+        Returns:
+            pd.Series: Noisy `column` of `s`
+        """
+        self.__check_dataframe_initialized()
+        self.df = cast(pd.DataFrame, self.df)
+        assert np.isscalar(s[column])
+
+        # add noise
+        noise: int = self.ordered_noise(x=s[column], lb=lb, ub=ub)
+        s[column] = noise
+        return s
 
 
 class TFAugmentation:
@@ -259,6 +328,18 @@ class TFAugmentation:
         """
         if row < lb or row > ub:
             raise ValueError(f'Row must be between {lb} and {ub}, got {row}')
+
+    def check_valid_section(self, section: str, sections: list) -> None:
+        """Check if the section is valid. Practically, this is a search in list
+
+        Args:
+            section (str): which section of the column
+            sections (list): list of valid sections
+        Raises:
+            ValueError: if `section` is not inside the `sections` list
+        """
+        if section not in sections:
+            raise ValueError(f'Section must be in {sections}, got {section}')
 
 
 class ComposeTFAugmentation(TFAugmentation):
@@ -716,6 +797,61 @@ class AddCategoricalNoiseSex(SeriesNoise, TFAugmentation):
         if s[COND_COLUMN] == 5:  # if married
             s = self.categorical_switch_noise(s=s, column=COLUMN,
                                               categories=self.CATEGORIES)
+        return s
+
+
+class AddOrderedNoiseChdAccomp(SeriesNoise, TFAugmentation):
+    """Add ordered noise to ``'p1.Sec[sec].Chd.X.ChdAccomp.Count'``
+
+    These entries are bounded by other columns but always have to be
+    >= 0. Hence, when we want to add noise, we need to make sure that
+    the noise is not an *edge* case.
+    *edge* case for these columns are:
+
+        * ``'p1.Sec[sec].Chd.X.ChdAccomp.Count' = 0`` -> this means that no
+        one is accompanying the applicant, hence adding a noise would be
+        too much of a change.
+        * ``'p1.Sec[sec].Chd.X.ChdAccomp.Count' = 'p1.Sec[sec].Chd.X.ChdRel.ChdCount'`` -> this
+        means that everyone is accompanying the applicant, hence adding a noise means
+        that a close family member is staying and this is also too much of a change.
+    
+    So, we need to check two things:
+        1. if the input entry is *edge* case, skip adding noise
+        2. if the input entry is not *edge* case, add noise
+        but only if the adding noise does not make the entry *edge*y.
+
+    """
+    def __init__(self, dataframe: Optional[pd.DataFrame], sec: str) -> None:
+        """
+
+        Args:
+            sec (str): which section to use for the ordered noise. Here
+                it could be 'B' or 'C' where it is children and siblings respectively.
+        """
+        super().__init__(dataframe)
+        self.check_valid_section(sec, ['B', 'C'])
+
+        # values to add noise based on a categorization
+        self.COLUMN = f'p1.Sec{sec}.Chd.X.ChdAccomp.Count'
+        self.HELPER_COLUMN = f'p1.Sec{sec}.Chd.X.ChdRel.ChdCount'
+    
+    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+        """Augment the series for the predetermined column
+
+        Args:
+            s (pd.Series): A pandas series to get noisy on a fixed column
+
+        Returns:
+            pd.Series: Noisy `self.COLUMN` of `s`
+        """
+
+        COLUMN = self.COLUMN
+        helper_column = self.HELPER_COLUMN
+
+        if (s[COLUMN] > 0.) and (s[COLUMN] < s[helper_column]):
+            s = self.series_add_ordered_noise(s=s, column=COLUMN, 
+                                              lb=1, ub=s[helper_column])
+            
         return s
 
 
