@@ -54,9 +54,9 @@ logger.info(
 # data versioning config
 PATH = 'raw-dataset/all-dev.pkl'
 REPO = '/home/nik/visaland-visa-form-utility'
-VERSION = 'v1.1.0.3-dev'
+VERSION = 'v1.2.1-dev'
 # log experiment configs
-MLFLOW_EXPERIMENT_NAME = 'Snorkel for weak supervision of weak and unlabeled data'
+MLFLOW_EXPERIMENT_NAME = 'snorkel augmentation for "p1.SecX.Chd.X.ChdAccomp.Count"'
 mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
 MLFLOW_TAGS = {
     'stage': 'dev'  # dev, beta, production
@@ -152,10 +152,8 @@ logger.info(
     '\t\t↓↓↓ Starting augmentation by applying `TransformationFunction`s (TFs) ↓↓↓')
 # transformation functions
 tf_compose = [
-    augmentation.AddCategoricalNoiseSiblingRelX(dataframe=data, row=0),
-    augmentation.AddCategoricalNoiseChildRelX(dataframe=data, row=0),
-    augmentation.AddNormalNoiseOccRowXPeriod(dataframe=data, row=1),
-    augmentation.AddNormalNoiseChildDOBX(dataframe=data, row=0),
+    augmentation.AddOrderedNoiseChdAccomp(dataframe=data, sec='B'),
+    augmentation.AddOrderedNoiseChdAccomp(dataframe=data, sec='C')
 ]
 tfs = augmentation.ComposeTFAugmentation(augments=tf_compose)()  # type: ignore
 # define policy for applying TFs
@@ -169,7 +167,10 @@ data_augmented = tf_applier.apply(data)
 # TF reports
 logger.info(f'Original dataset size: {len(data)}')
 logger.info(f'Augmented dataset size: {len(data_augmented)}')
-logger.info(preview_tfs(dataframe=data, tfs=tfs, n_samples=8))
+cond1 = (data['p1.SecB.Chd.X.ChdAccomp.Count'] > 0) & (data['p1.SecB.Chd.X.ChdRel.ChdCount'] > data['p1.SecB.Chd.X.ChdAccomp.Count'])
+cond2 = (data['p1.SecC.Chd.X.ChdAccomp.Count'] > 0) & (data['p1.SecC.Chd.X.ChdRel.ChdCount'] > data['p1.SecC.Chd.X.ChdAccomp.Count'])
+cond = cond1 | cond2
+logger.info(preview_tfs(dataframe=data[cond], tfs=tfs, n_samples=16))
 logger.info('\t\t↑↑↑ Finishing augmentation by applying `TransformationFunction`s ↑↑↑')
 
 logger.info('\t\t↓↓↓ Starting slicing by applying `SlicingFunction`s (SFs) ↓↓↓')
