@@ -170,6 +170,75 @@ class SeriesNoise:
         # switch
         s[column] = self.rng.choice([categories[s[column]]], **kwargs)
         return s
+    
+    def ordered_noise(self, x: int, lb: int, ub: int) -> int:
+        """Adds ±1 noise with respect to given lower/upper bound
+
+        Note:
+            lower bound is inclusive, upper bound is exclusive. Also, if
+            no noise can be added, the original value is returned which only
+            occurs when the noisy value is outside of the lower/upper bound.
+
+        Example:
+            >>> noise = SeriesNoise()
+            >>> noise.ordered_noise(lb=1, ub=4, x=2)
+            3 or 2
+            >>> noise.ordered_noise(lb=1, ub=4, x=1)
+            2
+            >>> noise.ordered_noise(lb=1, ub=4, x=3)
+            2
+
+        Args:
+            x (int): the value to add noise too (has to be inside ``[lb, ub]``)
+            lb (int): lower bound for noisy value
+            ub (int): upper bound for noise value
+
+        Returns:
+            int: `x` ± 1
+        """
+        # check if lb <= x <= ub
+        if lb > x or x > ub:
+            raise ValueError(f'{lb} <= {x} <= {ub}')
+
+        noise_neg = x - 1
+        noise_pos = x + 1
+        rand = self.rng.random()
+        has_neg_noise = False
+        has_pos_noise = False
+        if noise_neg >= lb:
+            has_neg_noise = True
+        if noise_pos < ub:
+            has_pos_noise = True
+        if has_neg_noise and has_pos_noise:
+            return noise_neg if rand < 0.5 else noise_pos
+        if has_neg_noise and not has_pos_noise:
+            return noise_neg
+        if not has_neg_noise and has_pos_noise:
+            return noise_pos
+        return x
+
+    def series_add_ordered_noise(self, s: pd.Series, column: str, lb: int, ub: int) -> pd.Series:
+        """Takes a pandas Series and corresponding column and replaces it with ordered noise of it
+
+        For more information on ordered noise, see :func:`ordered_noise`.
+
+        Args:
+            s (pd.Series): Pandas Series to be manipulated (from `self.df`)
+            column (str): corresponding column in `self.df` and `s` 
+            lb (int): lower bound for noisy value
+            ub (int): upper bound for noise value
+
+        Returns:
+            pd.Series: Noisy `column` of `s`
+        """
+        self.__check_dataframe_initialized()
+        self.df = cast(pd.DataFrame, self.df)
+        assert np.isscalar(s[column])
+
+        # add noise
+        noise: int = self.ordered_noise(x=s[column], lb=lb, ub=ub)
+        s[column] = noise
+        return s
 
 
 class TFAugmentation:
