@@ -27,14 +27,14 @@ from enum import Enum
 
 class SeriesNoise:
     """
-    Adds different type noise (impulse, multiplicative, or additive) to a :py:mod:`Pandas.Series`
+    Adds different type noise (impulse, multiplicative, or additive) to a ``Pandas.Series``
 
     """
 
     def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
         """
         
-        args:
+        Args:
             dataframe: The dataframe that series will be extracted from to be processed
         """
         self.rng = np.random.default_rng()  # rng for all random generation
@@ -60,8 +60,9 @@ class SeriesNoise:
         """
         A wrapper around Numpy.Generator.normal_. 
 
-        Dev may extend this method by adding features to it; e.g. adding it to 
-            a pandas Series (see `self.add_normal_noise`)
+        Note:
+        user may extend this method by adding features to it; e.g. adding it to 
+        a pandas Series (see :func:`series_add_normal_noise`)
 
         .. _Numpy.Generator.normal: https://numpy.org/doc/stable/reference/random/generated/numpy.random.Generator.normal.html
         """
@@ -71,14 +72,16 @@ class SeriesNoise:
                                 mean: float = 0. , std: float = 1.) -> pd.Series:
         """Takes a pandas Series and corresponding column and adds *normal* noise to it
 
+        See :func:`normal_noise` for more details.
+
         Args:
-            s (pd.Series): Pandas Series to be manipulated (from `self.df`)
-            column (str): corresponding column in `self.df` and `s` 
-            mean (float, optional): mean of normal noise. Defaults to 0.
-            std (float, optional): standard deviation of normal noise. Defaults to 1.
+            s (pd.Series): Pandas Series to be manipulated (from ``self.df``)
+            column (str): corresponding column in ``self.df`` and ``s`` 
+            mean (float, optional): mean of normal noise. Defaults to ``0``.
+            std (float, optional): standard deviation of normal noise. Defaults to ``1``.
 
         Returns:
-            pd.Series: Noisy `column` of `s`
+            pd.Series: Noisy ``column`` of ``s``
         """
         self.__check_dataframe_initialized()
         self.df = cast(pd.DataFrame, self.df)
@@ -93,13 +96,14 @@ class SeriesNoise:
     def truncated_normal_noise(self, mean: float, std: float,
                                low: float, upp: float,
                                size: Union[Tuple[int, ...], int] = 1) -> np.ndarray:
-        """A wrapper around `scipy.stats.truncnorm` with lower/upper bound
+        """A wrapper around scipy.stats.truncnorm_ with lower/upper bound
 
         Note:
-            Dev may extend this method by adding features to it; e.g. adding it to 
-                a pandas Series (see `series_add_truncated_normal_noise`)
+            User may extend this method by adding features to it; e.g. adding it to 
+            a pandas Series (see :func:`series_add_truncated_normal_noise`)
 
-        Reference:
+        References:
+
             1. https://stackoverflow.com/a/44308018/18971263
 
         Args:
@@ -111,6 +115,9 @@ class SeriesNoise:
 
         Returns:
             np.ndarray: A truncated normal distribution
+        
+        .. _scipy.stats.truncnorm: https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.truncnorm.html
+
         """
         return truncnorm((low - mean) / std, (upp - mean) / std,
                          loc=mean, scale=std).rvs(size)
@@ -120,16 +127,18 @@ class SeriesNoise:
                                           lb: float, ub: float) -> pd.Series:
         """Takes a pandas Series and corresponding column and adds *truncated normal* noise to it
 
+        See :func:`truncated_normal_noise` for more details.
+
         Args:
-            s (pd.Series): Pandas Series to be manipulated (from `self.df`)
-            column (str): corresponding column in `self.df` and `s` 
+            s (pd.Series): Pandas Series to be manipulated (from ``self.df``)
+            column (str): corresponding column in ``self.df`` and ``s`` 
             mean (float):  mean of normal noise
             std (float): standard deviation of normal noise
             lb (float): lower bound for truncation
             ub (float): higher bound for truncation
 
         Returns:
-            pd.Series: Noisy `column` of `s`
+            pd.Series: Noisy ``column`` of ``s``
         """
 
         self.__check_dataframe_initialized()
@@ -148,15 +157,15 @@ class SeriesNoise:
         """Takes a pandas Series and corresponding column and switches it with uniform distribution
 
         Args:
-            s (pd.Series): Pandas Series to be manipulated (from `self.df`)
-            column (str): corresponding column in `self.df` and `s` 
+            s (pd.Series): Pandas Series to be manipulated (from ``self.df``)
+            column (str): corresponding column in ``self.df`` and ``s`` 
             categories (dict): dictionary of categories to switch to
-            kwargs (dict): keyword arguments for _numpy.random.Generator.choice
+            kwargs (dict): keyword arguments for numpy.random.Generator.choice_
 
         Returns:
-            pd.Series: Categorically shuffled `column` of `s`
+            pd.Series: Categorically shuffled ``column`` of ``s``
         
-        .. [numpy.random.Generator.choice]: https://numpy.org/doc/stable/reference/random/generated/numpy.random.Generator.choice.html
+        .. _numpy.random.Generator.choice: https://numpy.org/doc/stable/reference/random/generated/numpy.random.Generator.choice.html
 
         """
         self.__check_dataframe_initialized()
@@ -194,7 +203,7 @@ class SeriesNoise:
             ub (int): upper bound for noise value
 
         Returns:
-            int: `x` ± 1
+            int: ``x ± 1``
         """
         # check if lb <= x <= ub
         if lb > x or x > ub:
@@ -220,16 +229,16 @@ class SeriesNoise:
     def series_add_ordered_noise(self, s: pd.Series, column: str, lb: int, ub: int) -> pd.Series:
         """Takes a pandas Series and corresponding column and replaces it with ordered noise of it
 
-        For more information on ordered noise, see :func:`ordered_noise`.
+        See :func:`ordered_noise` for more details.
 
         Args:
-            s (pd.Series): Pandas Series to be manipulated (from `self.df`)
-            column (str): corresponding column in `self.df` and `s` 
+            s (pd.Series): Pandas Series to be manipulated (from ``self.df``)
+            column (str): corresponding column in ``self.df`` and ``s``
             lb (int): lower bound for noisy value
             ub (int): upper bound for noise value
 
         Returns:
-            pd.Series: Noisy `column` of `s`
+            pd.Series: Noisy ``column`` of ``s``
         """
         self.__check_dataframe_initialized()
         self.df = cast(pd.DataFrame, self.df)
@@ -247,8 +256,8 @@ class TFAugmentation:
     Notes:
         User must create new class that subclasses this and write domain/dataset
         specific methods for his/her case. For instance, if you need to add
-        augmentation to a class with "age" value, then extend this class,
-        add new method e.g. ``[add_noise_]age``.
+        augmentation to a class with "age" value, then extend this class and
+        override :func:`augment` method of it. e.g. :class:`AddNormalNoiseDOBYear`.
         
         At the moment, the goal is to use this base to include all core augmentation
         methods that could be used anywhere but subclassing them,
@@ -463,7 +472,7 @@ class AddNormalNoiseChildDOBX(SeriesNoise, TFAugmentation):
             s (pd.Series): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy `self.COLUMN` of ``s``
+            pd.Series: Noisy ``self.COLUMN`` of ``s``
         """
 
         COLUMN = self.COLUMN
@@ -503,7 +512,7 @@ class AddNormalNoiseFunds(SeriesNoise, TFAugmentation):
             s (pd.Series): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy `self.COLUMN` of `s`
+            pd.Series: Noisy ``self.COLUMN`` of ``s``
         """
 
         # TODO: add fin.bb to make sure by adding more fund, it does not any issue with
@@ -544,7 +553,7 @@ class AddNormalNoiseDateOfMarr(SeriesNoise, TFAugmentation):
             s (pd.Series): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy `self.COLUMN` of ``s``
+            pd.Series: Noisy ``self.COLUMN`` of ``s``
         """
         COLUMN = self.COLUMN
         if s[COLUMN] != 0.:
@@ -582,7 +591,7 @@ class AddNormalNoiseOccRowXPeriod(SeriesNoise, TFAugmentation):
             s (pd.Series): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy `self.COLUMN` of ``s``
+            pd.Series: Noisy ``self.COLUMN`` of ``s``
         """
 
         COLUMN = self.COLUMN
@@ -625,7 +634,7 @@ class AddNormalNoiseHLS(SeriesNoise, TFAugmentation):
             s (pd.Series): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy `self.COLUMN` of ``s``
+            pd.Series: Noisy ``self.COLUMN`` of ``s``
         """
 
         COLUMN = self.COLUMN
