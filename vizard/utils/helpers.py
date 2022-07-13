@@ -123,14 +123,14 @@ class loggingdecorator(object):
     def __call__(self, fn, *args: Any, **kwds: Any) -> Any:    
         
         @_wraps(fn)
-        def _decor(fn):
+        def _decor(*args, **kwds):
             function_name = fn.__name__
 
-            def _fn(*args, **kwargs):
-                ret = fn(*args, **kwargs)
+            def _fn(*args, **kwds):
+                ret = fn(*args, **kwds)
                 if input:
                     argstr = [str(x) for x in args]
-                    argstr += [key+"="+str(val) for key, val in kwargs.items()]
+                    argstr += [key+"="+str(val) for key, val in kwds.items()]
                 else:
                     argstr = ''
                 ret_str = ret if self.output else ''
