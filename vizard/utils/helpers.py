@@ -4,8 +4,9 @@ __all__ = [
 
 # helpers
 import functools
+from functools import wraps as _wraps
 import inspect
-from typing import Callable
+from typing import Callable, Any
 import warnings
 import logging
 
@@ -87,42 +88,54 @@ def deprecated(reason):
 # A Python decorator to log the function call and return value
 
 
-def loggingdecorator(name: str, level: int = logging.DEBUG,
-                     input: bool = False, output: bool = False) -> Callable:
+class loggingdecorator(object):
+
+    def __init__(self, name: str, level: int = logging.DEBUG,
+                     input: bool = False, output: bool = False) -> None:
+        self.name = name
+        self.level = level
+        self.input = input
+        self.output = output
+        self.logger = logging.getLogger(self.name)
+    
     """A decorator to log the function call and return value (i.e. signature)
 
     Args:
-        name (str): `name` in `logging.GetLogger(name)`
-        level (int, optional): logging level [#]_, eg. ``INFO``, ``DEBUG``, etc.
-            Defaults to ``DEBUG``.
+        name (str): ``name`` in ``logging.GetLogger(name)``
+        level (int, optional): logging level, eg. ``INFO``, ``DEBUG``, etc.
+            Defaults to ``DEBUG``. See logging.setLevel_ for more info.
         input (bool, optional): whether or not include the input of
             decorated function in logs. Defaults to False.
         output (bool, optional): whether or not include the output of
             decorated function in logs. Defaults to False.
 
-    .. [#] https://docs.python.org/3/library/logging.html#levels
+    .. _logging.setLevel: https://docs.python.org/3/library/logging.html#levels
 
-    Reference:
+    References:
+
         * https://machinelearningmastery.com/logging-in-python/
+
 
     Returns:
         Callable: A callable decorator
     """
-    logger = logging.getLogger(name)
 
-    def _decor(fn):
-        function_name = fn.__name__
+    def __call__(self, fn, *args: Any, **kwds: Any) -> Any:    
+        
+        @_wraps(fn)
+        def _decor(fn):
+            function_name = fn.__name__
 
-        def _fn(*args, **kwargs):
-            ret = fn(*args, **kwargs)
-            if input:
-                argstr = [str(x) for x in args]
-                argstr += [key+"="+str(val) for key, val in kwargs.items()]
-            else:
-                argstr = ''
-            ret_str = ret if output else ''
-            logger.debug("%s(%s) -> %s", function_name,
-                         ", ".join(argstr), ret_str)
-            return ret
-        return _fn
-    return _decor
+            def _fn(*args, **kwargs):
+                ret = fn(*args, **kwargs)
+                if input:
+                    argstr = [str(x) for x in args]
+                    argstr += [key+"="+str(val) for key, val in kwargs.items()]
+                else:
+                    argstr = ''
+                ret_str = ret if self.output else ''
+                self.logger.debug("%s(%s) -> %s", function_name,
+                                  ", ".join(argstr), ret_str)
+                return ret
+            return _fn
+        return _decor
