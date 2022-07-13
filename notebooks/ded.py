@@ -6,17 +6,20 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import re
 
-# our library
-from vizard_data import functional
-from vizard_data import constant
-from vizard_data import logic
-from vizard_data import preprocessor
+# ours: data
+from vizard.data import functional
+from vizard.data import constant
+from vizard.data import logic
+from vizard.data import preprocessor
 # ours: utils
-from vizard_utils.visualization import add_percentage_axes
+from vizard.utils.visualization import add_percentage_axes
+# ours: configs/db
+from vizard.configs import CANADA_COUNTRY_CODE_TO_NAME
 
 # MLOps
-import dvc.api
+from mlflow.tracking import MlflowClient
 import mlflow
+import dvc.api
 
 # utils
 from IPython.display import display
@@ -27,13 +30,36 @@ import sys
 import os
 
 '''
-<span style="color:gold">See #9 issue.</span>
-'''
-
-'''
 ## Reproducibility
 
 '''
+
+'''
+### Setup DVC experiment and configs
+'''
+
+#>
+# main path
+SRC_DIR = '/mnt/e/dataset/processed/all/'  # path to source encrypted pdf
+DST_DIR = 'raw-dataset/all/'  # path to decrypted pdf
+
+# DVC: main dataset
+PATH = DST_DIR[:-1] + '.pkl'  # path to source data, e.g. data.pkl file
+REPO = '/home/nik/visaland-visa-form-utility'
+VERSION = 'v1.0.3'  # use latest using `git tag`
+
+# DVC: helper - (for more info see the API that uses these files)
+# data file for converting country names to continuous score in "economical" sense
+HELPER_PATH_GDP = 'raw-dataset/API_NY.GDP.PCAP.CD_DS2_en_xml_v2_4004943.pkl'
+HELPER_VERSION_GDP = 'v0.1.0-field-GDP'  # use latest using `git tag`
+# data file for converting country names to continuous score in "all" possible senses
+HELPER_PATH_OVERALL = 'raw-dataset/databank-2015-2019.pkl'
+HELPER_VERSION_OVERALL = 'v0.1.0-field'  # use latest using `git tag`
+# gather these for MLFlow track
+all_helper_data_info = {
+    HELPER_PATH_GDP: HELPER_VERSION_GDP,
+    HELPER_PATH_OVERALL: HELPER_VERSION_OVERALL,
+}
 
 '''
 ### Configure Logging
@@ -55,28 +81,13 @@ if __name__ == '__main__':
 #logger.setLevel(VERBOSITY)
 #
 ## Set up root logger, and add a file handler to root logger
-#if not os.path.exists('../artifacts'):
-#    os.makedirs('../artifacts')
-#    os.makedirs('../artifacts/logs')
-#    os.makedirs('../artifacts/notebooks')
+#if not os.path.exists(REPO + '/artifacts'):
+#    os.makedirs(REPO + '/artifacts')
+#    os.makedirs(REPO + '/artifacts/logs')
+#    os.makedirs(REPO + '/artifacts/notebooks')
 #
-#logger_handler = logging.FileHandler(filename='../artifacts/logs/nb.log', mode='w')
+#logger_handler = logging.FileHandler(filename=REPO + '/artifacts/logs/nb.log', mode='w')
 #logger.addHandler(logger_handler)
-
-'''
-### Setup DVC experiment and configs
-'''
-
-#>
-# main path
-SRC_DIR = '/mnt/e/dataset/processed/all/'  # path to source encrypted pdf
-DST_DIR = 'raw-dataset/all/'  # path to decrypted pdf
-
-# MLFlow configs
-# data versioning config
-PATH = DST_DIR[:-1] + '.pkl'  # path to source data, e.g. data.pkl file
-REPO = '/home/nik/visaland-visa-form-utility'
-VERSION = 'v1.0.2.1'  # use latest using `git tag`
 
 #>
 SEED = 322
@@ -104,6 +115,7 @@ rng = np.random.default_rng(SEED)
 #    'stage': 'dev'  # dev, beta, production
 #}
 #mlflow.set_tags(MLFLOW_TAGS)
+#client = MlflowClient()
 #
 #logger.info('MLFlow experiment name: {}'.format(MLFLOW_EXPERIMENT_NAME))
 #logger.info('MLFlow experiment id: {}'.format(mlflow.active_run().info.run_id))
@@ -185,14 +197,16 @@ data = data.drop(data[data[feature_name].isna()].index)
 display(data.isnull().sum()[data.isnull().sum() != 0])
 
 '''
-We can see the only two type of data are missing:
+We can see the only three type of data are missing:
 1. COB: country of birth
 2. Period: age of sibling and kids (probably because the person does not have any kid or sibling to fill)
+3. Address: Address of applicants, their spouses, parents, children, and siblings. Although full address is available, only city matters.
 
 | Feature | Fill | Desc |
 | --- | --- | --- |
 | COB | str: same as applicant's COB for ghost spouse | If all SpsCOB are the same, just drop the entire column, so no differentiation between ghost spouse or missed one.  
 | Period | int: 0 | prob only ghost cases, otherwise, should be filled statistically 
+| Address | str: city name | If None (for both ghost case and missing info), skip it (None). Since the value itself is not important and we prefer the difference of applicant's value from their family (to count long distance cases), we can only focus on filled values that are different from applicant's.
 '''
 
 #>
@@ -204,7 +218,7 @@ display(feature_name)
 
 #nb>
 #display(data[data[feature_name[0]].isna()][feature_name].__len__())
-#display(data[(data[feature_name[1]] == 'OTHER') & (data[feature_name[0]].isna())][feature_name].__len__())
+#display(data[(data[feature_name[2]] == 'OTHER') & (data[feature_name[0]].isna())][feature_name].__len__())
 
 '''
 There are 70-67 cases where the person has job title but no COB, which means that only 3 cases are not ghost cases and we can fill their COB using their spouse's COB.
@@ -213,11 +227,11 @@ For all other cases (ghosts), we just use the dominant case, IRAN.
 
 #>
 # fill ghost cases' COB with 'IRAN'
-data.loc[(data[feature_name[1]] == 'OTHER') & (data[feature_name[0]].isna()), [feature_name[0]]] = 'IRAN'
+data.loc[(data[feature_name[2]] == 'OTHER') & (data[feature_name[0]].isna()), [feature_name[0]]] = 'IRAN'
 
 #nb>
 #display(data[data[feature_name[0]].isna()][feature_name].__len__())
-#display(data[(data[feature_name[1]] == 'OTHER') & (data[feature_name[0]].isna())][feature_name].__len__())
+#display(data[(data[feature_name[2]] == 'OTHER') & (data[feature_name[0]].isna())][feature_name].__len__())
 
 #>
 # fill non-filled spouse COB cases' with their spouses' COB
@@ -225,7 +239,7 @@ data.loc[data[feature_name[0]].isna(), [feature_name[0]]] = data['P1.PD.PlaceBir
 
 #nb>
 #display(data[data[feature_name[0]].isna()][feature_name].__len__())
-#display(data[(data[feature_name[1]] == 'OTHER') & (data[feature_name[0]].isna())][feature_name].__len__())
+#display(data[(data[feature_name[2]] == 'OTHER') & (data[feature_name[0]].isna())][feature_name].__len__())
 
 '''
 ## Analyzing the features
@@ -334,23 +348,36 @@ TODO: They seem proportional, for now, we skip it, but if after modeling, we did
 
 #>
 output_name = 'VisaResult'
-feature_name = 'P1.PD.Sex.Sex'
-display(data.groupby([feature_name, output_name])[output_name].count())
+feature_name = 'P1.PD.Sex.Sex', 'P1.MS.SecA.MS'
+display(data.groupby([feature_name[0], output_name])[output_name].count())
 
 #nb>
-#f, ax = plt.subplots(1, 2, figsize=(22, 12))
-#z = data[[feature_name, output_name]].groupby(
-#    [feature_name]).value_counts(normalize=True).reset_index()
-#sns.barplot(x=feature_name, y=0, hue=output_name, data=z, ax=ax[0], hue_order=output_hue_order)
-#add_percentage_axes(ax[0], len(z))
-#ax[0].set_title('{} vs {}'.format(output_name, feature_name))
-#sns.countplot(x=feature_name, hue=output_name, data=data, ax=ax[1], hue_order=output_hue_order)
-#add_percentage_axes(ax[1], len(data))
-#ax[1].set_title('{}: {}'.format(feature_name, output_name))
+#f, ax = plt.subplots(2, 2, figsize=(22, 14))
+#data[[feature_name[0], output_name]].groupby(
+#    [feature_name[0]]).count().plot.bar(ax=ax[0, 0])
+#add_percentage_axes(ax[0, 0], len(data))
+#ax[0, 1].set_title('{} vs {}'.format(output_name, feature_name[0]))
+#sns.countplot(x=feature_name[0], hue=output_name, data=data,
+#    ax=ax[0, 1], hue_order=output_hue_order)
+#add_percentage_axes(ax[0, 1], len(data))
+#ax[0, 1].set_title('{}: {}'.format(feature_name[0], output_name))
+#
+#z = data[data[feature_name[1]] == '02']  # singles data ('02' == single)
+#z[[feature_name[0], output_name]].groupby(
+#    [feature_name[0]]).count().plot.bar(ax=ax[1, 0])
+#add_percentage_axes(ax[1, 0], len(z))
+#ax[1, 0].set_title('{} vs {}'.format(output_name, feature_name[0]))
+#sns.countplot(x=feature_name[0], hue=output_name, data=z,
+#    ax=ax[1, 1], hue_order=output_hue_order)
+#add_percentage_axes(ax[1, 1], len(z))
+#ax[1, 1].set_title('{}: {}'.format(feature_name[0], output_name))
+#
 #plt.show()
 
 '''
-**It seems that women are getting more visas than man, even though the number of applicants in term of gender are almost equal.**
+Insights: 
+1. It seems that women are getting more visas than man, even though the number of applicants in term of gender are almost equal.
+2. A closer looks shows that in **singles**, men are doing better.
 '''
 
 '''
@@ -421,13 +448,13 @@ display(data.groupby([feature_name, output_name])[output_name].count())
 data.drop(data[data[feature_name] == '511'].index, inplace=True)
 
 #>
-config_path = '../' + constant.CONFIGS_PATH.CANADA_COUNTRY_CODE_TO_NAME.value
+config_path = CANADA_COUNTRY_CODE_TO_NAME
 
 data[feature_name] = data[feature_name].apply(func=functional.extended_dict_get, args=(
     functional.config_csv_to_dict(config_path), 'Unknown', str.isnumeric, ))
 
 #>
-tmp_df = pd.read_pickle('../raw-dataset/API_NY.GDP.PCAP.CD_DS2_en_xml_v2_4004943.pkl')
+tmp_df = pd.read_pickle(dvc.api.get_url(path=HELPER_PATH_GDP, repo=REPO, rev=HELPER_VERSION_GDP))
 eco_country_score_preprocessor = preprocessor.WorldBankXMLProcessor(dataframe=tmp_df)
 data[feature_name] = data[feature_name].apply(
     func=eco_country_score_preprocessor.convert_country_name_to_numeric)
@@ -553,13 +580,13 @@ feature_name = 'P1.PD.PrevCOR.Row2.Country'
 display(data.groupby([feature_name, output_name])[output_name].count())
 
 #>
-config_path = '../' + constant.CONFIGS_PATH.CANADA_COUNTRY_CODE_TO_NAME.value
+config_path = CANADA_COUNTRY_CODE_TO_NAME
 
 data[feature_name] = data[feature_name].apply(func=functional.extended_dict_get, args=(
     functional.config_csv_to_dict(config_path), 'Unknown', str.isnumeric, ))
 
 #>
-tmp_df = pd.read_pickle('../raw-dataset/API_NY.GDP.PCAP.CD_DS2_en_xml_v2_4004943.pkl')
+tmp_df = pd.read_pickle(dvc.api.get_url(path=HELPER_PATH_GDP, repo=REPO, rev=HELPER_VERSION_GDP))
 eco_country_score_preprocessor = preprocessor.WorldBankXMLProcessor(dataframe=tmp_df)
 data[feature_name] = data[feature_name].apply(
     func=eco_country_score_preprocessor.convert_country_name_to_numeric)
@@ -573,13 +600,12 @@ feature_name = 'P1.PD.PrevCOR.Row3.Country'
 display(data.groupby([feature_name, output_name])[output_name].count())
 
 #>
-config_path = '../' + constant.CONFIGS_PATH.CANADA_COUNTRY_CODE_TO_NAME.value
-
+config_path = CANADA_COUNTRY_CODE_TO_NAME
 data[feature_name] = data[feature_name].apply(func=functional.extended_dict_get, args=(
     functional.config_csv_to_dict(config_path), 'Unknown', str.isnumeric, ))
 
 #>
-tmp_df = pd.read_pickle('../raw-dataset/API_NY.GDP.PCAP.CD_DS2_en_xml_v2_4004943.pkl')
+tmp_df = pd.read_pickle(dvc.api.get_url(path=HELPER_PATH_GDP, repo=REPO, rev=HELPER_VERSION_GDP))
 eco_country_score_preprocessor = preprocessor.WorldBankXMLProcessor(dataframe=tmp_df)
 data[feature_name] = data[feature_name].apply(
     func=eco_country_score_preprocessor.convert_country_name_to_numeric)
@@ -722,8 +748,17 @@ We could go with average, but apparently data is more like discrete where applic
 '''
 
 #>
-data.loc[(data[feature_name[1]] == 0) | (data[feature_name[1]].isna()), feature_name[1]] = data[data[feature_name[1]] != 0][feature_name[1]].mode()
+display(f'{data[feature_name[1]].isna().sum()} `None`s in `{feature_name[1]}`')
+display(f'{(data[feature_name[1]] == 0).sum()} `0`s in `{feature_name[1]}`')
+
+#>
+# use `.item()` after calling `.mode()` on a dataframe. This is because `.mode()` returns a series, not a scalar!
+data.loc[(data[feature_name[1]] == 0.) | (data[feature_name[1]].isna()), feature_name[1]] = data[data[feature_name[1]] != 0][feature_name[1]].mode().item()
 display(data[feature_name[1]].unique())
+
+#>
+display(f'{data[feature_name[1]].isna().sum()} `None`s in `{feature_name[1]}`')
+display(f'{(data[feature_name[1]] == 0).sum()} `0`s in `{feature_name[1]}`')
 
 #nb>
 #f, ax = plt.subplots(1, 1, figsize=(22, 12))
@@ -1281,8 +1316,7 @@ To do so, approach discussed in issue #10 (PR #11) has been taken, which in summ
 '''
 
 #>
-config_path = '../' + constant.CONFIGS_PATH.CANADA_COUNTRY_CODE_TO_NAME.value
-
+config_path = CANADA_COUNTRY_CODE_TO_NAME
 data[feature_name] = data[feature_name].apply(func=functional.extended_dict_get, args=(
     functional.config_csv_to_dict(config_path), 'Unknown', str.isnumeric, ))
 
@@ -1307,7 +1341,7 @@ Time to convert country names to continuous values of scores of them.
 '''
 
 #>
-tmp_df = pd.read_pickle('../raw-dataset/databank-2015-2019.pkl')
+tmp_df = pd.read_pickle(dvc.api.get_url(path=HELPER_PATH_OVERALL, repo=REPO, rev=HELPER_VERSION_OVERALL))
 edu_country_score_preprocessor = preprocessor.EducationCountryScoreDataframePreprocessor(
     dataframe=tmp_df)
 data[feature_name] = data[feature_name].apply(
@@ -1445,6 +1479,55 @@ data.loc[cond, feature_name[0]] = data.loc[cond, feature_name[0]].apply(field_of
 display(data.loc[cond, feature_name[0]])
 
 '''
+#### Missed and Uneducated
+'''
+
+'''
+1. **uneducated**: Those who do not have field of study and have zero education period
+2. **missed**: Those who have > 0 education period but no field of study
+'''
+
+#>
+display(f'{len(data[(data[feature_name[0]].isna())])} cases with missing field of study')
+display(f'{data[(data[feature_name[0]].isna()) & (data[feature_name[1]] == 0.)][[*feature_name]].__len__()} case are uneducated.')
+
+#>
+display(data[(data[feature_name[0]].isna()) & (data[feature_name[1]] == 0.)][[*feature_name]].sample(10, random_state=SEED))
+
+'''
+Fill all **uneducated**'s field of study with with `'unedu'` just for readability purposes.
+'''
+
+#>
+cond = (data[feature_name[0]].isna()) & (data[feature_name[1]] == 0.)
+data.loc[cond, feature_name[0]] = data.loc[cond, feature_name[0]].apply(lambda x: 'unedu')
+
+#>
+display(data[(data[feature_name[1]] == 0.)][[*feature_name]].sample(10, random_state=SEED))
+
+#nb>
+#f, ax = plt.subplots(1, 2, figsize=(22, 12))
+#data[[feature_name[0], output_name]].groupby(
+#    [feature_name[0]]).count().plot.bar(ax=ax[0])
+#add_percentage_axes(ax[0], len(data))
+#ax[0].set_title('{} vs {}'.format(output_name, feature_name[0]))
+#ax[1] = sns.countplot(x=feature_name[0], hue=output_name, data=data,
+#                      ax=ax[1], hue_order=output_hue_order)
+#add_percentage_axes(ax[1], len(data))
+#ax[1].set_title('{}: {}'.format(feature_name[0], output_name))
+#ax[1].legend(loc='upper right')
+#plt.show()
+
+'''
+Insights:
+1. There is a slight positive rate towards `master` in comparison to `bachelor`.
+2. `phd` (`phd` and `md`) dominates but having acceptance above 0.5.
+3. `unedu` is almost representative of all cases, since almost majority of `unedu` are `housewife` cases and their husband's application is strongly affecting
+
+TODO: for creating dataset, I have treated each member of the family as an separate application and I am supposed to only copy-paste `other.csv` part between members of the same family. But for cases when the *female's job is housewife*, features `P3.Edu` and `P3.Occ` need to be updated respectively. I.e. we should not have `housewife` case at all unless main applicant was `housewife` which sounds impossible. <span style="color: cyan"> #46 </span> 
+'''
+
+'''
 ### P3.Occ.OccRow[1,2,3].Occ.Occ -> categorical -> continuous
 '''
 
@@ -1560,8 +1643,7 @@ To do so, approach discussed in issue #10 (PR #11) has been taken, which in summ
 '''
 
 #>
-config_path = '../' + constant.CONFIGS_PATH.CANADA_COUNTRY_CODE_TO_NAME.value
-
+config_path = CANADA_COUNTRY_CODE_TO_NAME
 data[feature_name] = data[feature_name].apply(func=functional.extended_dict_get, args=(
     functional.config_csv_to_dict(config_path), 'Unknown', str.isnumeric, ))
 
@@ -1579,7 +1661,7 @@ options:
 '''
 
 #>
-tmp_df = pd.read_pickle('../raw-dataset/API_NY.GDP.PCAP.CD_DS2_en_xml_v2_4004943.pkl')
+tmp_df = pd.read_pickle(dvc.api.get_url(path=HELPER_PATH_GDP, repo=REPO, rev=HELPER_VERSION_GDP))
 eco_country_score_preprocessor = preprocessor.WorldBankXMLProcessor(dataframe=tmp_df)
 data[feature_name] = data[feature_name].apply(
     func=eco_country_score_preprocessor.convert_country_name_to_numeric)
@@ -1597,13 +1679,12 @@ feature_name = 'P3.Occ.OccRow2.Country.Country'
 display(data.groupby([feature_name, output_name])[output_name].count())
 
 #>
-config_path = '../' + constant.CONFIGS_PATH.CANADA_COUNTRY_CODE_TO_NAME.value
-
+config_path = CANADA_COUNTRY_CODE_TO_NAME
 data[feature_name] = data[feature_name].apply(func=functional.extended_dict_get, args=(
     functional.config_csv_to_dict(config_path), 'Unknown', str.isnumeric, ))
 
 #>
-tmp_df = pd.read_pickle('../raw-dataset/API_NY.GDP.PCAP.CD_DS2_en_xml_v2_4004943.pkl')
+tmp_df = pd.read_pickle(dvc.api.get_url(path=HELPER_PATH_GDP, repo=REPO, rev=HELPER_VERSION_GDP))
 eco_country_score_preprocessor = preprocessor.WorldBankXMLProcessor(dataframe=tmp_df)
 data[feature_name] = data[feature_name].apply(
     func=eco_country_score_preprocessor.convert_country_name_to_numeric)
@@ -1621,13 +1702,12 @@ feature_name = 'P3.Occ.OccRow3.Country.Country'
 display(data.groupby([feature_name, output_name])[output_name].count())
 
 #>
-config_path = '../' + constant.CONFIGS_PATH.CANADA_COUNTRY_CODE_TO_NAME.value
-
+config_path = CANADA_COUNTRY_CODE_TO_NAME
 data[feature_name] = data[feature_name].apply(func=functional.extended_dict_get, args=(
     functional.config_csv_to_dict(config_path), 'Unknown', str.isnumeric, ))
 
 #>
-tmp_df = pd.read_pickle('../raw-dataset/API_NY.GDP.PCAP.CD_DS2_en_xml_v2_4004943.pkl')
+tmp_df = pd.read_pickle(dvc.api.get_url(path=HELPER_PATH_GDP, repo=REPO, rev=HELPER_VERSION_GDP))
 eco_country_score_preprocessor = preprocessor.WorldBankXMLProcessor(dataframe=tmp_df)
 data[feature_name] = data[feature_name].apply(
     func=eco_country_score_preprocessor.convert_country_name_to_numeric)
@@ -2267,8 +2347,7 @@ display(data[feature_name].isna().sum())
 data[feature_name] = data[feature_name].fillna(value='IRAN')
 
 #>
-config_path = '../' + constant.CONFIGS_PATH.CANADA_COUNTRY_CODE_TO_NAME.value
-
+config_path = CANADA_COUNTRY_CODE_TO_NAME
 typos = ['iram', 'iaran', 'mahallat-iran', 'astara-iran', 'tehran-iran']
 
 data[feature_name] = data[feature_name].applymap(func=functional.extended_dict_get,
@@ -2442,7 +2521,7 @@ feature_name = [c for c in data.columns.values if (('Occ' in c) and ('OccRow' no
 data.drop(feature_name, axis=1, inplace=True)
 
 '''
-### p1.SecA.Sps.SpsAccomp, p1.SecA.Mo.MoAccomp, p1.SecA.Fa.FaAccomp, p1.SecB.Chd.X.ChdAccomp -> categorical -> rank
+### p1.SecB.Chd.X.ChdAccomp -> categorical -> rank
 '''
 
 '''
@@ -2453,21 +2532,20 @@ Convert the list of tier 1 family members' accompanying status to a single varia
 r = re.compile('p1.SecB.Chd.*.ChdAccomp')
 mask = np.isin(data.columns.values, list(filter(r.match, data.columns.values)))
 feature_name = list(data.columns.values[mask])
-feature_name.extend([c for c in data.columns.values if ((('Sps' in c) or ('Fa' in c) or ('Mo' in c)) and ('Accomp' in c))])
 display(feature_name)
 
 #>
-# replace rows of previous country of residency to count of them
-agg_column_name = 'p1.SecB.ChdMoFaSps.X.ChdAccomp.Count'
+# replace rows of children's accompany status to count of them
+agg_column_name = 'p1.SecB.Chd.X.ChdAccomp.Count'
 canada_logic.reset_dataframe(dataframe=data)
 data = canada_logic.add_agg_column(aggregator=canada_logic.count_accompanying,
                                    agg_column_name=agg_column_name, columns=feature_name)
-# delete redundant columns tnx to newly created 'p1.SecB.ChdMoFaSps.X.ChdAccomp.Count'
+# delete redundant columns tnx to newly created 'p1.SecB.Chd.X.ChdAccomp.Count'
 data.drop(feature_name, axis=1, inplace=True)
 
 #>
 output_name = 'VisaResult'
-feature_name = 'p1.SecB.ChdMoFaSps.X.ChdAccomp.Count', 'P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit'
+feature_name = 'p1.SecB.Chd.X.ChdAccomp.Count', 'P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit'
 
 #nb>
 #ct = pd.crosstab([data[feature_name[0]], data[feature_name[1]]], data[(data[output_name] == 'acc') | (data[output_name] == 'rej')][output_name],
@@ -2492,6 +2570,84 @@ Following groups have higher chance:
 3. `tourism` chance increases by increasing the number of accompanying people
 4. `visit` only is viable if you are going with `0` accompanying, not good if you going to `visit` with f1 member
 '''
+
+'''
+### p1.SecA.Mo.MoAccomp, p1.SecA.Fa.FaAccomp -> categorical -> rank
+'''
+
+#>
+r = re.compile('p1.*.(Fa|Mo)Accomp')
+mask = np.isin(data.columns.values, list(filter(r.match, data.columns.values)))
+feature_name = list(data.columns.values[mask])
+display(feature_name)
+
+#>
+# replace rows of Mo/Fa accompany status to count of them
+agg_column_name = 'p1.SecA.ParAccomp.Count'
+canada_logic.reset_dataframe(dataframe=data)
+data = canada_logic.add_agg_column(aggregator=canada_logic.count_accompanying,
+                                   agg_column_name=agg_column_name, columns=feature_name)
+# delete redundant columns tnx to newly created 'p1.SecB.Chd.X.ChdAccomp.Count'
+data.drop(feature_name, axis=1, inplace=True)
+
+#>
+output_name = 'VisaResult'
+feature_name = 'p1.SecA.ParAccomp.Count', 'P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit'
+
+#nb>
+#ct = pd.crosstab([data[feature_name[0]], data[feature_name[1]]], data[(data[output_name] == 'acc') | (data[output_name] == 'rej')][output_name],
+#            margins=True, dropna=False, normalize=True) * 100
+#ct.drop(ct.tail(1).index, inplace=True)
+#ct
+
+#nb>
+#f, ax = plt.subplots(1, 1, figsize=(22, 12))
+#ct.plot(kind='bar', stacked=True, rot=90, ax=ax)
+#ax.set_title('{} and {}: {}'.format(
+#    feature_name, feature_name, output_name))
+#ax.legend(loc='upper right')
+#for c in ax.containers:
+#    ax.bar_label(c, label_type='center', fmt='%1d%%', color='black')
+#plt.show()
+
+'''
+### p1.SecA.Sps.SpsAccomp -> categorical -> rank
+'''
+
+#>
+r = re.compile('p1.SecA.Sps.SpsAccomp')
+mask = np.isin(data.columns.values, list(filter(r.match, data.columns.values)))
+feature_name = list(data.columns.values[mask])
+display(feature_name)
+
+#>
+# replace rows of Spouse accompany status to count of them
+agg_column_name = 'p1.SecA.Sps.SpsAccomp.Count'
+canada_logic.reset_dataframe(dataframe=data)
+data = canada_logic.add_agg_column(aggregator=canada_logic.count_accompanying,
+                                   agg_column_name=agg_column_name, columns=feature_name)
+# delete redundant columns tnx to newly created 'p1.SecB.Chd.X.ChdAccomp.Count'
+data.drop(feature_name, axis=1, inplace=True)
+
+#>
+output_name = 'VisaResult'
+feature_name = 'p1.SecA.Sps.SpsAccomp.Count', 'P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit'
+
+#nb>
+#ct = pd.crosstab([data[feature_name[0]], data[feature_name[1]]], data[(data[output_name] == 'acc') | (data[output_name] == 'rej')][output_name],
+#            margins=True, dropna=False, normalize=True) * 100
+#ct.drop(ct.tail(1).index, inplace=True)
+#ct
+
+#nb>
+#f, ax = plt.subplots(1, 1, figsize=(22, 12))
+#ct.plot(kind='bar', stacked=True, rot=90, ax=ax)
+#ax.set_title('{} and {}: {}'.format(
+#    feature_name, feature_name, output_name))
+#ax.legend(loc='upper right')
+#for c in ax.containers:
+#    ax.bar_label(c, label_type='center', fmt='%1d%%', color='black')
+#plt.show()
 
 '''
 ### p1.SecC.Chd.X.ChdAccomp -> categorical -> rank
@@ -2538,6 +2694,31 @@ feature_name = 'p1.SecC.Chd.X.ChdAccomp.Count', 'P3.DOV.PrpsRow1.PrpsOfVisit.Prp
 
 '''
 There is not much, except family visit which was already a dominant factor, regardless of the accompanying type and number. 
+'''
+
+#>
+r = re.compile('.*Accomp')
+mask = np.isin(data.columns.values, list(filter(r.match, data.columns.values)))
+feature_name = list(data.columns.values[mask])
+feature_name.extend(['P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit'])
+display(feature_name)
+
+#>
+f, ax = plt.subplots(4, 1, figsize=(22, 18))
+z = data[(data[output_name] == 'acc') | (data[output_name] == 'rej')].copy()
+z = z[(z[feature_name[-1]] != 'other') & (z[feature_name[-1]] != 'business')]
+z[output_name] = z[output_name].apply(lambda x: True if x == 'acc' else False)
+
+for i in range(4):
+    sns.pointplot(x=feature_name[i], y=output_name, hue=feature_name[-1],
+                data=z, 
+                kind='point', ax=ax[i])
+plt.show()
+
+'''
+Insights:
+1. It is clear that bringing any of `siblings` is very risky and decrease chance even for `family visit` which all the time increased the chance!
+2. Bringing `spouse` for `visit` purpose is a terrible idea
 '''
 
 '''
@@ -2653,8 +2834,8 @@ target_feature_name = [
     'p1.SecB.Chd.[' + str(i) + '].ChdDOB.Period' for i in range(len(feature_name) // 2)]
 aggregator_feature_name = 'P1.PD.DOBYear.Period'
 for i in range(len(feature_name) // 2):
-    parent_age_median = data.loc[(data[feature_name[i*2]] != 9) & (data[feature_name[i*2+1]] != 'OTHER'),  aggregator_feature_name].median()
-    child_age_median = data.loc[(data[feature_name[i*2]] != 9) & (data[feature_name[i*2+1]] != 'OTHER'),  target_feature_name[i]].median()
+    parent_age_median = data.loc[(data[feature_name[i*2]] != 9) & (data[feature_name[i*2+1]] != 'OTHER'),  aggregator_feature_name].median().item()
+    child_age_median = data.loc[(data[feature_name[i*2]] != 9) & (data[feature_name[i*2+1]] != 'OTHER'),  target_feature_name[i]].median().item()
     average_difference = parent_age_median - child_age_median  # must be positive (parent - child) since parent > child
     display('median difference of parents age from "{}"th child: {}'.format(i, average_difference))
 
@@ -2710,8 +2891,8 @@ target_feature_name = [
     'p1.SecB.Chd.[' + str(i) + '].ChdDOB.Period' for i in range(len(feature_name) // 2)]
 for i in range(len(feature_name) // 2):
     aggregator_feature_name = 'P1.PD.DOBYear.Period'
-    parent_age_median = data.loc[(data[feature_name[i*2]] != 9) & (data[feature_name[i*2+1]] != 'OTHER'),  aggregator_feature_name].median()
-    child_age_median = data.loc[(data[feature_name[i*2]] != 9) & (data[feature_name[i*2+1]] != 'OTHER'),  target_feature_name[i]].median()
+    parent_age_median = data.loc[(data[feature_name[i*2]] != 9) & (data[feature_name[i*2+1]] != 'OTHER'),  aggregator_feature_name].median().item()
+    child_age_median = data.loc[(data[feature_name[i*2]] != 9) & (data[feature_name[i*2+1]] != 'OTHER'),  target_feature_name[i]].median().item()
     average_difference = parent_age_median - child_age_median  # must be positive (parent - child) since parent > child
     display('median difference of parents age from "{}"th child: {}'.format(i, average_difference))
 
@@ -2829,7 +3010,7 @@ for f, tf in zip(feature_name, target_feature_name):
 
 #>
 output_name = 'VisaResult'
-feature_name = 'p1.SecB.ChdMoFaSps.X.ChdAccomp.Count', 'p1.SecB.Chd.X.ChdRel.ChdCount'
+feature_name = 'p1.SecB.Chd.X.ChdAccomp.Count', 'p1.SecB.Chd.X.ChdRel.ChdCount'
 
 #nb>
 #ct = pd.crosstab([data[feature_name[0]], data[feature_name[1]]], data[(data[output_name] == 'acc') | (data[output_name] == 'rej')][output_name],
@@ -2846,6 +3027,10 @@ feature_name = 'p1.SecB.ChdMoFaSps.X.ChdAccomp.Count', 'p1.SecB.Chd.X.ChdRel.Chd
 #for c in ax.containers:
 #    ax.bar_label(c, label_type='center', fmt='%1d%%', color='black')
 #plt.show()
+
+'''
+Obviously, the children you have and fewer of them are coming with you, the higher chance you have!
+'''
 
 '''
 ### p1.SecC.Chd.[X].ChdDOB.Period and p1.SecC.Chd.[X].ChdMStatus and p1.SecC.Chd.[X].ChdRel
@@ -2935,8 +3120,8 @@ target_feature_name = [
     'p1.SecC.Chd.[' + str(i) + '].ChdDOB.Period' for i in range(len(feature_name) // 2)]
 for i in range(len(feature_name) // 2):
     aggregator_feature_name = 'P1.PD.DOBYear.Period'
-    parent_age_median = data.loc[(data[feature_name[i*2]] != 9) & (data[feature_name[i*2+1]] != 'OTHER'),  aggregator_feature_name].median()
-    child_age_median = data.loc[(data[feature_name[i*2]] != 9) & (data[feature_name[i*2+1]] != 'OTHER'),  target_feature_name[i]].median()
+    parent_age_median = data.loc[(data[feature_name[i*2]] != 9) & (data[feature_name[i*2+1]] != 'OTHER'),  aggregator_feature_name].median().item()
+    child_age_median = data.loc[(data[feature_name[i*2]] != 9) & (data[feature_name[i*2+1]] != 'OTHER'),  target_feature_name[i]].median().item()
     average_difference = parent_age_median - child_age_median  # must be positive (parent - child) since parent > child
     display('median difference of parents age from "{}"th child: {}'.format(i, average_difference))
 
@@ -2992,8 +3177,8 @@ target_feature_name = [
     'p1.SecC.Chd.[' + str(i) + '].ChdDOB.Period' for i in range(len(feature_name) // 2)]
 for i in range(len(feature_name) // 2):
     aggregator_feature_name = 'P1.PD.DOBYear.Period'
-    parent_age_median = data.loc[(data[feature_name[i*2]] != 9) & (data[feature_name[i*2+1]] != 'OTHER'),  aggregator_feature_name].median()
-    child_age_median = data.loc[(data[feature_name[i*2]] != 9) & (data[feature_name[i*2+1]] != 'OTHER'),  target_feature_name[i]].median()
+    parent_age_median = data.loc[(data[feature_name[i*2]] != 9) & (data[feature_name[i*2+1]] != 'OTHER'),  aggregator_feature_name].median().item()
+    child_age_median = data.loc[(data[feature_name[i*2]] != 9) & (data[feature_name[i*2+1]] != 'OTHER'),  target_feature_name[i]].median().item()
     average_difference = parent_age_median - child_age_median  # must be positive (parent - child) since parent > child
     display('median difference of parents age from "{}"th child: {}'.format(i, average_difference))
 
@@ -3174,8 +3359,8 @@ display(data[(data[father_feature_name[0]] != 9) & (data[father_feature_name[1]]
     data[mother_feature_name[0]] != 9) & (data[mother_feature_name[1]] == 0)][feature_name])
 
 #>
-father_age_median = data.loc[(data[father_feature_name[0]] != 9) & (data[father_feature_name[1]] != 0),  father_feature_name[1]].median()
-mother_age_median = data.loc[(data[mother_feature_name[0]] != 9) & (data[mother_feature_name[1]] != 0),  mother_feature_name[1]].median()
+father_age_median = data.loc[(data[father_feature_name[0]] != 9) & (data[father_feature_name[1]] != 0),  father_feature_name[1]].median().item()
+mother_age_median = data.loc[(data[mother_feature_name[0]] != 9) & (data[mother_feature_name[1]] != 0),  mother_feature_name[1]].median().item()
 average_difference = father_age_median - mother_age_median  # mostly positive
 display('median difference of fathers age from mothers: {}'.format(average_difference))
 
@@ -3219,10 +3404,10 @@ cond = (data[father_feature_name[0]] == 9) & (
 
 # average difference of medians of applicants' age from their parents' age (only for applicants with dead parents)
 # since I capped to 85, mean and median are 85 too
-father_age_median = data.loc[cond, father_feature_name[1]].median()
+father_age_median = data.loc[cond, father_feature_name[1]].median().item()
 # since I capped to 85, mean and median are 85 too
-mother_age_median = data.loc[cond,  mother_feature_name[1]].median()
-app_age_median = data.loc[cond, aggregator_feature_name].median()
+mother_age_median = data.loc[cond,  mother_feature_name[1]].median().item()
+app_age_median = data.loc[cond, aggregator_feature_name].median().item()
 
 app_father_age_diff = father_age_median - app_age_median
 app_mother_age_diff = mother_age_median - app_age_median
@@ -3269,6 +3454,349 @@ display(data[(data[feature_name[0]] == 9) & (data[feature_name[1]] != 0.)].shape
 57 out of 62 cases have dead father and dead mother. So, it means that almost all cases where marital status is missed, probably person is dead and filling it with other values might not seem appropriate.
 
 TODO: until occupation fields are incorporated which contain `deceased` for people who are actually dead.
+'''
+
+'''
+### p1.SecX.*.*Addr -> int (count)
+'''
+
+'''
+Since there are some `other` in `ChdRel` here that are not "ghost case", we use `ChdDOB.Period` that have been already cleaned and filled based on conditions to detect "ghost" case from "incomplete" case. Hence, in this section, we just rely on non-zero cases of `ChdDOB.Period` to find out if child exists or not!
+'''
+
+#>
+output_name = 'VisaResult'
+r = re.compile('p1.Sec(A|B|C)\..*\..*(Addr)')
+mask = np.isin(data.columns.values, list(filter(r.match, data.columns.values)))
+feature_name = list(data.columns.values[mask])
+display(feature_name)
+
+#>
+data[[*feature_name, output_name]].sample(2, random_state=SEED)
+
+#>
+IRAN_PROVINCES = {
+    'Alborz': 'Alborz',
+    'AKBORZ': 'Alborz',  # Typo case: Alborz
+    'Ardabil': 'Ardabil',
+    'Ardebil': 'Ardebil',
+    'Azarbayjan-e Gharbi': 'West',
+    'West Azerbaijan': 'West',
+    'Azerbaijan-e Gharbi': 'West',
+    'Azerbaijan, West': 'West',
+    'West': 'West',  # we only have one province with 'West' in it
+    'Gharbi': 'West', # we only have one province with 'Gharbi' in it
+    'Azerbaijan-e Sharqi': 'East',
+    'Azarbayjan-e Sharqi': 'East',
+    'Azerbaijan, East': 'East',
+    'East Azerbaijan': 'East',
+    'East': 'East',  # we only have one province with 'East' in it
+    'Sharqi': 'East', # we only have one province with 'Sharghi' in it
+    'Sharghi': 'East', # we only have one province with 'Sharghi' in it
+    'Bushehr': 'Bushehr',
+    'Chaharmahal and Bakhtiari': 'Chaharmahal and Bakhtiari',
+    'Chahar Mahaal and Bakhtiari': 'Chaharmahal and Bakhtiari',
+    'Chahar Mahal-e Bakhtiari': 'Chaharmahal and Bakhtiari',
+    'Fars': 'Fars',
+    'Gilan': 'Gilan',
+    'Guilan': 'Gilan',
+    'Golestan': 'Golestan',
+    'Hamadan': 'Hamadan',
+    'Hamedan': 'Hamadan',
+    'Hormozgan': 'Hormozgan',
+    'Ilam': 'Ilam',
+    'Isfahan': 'Isfahan',
+    'Esfahan': 'Isfahan',
+    'ESFSHAN': 'Isfahan',  # typo case: Esfahan
+    'Kerman': 'Kerman',
+    'Kermanshah': 'Kermanshah',
+    'Khorasan-e Janubi': 'South',
+    'Khorasan-e Jonubi': 'South',
+    'Khorasan Jonubi': 'South',
+    'South Khorasan': 'South',
+    'Khorasan, South': 'South',
+    'Khorasan Janubi': 'South',
+    'Jonubi': 'South',  # we only have one province with 'Jonubi' in it
+    'Janubi': 'South', # we only have one province with 'Janubi' in it
+    'South': 'South', # we only have one province with 'South' in it
+    'Khorasan-e Razavi': 'Razavi',
+    'Khorasan, Razavi': 'Razavi',
+    'Razavi Khorasan': 'Razavi',
+    'Razavi': 'Razavi', # we only have one province with 'Razavi' in it
+    'Khorasan-e Shemali': 'North',
+    'Khorasan Shomali': 'North',
+    'Khorasan-e Shomali': 'North',
+    'Khorasan, North': 'North',
+    'North Khorasan': 'North',
+    'Shomali': 'North',  # we only have one province with 'Shomali' in it
+    'Shemali': 'North', # we only have one province with 'Shemali' in it
+    'North': 'North', # we only have one province with 'North' in it
+    'Khuzestan': 'Khuzestan',
+    'KHOUZESTAN': 'Khuzestan',
+    'Kohgiluyeh and Buyer Ahmad': 'Kohgiluyeh and Buyer Ahmad',
+    'Kohgiluyeh and Boyer-Ahmad': 'Kohgiluyeh and Buyer Ahmad',
+    'Kurdistan': 'Kurdistan',
+    'Kordestan': 'Kurdistan',
+    'Lorestan': 'Lorestan',
+    'Markazi': 'Markazi',
+    'Mazandaran': 'Mazandaran',
+    'Qazvin': 'Qazvin',
+    'GHAZVIN': 'Qazvin',
+    'Qom': 'Qom',
+    'Semnan': 'Semnan',
+    'Sistan and Baluchestan': 'Sistan and Baluchestan',
+    'Tehran': 'Tehran',
+    'Tehra': 'Tehran',  # typo case: Tehran
+    'Teh': 'Tehran',  # typo case: Tehran
+    'Te': 'Tehran',  # typo case: Tehran
+    'TRHRAN': 'Tehran', # typo case: Tehran
+    'TEHRTAN': 'Tehran', # typo case: Tehran
+    'TEHRANIRAN': 'Tehran', # typo case: Tehran
+    'EHRAN': 'Tehran', # typo case: Tehran
+    'Urmia': 'Urmia',
+    'Orumiyeh': 'Urmia',
+    'Orumiye': 'Urmia',
+    'Orumieh': 'Urmia',
+    'Orumie': 'Urmia',
+    'OROMIEH': 'Urmia', # typo case: Urmia
+    'Yazd': 'Yazd',
+    'Zanjan': 'Zanjan',
+}
+
+# hardcoded af
+FOREIGN_COUNTRY_MISSED = [
+    'USA',
+    'UAE',
+    'TURKET',
+    'Meadow',
+    'US',
+    'ONTARIO',
+    'DUBAI',
+    'TORONTO',
+    'FRAMINGHAM',
+    'SCOTTSDDIE',
+    'EMIRATES',
+    'OAKLAND',
+    'Stockholm',
+    'frankfurt',
+    'VANCOUVER',
+    'TORENTO',
+    'JACKSON',
+    'ISTANBUL',
+    'BRECKENRIDGE',
+    'London',
+
+]
+
+from vizard.configs import IRAN_PROVINCE_TO_CITY
+from typing import Optional
+
+def make_dictionary_lowercase(dictionary: dict) -> dict:
+    return {key.lower(): value.lower() for key, value in dictionary.items()}
+
+IRAN_PROVINCE_TO_CITY_DICT =  make_dictionary_lowercase(functional.config_csv_to_dict(IRAN_PROVINCE_TO_CITY))
+IRAN_PROVINCES = make_dictionary_lowercase(IRAN_PROVINCES)
+# combine list of countries and manually extracted list of them
+country_list = list(functional.config_csv_to_dict(CANADA_COUNTRY_CODE_TO_NAME).values())
+FOREIGN_COUNTRY_MISSED = [country.lower() for country in FOREIGN_COUNTRY_MISSED]
+country_list.extend(FOREIGN_COUNTRY_MISSED)
+
+def address_to_city(address: Optional[str],
+                    city_province_dict: dict,
+                    province_dict: dict,
+                    country_list: list) -> Optional[str]:
+    """Takes an full address and extracts the city then province containing the city.
+
+    Note:
+        Since the goal of defining this function is to aggregate over addresses, if
+            the address is not provided, it is valid to ignore it since it cannot be
+            inferred with %100 accuracy and any statistical method would be biased
+            towards the majority class which is the applicant's address.
+
+    TODO: implement a spell checker to correct the city names.
+        You must be aware that the city names also have multiple ways of being spelled
+            but we ignore it as it would be too much effort to correct it. 
+        Just a reminder, this has been done manually for the provinces and has been
+            provided using `province_dict`.
+            
+
+    Args:
+        address (str, optional): full address which is expected to contain
+            the city and province.
+        city_province_dict (dict): dictionary mapping city names to provinces
+        province_dict (dict): dict of provinces and their typos. This dict
+            needs to be separately provided to include different spelling 
+            for the name of the same province. This would prevent unnecessary
+            duplication of entries in keys of `city_province_dict`.
+            Keys are all type of spelling and values are the correct spelling. E.g.::
+                {
+                    'Kordestan': 'Kurdistan',
+                    'Kurdistan': 'Kurdistan'
+                }
+
+        country_list (list): list of countries. We consider any address that has an
+            instance in this list as 'foreign' to just separate it from "long distance"
+            cases where cases are inside a country (here, Iran).
+
+    Returns:
+        str: Province of the address
+    """
+
+    if address is None:
+        return None
+    
+    # lower case items in country_list
+    country_list = [item.lower() for item in country_list]
+
+    addr_part = re.split(r'(,|-|:| )', address)
+    # look for city in the address
+    for part in addr_part:
+        part = part.lower().strip()
+        # skip dead cases
+        if ('deceased' in part) or ('passed' in part):
+            return 'deceased'
+        # return province if it is already in address
+        if part in province_dict.keys():
+            return province_dict[part]
+        # return foreign if it is in country list except 'Iran'
+        if (part in country_list) and (part != 'iran'):
+            return 'foreign'
+        # get the province of the city if province not in address
+        if part in city_province_dict.keys():
+            return city_province_dict[part]
+    # if we cannot infer address, just ignore it :D
+    print(ValueError(f'Cannot infer city from address: {address}'))
+    return None
+
+for f in feature_name:
+    data[f] = data[f].apply(address_to_city, args=(IRAN_PROVINCE_TO_CITY_DICT,
+                                                   IRAN_PROVINCES,
+                                                   country_list, ))
+
+
+#>
+data[[*feature_name, output_name]].sample(5, random_state=SEED)
+
+#>
+# count number of family members that are living in different place than applicant (non-foreign)
+agg_column_name = 'p1.SecX.LongDistAddr'
+canada_logic.reset_dataframe(dataframe=data)
+data = canada_logic.add_agg_column(aggregator=canada_logic.count_long_distance_family_resident,
+                                   agg_column_name=agg_column_name, columns=feature_name)
+
+#>
+data[[agg_column_name, *feature_name, output_name]].sample(5, random_state=SEED)
+
+#>
+# count number of family members that are living in a foreign country
+agg_column_name = 'p1.SecX.ForeignAddr'
+canada_logic.reset_dataframe(dataframe=data)
+data = canada_logic.add_agg_column(aggregator=canada_logic.count_foreign_family_resident,
+                                   agg_column_name=agg_column_name, columns=feature_name)
+
+#>
+data[[agg_column_name, *feature_name, output_name]].sample(5, random_state=SEED)
+
+#nb>
+#agg_column_name = ['p1.SecX.LongDistAddr', 'p1.SecX.ForeignAddr']
+#data[[*feature_name, *agg_column_name]]
+
+#>
+# drop aggregated address columns
+data.drop(columns=feature_name, axis=1, inplace=True)
+
+'''
+#### Vis
+'''
+
+#>
+output_name = 'VisaResult'
+feature_name = ['p1.SecX.LongDistAddr', 'p1.SecX.ForeignAddr', 'P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit']
+
+#nb>
+#z = data[(data[output_name] == 'acc') | (data[output_name] == 'rej')]
+#z = z[(z[feature_name[0]] <= 7) & (z[feature_name[1]] <= 4)]
+#ct = pd.crosstab([z[feature_name[0]], z[feature_name[1]]], z[output_name],
+#            margins=False, dropna=False, normalize=True) * 100
+#ct.drop(ct.tail(1).index, inplace=True)
+## ct.drop(['no idea', 'w-acc', 'w-rej'], axis=1, inplace=True)
+#ct
+
+#nb>
+#f, ax = plt.subplots(1, 1, figsize=(22, 12))
+#ct.plot(kind='bar', stacked=True, rot=90, ax=ax)
+#ax.set_title('{} and {}: {}'.format(
+#    feature_name[0], feature_name[1], output_name))
+#ax.legend(loc='upper right')
+#for c in ax.containers:
+#    ax.bar_label(c, label_type='center', fmt='%1d%%', color='black')
+#plt.show()
+
+#>
+f, ax = plt.subplots(2, 1, figsize=(22, 12))
+z = data[(data[output_name] == 'acc') | (data[output_name] == 'rej')].copy()
+z = z[(z[feature_name[2]] != 'business') & (z[feature_name[2]] != 'other')]
+z[output_name] = z[output_name].apply(lambda x: True if x == 'acc' else False)
+sns.pointplot(x=feature_name[1], y=output_name, hue=feature_name[2],
+              data=z,
+              kind='point', ax=ax[0])
+
+sns.pointplot(x=feature_name[0], y=output_name, hue=feature_name[2],
+              data=z,
+              kind='point', ax=ax[1])
+plt.show()
+
+'''
+Insights:
+1. When `ForeignAddr` increases, the change of getting visa with purpose of `f2` decrease hugely.
+2. As expected, visiting `f1` is dominant factor and does not seem that `Addr` have any effect on it.
+3. This is the data for all people, single, married, old, young, etc. So a subset of these might provide more info
+   1. Single people for `longDistAddr` and purpose `relationship`
+'''
+
+'''
+##### Single people
+'''
+
+#nb>
+#z = data[(data[output_name] == 'acc') | (data[output_name] == 'rej')]
+#z = z[(z[feature_name[0]] <= 7) & (z[feature_name[1]] <= 4)]
+## single people
+#z = z[z['p1.SecA.App.ChdMStatus'] == 7]
+#
+#
+#ct = pd.crosstab([z[feature_name[0]], z[feature_name[1]]], z[output_name],
+#            margins=False, dropna=False, normalize=True) * 100
+#ct.drop(ct.tail(1).index, inplace=True)
+#f, ax = plt.subplots(1, 1, figsize=(22, 12))
+#ct.plot(kind='bar', stacked=True, rot=90, ax=ax)
+#ax.set_title('{} and {}: {}'.format(
+#    feature_name[0], feature_name[1], output_name))
+#ax.legend(loc='upper right')
+#for c in ax.containers:
+#    ax.bar_label(c, label_type='center', fmt='%1d%%', color='black')
+#plt.show()
+
+#>
+f, ax = plt.subplots(2, 1, figsize=(22, 12))
+z = data[(data[output_name] == 'acc') | (data[output_name] == 'rej')].copy()
+z = z[(z[feature_name[2]] != 'ukn') & (z[feature_name[2]] != 'work')]
+z[output_name] = z[output_name].apply(lambda x: True if x == 'acc' else False)
+
+# single people
+z = z[z['p1.SecA.App.ChdMStatus'] == 7]
+
+sns.pointplot(x=feature_name[1], y=output_name, hue=feature_name[2],
+              data=z,
+              kind='point', ax=ax[0])
+
+sns.pointplot(x=feature_name[0], y=output_name, hue=feature_name[2],
+              data=z,
+              kind='point', ax=ax[1])
+plt.show()
+
+'''
+No information here.
 '''
 
 #nb>
@@ -3436,7 +3964,7 @@ The reason for this is the step 3 of previous part and we want to track the snor
 '''
 
 #>
-# dataset_path = '../raw-dataset/all-dev.pkl'  # Don't change the name, 
+# dataset_path = REPO + '/raw-dataset/all-dev.pkl'  # Don't change the name, 
 # data.to_pickle(dataset_path)
 
 '''
@@ -3448,20 +3976,39 @@ from pandas import testing as tm
 
 DATASET_PATH_ORIGINAL = 'raw-dataset/all-dev.pkl'  # Don't change the name, 
 REPO = '/home/nik/visaland-visa-form-utility'
-VERSION = 'v1.1.0.2-dev'  # use latest `dev` version using `git tag`
+VERSION = 'v1.2.2-dev'  # use latest `dev` version using `git tag`
 data_url_original = dvc.api.get_url(path=DATASET_PATH_ORIGINAL, repo=REPO, rev=VERSION)
 data_original = pd.read_pickle(data_url_original)
 
 #>
-tm.assert_frame_equal(data, data_original, check_exact=False, rtol=1e-4, atol=1e-5)
+# tm.assert_frame_equal(data, data_original, check_exact=False, rtol=1e-4, atol=1e-5)
+import pandas.testing as pdt
+BLAH = False
+for c in data_original.columns.values:
+    try:
+        pdt.assert_series_equal(left=data[c], right=data_original[c],
+                                check_exact=False, rtol=1e-3, atol=1e-4)
+    except AssertionError as e:
+        print(f'column="{c}" {e}\n\n')
+        BLAH = True
+if BLAH:
+    raise AssertionError('data not equal')
 
 #nb>
 #data
 
 #nb>
 ## copy notebook to `artifacts` dir to be logged by mlflow
-#notebook_name = 'data_exploration_dev.ipynb'
-#shutil.copy2(notebook_name, '../artifacts/notebooks/' + notebook_name)
+#notebook_name = 'notebooks/data_exploration_dev.ipynb'
+#shutil.copy2(notebook_name, REPO + '/artifacts/' + notebook_name)
+
+#nb>
+## NBVAL_IGNORE_OUTPUT
+#!jupyter nbconvert --to html $notebook_name
+#notebook_name_html = notebook_name.replace('ipynb', 'html')
+#shutil.copy2(notebook_name_html, REPO + '/artifacts/' + notebook_name_html)
+#import pathlib
+#pathlib.Path(notebook_name_html).unlink()
 
 '''
 ## Save MLflow Tracking to Disc
@@ -3474,11 +4021,15 @@ tm.assert_frame_equal(data, data_original, check_exact=False, rtol=1e-4, atol=1e
 #mlflow.log_param('raw_dataset_dir', DST_DIR)
 #mlflow.log_param('EDA_passed_dataset_dir_x-dev', DATASET_PATH_ORIGINAL)
 #mlflow.log_param('data_version_after_EDA_vxxx-dev', VERSION)
+#mlflow.log_param('helper_dataset_info', all_helper_data_info)
 #mlflow.log_param('input_shape', data.shape)
 #mlflow.log_param('input_columns', data.columns.values)
 #mlflow.log_param('input_dtypes', data.dtypes.values)
 #
 ## Log artifacts (logs, saved files, etc)
-#mlflow.log_artifacts('../artifacts/')
+#mlflow.log_artifacts(REPO + '/artifacts/')
 ## delete redundant logs, files that are logged as artifact
-#shutil.rmtree('../artifacts')
+#shutil.rmtree(REPO + '/artifacts')
+#
+## terminate mlflow tracker
+#client.set_terminated(mlflow.active_run().info.run_id, status='FINISHED')
