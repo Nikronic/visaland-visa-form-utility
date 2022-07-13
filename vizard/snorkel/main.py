@@ -56,7 +56,7 @@ PATH = 'raw-dataset/all-dev.pkl'
 REPO = '/home/nik/visaland-visa-form-utility'
 VERSION = 'v1.2.2-dev'
 # log experiment configs
-MLFLOW_EXPERIMENT_NAME = 'make modular labeling functions similar to `vizard.snorkel.augmentation`'
+MLFLOW_EXPERIMENT_NAME = 'make modular slicing functions similar to `vizard.snorkel.[labeling,augmentation,modeling]`'
 mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
 MLFLOW_TAGS = {
     'stage': 'dev'  # dev, beta, production
@@ -181,7 +181,11 @@ logger.info('\t\t↑↑↑ Finishing augmentation by applying `TransformationFun
 logger.info('\t\t↓↓↓ Starting slicing by applying `SlicingFunction`s (SFs) ↓↓↓')
 single_person_slice = slice_dataframe(data_augmented, slicing.single_person)
 logger.info(single_person_slice.sample(5))
-sfs = [slicing.single_person]
+# transformation functions
+sf_compose = [
+    slicing.SinglePerson(),
+]
+sfs = slicing.ComposeSFSlicing(slicers=sf_compose)()  # type: ignore
 sf_applier = PandasSFApplier(sfs)
 data_augmented_sliced = sf_applier.apply(data_augmented)
 scorer = Scorer(metrics=metrics)
