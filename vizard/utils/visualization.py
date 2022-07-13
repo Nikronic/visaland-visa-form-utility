@@ -14,10 +14,12 @@ def add_percentage_axes(ax: plt.Axes, n: int) -> None:
         n (int): total number of items for computing percentage
     
     Note:
-        it can be used on `seaborn.countplot` too
+        it can be used on ``seaborn.countplot`` too
     
-    Reference:
-        https://stackoverflow.com/a/63479557/18971263
+    References:
+
+        * https://stackoverflow.com/a/63479557/18971263
+    
     """
 
     for p in ax.patches: 

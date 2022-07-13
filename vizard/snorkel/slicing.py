@@ -14,16 +14,16 @@ from snorkel.slicing import slice_dataframe
 def single_person(x: pd.Series) -> bool:
     """single and unmarried slice
 
-    This is being done by using ``''p1.SecA.App.ChdMStatus''`` which contains
-        marital status of the person, i.e. if "single" then ``==7``.
+    This is being done by using ``'p1.SecA.App.ChdMStatus'`` which contains
+    marital status of the person, i.e. if "single" then ``==7``.
     Also, to further verify this, we check the marriage period by
-        verifying that ``''P2.MS.SecA.Period''`` is zero.
+    verifying that ``'P2.MS.SecA.Period'`` is zero.
 
     Args:
         x (pd.Series): input Pandas Series 
 
     Returns:
-        bool: True if `x` is a single person, False otherwise
+        bool: True if ``x`` is a single person, False otherwise
     """
 
     #

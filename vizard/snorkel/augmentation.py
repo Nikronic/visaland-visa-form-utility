@@ -27,7 +27,7 @@ from enum import Enum
 
 class SeriesNoise:
     """
-    Adds different type noise (impulse, multiplicative, or additive) to a `Pandas.Series`
+    Adds different type noise (impulse, multiplicative, or additive) to a :py:mod:`Pandas.Series`
 
     """
 
@@ -242,7 +242,7 @@ class SeriesNoise:
 
 
 class TFAugmentation:
-    """Adds augmentation capabilities unique to a country for `snorkel.TransformationFunction`
+    """Adds augmentation capabilities unique to a country for ``snorkel.TransformationFunction``
 
     Notes:
         User must create new class that subclasses this and write domain/dataset
@@ -254,8 +254,13 @@ class TFAugmentation:
         methods that could be used anywhere but subclassing them,
         such as continuous noises, shuffling, etc.
         And make sure that any class that subclass this, should integrate 
-        `snorkel.TransformationFunction` to be usable in `snorkel` pipeline.
-        See `CanadaTFAugmentation` for instance of implementation and usage.
+        ``snorkel.TransformationFunction`` to be usable in ``snorkel`` pipeline.
+        For instance, see the following for instance of implementation and usage:
+
+            * :class:`AddNormalNoiseDOBYear`
+            * :class:`AddCategoricalNoiseSiblingRelX`
+            * :class:`AddOrderedNoiseChdAccomp`
+            * and so on.
 
     """
 
@@ -269,35 +274,35 @@ class TFAugmentation:
             s (pd.Series): Pandas Series to be processed
 
         Returns:
-            pd.Series: Augmented `s` on column `COLUMN`
+            pd.Series: Augmented ``s`` on column ``COLUMN``
         """
         raise NotImplementedError
 
     def make_tf(self, func: Callable,
                 class_name: Optional[str] = None,
                 **kwargs) -> TransformationFunction:
-        """Make any function an instance of `TransformationFunction`
+        """Make any function an instance of ``snorkel.TransformationFunction``
 
         Note:
-            Currently only `func`s that work on `pd.Series` that work on single `column`
+            Currently only `func` s that work on `pd.Series` that work on single `column`
             are supported as the API is designed this way. But, it could be easily
             modified to support any sort of function.
 
         Args:
             func (Callable): A callable that
-            column (str): column name of a `pd.Series` that is going to be manipulated.
-                Must be provided if `func` is not setting it internally. E.g. for
-                `CanadaAugmentation.tf_add_normal_noise_dob_year` you don't need to 
-                set `column` since it is being handled internally.
-            class_name (str, optional): The name of the class if `func` is a method of it.
-                It is used for better naming given class name alongside `func` name.
+            column (str): column name of a ``pd.Series`` that is going to be manipulated.
+                Must be provided if ``func`` is not setting it internally. E.g. for
+                :class:`AddNormalNoiseDOBYear` you don't need to 
+                set ``column`` since it is being handled internally.
+            class_name (str, optional): The name of the class if ``func`` is a method of it.
+                It is used for better naming given class name alongside ``func`` name.
                 Defaults to None.
-            kwargs: keyword arguments to `func`
+            kwargs: keyword arguments to ``func``
 
         Returns:
             TransformationFunction:
             A callable object that is now compatible with
-            `snorkel` transformation pipeline, e.g. ``Policy`` and ``TFApplier``
+            ``snorkel`` transformation pipeline, e.g. ``Policy`` and ``TFApplier``
         """
 
         column = kwargs.pop('column')
@@ -317,14 +322,14 @@ class TFAugmentation:
         """Check if the row is valid
 
         Args:
-            row (int): which row to use for the categorical noise. `row` here
-                means the `row`th column of the dataframe with the same name
+            row (int): which row to use for the categorical noise. ``row`` here
+                means the ``row`` th column of the dataframe with the same name
                 of the column to be noisy.
             lb (int): lower bound of the row
             ub (int): upper bound of the row
 
         Raises:
-            ValueError: if `row` is not inside the bounds
+            ValueError: if ``row`` is not inside the bounds
         """
         if row < lb or row > ub:
             raise ValueError(f'Row must be between {lb} and {ub}, got {row}')
@@ -336,14 +341,14 @@ class TFAugmentation:
             section (str): which section of the column
             sections (list): list of valid sections
         Raises:
-            ValueError: if `section` is not inside the `sections` list
+            ValueError: if ``section`` is not inside the ``sections`` list
         """
         if section not in sections:
             raise ValueError(f'Section must be in {sections}, got {section}')
 
 
 class ComposeTFAugmentation(TFAugmentation):
-    """Composes a list of `TFAugmentation` instances 
+    """Composes a list of :class:`TFAugmentation` instances 
 
     Examples:
         >>> tf_compose = [
@@ -358,17 +363,16 @@ class ComposeTFAugmentation(TFAugmentation):
 
         for aug in augments:
             if not issubclass(aug.__class__, TFAugmentation):
-                raise TypeError(
-                    'Keys must be {} instance.'.format(TFAugmentation))
+                raise TypeError(f'Keys must be instance of {TFAugmentation}.')
 
         self.augments = augments
     
     def __call__(self, *args: Any, **kwds: Any) -> list[TransformationFunction]:
-        """Takes a list of `TFAugmentation` and converts to `snorkel.TransformationFunction`
+        """Takes a list of :class:`TFAugmentation` and converts to ``snorkel.TransformationFunction``
 
         Returns:
             list[TransformationFunction]:
-            A list of objects that instantiate `snorkel.TransformationFunction` 
+            A list of objects that instantiate ``snorkel.TransformationFunction``
         """
         augments_tf: list[TransformationFunction] = []
         for aug in self.augments:
@@ -382,7 +386,7 @@ class AddNormalNoiseDOBYear(SeriesNoise, TFAugmentation):
     """Add normal noise to ``'P1.PD.DOBYear.Period'``
 
     This methods makes sure that by adding noise, the age does not
-    fall into a new category. See `categorize_age` for more info.
+    fall into a new category. See :class:`AGE_CATEGORY` for more info.
     In other words, we make sure a normal noise is defined within range of
     each category, hence always noisy data will stay in same category.
     """
@@ -390,8 +394,8 @@ class AddNormalNoiseDOBYear(SeriesNoise, TFAugmentation):
         """
 
         Args:
-            row (int): which row to use for the categorical noise. `row` here
-                means the `row`th column of the dataframe with the same name
+            row (int): which row to use for the categorical noise. ``row`` here
+                means the ``row`` th column of the dataframe with the same name
                 of the column to be noisy.
         """
         super().__init__(dataframe)
@@ -411,7 +415,7 @@ class AddNormalNoiseDOBYear(SeriesNoise, TFAugmentation):
             s (pd.Series): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy `self.COLUMN` of `s`
+            pd.Series: Noisy ``self.COLUMN`` of ``s``
         """
 
         COLUMN = self.COLUMN
@@ -428,7 +432,7 @@ class AddNormalNoiseChildDOBX(SeriesNoise, TFAugmentation):
     """Add normal noise to ``'p1.SecB.Chd.[X].ChdDOB.Period'``
 
     This methods makes sure that by adding noise, the age does not
-    fall into a new category. See `categorize_age` for more info.
+    fall into a new category. See :class:`AGE_CATEGORY` for more info.
     In other words, we make sure a normal noise is defined within range of
     each category, hence always noisy data will stay in same category.
     
@@ -437,8 +441,8 @@ class AddNormalNoiseChildDOBX(SeriesNoise, TFAugmentation):
         """
 
         Args:
-            row (int): which row to use for the categorical noise. `row` here
-                means the `row`th column of the dataframe with the same name
+            row (int): which row to use for the categorical noise. ``row`` here
+                means the ``row`` th column of the dataframe with the same name
                 of the column to be noisy.
         """
         super().__init__(dataframe)
@@ -459,7 +463,7 @@ class AddNormalNoiseChildDOBX(SeriesNoise, TFAugmentation):
             s (pd.Series): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy `self.COLUMN` of `s`
+            pd.Series: Noisy `self.COLUMN` of ``s``
         """
 
         COLUMN = self.COLUMN
@@ -482,7 +486,7 @@ class AddNormalNoiseFunds(SeriesNoise, TFAugmentation):
 
     Following conditions have been used:
         1. ``'hasInvLttr'``: we can choose larger neighborhood if this is True. 
-            The decay percentage can be found in `__decay`.
+            The decay percentage can be found in ``self.__decay``.
     
     """
     def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
@@ -521,7 +525,7 @@ class AddNormalNoiseFunds(SeriesNoise, TFAugmentation):
 class AddNormalNoiseDateOfMarr(SeriesNoise, TFAugmentation):
     """Add normal noise to ``'P1.MS.SecA.DateOfMarr.Period'``
 
-    Entries where value of `column` in `s` is zero will be ignored. I.e.
+    Entries where value of ``column`` in ``s`` is zero will be ignored. I.e.
     those who are "single" would stay single where "single" means
     "non-married" and "previously married"
 
@@ -540,7 +544,7 @@ class AddNormalNoiseDateOfMarr(SeriesNoise, TFAugmentation):
             s (pd.Series): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy `self.COLUMN` of `s`
+            pd.Series: Noisy `self.COLUMN` of ``s``
         """
         COLUMN = self.COLUMN
         if s[COLUMN] != 0.:
@@ -552,16 +556,16 @@ class AddNormalNoiseDateOfMarr(SeriesNoise, TFAugmentation):
 class AddNormalNoiseOccRowXPeriod(SeriesNoise, TFAugmentation):
     """Add normal noise to ``'P3.Occ.OccRowX.Period'``
 
-    Entries where value of `column` in `s` is zero will be ignored. I.e.
-    those who are "uneducated" would stay educated.
+    Entries where value of ``column`` in ``s`` is zero will be ignored. I.e.
+    those who are "uneducated" would stay uneducated.
 
     """
     def __init__(self, dataframe: Optional[pd.DataFrame], row: int) -> None:
         """
 
         Args:
-            row (int): which row to use for the categorical noise. `row` here
-                means the `row`th column of the dataframe with the same name
+            row (int): which row to use for the categorical noise. ``row`` here
+                means the ``row`` th column of the dataframe with the same name
                 of the column to be noisy.
         """
         super().__init__(dataframe)
@@ -578,7 +582,7 @@ class AddNormalNoiseOccRowXPeriod(SeriesNoise, TFAugmentation):
             s (pd.Series): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy `self.COLUMN` of `s`
+            pd.Series: Noisy `self.COLUMN` of ``s``
         """
 
         COLUMN = self.COLUMN
@@ -596,7 +600,7 @@ class AddNormalNoiseOccRowXPeriod(SeriesNoise, TFAugmentation):
 class AddNormalNoiseHLS(SeriesNoise, TFAugmentation):
     """Add normal noise to ``'P3.DOV.PrpsRow1.HLS.Period'``
 
-    Entries where value of `column` in `s` is below 14 (2 weeks)
+    Entries where value of ``column`` in ``s`` is below 14 (2 weeks)
     only will receive truncated noise with positive value. Also,
     no value after getting noisy could be under 14. In simple terms, 
     all values have to be above 14.
@@ -621,7 +625,7 @@ class AddNormalNoiseHLS(SeriesNoise, TFAugmentation):
             s (pd.Series): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy `self.COLUMN` of `s`
+            pd.Series: Noisy `self.COLUMN` of ``s``
         """
 
         COLUMN = self.COLUMN
@@ -650,7 +654,7 @@ class AddNormalNoiseHLS(SeriesNoise, TFAugmentation):
 class AddCategoricalNoiseChildRelX(SeriesNoise, TFAugmentation):
     """Add categorical noise to ``'p1.SecB.Chd.[row].ChdRel'``
 
-    Entries where child exists (i.e. != 'other'), will be shuffled
+    Entries where child exists (i.e. != ``'other'``), will be shuffled
     randomly based on Bernoulli trial. Note that it only changes
     the gender not relation level. Possible cases:
 
@@ -664,8 +668,8 @@ class AddCategoricalNoiseChildRelX(SeriesNoise, TFAugmentation):
         """
 
         Args:
-            row (int): which row to use for the categorical noise. `row` here
-                means the `row`th column of the dataframe with the same name
+            row (int): which row to use for the categorical noise. ``row`` here
+                means the ``row`` th column of the dataframe with the same name
                 of the column to be noisy.
         """
         super().__init__(dataframe)
@@ -687,7 +691,7 @@ class AddCategoricalNoiseChildRelX(SeriesNoise, TFAugmentation):
             s (pd.Series): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy `self.COLUMN` of `s`
+            pd.Series: Noisy ``self.COLUMN`` of ``s``
         """
 
         COLUMN = self.COLUMN
@@ -701,7 +705,7 @@ class AddCategoricalNoiseChildRelX(SeriesNoise, TFAugmentation):
 class AddCategoricalNoiseSiblingRelX(SeriesNoise, TFAugmentation):
     """Add categorical noise to ``'p1.SecC.Chd.[row].ChdRel'``
 
-    Entries where sibling exists (i.e. != 'other'), will be shuffled
+    Entries where sibling exists (i.e. != ``'other'``), will be shuffled
     randomly based on Bernoulli trial. Note that it only changes
     the gender not relation level. Possible cases:
 
@@ -716,8 +720,8 @@ class AddCategoricalNoiseSiblingRelX(SeriesNoise, TFAugmentation):
         """
 
         Args:
-            row (int): which row to use for the categorical noise. `row` here
-                means the `row`th column of the dataframe with the same name
+            row (int): which row to use for the categorical noise. ``row`` here
+                means the ``row`` th column of the dataframe with the same name
                 of the column to be noisy.
         """
         super().__init__(dataframe)
@@ -739,7 +743,7 @@ class AddCategoricalNoiseSiblingRelX(SeriesNoise, TFAugmentation):
             s (pd.Series): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy `self.COLUMN` of `s`
+            pd.Series: Noisy ``self.COLUMN`` of ``s``
         """
 
         COLUMN = self.COLUMN
@@ -766,7 +770,7 @@ class AddCategoricalNoiseSex(SeriesNoise, TFAugmentation):
         * 'Male' -> 'Female'
         * 'Female' -> 'Male'
     
-    Notes:
+    Note:
         If in future, we linked families to each other in dataset, this
         method needs to be extended to change sex of the spouse too. 
 
@@ -788,7 +792,7 @@ class AddCategoricalNoiseSex(SeriesNoise, TFAugmentation):
             s (pd.Series): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy `self.COLUMN` of `s`
+            pd.Series: Noisy ``self.COLUMN`` of ``s``
         """
 
         COLUMN = self.COLUMN
@@ -803,10 +807,9 @@ class AddCategoricalNoiseSex(SeriesNoise, TFAugmentation):
 class AddOrderedNoiseChdAccomp(SeriesNoise, TFAugmentation):
     """Add ordered noise to ``'p1.Sec[sec].Chd.X.ChdAccomp.Count'``
 
-    These entries are bounded by other columns but always have to be
-    >= 0. Hence, when we want to add noise, we need to make sure that
-    the noise is not an *edge* case.
-    *edge* case for these columns are:
+    These entries are bounded by other columns but always have to be >= 0.
+    Hence, when we want to add noise, we need to make sure that the noise
+    is not an *edge* case. *edge* case for these columns are:
 
         * ``'p1.Sec[sec].Chd.X.ChdAccomp.Count' = 0`` -> this means that no
         one is accompanying the applicant, hence adding a noise would be
@@ -826,7 +829,8 @@ class AddOrderedNoiseChdAccomp(SeriesNoise, TFAugmentation):
 
         Args:
             sec (str): which section to use for the ordered noise. Here
-                it could be 'B' or 'C' where it is children and siblings respectively.
+                it could be ``'B'`` or ``'C'`` where it is
+                children and siblings respectively.
         """
         super().__init__(dataframe)
         self.check_valid_section(sec, ['B', 'C'])
@@ -842,7 +846,7 @@ class AddOrderedNoiseChdAccomp(SeriesNoise, TFAugmentation):
             s (pd.Series): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy `self.COLUMN` of `s`
+            pd.Series: Noisy ``self.COLUMN`` of ``s``
         """
 
         COLUMN = self.COLUMN
@@ -872,7 +876,7 @@ class AGE_CATEGORY(Enum):
     ADULT = (4, 31, 999)
 
     def __init__(self, id: int, start: float, end: float) -> None:
-        """Each member of this class is a tuple of (`id`, lower bound, upper bound) of age range
+        """Each member of this class is a tuple of (id, lower bound, upper bound) of age range
 
         Args:
             id (int): ID for each Enum member
@@ -885,7 +889,7 @@ class AGE_CATEGORY(Enum):
 
     @classmethod
     def categorize_age(self, age: float) -> AGE_CATEGORY:
-        """takes an age and categorize it
+        """Takes an age and categorize it
 
         Args:
             age (float): input age to be categorized

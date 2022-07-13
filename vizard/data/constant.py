@@ -150,7 +150,6 @@ FINANCIAL_RATIOS = {
     'deposit2rent': 3./100.,
     'deposit2worth': 5.,      # rule of thumb provided online
     'worth2deposit': 1./5.,
-
     # company related
     'tax2income': 100./15.,  # 10% for small, 20% for larger, we use average 15% tax rate
     'income2tax': 15./100.,
@@ -163,8 +162,10 @@ FINANCIAL_RATIOS = {
 # ENUM
 class DOC_TYPES(Enum):
     """
-    Contains all document types which can be used to customize ETL steps for each doc.
-    Remark: Order of docs is meaningless.
+    Contains all document types which can be used to customize ETL steps for each document type
+
+    Members follow the ``<country_name>_<document_type>`` naming convention. The value 
+    and its order are meaningless.
     """
     canada = 1        # referring to all Canada docs in general
     canada_5257e = 2  # application for visitor visa (temporary resident visa)
@@ -174,7 +175,7 @@ class DOC_TYPES(Enum):
 
 # Cutoff terms for both keys and values
 class CANADA_CUTOFF_TERMS(Enum):
-    """Dict of cut off terms for different files that is can be used with `dict_summarizer`
+    """Dict of cut off terms for different files that is can be used with :func:`dict_summarizer <vizard.data.functional.dict_summarizer>`
 
     """
 
@@ -186,5 +187,16 @@ class CANADA_CUTOFF_TERMS(Enum):
 #   remark: we do not use any heuristics here, we just follow what form used and only add another
 # option which should be used as None state (i.e. None as a separate feature in categorical mode).
 class CANADA_FILLNA(Enum):
+    """Values used to fill ``None`` s depending on the form structure
+
+    Members follow the ``<field_name>_<form_name>`` naming convention. The value
+    has been extracted by manually inspecting the documents. Hence, for each
+    form, user must find and set this value manually.
+
+    Note:
+        We do not use any heuristics here, we just follow what form used and
+        only add another option which should be used as ``None`` state; i.e. ``None``
+        as a separate feature in categorical mode.
+    """
 
     ChdMStatus_5645e = 9

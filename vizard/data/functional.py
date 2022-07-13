@@ -117,18 +117,18 @@ def column_dropper(dataframe: pd.DataFrame, string: str, exclude: str = None,
 
     Args:
         dataframe (pd.DataFrame): Pandas dataframe to be processed
-        string (str): string to look for in :attr:`dataframe` columns
+        string (str): string to look for in ``dataframe`` columns
         exclude (str, optional): string to exclude a subset of columns from
             being dropped. Defaults to None.
-        regex (bool, optional): compile :attr:`string` as regex. Defaults to False.
+        regex (bool, optional): compile ``string`` as regex. Defaults to False.
         inplace (bool, optional): whether or not use and inplace
             operation. Defaults to True.
 
     Returns:
         Union[None, pd.DataFrame]:
             Takes a Pandas Dataframe and searches for
-            columns *containing* :attr:`string` in them either raw string or
-            regex (in latter case, use ``regex=True``) and after :attr:`exclude` ing a
+            columns *containing* ``string`` in them either raw string or
+            regex (in latter case, use ``regex=True``) and after ``exclude`` ing a
             subset of them, drops the remaining *in-place*.
     """
 
@@ -151,7 +151,7 @@ def column_dropper(dataframe: pd.DataFrame, string: str, exclude: str = None,
 
 
 def fillna_datetime(dataframe: pd.DataFrame, col_base_name: str, date: str, type: DOC_TYPES,
-                    one_sided: Union[str, bool] = False, inplace: bool = False) -> Union[None, pd.DataFrame]:
+                    one_sided: Union[str, bool] = False, inplace: bool = False) -> Optional[pd.DataFrame]:
     """Takes names of two columns of dates (start, end) and fills them with a predefined value
 
     Args:
@@ -160,22 +160,25 @@ def fillna_datetime(dataframe: pd.DataFrame, col_base_name: str, date: str, type
             extracting dates of same category
         date (str): The desired date
         type (DOC_TYPES): Different ways of filling empty date columns:
-            1. ``'right'``: Uses the :attr:`current_date` as the final time
-            2. ``'left'``: Uses the :attr:`reference_date` as the starting time
+
+            1. ``'right'``: Uses the ``current_date`` as the final time
+            2. ``'left'``: Uses the ``reference_date`` as the starting time
+
         one_sided (Union[str, bool], optional): whether or not use an inplace
             operation. Defaults to False.
-        inplace (bool, optional): `DOC_TYPE` used to use rules for matching tags and filling
-            appropriately. Defaults to False.
+        inplace (bool, optional): :class:`DOC_TYPES <vizard.data.constant.DOC_TYPES>`
+            used to use rules for matching tags and filling appropriately.
+            Defaults to False.
 
-    Notes:
+    Note:
         In transformation operations such as :func:`aggregate_datetime` function,
-            this would be converted to period of zero. It is useful for filling periods of 
-            non existing items (e.g. age of children for single person).
+        this would be converted to period of zero. It is useful for filling periods of 
+        non existing items (e.g. age of children for single person).
     
     Returns:
         Union[None, pd.DataFrame]:
             A Pandas Dataframe that two columns of dates that had no value (None)
-            which was filled to the same date via :attr:`date`.
+            which was filled to the same date via ``date``.
     """
 
     if not one_sided:
@@ -203,33 +206,33 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
         dataframe (pd.DataFrame): Pandas dataframe to be processed
         col_base_name (str): Base column name that accepts ``'From'`` and ``'To'`` for
             extracting dates of same category
-        new_col_name (str): The column name that extends :attr:`col_base_name` and will be
+        new_col_name (str): The column name that extends ``col_base_name`` and will be
             the final column containing the period.
         type (DOC_TYPES): document type used to use rules for matching tags and
-            filling appropriately
+            filling appropriately. See :class:`DOC_TYPES <vizard.data.constant.DOC_TYPES>`.
         if_nan (Union[str, Callable, None], optional): What to do with None s (NaN).
             Could be a function or predefined states as follow:
 
-            1. ``'skip'``: do nothing (i.e. ignore None s). Defaults to ``'skip'``.
+            1. ``'skip'``: do nothing (i.e. ignore ``None``s). Defaults to ``'skip'``.
 
         one_sided (str, optional): Different ways of filling empty date columns.
-        Defaults to None. Could be one of the following:
+            Defaults to None. Could be one of the following:
 
-            1. ``'right'``: Uses the :atr:`current_date` as the final time
-            2. ``'left'``: Uses the :atr:`reference_date` as the starting time
+            1. ``'right'``: Uses the ``current_date`` as the final time
+            2. ``'left'``: Uses the ``reference_date`` as the starting time
             
-        reference_date (str, optional): Assumed :atr:`reference_date` (t0<t1). Defaults to None.
-        current_date (str, optional): Assumed :atr:`current_date` (t1>t0). Defaults to None.
-        default_datetime: accepts `datetime.datetime` [#]_ to set default date
-            for `dateutil.parser.parse` [#]_.
+        reference_date (str, optional): Assumed ``reference_date`` (t0<t1). Defaults to None.
+        current_date (str, optional): Assumed ``current_date`` (t1>t0). Defaults to None.
+        default_datetime: accepts datetime.datetime_ to set default date
+            for dateutil.parser.parse_.
 
     Returns:
         pd.DataFrame:
             A Pandas Dataframe calculate the period of two columns of dates
             and represent it in integer form. The two columns used will be dropped.
 
-    .. [#] https://docs.python.org/3/library/datetime.html
-    .. [#] https://dateutil.readthedocs.io/en/stable/parser.html
+    .. _datetime.datetime: https://docs.python.org/3/library/datetime.html
+    .. _dateutil.parser.parse: https://dateutil.readthedocs.io/en/stable/parser.html
     """
 
     default_datetime = datetime.datetime(year=DATEUTIL_DEFAULT_DATETIME['year'],
@@ -311,7 +314,8 @@ def tag_to_regex_compatible(string: str, type: DOC_TYPES) -> str:
 
     Args:
         string (str): input string to get manipulated
-        type (DOC_TYPES): specified `DOC_TYPE` to determine regex rules 
+        type (DOC_TYPES): specified :class:`DOC_TYPES <vizard.data.constant.DOC_TYPES`
+            to determine regex rules 
 
     Returns:
         str: A modified string
@@ -326,27 +330,24 @@ def tag_to_regex_compatible(string: str, type: DOC_TYPES) -> str:
 
 def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: Callable,
                  if_nan: Union[str, Callable] = 'skip', **kwargs) -> pd.DataFrame:
-    """Changes the data type of a column with ability to fill None s
+    """Changes the data type of a column with ability to fill ``None`` s
 
     Args:
-        dataframe (pd.DataFrame): Dataframe that `column_name` will be searched on
+        dataframe (pd.DataFrame): Dataframe that ``column_name`` will be searched on
         col_name (str): Desired column name of the dataframe
         dtype (Callable): target data type as a function e.g. ``np.float32``
         if_nan (Union[str, Callable], optional): What to do with None s (NaN).
             Defaults to ``'skip'``. Could be a function or predefined states as follow:
 
-            1. 'skip': do nothing (i.e. ignore None s)
-            2. 'value': fill the None with `value` argument via ``kwargs``
+            1. ``'skip'``: do nothing (i.e. ignore ``None`` s)
+            2. ``'value'``: fill the None with ``value`` argument via ``kwargs``
 
-        default_datetime(optional): accepts `datetime.datetime` [#]_ to set default date
-            for `dateutil.parser.parse` [#]_
-
-    .. [#] https://docs.python.org/3/library/datetime.html#datetime.datetime
-    .. [#] https://dateutil.readthedocs.io/en/stable/parser.html
+        default_datetime(optional): accepts datetime.datetime_ to set default date
+            for dateutil.parser.parse_
 
     Raises:
-        ValueError: if string mode passed to `if_nan` does not exist. It won't
-            raise if `if_nan` is `Callable`.
+        ValueError: if string mode passed to ``if_nan`` does not exist. It won't
+            raise if ``if_nan`` is ``Callable``.
     
     Returns:
         pd.DataFrame: 
@@ -369,7 +370,7 @@ def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: Callable,
             # the function to be used in `.apply` method of dataframe
             def func(x): return value
         else:
-            raise ValueError('Unknown mode "{}".'.format(if_nan))
+            raise ValueError(f'Unknown mode "{if_nan}".')
     else:
         pass
 
@@ -379,7 +380,7 @@ def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: Callable,
         Args:
             value (Any): the input value that need to be standardized
 
-        Notes:
+        Note:
             This is mostly hardcoded and cannot be written better (I think!). So, you can
             remove it entirely, and see what errors you get, and change this accordingly to 
             errors and exceptions you get.
@@ -403,16 +404,17 @@ def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: Callable,
         return value
 
     def apply_dtype(x: Any) -> Any:
-        """Handles the default `datetime.datetime` for `dateutil.parser.parse` during casting dtypes
+        """Handles the default ``datetime.datetime`` for ``dateutil.parser.parse`` during casting dtypes
 
-        Notes:
-            This function is only used to handle for a specific case of casting it is hardcoded
+        Note:
+            This function is only used to handle for a specific case of
+            casting it is hardcoded
 
         Args:
             x (Any): Any value that its dtype going to be casted
 
         Returns:
-            Any: `x` that is casted to a new type
+            Any: ``x`` that is casted to a new type
         """
         if dtype == parser.parse:
             return dtype(x, default=default_datetime)
@@ -429,11 +431,11 @@ def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: Callable,
 def dump_directory_structure_csv(src: str, shallow: bool = True) -> None:
     """Saves a tree structure of a directory in csv file
 
-    Takes a `src` directory path, creates a tree of dir structure and writes
-        it down to a csv file with name ``'label.csv'`` with
-        default value of ``'0'`` for each path
+    Takes a ``src`` directory path, creates a tree of dir structure and writes
+    it down to a csv file with name ``'label.csv'`` with
+    default value of ``'0'`` for each path
     
-    Notes:
+    Note:
         This has been used to manually extract and record labels.
 
     Args:
@@ -456,11 +458,13 @@ def create_directory_structure_tree(src: str, shallow: bool = False) -> dict:
         shallow (bool, optional): Whether or not just dive to root dir's subdir.
             Defaults to False.
 
-    Reference:
+    References:
         1. https://stackoverflow.com/a/25226267/18971263
 
     Returns:
-        dict: Dictionary of all dirs (and subdirs) where keys are path and values are ``0``
+        dict:
+            Dictionary of all dirs (and subdirs) where keys are path
+            and values are ``0``
     """
     d = {'name': os.path.basename(src) if os.path.isdir(
         src) else None}  # ignore files, only dir
@@ -482,7 +486,7 @@ def flatten_dict(d: dict) -> dict:
     Args:
         d (dict): A dictionary (could be multilevel)
 
-    Reference:
+    References:
         1. https://stackoverflow.com/a/67744709/18971263
 
     Returns:
@@ -511,7 +515,7 @@ def flatten_dict(d: dict) -> dict:
     return dict(items())
 
 def xml_to_flattened_dict(xml: str) -> dict:
-    """Takes a (nested) XML and flattens it to a dict via `flatten_dict`
+    """Takes a (nested) XML and flattens it to a dict via :func:`flatten_dict`
 
     Args:
         xml (str): A XML string
@@ -528,15 +532,15 @@ def unit_converter(sparse: float, dense: float, factor: float) -> float:
     """The rule of thump of ``dense = (factor) sparse`` or ``sparse = (1./factor) dense``
 
     Args:
-        sparse (float): the smaller/sparser amount which is a percentage of `dense`,
+        sparse (float): the smaller/sparser amount which is a percentage of ``dense``,
             if provided calculates ``sparse = (factor) dense``. If provided,
-            `dense` must be None.
-        dense (float): the larger/denser amount which is a multiplication of `sparse`,
+            ``dense`` must be None.
+        dense (float): the larger/denser amount which is a multiplication of ``sparse``,
             if provided calculates ``dense = (1/factor) sparse``. If provided,
-            `sparse` must be None.
+            ``sparse`` must be None.
         factor (float): sparse to dense factor, either directly provided as a
-            float number or as a predefined factor given by `data.constant`, 
-            e.g. `constant.FINANCIAL_RATIOS` for computing currency exchange rate
+            float number or as a predefined factor given by :py:mod:`vizard.data.constant <vizard.data.constant>`, 
+            e.g. ``vizard.data.constant.FINANCIAL_RATIOS`` for computing currency exchange rate
 
     Returns:
         float: Converted value
@@ -556,20 +560,21 @@ def process_directory(src_dir: str, dst_dir: str, compose: FileTransformCompose,
                       file_pattern: str = '*', manager: Optional[Manager] = None) -> None:
     """Transforms all files that match pattern in given directory and saves new files preserving dir structure
 
-    Notes: A methods used for handling files from manually processed dataset to raw-dataset
-        see class `preprocessor.FileTransformers` for more information
+    Note:
+        A methods used for handling files from manually processed dataset to raw-dataset
+        see :class:`FileTransform <vizard.data.preprocessor.FileTransform>` for more information.
     
-    Reference:
+    References:
         1. https://stackoverflow.com/a/24041933/18971263
 
     Args:
         src_dir (str): Source directory to be processed
         dst_dir (str): Destination directory to write processed files
         compose (FileTransformCompose): An instance of transform composer.
-            see `preprocessor.Compose`
-        file_pattern (str, optional): pattern to match files, default to '*' for
-            all files. Defaults to '*'.
-        manager (Optional[Manager], optional): `enlighten.Manager` for progressbar.
+            see :class:`Compose <vizard.data.preprocessor.FileTransformCompose>`.
+        file_pattern (str, optional): pattern to match files, default to ``'*'`` for
+            all files. Defaults to ``'*'``.
+        manager (Optional[Manager], optional): ``enlighten.Manager`` for progressbar.
             Defaults to None.
     """
 
@@ -606,13 +611,13 @@ def process_directory(src_dir: str, dst_dir: str, compose: FileTransformCompose,
 def search_dict(string: str, dic: dict, if_nan: str) -> str:
     """Converts a string to another given a dictionary to search for
 
-    Notes:
+    Note:
         This could be used to convert non-standard country codes to their names
 
     Args:
         string (str): input string
-        dic (dict): dictionary to be searched for `string` in its keys
-        if_nan (str): if `string` could not be found in `dic`, return `if_nan`
+        dic (dict): dictionary to be searched for ``string`` in its keys
+        if_nan (str): if ``string`` could not be found in ``dic``, return ``if_nan``
 
     Returns:
         str: Converted string
@@ -630,11 +635,11 @@ def extended_dict_get(string: str, dic: dict, if_nan: str,
     """Takes a string and looks for it inside a dictionary with default value if condition is satisfied
 
     Args:
-        string (str): the `string` to look for inside dictionary `dic`
-        dic (dict): the dictionary that `string` is expected to be
-        if_nan (str): the value returned if `string` could not be found in `dic`
-        condition (Optional[bool], optional): look for `string` in `dic` only
-            if `condition` is True 
+        string (str): the ``string`` to look for inside dictionary ``dic``
+        dic (dict): the dictionary that ``string`` is expected to be
+        if_nan (str): the value returned if ``string`` could not be found in ``dic``
+        condition (Optional[bool], optional): look for ``string`` in ``dic`` only
+            if ``condition`` is True 
 
     Examples:
         >>> d = {'1': 'a', '2': 'b', '3': 'c'}
@@ -666,15 +671,15 @@ def fix_typo(string: str, typos: Union[list, dict], fix: Optional[str] = None) -
         string (str): the string that is a typo
         typos (Union[list, dict]): two cases:
 
-            * list: a list that all are typos and will be replaced by `fix`
+            * list: a list that all are typos and will be replaced by ``fix``
             * dict: a dictionary that keys are typos and values are corresponding fixes
 
         fix (Optional[str], optional): a single token/work string to replace typo.
-            Its value will be ignored if `typos` is `dict`. Defaults to None.
+            Its value will be ignored if ``typos`` is ``dict``. Defaults to None.
 
     Raises:
-        TypeError: When `typos` is `list`, then `fix` must be provided
-        TypeError: If `typos` is not `list` nor `dict`
+        TypeError: When ``typos`` is ``list``, then ``fix`` must be provided
+        TypeError: If ``typos`` is not ``list`` nor ``dict``
 
     Returns:
         str: fixed typo
@@ -694,8 +699,8 @@ def fix_typo(string: str, typos: Union[list, dict], fix: Optional[str] = None) -
 def config_csv_to_dict(path: str) -> dict:
     """Takes a config CSV and return a dictionary of key and values
 
-    Notes:
-        Configs of our use case can be found in `configs.data`
+    Note:
+        Configs of our use case can be found in :py:mod:`vizard.configs`
 
     Args:
         path (str): string path to config file
@@ -713,10 +718,10 @@ def detect_outliers(df: pd.DataFrame, features: Iterable) -> list:
 
     Args:
         df (pd.DataFrame): Dataframe to detect outliers in
-        features (Iterable): Desired columns on dataframe `df`
+        features (Iterable): Desired columns on dataframe ``df``
 
     Returns:
-        `list`: List of outliers
+        list: List of outliers
     """
 
     outlier_indices = []

@@ -38,7 +38,7 @@ class DataframePreprocessor:
 
     This class needs to be extended for file specific preprocessing where tags are
     unique and need to be done entirely manually.
-    In this case, `file_specific_preprocessor` needs to be implemented.
+    In this case, :func:`file_specific_basic_transform` needs to be implemented.
     """
 
     def __init__(self, dataframe: pd.DataFrame = None) -> None:
@@ -54,22 +54,7 @@ class DataframePreprocessor:
     @loggingdecorator(logger.name+'.DataframePreprocessor.func', level=logging.DEBUG, output=False, input=True)
     def column_dropper(self, string: str, exclude: str = None, regex: bool = False,
                        inplace: bool = True) -> Union[None, pd.DataFrame]:
-        """Drop column(s) from a dataframe based on a string or regex
-
-        Takes a Pandas Dataframe and searches for columns *containing* `string` in them either 
-        raw string or regex and after `exclude`ing a subset of them, drops the remaining.
-
-        Args:
-            string (str): string to look for in `dataframe` columns
-            exclude (str, optional): string to exclude a subset of columns from being
-                dropped. Defaults to None.
-            regex (bool, optional): compile `string` as regex.
-                Defaults to False.
-            inplace (bool, optional): whether or not use and inplace operation.
-                Defaults to True.
-
-        Returns:
-            Union[None, pd.DataFrame]: A dataframe if not inplace, otherwise None.
+        """See :func:`vizard.data.functional.column_dropper` for more information
         """
 
         return functional.column_dropper(dataframe=self.dataframe, string=string,
@@ -78,26 +63,8 @@ class DataframePreprocessor:
     @loggingdecorator(logger.name+'.DataframePreprocessor.func', level=logging.DEBUG, output=False)
     def fillna_datetime(self, col_base_name: str, type: DOC_TYPES, one_sided: Union[str, bool],
                         date: str = None, inplace: bool = False) -> Union[None, pd.DataFrame]:
-        """Fills columns of a dataframe with a datetime value that can handle Nones
-
-        See `data.functional.fillna_datetime` for more details.
-
-        Args:
-            col_base_name (str): Base column name that
-                accepts ``'From'`` and ``'To'`` for
-            type (DOC_TYPES): type of the document defined
-                in `vizard.data.constant.DOC_TYPES`
-            one_sided (Union[str, bool]): Different ways of filling empty date columns:
-                1. `'right'`: Uses the `current_date` as the final time
-                2. `'left'`: Uses the `reference_date` as the starting time
-            date (str, optional): The desired date. Defaults to None.
-            inplace (bool, optional): whether or not use and inplace operation.
-                Defaults to False.
-
-        Returns:
-            Union[None, pd.DataFrame]: A dataframe if not inplace, otherwise None.
+        """See :func:`vizard.data.functional.fillna_datetime` for more details
         """
-
         if date is None:
             date = T0
 
@@ -110,29 +77,8 @@ class DataframePreprocessor:
                            type: DOC_TYPES, if_nan: Union[str, Callable, None] = None,
                            one_sided: str = None, reference_date: str = None,
                            current_date: str = None) -> pd.DataFrame:
-        """
-        In a Pandas Dataframe, takes two columns of dates in string form and calculates
-            the period of these two dates and represent it in integer form. The two columns
-            used will be dropped.
 
-        E.g.:
-        ```
-            *.FromDate and *.ToDate --> *.Period | *.FromYear and *.ToYear --> *.Period in days
-        ```
-        args:
-            dataframe: Pandas dataframe to be processed
-            col_base_name: Base column name that accepts `From` and `To` for
-                extracting dates of same category
-            new_col_name: The column name that extends `col_base_name` and will be
-                the final column containing the period.
-            one_sided: Different ways of filling empty date columns:\n
-                1. `'right'`: Uses the `current_date` as the final time
-                2. `'left'`: Uses the `reference_date` as the starting time
-            reference_date: Assumed `reference_date` (t0<t1)
-            current_date: Assumed `current_date` (t1>t0)
-            if_nan: What to do with `None`s (NaN). Could be a function or predefined states as follow:\n
-                1. 'skip': do nothing (i.e. ignore `None`'s)
-            type: `DOC_TYPE` used to use rules for matching tags and filling appropriately
+        """See :func:`vizard.data.functional.aggregate_datetime` for more details
         """
         return functional.aggregate_datetime(dataframe=self.dataframe, col_base_name=col_base_name,
                                              new_col_name=new_col_name, one_sided=one_sided,
@@ -142,8 +88,7 @@ class DataframePreprocessor:
 
     def file_specific_basic_transform(self, type: DOC_TYPES, path: str) -> pd.DataFrame:
         """
-        Takes a specific file (see `DOC_TYPES`), then does data type fixing,
-            missing value filling, descretization, etc.
+        Takes a specific file then does data type fixing, missing value filling, descretization, etc.
 
         Note: 
             Since each files has its own unique tags and requirements,
@@ -152,7 +97,7 @@ class DataframePreprocessor:
             to other problems or even files.
 
         args:
-            type: The input document type (see `constant.DOC_TYPES`)  
+            type: The input document type (see :class:`DOC_TYPES <vizard.data.constant.DOC_TYPES>`)  
         """
 
         raise NotImplementedError
@@ -160,16 +105,7 @@ class DataframePreprocessor:
     @loggingdecorator(logger.name+'.DataframePreprocessor.func', level=logging.DEBUG, output=False, input=True)
     def change_dtype(self, col_name: str, dtype: Callable,
                      if_nan: Union[str, Callable] = 'skip', **kwargs):
-        """
-        Takes a column name and changes the dataframe's column data type where for 
-            None (nan) values behave based on `if_nan` argument.
-
-        args:
-            col_name: Column name of the dataframe
-            dtype: target data type as a function e.g. `np.float32`
-            if_nan: What to do with `None`s (NaN). Could be a function or predefined states as follow:\n
-                1. 'skip': do nothing (i.e. ignore `None`'s)
-                2. 
+        """See :func:`vizard.data.functional.change_dtype` for more details
         """
 
         return functional.change_dtype(dataframe=self.dataframe, col_name=col_name,
@@ -193,7 +129,7 @@ class UnitConverter:
     Contains utility tools for converting different units to each other.
 
     For including domain specific rules of conversion, extend this class for
-    each category.e.g. for finance.
+    each category, e.g. for finance.
     """
 
     def __init__(self) -> None:
@@ -201,18 +137,18 @@ class UnitConverter:
 
     def unit_converter(self, sparse: Optional[float], dense: Optional[float],
                        factor: float) -> float:
-        """convert `sparse` or `dense` to each other using the rule of thump of ``dense = (factor) sparse``.
+        """convert ``sparse`` or ``dense`` to each other using the rule of thump of ``dense = (factor) sparse``.
 
         Args:
-            sparse (float, optional): the smaller/sparser amount which is a percentage of `dense`,
-                if provided calculates `sparse = (factor) dense`.
-            dense (float, optional): the larger/denser amount which is a multiplication of `sparse`,
-                if provided calculates `dense = (factor) sparse`
+            sparse (float, optional): the smaller/sparser amount which is a percentage of ``dense``,
+                if provided calculates ``sparse = (factor) dense``.
+            dense (float, optional): the larger/denser amount which is a multiplication of ``sparse``,
+                if provided calculates ``dense = (factor) sparse``
             factor (float): sparse to dense factor, either directly provided as a
-                float number or as a predefined factor given by `constant.FINANCIAL_RATIOS`
+                float number or as a predefined factor given by ``vizard.data.constant.FINANCIAL_RATIOS``
             
         Raises:
-            ValueError: if `sparse` and `dense` are both None
+            ValueError: if ``sparse`` and ``dense`` are both None
         
         Returns:
             float: the converted amount
@@ -232,8 +168,8 @@ class FinancialUnitConverter(UnitConverter):
     """Contains utility tools for converting different financial units to each other.
 
     All functions that you implement should take the factor value using
-    `self.CONSTANTS['function_name']`. E.g.:
-    ::
+    ``self.CONSTANTS['function_name']``. E.g.::
+
         def rent2deposit(self, rent: float) -> float:
             self.unit_converter(sparse=rent, dense=None,
                                 factor=self.CONSTANTS['rent2deposit'])
@@ -244,18 +180,18 @@ class FinancialUnitConverter(UnitConverter):
         """Gets constant values needed for conversion
 
         Args:
-            CONSTANTS (dict, optional): A dictionary of {string: float} where keys
+            CONSTANTS (dict, optional): A dictionary of ``{string: float}`` where keys
                 are function of this module and values are the factor used in conversion
-                Defaults to `data.constant.FINANCIAL_RATIOS`.
+                Defaults to ``vizard.data.constant.FINANCIAL_RATIOS``.
         """
         super().__init__()
         self.CONSTANTS = CONSTANTS
 
     def rent2deposit(self, rent: float) -> float:
-        """A wrapper around `UnitConverter.unit_converter` with more meaningful signature.
+        """Estimates deposit value via rent value by wrapping around :func:`unit_converter`
 
         Args:
-            rent (float): rent amount (`rent` is `sparse`)
+            rent (float): rent amount (``rent`` is ``sparse``)
 
         Returns:
             float: deposit amount
@@ -264,7 +200,7 @@ class FinancialUnitConverter(UnitConverter):
                                    factor=self.CONSTANTS['rent2deposit'])
 
     def deposit2rent(self, deposit: float) -> float:
-        """A wrapper around `UnitConverter.unit_converter` with more meaningful signature. 
+        """Estimates rent value via deposit value by wrapping around :func:`unit_converter`
 
         Args:
             deposit (float): deposit amount (`deposit` is `dense`)
@@ -276,7 +212,7 @@ class FinancialUnitConverter(UnitConverter):
                                    factor=self.CONSTANTS['deposit2rent'])
 
     def deposit2worth(self, deposit: float) -> float:
-        """A wrapper around `UnitConverter.unit_converter` with more meaningful signature.
+        """Estimates worth value via deposit value by wrapping around :func:`unit_converter`
 
         Args:
             deposit (float): deposit amount (`deposit` is `sparse`)
@@ -288,7 +224,7 @@ class FinancialUnitConverter(UnitConverter):
                                    factor=self.CONSTANTS['deposit2worth'])
 
     def worth2deposit(self, worth: float) -> float:
-        """A wrapper around `UnitConverter.unit_converter` with more meaningful signature.
+        """Estimates deposit value via worth value by wrapping around :func:`unit_converter`
 
         Args:
             worth (float): worth amount (`worth` is `dense`)
@@ -300,7 +236,7 @@ class FinancialUnitConverter(UnitConverter):
                                    factor=self.CONSTANTS['worth2deposit'])
 
     def tax2income(self, tax: float) -> float:
-        """A wrapper around `UnitConverter.unit_converter` with more meaningful signature.
+        """Estimates income value via tax value by wrapping around :func:`unit_converter`
 
         Args:
             tax (float): tax amount (`tax` is `sparse`)
@@ -312,7 +248,7 @@ class FinancialUnitConverter(UnitConverter):
                                    factor=self.CONSTANTS['tax2income'])
 
     def income2tax(self, income: float) -> float:
-        """A wrapper around `UnitConverter.unit_converter` with more meaningful signature.
+        """Estimates tax value via income value by wrapping around :func:`unit_converter`
         
         Args:
             income (float): income amount (`income` is `dense`)
@@ -324,7 +260,7 @@ class FinancialUnitConverter(UnitConverter):
                                    factor=self.CONSTANTS['income2tax'])
 
     def income2worth(self, income: float) -> float:
-        """A wrapper around `UnitConverter.unit_converter` with more meaningful signature.
+        """Estimates worth value via income value by wrapping around :func:`unit_converter`
 
         Args:
             income (float): income amount (`income` is `sparse`)
@@ -336,7 +272,7 @@ class FinancialUnitConverter(UnitConverter):
                                    factor=self.CONSTANTS['income2worth'])
 
     def worth2income(self, worth: float) -> float:
-        """A wrapper around `UnitConverter.unit_converter` with more meaningful signature.
+        """Estimates income value via worth value by wrapping around :func:`unit_converter`
 
         Args:
             worth (float): worth amount (`worth` is `dense`)
@@ -356,13 +292,18 @@ class WorldBankXMLProcessor:
 
     It's recommended to extend this class to work with particular indicator by
     first filtering by a "indicator", then manipulating the resulting dataframe.
+    This can be done by calling :func:`indicator_filter`.
 
-    *Remark:* we prefer querying over `Pandas` dataframe than `lxml`
+    Note:
+        We prefer querying over ``Pandas`` dataframe than lxml_
+        for processing and cleaning XML.
+
+    .. _lxml: https://lxml.de/
     """
 
     def __init__(self, dataframe: pd.DataFrame) -> None:
         """
-        args:
+        Args:
             dataframe: Main Pandas DataFrame to be processed
         """
         self.dataframe = dataframe
@@ -475,7 +416,7 @@ class WorldBankXMLProcessor:
     def convert_country_name_to_numeric(self, string: str) -> float:
         """Converts the name of a country into a numerical value
 
-        If input `string` is None, uses the default value ``'Unknown'``. This
+        If input ``string`` is None, uses the default value ``'Unknown'``. This
         is the hardcoded value in official form that we extract data from
         hence for consistency reasons, the same default value have been
         chosen.
@@ -519,7 +460,7 @@ class WorldBankDataframeProcessor:
         args:
             dataframe: Main Pandas DataFrame to be processed
             subindicator_rank: Whether or not use ranking (discrete)
-                or score (continuous) for given `indicator_name`. In original World Bank
+                or score (continuous) for given ``indicator_name``. In original World Bank
                 dataset, for some indicators, the score is discrete, while for others,
                 it's continuous and this flag controls which one to extract.
                 Defaults to False.
@@ -571,7 +512,7 @@ class WorldBankDataframeProcessor:
     @loggingdecorator(logger.name+'.WorldBankDataframeProcessor.func', level=logging.INFO,
                       output=False, input=True)
     def indicator_filter(self, indicator_name: str) -> pd.DataFrame:
-        """Filters the rows by given `indicator_name` and aggregates using mean operation
+        """Filters the rows by given ``indicator_name`` and aggregates using mean operation
 
         Also, drops corresponding columns used for filtering.
 
@@ -580,7 +521,7 @@ class WorldBankDataframeProcessor:
                 See class level documents about available indicators.
         
         Returns:
-            pd.DataFrame: A filtered dataframe with only a single `indicator`.
+            pd.DataFrame: A filtered dataframe with only a single ``indicator``.
         """
         # filter rows that only contain the provided `indicator_name` with type `rank` or `score`
         dataframe = self.dataframe.copy()
@@ -608,14 +549,14 @@ class WorldBankDataframeProcessor:
 
 
 class EducationCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
-    """Handles ``'Quality of the education system'`` indicator of a `WorldBankDataframeProcessor`
-        dataframe.
+    """Handles ``'Quality of the education system'`` indicator of a :class:`WorldBankDataframeProcessor` dataframe.
 
     The value ranges from 1 to 7 as score where higher is better.
     """
 
     def __init__(self, dataframe: pd.DataFrame, subindicator_rank: bool = False) -> None:
-        """See `WorldBankDataframeProcessor` for more details.
+        """See :class:`WorldBankDataframeProcessor` for more details.
+
         """
         super().__init__(dataframe, subindicator_rank)
 
@@ -629,7 +570,7 @@ class EducationCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
     @loggingdecorator(logger.name+'.WorldBankDataframeProcessor.EducationCountryScoreDataframePreprocessor.func',
                       level=logging.DEBUG, output=False, input=True)
     def __indicator_filter(self) -> dict:
-        """Filters the rows by a constant `INDICATOR_NAME`
+        """Filters the rows by a constant ``INDICATOR_NAME``
 
         Returns: 
             dict: A dictionary of ``country_name: score`` pairs.
@@ -671,13 +612,13 @@ class EducationCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
 
 
 class EconomyCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
-    """Handles ``'Global Competitiveness Index'`` indicator of a `WorldBankDataframeProcessor` dataframe.
+    """Handles ``'Global Competitiveness Index'`` indicator of a :class:`WorldBankDataframeProcessor` dataframe.
         
     The value ranges from 1 to 7 as the score where higher is better.
     """
 
     def __init__(self, dataframe: pd.DataFrame, subindicator_rank: bool = False) -> None:
-        """See `WorldBankDataframeProcessor` for more details.
+        """See :class:`WorldBankDataframeProcessor` for more details.
         """
         super().__init__(dataframe, subindicator_rank)
 
@@ -691,7 +632,7 @@ class EconomyCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
     @loggingdecorator(logger.name+'.WorldBankDataframeProcessor.EconomyCountryScoreDataframePreprocessor.func',
                       level=logging.DEBUG, output=False, input=True)
     def __indicator_filter(self) -> dict:
-        """Filters the rows by a constant `INDICATOR_NAME`
+        """Filters the rows by a constant ``INDICATOR_NAME``
 
         Returns: 
             dict: A dictionary of ``country_name: score`` pairs.
@@ -1348,11 +1289,10 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
 
 
 class FileTransform:
-    """
-    A base class for applying transforms as a composable object over files.
+    """A base class for applying transforms as a composable object over files.
     
     Any behavior over the files itself (not the content of files)
-        must extend this class.
+    must extend this class.
 
     """
 
@@ -1413,11 +1353,11 @@ class CopyFile(FileTransform):
 
 
 class MakeContentCopyProtectedMachineReadable(FileTransform):
-    """reads a 'content-copy' protected PDF and removes this restriction
+    """Reads a 'content-copy' protected PDF and removes this restriction
 
     Removing the protection is done by saving a "printed" version of via pikepdf_
 
-    Reference:
+    References:
         1. https://www.reddit.com/r/Python/comments/t32z2o/simple_code_to_unlock_all_readonly_pdfs_in/
         2. https://pikepdf.readthedocs.io/en/latest/
 
@@ -1449,8 +1389,8 @@ class FileTransformCompose:
     The transforms should be tied to files with keyword and this will be only applying
     functions on files that match the keyword using a dictionary
     
-    Transformation dictionary over files in the following structure:
-    ::
+    Transformation dictionary over files in the following structure::
+    
         {
             FileTransform: 'filter_str', 
             ...,
@@ -1474,8 +1414,7 @@ class FileTransformCompose:
         if transforms is not None:
             for k in transforms.keys():
                 if not issubclass(k.__class__, FileTransform):
-                    raise TypeError(
-                        'Keys must be {} instance.'.format(FileTransform))
+                    raise TypeError(f'Keys must be {FileTransform} instance.')
 
         self.transforms = transforms
 

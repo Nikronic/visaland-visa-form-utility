@@ -6,6 +6,8 @@ __all__ = [
 import pandas as pd
 # snorkel
 from snorkel.labeling import labeling_function
+# helper
+from functools import wraps as _wraps
 
 
 # TODO: move this to `vizard.snorkel.constant.py`
@@ -23,11 +25,11 @@ def lf_weak_accept(x: pd.Series) -> int:
 
     In our dataset, following labels are used:
 
-        * 'acc': accept
-        * 'rej': reject
-        * 'w-acc': weak accept
-        * 'w-rej': weak reject
-        * 'no-idea': no idea
+        * ``'acc'``: accept
+        * ``'rej'``: reject
+        * ``'w-acc'``: weak accept
+        * ``'w-rej'``: weak reject
+        * ``'no-idea'``: no idea
 
     Args:
         x (pd.Series): A series of our dataframe
@@ -47,11 +49,11 @@ def lf_weak_reject(x: pd.Series) -> int:
 
     In our dataset, following labels are used:
 
-        * 'acc': accept
-        * 'rej': reject
-        * 'w-acc': weak accept
-        * 'w-rej': weak reject
-        * 'no-idea': no idea
+        * ``'acc'``: accept
+        * ``'rej'``: reject
+        * ``'w-acc'``: weak accept
+        * ``'w-rej'``: weak reject
+        * ``'no-idea'``: no idea
 
     Args:
         x (pd.Series): A series of our dataframe
