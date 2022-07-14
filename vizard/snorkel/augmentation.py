@@ -6,10 +6,11 @@ __all__ = [
     'SeriesNoise', 'TFAugmentation', 'ComposeTFAugmentation',  # base classes
 
     'AddNormalNoiseDOBYear',  'AddNormalNoiseFunds',           # noise classes
-    'AddNormalNoiseDateOfMarr', 'AddNormalNoiseOccRowXPeriod',  
-    'AddNormalNoiseHLS', 'AddCategoricalNoiseChildRelX', 
+    'AddNormalNoiseDateOfMarr', 'AddNormalNoiseOccRowXPeriod',
+    'AddNormalNoiseHLS', 'AddCategoricalNoiseChildRelX',
     'AddNormalNoiseChildDOBX', 'AddCategoricalNoiseSiblingRelX',
     'AddCategoricalNoiseSex',
+
     'AGE_CATEGORY',                                            # helper classes
 ]
 
@@ -33,7 +34,7 @@ class SeriesNoise:
 
     def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
         """
-        
+
         Args:
             dataframe: The dataframe that series will be extracted from to be processed
         """
@@ -49,7 +50,7 @@ class SeriesNoise:
         """
         To initialize main dataframe if not initialized already at the time of 
             instance creation, i.e. ``... = SeriesNoise(...)``
-        
+
         Note: 
             Must be called before calling any of ``series_*`` functions.
         """
@@ -69,7 +70,7 @@ class SeriesNoise:
         return self.rng.normal(loc=mean, scale=std, size=size)
 
     def series_add_normal_noise(self, s: pd.Series, column: str,
-                                mean: float = 0. , std: float = 1.) -> pd.Series:
+                                mean: float = 0., std: float = 1.) -> pd.Series:
         """Takes a pandas Series and corresponding column and adds *normal* noise to it
 
         See :func:`normal_noise` for more details.
@@ -115,7 +116,7 @@ class SeriesNoise:
 
         Returns:
             np.ndarray: A truncated normal distribution
-        
+
         .. _scipy.stats.truncnorm: https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.truncnorm.html
 
         """
@@ -123,7 +124,7 @@ class SeriesNoise:
                          loc=mean, scale=std).rvs(size)
 
     def series_add_truncated_normal_noise(self, s: pd.Series, column: str,
-                                          mean: float, std: float, 
+                                          mean: float, std: float,
                                           lb: float, ub: float) -> pd.Series:
         """Takes a pandas Series and corresponding column and adds *truncated normal* noise to it
 
@@ -146,9 +147,9 @@ class SeriesNoise:
         self.df = cast(pd.DataFrame, self.df)
         assert np.isscalar(s[column])
 
-        # add noise
+        # add noise (must have ndim == 0, i.e. be a scalar)
         noise: float = self.truncated_normal_noise(mean=mean, std=std,
-            low=lb, upp=ub, size=1).item()  # must be ndim == 0
+                                                   low=lb, upp=ub, size=1).item()  #
         s[column] = s[column] + noise
         return s
 
@@ -164,7 +165,7 @@ class SeriesNoise:
 
         Returns:
             pd.Series: Categorically shuffled ``column`` of ``s``
-        
+
         .. _numpy.random.Generator.choice: https://numpy.org/doc/stable/reference/random/generated/numpy.random.Generator.choice.html
 
         """
@@ -179,7 +180,7 @@ class SeriesNoise:
         # switch
         s[column] = self.rng.choice([categories[s[column]]], **kwargs)
         return s
-    
+
     def ordered_noise(self, x: int, lb: int, ub: int) -> int:
         """Adds ±1 noise with respect to given lower/upper bound
 
@@ -258,7 +259,7 @@ class TFAugmentation:
         specific methods for his/her case. For instance, if you need to add
         augmentation to a class with "age" value, then extend this class and
         override :func:`augment` method of it. e.g. :class:`AddNormalNoiseDOBYear`.
-        
+
         At the moment, the goal is to use this base to include all core augmentation
         methods that could be used anywhere but subclassing them,
         such as continuous noises, shuffling, etc.
@@ -367,6 +368,7 @@ class ComposeTFAugmentation(TFAugmentation):
         >>> tf_applier = PandasTFApplier(tfs, random_policy)
 
     """
+
     def __init__(self, augments: Sequence[TFAugmentation]) -> None:
         super().__init__()
 
@@ -375,7 +377,7 @@ class ComposeTFAugmentation(TFAugmentation):
                 raise TypeError(f'Keys must be instance of {TFAugmentation}.')
 
         self.augments = augments
-    
+
     def __call__(self, *args: Any, **kwds: Any) -> list[TransformationFunction]:
         """Takes a list of :class:`TFAugmentation` and converts to ``snorkel.TransformationFunction``
 
@@ -399,6 +401,7 @@ class AddNormalNoiseDOBYear(SeriesNoise, TFAugmentation):
     In other words, we make sure a normal noise is defined within range of
     each category, hence always noisy data will stay in same category.
     """
+
     def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
         """
 
@@ -431,7 +434,7 @@ class AddNormalNoiseDOBYear(SeriesNoise, TFAugmentation):
         # construct normal distribution over neighborhood around input
         lower_bound = -(s[COLUMN] - self.__max_bound)  # can only be <= 0
         upper_bound = (s[COLUMN] - self.__max_bound)    # can only be >= 0
-        s = self.series_add_truncated_normal_noise(s=s, column=COLUMN, 
+        s = self.series_add_truncated_normal_noise(s=s, column=COLUMN,
                                                    mean=0., std=self.__std,
                                                    lb=lower_bound, ub=upper_bound)
         return s
@@ -444,8 +447,8 @@ class AddNormalNoiseChildDOBX(SeriesNoise, TFAugmentation):
     fall into a new category. See :class:`AGE_CATEGORY` for more info.
     In other words, we make sure a normal noise is defined within range of
     each category, hence always noisy data will stay in same category.
-    
     """
+
     def __init__(self, dataframe: Optional[pd.DataFrame], row: int) -> None:
         """
 
@@ -481,7 +484,7 @@ class AddNormalNoiseChildDOBX(SeriesNoise, TFAugmentation):
         # construct normal distribution over neighborhood around input
         lower_bound = -abs(s[COLUMN] - self.__max_bound)  # can only be <= 0
         upper_bound = abs(s[COLUMN] - self.__max_bound)    # can only be >= 0
-        s = self.series_add_truncated_normal_noise(s=s, column=COLUMN, 
+        s = self.series_add_truncated_normal_noise(s=s, column=COLUMN,
                                                    mean=0., std=self.__std,
                                                    lb=lower_bound, ub=upper_bound)
         # take absolute if negative age because of noise
@@ -494,10 +497,12 @@ class AddNormalNoiseFunds(SeriesNoise, TFAugmentation):
     """Add normal noise to ``'P3.DOV.PrpsRow1.Funds.Funds'``
 
     Following conditions have been used:
+
         1. ``'hasInvLttr'``: we can choose larger neighborhood if this is True. 
             The decay percentage can be found in ``self.__decay``.
-    
+
     """
+
     def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
         super().__init__(dataframe)
 
@@ -526,7 +531,7 @@ class AddNormalNoiseFunds(SeriesNoise, TFAugmentation):
             False: self.__decay[1],
         }
         has_inv_letter = s[COND_COLUMN[0]]  # condition
-        s = self.series_add_normal_noise(s=s, column=COLUMN, mean=0., 
+        s = self.series_add_normal_noise(s=s, column=COLUMN, mean=0.,
                                          std=s[COLUMN] * decay[has_inv_letter])
         return s
 
@@ -537,15 +542,15 @@ class AddNormalNoiseDateOfMarr(SeriesNoise, TFAugmentation):
     Entries where value of ``column`` in ``s`` is zero will be ignored. I.e.
     those who are "single" would stay single where "single" means
     "non-married" and "previously married"
-
     """
+
     def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
         super().__init__(dataframe)
 
         # values to add noise based on a categorization
         self.__decay = 0.2
         self.COLUMN = 'P1.MS.SecA.DateOfMarr.Period'
-    
+
     def augment(self, s: pd.Series, column: str = None) -> pd.Series:
         """Augment the series for the predetermined column
 
@@ -557,7 +562,7 @@ class AddNormalNoiseDateOfMarr(SeriesNoise, TFAugmentation):
         """
         COLUMN = self.COLUMN
         if s[COLUMN] != 0.:
-            s = self.series_add_normal_noise(s=s, column=COLUMN, mean=0., 
+            s = self.series_add_normal_noise(s=s, column=COLUMN, mean=0.,
                                              std=s[COLUMN] * self.__decay)
         return s
 
@@ -567,8 +572,8 @@ class AddNormalNoiseOccRowXPeriod(SeriesNoise, TFAugmentation):
 
     Entries where value of ``column`` in ``s`` is zero will be ignored. I.e.
     those who are "uneducated" would stay uneducated.
-
     """
+
     def __init__(self, dataframe: Optional[pd.DataFrame], row: int) -> None:
         """
 
@@ -583,7 +588,7 @@ class AddNormalNoiseOccRowXPeriod(SeriesNoise, TFAugmentation):
         # values to add noise based on a categorization
         self.__decay = 0.2
         self.COLUMN = f'P3.Occ.OccRow{row}.Period'
-    
+
     def augment(self, s: pd.Series, column: str = None) -> pd.Series:
         """Augment the series for the predetermined column
 
@@ -620,13 +625,14 @@ class AddNormalNoiseHLS(SeriesNoise, TFAugmentation):
         * if above 21 -> free to do anything
 
     """
+
     def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
         super().__init__(dataframe)
 
         # values to add noise based on a categorization
-        self.__std = 7  # we can do +- 7 days 
+        self.__std = 7  # we can do +- 7 days
         self.COLUMN = 'P3.DOV.PrpsRow1.HLS.Period'
-    
+
     def augment(self, s: pd.Series, column: str = None) -> pd.Series:
         """Augment the series for the predetermined column
 
@@ -641,20 +647,20 @@ class AddNormalNoiseHLS(SeriesNoise, TFAugmentation):
 
         if (s[COLUMN] > 14.) and (s[COLUMN] < 21.):  # ~75% of entries
             # add [-[0, 7], 7] days
-            s = self.series_add_truncated_normal_noise(s=s, column=COLUMN, 
-                                                   mean=0., std=self.__std,
-                                                   lb=-(21. - s[COLUMN]), ub=7.)
+            s = self.series_add_truncated_normal_noise(s=s, column=COLUMN,
+                                                       mean=0., std=self.__std,
+                                                       lb=-(21. - s[COLUMN]), ub=7.)
         elif s[COLUMN] >= 21.:
             # add [-7, 7] days
-            s = self.series_add_truncated_normal_noise(s=s, column=COLUMN, 
-                                                   mean=0., std=self.__std,
-                                                   lb=-7., ub=7.)
+            s = self.series_add_truncated_normal_noise(s=s, column=COLUMN,
+                                                       mean=0., std=self.__std,
+                                                       lb=-7., ub=7.)
         elif s[COLUMN] <= 14.:
             # add [0, 7] days
-            s = self.series_add_truncated_normal_noise(s=s, column=COLUMN, 
-                                                   mean=0., std=self.__std,
-                                                   lb=0., ub=7.)
-        
+            s = self.series_add_truncated_normal_noise(s=s, column=COLUMN,
+                                                       mean=0., std=self.__std,
+                                                       lb=0., ub=7.)
+
         # must remove float part (must be in 'days')
         s[COLUMN] = np.int32(s[COLUMN])
         return s
@@ -673,6 +679,7 @@ class AddCategoricalNoiseChildRelX(SeriesNoise, TFAugmentation):
         * 'step daughter' -> 'step son'
 
     """
+
     def __init__(self, dataframe: Optional[pd.DataFrame], row: int) -> None:
         """
 
@@ -692,7 +699,7 @@ class AddCategoricalNoiseChildRelX(SeriesNoise, TFAugmentation):
             'step daughter': 'step son',
             'other': 'other'
         }
-    
+
     def augment(self, s: pd.Series, column: str = None) -> pd.Series:
         """Augment the series for the predetermined column
 
@@ -725,6 +732,7 @@ class AddCategoricalNoiseSiblingRelX(SeriesNoise, TFAugmentation):
         * 'other' -> 'other'
 
     """
+
     def __init__(self, dataframe: Optional[pd.DataFrame], row: int) -> None:
         """
 
@@ -744,7 +752,7 @@ class AddCategoricalNoiseSiblingRelX(SeriesNoise, TFAugmentation):
             'step sister': 'step brother',
             'other': 'other'
         }
-    
+
     def augment(self, s: pd.Series, column: str = None) -> pd.Series:
         """Augment the series for the predetermined column
 
@@ -778,12 +786,13 @@ class AddCategoricalNoiseSex(SeriesNoise, TFAugmentation):
 
         * 'Male' -> 'Female'
         * 'Female' -> 'Male'
-    
+
     Note:
         If in future, we linked families to each other in dataset, this
         method needs to be extended to change sex of the spouse too. 
 
     """
+
     def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
         super().__init__(dataframe)
 
@@ -793,7 +802,7 @@ class AddCategoricalNoiseSex(SeriesNoise, TFAugmentation):
             'Female': 'Male'
         }
         self.COND_COLUMN = 'p1.SecA.App.ChdMStatus'
-    
+
     def augment(self, s: pd.Series, column: str = None) -> pd.Series:
         """Augment the series for the predetermined column
 
@@ -826,13 +835,14 @@ class AddOrderedNoiseChdAccomp(SeriesNoise, TFAugmentation):
         * ``'p1.Sec[sec].Chd.X.ChdAccomp.Count' = 'p1.Sec[sec].Chd.X.ChdRel.ChdCount'`` -> this
         means that everyone is accompanying the applicant, hence adding a noise means
         that a close family member is staying and this is also too much of a change.
-    
+
     So, we need to check two things:
         1. if the input entry is *edge* case, skip adding noise
         2. if the input entry is not *edge* case, add noise
         but only if the adding noise does not make the entry *edge*y.
 
     """
+
     def __init__(self, dataframe: Optional[pd.DataFrame], sec: str) -> None:
         """
 
@@ -847,7 +857,7 @@ class AddOrderedNoiseChdAccomp(SeriesNoise, TFAugmentation):
         # values to add noise based on a categorization
         self.COLUMN = f'p1.Sec{sec}.Chd.X.ChdAccomp.Count'
         self.HELPER_COLUMN = f'p1.Sec{sec}.Chd.X.ChdRel.ChdCount'
-    
+
     def augment(self, s: pd.Series, column: str = None) -> pd.Series:
         """Augment the series for the predetermined column
 
@@ -862,9 +872,9 @@ class AddOrderedNoiseChdAccomp(SeriesNoise, TFAugmentation):
         helper_column = self.HELPER_COLUMN
 
         if (s[COLUMN] > 0.) and (s[COLUMN] < s[helper_column]):
-            s = self.series_add_ordered_noise(s=s, column=COLUMN, 
+            s = self.series_add_ordered_noise(s=s, column=COLUMN,
                                               lb=1, ub=s[helper_column])
-            
+
         return s
 
 
@@ -910,7 +920,7 @@ class AGE_CATEGORY(Enum):
             str: category of the input age
 
         """
-        if AGE_CATEGORY.KID.start <= age <  AGE_CATEGORY.KID.end:
+        if AGE_CATEGORY.KID.start <= age < AGE_CATEGORY.KID.end:
             return AGE_CATEGORY.KID
         elif AGE_CATEGORY.TEEN.start <= age < AGE_CATEGORY.TEEN.end:
             return AGE_CATEGORY.TEEN

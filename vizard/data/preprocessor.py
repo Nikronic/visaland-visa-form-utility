@@ -1,7 +1,7 @@
 __all__ = ['DataframePreprocessor', 'CanadaDataframePreprocessor', 'UnitConverter',
            'FinancialUnitConverter', 'T0', 'FileTransformCompose', 'FileTransform', 'CopyFile',
            'MakeContentCopyProtectedMachineReadable', 'EducationCountryScoreDataframePreprocessor',
-           'EconomyCountryScoreDataframePreprocessor', 'WorldBankXMLProcessor', 
+           'EconomyCountryScoreDataframePreprocessor', 'WorldBankXMLProcessor',
            'WorldBankDataframeProcessor', ]
 
 # core
@@ -77,7 +77,6 @@ class DataframePreprocessor:
                            type: DOC_TYPES, if_nan: Union[str, Callable, None] = None,
                            one_sided: str = None, reference_date: str = None,
                            current_date: str = None) -> pd.DataFrame:
-
         """See :func:`vizard.data.functional.aggregate_datetime` for more details
         """
         return functional.aggregate_datetime(dataframe=self.dataframe, col_base_name=col_base_name,
@@ -146,10 +145,10 @@ class UnitConverter:
                 if provided calculates ``dense = (factor) sparse``
             factor (float): sparse to dense factor, either directly provided as a
                 float number or as a predefined factor given by ``vizard.data.constant.FINANCIAL_RATIOS``
-            
+
         Raises:
             ValueError: if ``sparse`` and ``dense`` are both None
-        
+
         Returns:
             float: the converted amount
         """
@@ -249,10 +248,10 @@ class FinancialUnitConverter(UnitConverter):
 
     def income2tax(self, income: float) -> float:
         """Estimates tax value via income value by wrapping around :func:`unit_converter`
-        
+
         Args:
             income (float): income amount (`income` is `dense`)
-        
+
         Returns:
             float: tax amount
         """
@@ -286,7 +285,7 @@ class FinancialUnitConverter(UnitConverter):
 
 class WorldBankXMLProcessor:
     """An XML processor which is customized ot handle data dumped from https://data.worldbank.org/indicator 
-        
+
     Note:
         Since it is used by mainstream, works for us too.
 
@@ -340,7 +339,8 @@ class WorldBankXMLProcessor:
         dataframe['Country or Area'] = dataframe['Country or Area'].ffill().bfill()
         dataframe = dataframe.drop_duplicates()  # drop repetition of onehots
         dataframe = dataframe.ffill().bfill()  # fill None of values of countries
-        dataframe = self.__include_years(dataframe=dataframe)  # exclude old years
+        dataframe = self.__include_years(
+            dataframe=dataframe)  # exclude old years
         # dataframe = dataframe[dataframe['Year'].astype(int) >= 2017]
         dataframe = dataframe.drop_duplicates(subset=['Country or Area', 'Year'],
                                               keep='last').reset_index()
@@ -442,7 +442,7 @@ class WorldBankXMLProcessor:
 
 class WorldBankDataframeProcessor:
     """A Pandas Dataframe processor which is customized to handle data dumped from WorldBank_ 
-        
+
     It's recommended to extend this class to work with particular indicator by
     first filtering by a indicator_ from WorldBank_ , then manipulating
     the resulting dataframe.
@@ -519,13 +519,13 @@ class WorldBankDataframeProcessor:
         Args:
             indicator_name (string): A string containing an indicator's full name.
                 See class level documents about available indicators.
-        
+
         Returns:
             pd.DataFrame: A filtered dataframe with only a single ``indicator``.
         """
         # filter rows that only contain the provided `indicator_name` with type `rank` or `score`
         dataframe = self.dataframe.copy()
-        dataframe = dataframe[(dataframe[self.INDICATOR] == indicator_name) & 
+        dataframe = dataframe[(dataframe[self.INDICATOR] == indicator_name) &
                               (dataframe[self.SUBINDICATOR] == self.SUBINDICATOR_TYPE)]
         dataframe.drop([self.INDICATOR, self.SUBINDICATOR],
                        axis=1, inplace=True)
@@ -613,7 +613,7 @@ class EducationCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
 
 class EconomyCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
     """Handles ``'Global Competitiveness Index'`` indicator of a :class:`WorldBankDataframeProcessor` dataframe.
-        
+
     The value ranges from 1 to 7 as the score where higher is better.
     """
 
@@ -973,7 +973,8 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             dataframe = self.change_dtype(col_name='P3.Edu.Edu_Row1.Country.Country',
                                           dtype=str, if_nan='fill', value='IRAN')
             # field of study: string -> categorical
-            dataframe['P3.Edu.Edu_Row1.FieldOfStudy'] = dataframe['P3.Edu.Edu_Row1.FieldOfStudy'].astype('string')
+            dataframe['P3.Edu.Edu_Row1.FieldOfStudy'] = dataframe['P3.Edu.Edu_Row1.FieldOfStudy'].astype(
+                'string')
             # clean occupation features
             occupation_tag_list = [
                 c for c in dataframe.columns.values if 'P3.Occ.OccRow' in c]
@@ -1290,7 +1291,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
 
 class FileTransform:
     """A base class for applying transforms as a composable object over files.
-    
+
     Any behavior over the files itself (not the content of files)
     must extend this class.
 
@@ -1324,7 +1325,6 @@ class CopyFile(FileTransform):
     def __init__(self, mode: str) -> None:
         super().__init__()
 
-        # see 
         self.COPY_MODES = ['c', 'cf', 'c2']
         self.mode = mode if mode is not None else 'cf'
         self.__check_mode(mode=mode)
@@ -1348,7 +1348,7 @@ class CopyFile(FileTransform):
         .. _shutil: https://docs.python.org/3/library/shutil.html
         """
         if not mode in self.COPY_MODES:
-            raise ValueError((f'Mode {mode} does not exist,', 
+            raise ValueError((f'Mode {mode} does not exist,',
                               f'choose one of "{self.COPY_MODES}".'))
 
 
@@ -1388,9 +1388,9 @@ class FileTransformCompose:
 
     The transforms should be tied to files with keyword and this will be only applying
     functions on files that match the keyword using a dictionary
-    
+
     Transformation dictionary over files in the following structure::
-    
+
         {
             FileTransform: 'filter_str', 
             ...,
@@ -1402,7 +1402,7 @@ class FileTransformCompose:
 
     def __init__(self, transforms: dict) -> None:
         """
-        
+
         Args:
             transforms: a dictionary of transforms, where the key is the instance of 
                 FileTransform and the value is the keyword that the transform will be

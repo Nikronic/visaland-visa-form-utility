@@ -160,7 +160,7 @@ tf_compose = [
     augmentation.AddOrderedNoiseChdAccomp(dataframe=data, sec='B'),
     augmentation.AddOrderedNoiseChdAccomp(dataframe=data, sec='C')
 ]
-tfs = augmentation.ComposeTFAugmentation(augments=tf_compose)()  # type: ignore
+tfs = augmentation.ComposeTFAugmentation(augments=tf_compose)()
 # define policy for applying TFs
 # TODO: #20
 all_policy = ApplyAllPolicy(n_tfs=len(tfs), #sequence_length=len(tfs),
@@ -179,13 +179,13 @@ logger.info(preview_tfs(dataframe=data[cond], tfs=tfs, n_samples=5))
 logger.info('\t\t↑↑↑ Finishing augmentation by applying `TransformationFunction`s ↑↑↑')
 
 logger.info('\t\t↓↓↓ Starting slicing by applying `SlicingFunction`s (SFs) ↓↓↓')
-single_person_slice = slice_dataframe(data_augmented, slicing.single_person)
-logger.info(single_person_slice.sample(5))
-# transformation functions
+# slicing functions
 sf_compose = [
     slicing.SinglePerson(),
 ]
-sfs = slicing.ComposeSFSlicing(slicers=sf_compose)()  # type: ignore
+sfs = slicing.ComposeSFSlicing(slicers=sf_compose)()
+single_person_slice = slice_dataframe(data_augmented, sfs[0])
+logger.info(single_person_slice.sample(5))
 sf_applier = PandasSFApplier(sfs)
 data_augmented_sliced = sf_applier.apply(data_augmented)
 scorer = Scorer(metrics=metrics)

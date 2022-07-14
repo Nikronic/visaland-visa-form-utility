@@ -20,7 +20,7 @@ class SFSlicing:
         specific methods for his/her case. For instance, if you need to add
         slicing for a class with "single person" value, then extend this class and
         override :func:`slice` method of it. e.g. :class:`SinglePerson`.
-        
+
         At the moment, the goal is to use this base to include all core slicing
         methods that could be used anywhere.
         And make sure that any class that subclass this, should integrate 
@@ -128,6 +128,7 @@ class ComposeSFSlicing(SFSlicing):
         >>> sf_applier = PandasSFApplier(sfs, random_policy)
 
     """
+
     def __init__(self, slicers: Sequence[SFSlicing]) -> None:
         super().__init__()
 
@@ -136,7 +137,7 @@ class ComposeSFSlicing(SFSlicing):
                 raise TypeError(f'Keys must be instance of {SFSlicing}.')
 
         self.slicers = slicers
-    
+
     def __call__(self, *args: Any, **kwds: Any) -> List[SlicingFunction]:
         """Takes a list of :class:`SFSlicing` and converts to ``snorkel.SlicingFunction``
 
@@ -147,7 +148,7 @@ class ComposeSFSlicing(SFSlicing):
         slicers_sf: List[SlicingFunction] = []
         for slicer in self.slicers:
             slicer = self.make_sf(func=slicer.slice, column=slicer.COLUMN,
-                                   class_name=slicer.__class__.__name__)
+                                  class_name=slicer.__class__.__name__)
             slicers_sf.append(slicer)
         return slicers_sf
 
@@ -184,5 +185,5 @@ class SinglePerson(SFSlicing):
         HELPER_COLUMN = self.HELPER_COLUMN
 
         condition = (s[COLUMN] == 7) & (
-                     s[HELPER_COLUMN] == 0)
+            s[HELPER_COLUMN] == 0)
         return True if condition else False

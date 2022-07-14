@@ -91,13 +91,13 @@ def deprecated(reason):
 class loggingdecorator(object):
 
     def __init__(self, name: str, level: int = logging.DEBUG,
-                     input: bool = False, output: bool = False) -> None:
+                 input: bool = False, output: bool = False) -> None:
         self.name = name
         self.level = level
         self.input = input
         self.output = output
         self.logger = logging.getLogger(self.name)
-    
+
     """A decorator to log the function call and return value (i.e. signature)
 
     Args:
@@ -120,8 +120,8 @@ class loggingdecorator(object):
         Callable: A callable decorator
     """
 
-    def __call__(self, fn, *args: Any, **kwds: Any) -> Any:    
-        
+    def __call__(self, fn, *args: Any, **kwds: Any) -> Any:
+
         @_wraps(fn)
         def _decor(*args, **kwds):
             function_name = fn.__name__

@@ -1,4 +1,6 @@
-__all__ = ['report_label_model']
+__all__ = [
+    'report_label_model'
+]
 
 # core
 import numpy as np
@@ -12,7 +14,7 @@ import logging
 
 # configure logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
+
 
 @loggingdecorator(logger.name+'.func', level=logging.INFO, output=False, input=False)
 def report_label_model(label_model: LabelModel, label_matrix: np.ndarray,
@@ -22,8 +24,8 @@ def report_label_model(label_model: LabelModel, label_matrix: np.ndarray,
 
     Args:
         label_model (LabelModel): snorkel.LabelModel_ model
-        label_matrix (np.ndarray): label matrix produced by applying ``snorkel.PandasLFApplier.apply``
-            on a dataframe
+        label_matrix (np.ndarray): label matrix produced by
+            applying ``snorkel.PandasLFApplier.apply`` on a dataframe
         gold_labels (np.ndarray): ground truth labels for given ``label_matrix``
         metrics (list): a list of metrics from sklearn.metrics_
         set (str): ``'train'`` or ``'test'`` set (affects print and logging)
@@ -36,7 +38,7 @@ def report_label_model(label_model: LabelModel, label_matrix: np.ndarray,
     .. _snorkel.labeling.model.LabelModel.score: https://snorkel.readthedocs.io/en/latest/packages/_autosummary/labeling/snorkel.labeling.model.label_model.LabelModel.html#snorkel.labeling.model.label_model.LabelModel.score
 
     """
-    tie_break_policy = kwargs['tie_break_policy'] if 'tie_break_policy' in kwargs.keys() else 'abstain'
+    tie_break_policy = kwargs.get('tie_break_policy', 'abstain')
 
     label_model_metrics = label_model.score(L=label_matrix, Y=gold_labels,
                                             tie_break_policy=tie_break_policy,

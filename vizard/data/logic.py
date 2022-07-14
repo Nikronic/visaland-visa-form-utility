@@ -12,14 +12,14 @@ from typing import Callable, List, Union, cast
 
 class Logics:
     """Applies logics on different type of data resulting in summarized, expanded, or transformed data
-    
+
     Methods here are implemented in the way that can be used as Pandas.agg_ function
     over `Pandas.Series` using functools.reduce_.
-    
+
     Note: 
         This is constructed based on domain knowledge hence is designed 
         for a specific purpose based on application.
-    
+
     .. _Pandas.agg: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.agg.html
     .. _functools.reduce: https://docs.python.org/3/library/functools.html#functools.reduce
     """
@@ -79,7 +79,7 @@ class Logics:
             Although this function updated the dataframe the class initialized with *inplace*,
             but user must update the main dataframe outside of this class to make sure he/she
             can use it via different tools. Simply put::
-            
+
                 my_df: pd.DataFrame = ...
                 logics = Logics(dataframe=my_df)
                 my_df = logics.add_agg_column(...)
@@ -145,10 +145,10 @@ class Logics:
             int: Result of counting
         """
         raise NotImplementedError
-    
+
     def count_long_distance_family_resident(self, series: pd.Series) -> int:
         """Counts the number of family members that are long distance resident
-        
+
         Note:
             Those who are living in another country may not be considered as
             long distance resident. In that case, 
@@ -165,7 +165,7 @@ class Logics:
 
     def count_foreign_family_resident(self, series: pd.Series) -> int:
         """Counts the number of family members that are living in a foreign country
-        
+
         Note:
             This is an special case of :func:`count_long_distance_family_resident` 
             where those who are living in another country are treated
@@ -205,12 +205,12 @@ class CanadaLogics(Logics):
             int: Result of counting
         """
 
-        counter = lambda x, y: np.sum(np.isin([x, y], [0]))
+        def counter(x, y): return np.sum(np.isin([x, y], [0]))
         return reduce(lambda x, y: 2 - counter(x, y), series)
 
     def count_foreigner_family(self, series: pd.Series) -> int:
         """Counts the number of family members born in foreign country
-        
+
         This has been hardcoded here by checking non-``'iran'``
         country of birth.
 
@@ -222,12 +222,13 @@ class CanadaLogics(Logics):
             int: Result of counting
         """
 
-        counter = lambda y: np.sum(np.invert(np.isin([y], ['iran', None])))  # type: ignore
+        def counter(y): return np.sum(
+            np.invert(np.isin([y], ['iran', None])))  # type: ignore
         return reduce(lambda x, y: x + counter(y), series, 0)
 
     def count_accompanying(self, series: pd.Series) -> int:
         """Counts the number of people that are accompanying the main person
-        
+
         This has been done by checking the corresponding bool flag
 
         Args:
@@ -238,8 +239,10 @@ class CanadaLogics(Logics):
             int: Result of counting
         """
 
-        counter = lambda y: np.sum(np.isin([y], [True, None]))  # type: ignore
-        return reduce(lambda x, y: x + counter(y), series, False)  # type: ignore
+        def counter(y): return np.sum(
+            np.isin([y], [True, None]))  # type: ignore
+        # type: ignore
+        return reduce(lambda x, y: x + counter(y), series, False)
 
     def count_rel(self, series: pd.Series) -> int:
         """Counts the number of people for the given relationship, e.g. siblings.
@@ -251,15 +254,15 @@ class CanadaLogics(Logics):
             int: Result of counting
         """
 
-        counter = lambda y: np.sum(y != 0.)
+        def counter(y): return np.sum(y != 0.)
         return reduce(lambda x, y: x + counter(y), series, 0)
-    
+
     def count_long_distance_family_resident(self, series: pd.Series) -> int:
         """Counts the number of family members that are long distance resident
 
         This is being done comparing applicants' province with their families' province.
         This will ignore ``'deceased'`` too.
-        
+
         Note:
             Those who are living in another country (in our dataset as
             "foreign") are not considered as long distance resident. In
@@ -284,7 +287,7 @@ class CanadaLogics(Logics):
             >>> f(s1)
             0
 
-        
+
         Returns:
             int: Result of counting
         """
@@ -292,9 +295,11 @@ class CanadaLogics(Logics):
         self.df = cast(pd.DataFrame, self.df)  # for mypy only
 
         apps_loc: str = series['p1.SecA.App.AppAddr']
-        counter = lambda y: np.sum(np.invert(np.isin([y],
-                                             [apps_loc, None, 'foreign', 'deceased']),  # type: ignore
-                                             dtype=bool))  
+
+        def counter(y):
+            return np.sum(np.invert(np.isin([y],
+                                            [apps_loc, None, 'foreign', 'deceased']),  # type: ignore
+                                    dtype=bool))
         return reduce(lambda x, y: x + counter(y), series, 0)
 
     def count_foreign_family_resident(self, series: pd.Series) -> int:
@@ -302,7 +307,7 @@ class CanadaLogics(Logics):
 
         This is being done by only checking the literal value ``'foreign'`` in the
         ``'*Addr'`` columns (address columns).
-        
+
         Note:
             Those who are living in another city are not considered as "foreign". In
             that case, see :func:`count_long_distance_family_resident` for more info.
@@ -333,5 +338,6 @@ class CanadaLogics(Logics):
 
         self.df = cast(pd.DataFrame, self.df)  # for mypy only
 
-        counter = lambda y: np.sum(np.isin([y], ['foreign']))  # type: ignore
+        def counter(y): return np.sum(
+            np.isin([y], ['foreign']))  # type: ignore
         return reduce(lambda x, y: x + counter(y), series, 0)  # type: ignore

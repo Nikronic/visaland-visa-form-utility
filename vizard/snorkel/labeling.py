@@ -1,7 +1,7 @@
 __all__ = [
-    'labeling_function', 
-    
-    'ComposeLFLabeling', 'LFLabeling', 'WeakAccept', 'WeakReject', 'NoIdea', 
+    'labeling_function',
+
+    'ComposeLFLabeling', 'LFLabeling', 'WeakAccept', 'WeakReject', 'NoIdea',
 
     'ABSTAIN', 'REJ', 'ACC',
 ]
@@ -22,7 +22,6 @@ REJ = 0  # TODO: cant be 2 so it matches our dataframe already?
 ACC = 1
 
 
-
 class LFLabeling:
     """Adds labeling capabilities unique to a country for ``snorkel.LabelingFunction``
 
@@ -31,7 +30,7 @@ class LFLabeling:
         specific methods for his/her case. For instance, if you need to add
         labeling to a class with "age" value, then extend this class and
         override :func:`label` method of it. e.g. :class:`WeakAccept`.
-        
+
         At the moment, the goal is to use this base to include all core labeling
         methods that could be used anywhere.
         And make sure that any class that subclass this, should integrate 
@@ -140,6 +139,7 @@ class ComposeLFLabeling(LFLabeling):
         >>> lf_applier = PandasLFApplier(lfs, random_policy)
 
     """
+
     def __init__(self, labelers: Sequence[LFLabeling]) -> None:
         super().__init__()
 
@@ -148,7 +148,7 @@ class ComposeLFLabeling(LFLabeling):
                 raise TypeError(f'Keys must be instance of {LFLabeling}.')
 
         self.labelers = labelers
-    
+
     def __call__(self, *args: Any, **kwds: Any) -> List[LabelingFunction]:
         """Takes a list of :class:`LFLabeling` and converts to ``snorkel.LabelingFunction``
 
@@ -164,7 +164,6 @@ class ComposeLFLabeling(LFLabeling):
         return labelers_lf
 
 
-
 class WeakAccept(LFLabeling):
     """LabelingFunction to convert *weak accept* to *accept*
 
@@ -175,7 +174,7 @@ class WeakAccept(LFLabeling):
         * ``'w-acc'``: weak accept
         * ``'w-rej'``: weak reject
         * ``'no-idea'``: no idea
-    
+
     Returns ``ACC`` if the label is ``'w-acc'``, otherwise ``ABSTAIN``
     """
 
@@ -211,7 +210,7 @@ class WeakReject(LFLabeling):
         * ``'w-acc'``: weak accept
         * ``'w-rej'``: weak reject
         * ``'no-idea'``: no idea
-    
+
     Returns Returns ``REJ`` if the label is ``'w-rej'``, otherwise ``ABSTAIN``.
     """
 
@@ -251,7 +250,7 @@ class NoIdea(LFLabeling):
         * ``'w-acc'``: weak accept
         * ``'w-rej'``: weak reject
         * ``'no-idea'``: no idea
-    
+
     Returns ``REJ`` if the label is ``'no idea'``, otherwise ``ABSTAIN``.
     """
 

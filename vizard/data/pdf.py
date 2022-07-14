@@ -71,7 +71,7 @@ class PDFIO:
 
 class XFAPDF(PDFIO):
     """Contains functions and utility tools for dealing with XFA PDF documents.
-    
+
     """
 
     def __init__(self) -> None:
@@ -180,6 +180,7 @@ class CanadaXFA(XFAPDF):
     """Handles Canada XFA PDF files
 
     """
+
     def __init__(self) -> None:
         super().__init__()
         self.logger = logging.getLogger(logger.name+'.CanadaXFA')

@@ -174,7 +174,7 @@ def fillna_datetime(dataframe: pd.DataFrame, col_base_name: str, date: str, type
         In transformation operations such as :func:`aggregate_datetime` function,
         this would be converted to period of zero. It is useful for filling periods of 
         non existing items (e.g. age of children for single person).
-    
+
     Returns:
         Union[None, pd.DataFrame]:
             A Pandas Dataframe that two columns of dates that had no value (None)
@@ -220,7 +220,7 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
 
             1. ``'right'``: Uses the ``current_date`` as the final time
             2. ``'left'``: Uses the ``reference_date`` as the starting time
-            
+
         reference_date (str, optional): Assumed ``reference_date`` (t0<t1). Defaults to None.
         current_date (str, optional): Assumed ``current_date`` (t1>t0). Defaults to None.
         default_datetime: accepts datetime.datetime_ to set default date
@@ -267,7 +267,8 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
         to_date = [col for col in columns_to_aggregate_names if 'To' in col][0]
 
     if isinstance(column_to_date, str):
-        column_to_date = parser.parse(column_to_date, default=default_datetime)  # type: ignore
+        column_to_date = parser.parse(
+            column_to_date, default=default_datetime)  # type: ignore
 
     if column_from_date is None:  # ignore reference_date if from_date exists
         # to able to use already parsed data from fillna
@@ -277,7 +278,8 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
         column_from_date = dataframe[from_date]
     else:
         if isinstance(column_from_date, str):
-            column_from_date = parser.parse(column_from_date, default=default_datetime)  # type: ignore
+            column_from_date = parser.parse(
+                column_from_date, default=default_datetime)  # type: ignore
 
     if column_to_date is None:  # ignore current_date if to_date exists
         # to able to use already parsed data from fillna
@@ -287,7 +289,8 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
         column_to_date = dataframe[to_date]
     else:
         if isinstance(column_to_date, str):
-            column_to_date = parser.parse(column_to_date, default=default_datetime)  # type: ignore
+            column_to_date = parser.parse(
+                column_to_date, default=default_datetime)  # type: ignore
 
     if if_nan is not None:
         if if_nan == 'skip':
@@ -348,7 +351,7 @@ def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: Callable,
     Raises:
         ValueError: if string mode passed to ``if_nan`` does not exist. It won't
             raise if ``if_nan`` is ``Callable``.
-    
+
     Returns:
         pd.DataFrame: 
             A Pandas Dataframe calculate the period of two columns of dates 
@@ -434,7 +437,7 @@ def dump_directory_structure_csv(src: str, shallow: bool = True) -> None:
     Takes a ``src`` directory path, creates a tree of dir structure and writes
     it down to a csv file with name ``'label.csv'`` with
     default value of ``'0'`` for each path
-    
+
     Note:
         This has been used to manually extract and record labels.
 
@@ -514,6 +517,7 @@ def flatten_dict(d: dict) -> dict:
                     yield key, value
     return dict(items())
 
+
 def xml_to_flattened_dict(xml: str) -> dict:
     """Takes a (nested) XML and flattens it to a dict via :func:`flatten_dict`
 
@@ -555,6 +559,7 @@ def unit_converter(sparse: float, dense: float, factor: float) -> float:
         sparse = (1./factor) * dense
         return sparse
 
+
 @loggingdecorator(logger.name+'.func', level=logging.INFO, output=False, input=True)
 def process_directory(src_dir: str, dst_dir: str, compose: FileTransformCompose,
                       file_pattern: str = '*', manager: Optional[Manager] = None) -> None:
@@ -563,7 +568,7 @@ def process_directory(src_dir: str, dst_dir: str, compose: FileTransformCompose,
     Note:
         A methods used for handling files from manually processed dataset to raw-dataset
         see :class:`FileTransform <vizard.data.preprocessor.FileTransform>` for more information.
-    
+
     References:
         1. https://stackoverflow.com/a/24041933/18971263
 
@@ -581,13 +586,13 @@ def process_directory(src_dir: str, dst_dir: str, compose: FileTransformCompose,
     assert src_dir != dst_dir, 'Source and destination dir must differ.'
     if src_dir[-1] != '/':
         src_dir += '/'
-    
+
     # logging
     manager = enlighten.get_manager(sys.stderr) if manager is None else manager
     progress_bar = manager.counter(total=len(next(os.walk(src_dir), (None, [], None))[1]),
                                    desc='Extracted', unit='data point files')
     i = 0
-    
+
     # process directories
     for dirpath, _, all_filenames in os.walk(src_dir):
         # filter out files that match pattern only
@@ -606,6 +611,7 @@ def process_directory(src_dir: str, dst_dir: str, compose: FileTransformCompose,
         logger.info(f'Processed "{i}th" data entry.')
         i += 1
         progress_bar.update()
+
 
 @loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=True, input=True)
 def search_dict(string: str, dic: dict, if_nan: str) -> str:
@@ -626,12 +632,14 @@ def search_dict(string: str, dic: dict, if_nan: str) -> str:
     if country:
         return dic[country[0]]
     else:
-        logger.debug(f'"{string}" key could not be found, filled with "{if_nan}".')
+        logger.debug(
+            f'"{string}" key could not be found, filled with "{if_nan}".')
         return if_nan
+
 
 @loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=True, input=True)
 def extended_dict_get(string: str, dic: dict, if_nan: str,
-                     condition: Union[Callable, bool, None] = None):
+                      condition: Union[Callable, bool, None] = None):
     """Takes a string and looks for it inside a dictionary with default value if condition is satisfied
 
     Args:
@@ -651,7 +659,7 @@ def extended_dict_get(string: str, dic: dict, if_nan: str,
     Returns:
         Any: Substituted value instead of `string`
     """
-    
+
     condition = (lambda x: True) if condition is None else condition
     condition = cast(Callable, condition)
 
@@ -659,9 +667,10 @@ def extended_dict_get(string: str, dic: dict, if_nan: str,
     if condition(string):
         return dic.get(string, if_nan)  # look for `string` if not use `if_nan`
     else:
-        logger.info((f'"{string}" is not True for the given `condition`', 
+        logger.info((f'"{string}" is not True for the given `condition`',
                     '==> `false_condition_value` will be applied.'))
         return string
+
 
 @loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=True, input=True)
 def fix_typo(string: str, typos: Union[list, dict], fix: Optional[str] = None) -> str:
@@ -686,7 +695,7 @@ def fix_typo(string: str, typos: Union[list, dict], fix: Optional[str] = None) -
     """
     if isinstance(typos, list) and (fix is None):
         raise TypeError('`fix` cannot be `None` when `typos` is `list`.')
-    
+
     if isinstance(typos, list):
         fix = cast(str, fix)
         return fix if string in typos else string
@@ -694,6 +703,7 @@ def fix_typo(string: str, typos: Union[list, dict], fix: Optional[str] = None) -
         return typos[string] if string in typos.keys() else string
     else:
         raise TypeError(f'type "{type(typos)}" is not recognized.')
+
 
 @loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=False, input=True)
 def config_csv_to_dict(path: str) -> dict:
@@ -712,6 +722,7 @@ def config_csv_to_dict(path: str) -> dict:
     config_df = pd.read_csv(path)
     return dict(zip(config_df[config_df.columns[0]], config_df[config_df.columns[1]]))
 
+
 @loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=False, input=False)
 def detect_outliers(df: pd.DataFrame, features: Iterable) -> list:
     """Takes a dataframe and desired features and finds outliers using percentiles
@@ -725,22 +736,24 @@ def detect_outliers(df: pd.DataFrame, features: Iterable) -> list:
     """
 
     outlier_indices = []
-    
+
     for c in features:
         # 1st quartile
-        Q1 = np.percentile(df[c],25)
+        Q1 = np.percentile(df[c], 25)
         # 3rd quartile
-        Q3 = np.percentile(df[c],75)
+        Q3 = np.percentile(df[c], 75)
         # IQR
         IQR = Q3 - Q1
         # Outlier step
         outlier_step = IQR * 1.5
         # detect outlier and their indices
-        outlier_list_col = df[(df[c] < Q1 - outlier_step) | (df[c] > Q3 + outlier_step)].index
+        outlier_list_col = df[(df[c] < Q1 - outlier_step)
+                              | (df[c] > Q3 + outlier_step)].index
         # store indices
         outlier_indices.extend(outlier_list_col)
-    
+
     outlier_indices_counter = collections.Counter(outlier_indices)
-    multiple_outliers = list(i for i, v in outlier_indices_counter.items() if v > 2)
-    
+    multiple_outliers = list(
+        i for i, v in outlier_indices_counter.items() if v > 2)
+
     return multiple_outliers
