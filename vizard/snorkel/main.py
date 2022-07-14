@@ -54,9 +54,9 @@ logger.info(
 # data versioning config
 PATH = 'raw-dataset/all-dev.pkl'
 REPO = '/home/nik/visaland-visa-form-utility'
-VERSION = 'v1.2.1-dev'
+VERSION = 'v1.2.2-dev'
 # log experiment configs
-MLFLOW_EXPERIMENT_NAME = 'snorkel augmentation for "p1.SecX.Chd.X.ChdAccomp.Count"'
+MLFLOW_EXPERIMENT_NAME = 'make modular slicing functions similar to `vizard.snorkel.[labeling,augmentation,modeling]`'
 mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
 MLFLOW_TAGS = {
     'stage': 'dev'  # dev, beta, production
@@ -97,8 +97,13 @@ logger.info('\t\t↑↑↑ Finishing preparing train and test data based on labe
 
 logger.info(
     '\t\t↓↓↓ Starting extracting label matrices (L) by applying `LabelFunction`s ↓↓↓')
-# label functions
-lfs = [labeling.lf_weak_accept, labeling.lf_weak_reject, labeling.lf_no_idea]
+# labeling functions
+lf_compose = [
+    labeling.WeakAccept(),
+    labeling.WeakReject(),
+    labeling.NoIdea(),
+]
+lfs = labeling.ComposeLFLabeling(labelers=lf_compose)()
 # apply LFs to the unlabeled (for `LabelModel` training) and labeled (for `LabelModel` test)
 applier = PandasLFApplier(lfs)
 label_matrix_train = applier.apply(data_unlabeled)
@@ -170,13 +175,17 @@ logger.info(f'Augmented dataset size: {len(data_augmented)}')
 cond1 = (data['p1.SecB.Chd.X.ChdAccomp.Count'] > 0) & (data['p1.SecB.Chd.X.ChdRel.ChdCount'] > data['p1.SecB.Chd.X.ChdAccomp.Count'])
 cond2 = (data['p1.SecC.Chd.X.ChdAccomp.Count'] > 0) & (data['p1.SecC.Chd.X.ChdRel.ChdCount'] > data['p1.SecC.Chd.X.ChdAccomp.Count'])
 cond = cond1 | cond2
-logger.info(preview_tfs(dataframe=data[cond], tfs=tfs, n_samples=16))
+logger.info(preview_tfs(dataframe=data[cond], tfs=tfs, n_samples=5))
 logger.info('\t\t↑↑↑ Finishing augmentation by applying `TransformationFunction`s ↑↑↑')
 
 logger.info('\t\t↓↓↓ Starting slicing by applying `SlicingFunction`s (SFs) ↓↓↓')
 single_person_slice = slice_dataframe(data_augmented, slicing.single_person)
 logger.info(single_person_slice.sample(5))
-sfs = [slicing.single_person]
+# transformation functions
+sf_compose = [
+    slicing.SinglePerson(),
+]
+sfs = slicing.ComposeSFSlicing(slicers=sf_compose)()  # type: ignore
 sf_applier = PandasSFApplier(sfs)
 data_augmented_sliced = sf_applier.apply(data_augmented)
 scorer = Scorer(metrics=metrics)

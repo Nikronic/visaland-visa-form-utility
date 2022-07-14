@@ -14,6 +14,7 @@ from vizard.utils.helpers import deprecated
 from vizard.utils.helpers import loggingdecorator
 # helpers
 from enum import Enum
+from typing import Any
 import logging
 
 
@@ -24,22 +25,37 @@ logger = logging.getLogger(__name__)
 class PDFIO:
     """Base class for dealing with PDF files
 
+    For each type of PDF, let's say XFA files, one needs to extend
+    this class and abstract methods like :func:`extract_raw_content`
+    to generate a string of the content of the PDF in a format that
+    can be used by the other classes (e.g. `XML`). For instance,
+    see :class:`XFAPDF` for the extension of this class.
+
     """
 
     def __init__(self) -> None:
         pass
 
     def extract_raw_content(self, pdf_path: str) -> str:
-        """
-        Extracts unprocessed data from a PDF file
+        """Extracts unprocessed data from a PDF file
 
-        args:
-            pdf_path: Path to the pdf file
+        Args:
+            pdf_path (str): Path to the pdf file
         """
 
         raise NotImplementedError
 
-    def find_in_dict(self, needle, haystack):
+    def find_in_dict(self, needle: Any, haystack: Any) -> Any:
+        """Looks for the value of a key inside a nested dictionary
+
+        Args:
+            needle (Any): Key to look for
+            haystack (Any): Dictionary to look in. Can be a dict inside
+                another dict
+
+        Returns:
+            Any: The value of key ``needle``
+        """
         for key in haystack.keys():
             try:
                 value = haystack[key]
@@ -64,13 +80,16 @@ class XFAPDF(PDFIO):
 
     @loggingdecorator(logger.name+'.XFAPDF.func', level=logging.DEBUG, output=False)
     def extract_raw_content(self, pdf_path: str) -> str:
-        """Extracts RAW content of XFA PDF files which are in XML format.
+        """Extracts RAW content of XFA PDF files which are in XML format
 
         Args:
             pdf_path (str): path to the pdf file
 
         Reference:
+
             * https://towardsdatascience.com/how-to-extract-data-from-pdf-forms-using-python-10b5e5f26f70
+
+
         Returns:
             str: XFA object of the pdf file in XML format
         """
@@ -88,12 +107,13 @@ class XFAPDF(PDFIO):
 
         Since each form has its own format and issues, this method needs
         to be implemented uniquely for each unique file/form which needs
-        to be specified using argument `type` that can be populated from `DOC_TYPES`.
+        to be specified using argument ``type`` that can be populated from
+        ``DOC_TYPES``.
 
         Args:
             xml (str): XML content
             type (Enum): type of the document defined
-                in `vizard.data.constant.DOC_TYPES`
+                in :class:`DOC_TYPES <vizard.data.constant.DOC_TYPES>`
 
         Returns:
             str: cleaned XML content to be used in CSV file
@@ -132,7 +152,8 @@ class XFAPDF(PDFIO):
         Args:
             d (dict): A dictionary
 
-        Reference:
+        References:
+
             * https://stackoverflow.com/a/67744709/18971263
 
         Returns:
@@ -170,7 +191,7 @@ class CanadaXFA(XFAPDF):
         Args:
             xml (str): XML content
             type (Enum): type of the document defined
-                in `vizard.data.constant.DOC_TYPES`
+                in :class:`DOC_TYPES <vizard.data.constant.DOC_TYPES>`
 
         Returns:
             str: cleaned XML content to be used in CSV file

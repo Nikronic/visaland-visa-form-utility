@@ -11,7 +11,7 @@ Welcome to Vizard's documentation!
    :caption: Contents:
 
    vizard
-   modules
+   
 
 
 Indices and tables

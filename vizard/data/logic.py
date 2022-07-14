@@ -13,15 +13,15 @@ from typing import Callable, List, Union, cast
 class Logics:
     """Applies logics on different type of data resulting in summarized, expanded, or transformed data
     
-    Methods here are implemented in the way that can be used as `agg` [#]_ function
-    over `Pandas.Series` using `functools.reduce` [#]_.
+    Methods here are implemented in the way that can be used as Pandas.agg_ function
+    over `Pandas.Series` using functools.reduce_.
     
     Note: 
         This is constructed based on domain knowledge hence is designed 
-            for a specific purpose based on application.
+        for a specific purpose based on application.
     
-    .. [#] https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.agg.html
-    .. [#] https://docs.python.org/3/library/functools.html#functools.reduce
+    .. _Pandas.agg: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.agg.html
+    .. _functools.reduce: https://docs.python.org/3/library/functools.html#functools.reduce
     """
 
     def __init__(self, dataframe: pd.DataFrame = None) -> None:
@@ -34,13 +34,13 @@ class Logics:
         self.df = dataframe
 
     def __check_df(self, func: str) -> None:
-        """Checks that `self.df` is initialized when function with the name :attr:`func` is being called
+        """Checks that `self.df` is initialized when function with the name ``func`` is being called
 
         Args:
-            func (str): The name of the function that operates over :attr:`self.df`
+            func (str): The name of the function that operates over ``self.df``
 
         Raises:
-            TypeError: If :attr:`self.df` is not initialized
+            TypeError: If ``self.df`` is not initialized
         """
         if self.df is None:
             raise TypeError(
@@ -51,8 +51,8 @@ class Logics:
 
         Note:
             This should be used when the dataframe is modified outside of functions 
-            provided in this class. E.g.
-            ::
+            provided in this class. E.g.::
+
                 my_df: pd.DataFrame = ...
                 logics = Logics(dataframe=my_df)
                 my_df = third_party_tools(my_df)
@@ -73,13 +73,13 @@ class Logics:
             aggregator (Callable): A function that takes multiple columns of a
                 series and reduces it
             agg_column_name (str): The name of new aggregated column
-            columns (list): Name of columns to be aggregated (i.e. input to :attr:`aggregator`)
+            columns (list): Name of columns to be aggregated (i.e. input to ``aggregator``)
 
         Note:
             Although this function updated the dataframe the class initialized with *inplace*,
             but user must update the main dataframe outside of this class to make sure he/she
-            can use it via different tools. Simply put
-            ::
+            can use it via different tools. Simply put::
+            
                 my_df: pd.DataFrame = ...
                 logics = Logics(dataframe=my_df)
                 my_df = logics.add_agg_column(...)
@@ -242,8 +242,7 @@ class CanadaLogics(Logics):
         return reduce(lambda x, y: x + counter(y), series, False)  # type: ignore
 
     def count_rel(self, series: pd.Series) -> int:
-        """Counts the number of people for the given relationship,
-            e.g. number of children, siblings, etc.
+        """Counts the number of people for the given relationship, e.g. siblings.
 
         Args:
             series (pd.Series): Pandas Series to be processed 
@@ -259,7 +258,7 @@ class CanadaLogics(Logics):
         """Counts the number of family members that are long distance resident
 
         This is being done comparing applicants' province with their families' province.
-        This will ignore 'deceased' too.
+        This will ignore ``'deceased'`` too.
         
         Note:
             Those who are living in another country (in our dataset as
@@ -301,7 +300,7 @@ class CanadaLogics(Logics):
     def count_foreign_family_resident(self, series: pd.Series) -> int:
         """Counts the number of family members that are long distance resident
 
-        This is being done by only checking the literal value ``'foreign'``` in the
+        This is being done by only checking the literal value ``'foreign'`` in the
         ``'*Addr'`` columns (address columns).
         
         Note:
