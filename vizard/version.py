@@ -3,7 +3,7 @@ __all__ = [
 ]
 
 _MAJOR = "0"
-_MINOR = "4"
+_MINOR = "5"
 _REVISION = "0-alpha"
 
 VERSION_SHORT = f"{_MAJOR}.{_MINOR}"
