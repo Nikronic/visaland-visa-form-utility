@@ -51,7 +51,7 @@ class LFLabeling:
         """Labels a Pandas Series based on a heuristic
 
         Args:
-            s (pd.Series): An unlabeled series of our dataframe to be labeled
+            s (:class:`pandas.Series`): An unlabeled series of our dataframe to be labeled
 
         Returns:
             int: Labeling result
@@ -64,13 +64,13 @@ class LFLabeling:
         """Make any function an instance of ``snorkel.LabelingFunction``
 
         Note:
-            Currently only ``func`` s that work on ``pd.Series`` that work on
+            Currently only ``func`` s that work on :class:`pandas.Series` that work on
             single ``column`` are supported as the API is designed this way.
             But, it could be easily modified to support any sort of function.
 
         Args:
             func (Callable): A callable that
-            column (str): column name of a ``pd.Series`` that is going to be read 
+            column (str): column name of a :class:`pandas.Series` that is going to be read 
                 as the condition of determining the label.
                 Must be provided if ``func`` is not setting it internally. E.g. for
                 :class:`WeakAccept` you don't need to 
@@ -187,7 +187,7 @@ class WeakAccept(LFLabeling):
         """Labels a Pandas Series based on a heuristic
 
         Args:
-            s (pd.Series): An unlabeled series of our dataframe to be labeled
+            s (:class:`pandas.Series`): An unlabeled series of our dataframe to be labeled
 
         Returns:
             int: Labeling result
@@ -223,7 +223,7 @@ class WeakReject(LFLabeling):
         """Labels a Pandas Series based on a heuristic
 
         Args:
-            s (pd.Series): An unlabeled series of our dataframe to be labeled
+            s (:class:`pandas.Series`): An unlabeled series of our dataframe to be labeled
 
         Returns:
             int: Labeling result
@@ -263,7 +263,7 @@ class NoIdea(LFLabeling):
         """Labels a Pandas Series based on a heuristic
 
         Args:
-            s (pd.Series): An unlabeled series of our dataframe to be labeled
+            s (:class:`pandas.Series`): An unlabeled series of our dataframe to be labeled
 
         Returns:
             int: Labeling result

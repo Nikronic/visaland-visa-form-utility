@@ -108,7 +108,7 @@ class XFAPDF(PDFIO):
         Since each form has its own format and issues, this method needs
         to be implemented uniquely for each unique file/form which needs
         to be specified using argument ``type`` that can be populated from
-        ``DOC_TYPES``.
+        :class:`DOC_TYPES <vizard.data.constant.DOC_TYPES>`.
 
         Args:
             xml (str): XML content
@@ -124,8 +124,7 @@ class XFAPDF(PDFIO):
     @deprecated('Use `flatten_dict`')
     def flatten_dict_basic(self, d: dict) -> dict:
         """
-        Takes a (nested) dictionary and flattens it where the final keys are key.key....
-            and values are the leaf values of dictionary.
+        Takes a (nested) dictionary and flattens it
 
         ref: https://stackoverflow.com/questions/38852822/how-to-flatten-xml-file-in-python
         args:

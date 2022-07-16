@@ -24,9 +24,9 @@ def report_label_model(label_model: LabelModel, label_matrix: np.ndarray,
 
     Args:
         label_model (LabelModel): snorkel.LabelModel_ model
-        label_matrix (np.ndarray): label matrix produced by
+        label_matrix (:class:`numpy.ndarray`): label matrix produced by
             applying ``snorkel.PandasLFApplier.apply`` on a dataframe
-        gold_labels (np.ndarray): ground truth labels for given ``label_matrix``
+        gold_labels (:class:`numpy.ndarray`): ground truth labels for given ``label_matrix``
         metrics (list): a list of metrics from sklearn.metrics_
         set (str): ``'train'`` or ``'test'`` set (affects print and logging)
         **kwargs (dict): additional keyword arguments to pass to ``label_model.score``:

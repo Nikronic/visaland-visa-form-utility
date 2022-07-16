@@ -39,7 +39,7 @@ class SFSlicing:
         """Slices a Pandas Series based on a heuristic
 
         Args:
-            s (pd.Series): A series of our dataframe to be
+            s (:class:`pandas.Series`): A series of our dataframe to be
                 conditioned for slicing
 
         Returns:
@@ -53,13 +53,13 @@ class SFSlicing:
         """Make any function an instance of ``snorkel.SlicingFunction``
 
         Note:
-            Currently only ``func`` s that work on ``pd.Series`` that work on
+            Currently only ``func`` s that work on :class:`pandas.Series` that work on
             single ``column`` are supported as the API is designed this way.
             But, it could be easily modified to support any sort of function.
 
         Args:
             func (Callable): A callable that
-            column (str): column name of a ``pd.Series`` that is going to be read 
+            column (str): column name of a :class:`pandas.Series` that is going to be read 
                 as the condition of determining the belonging to a slice.
                 Must be provided if ``func`` is not setting it internally. E.g. for
                 :class:`SinglePerson` you don't need to 
@@ -174,7 +174,7 @@ class SinglePerson(SFSlicing):
         """Slices a Pandas Series based on a heuristic
 
         Args:
-            s (pd.Series): A series of our dataframe to be
+            s (:class:`pandas.Series`): A series of our dataframe to be
                 conditioned for slicing
 
         Returns:

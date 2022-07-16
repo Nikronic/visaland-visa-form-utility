@@ -62,7 +62,13 @@ master_doc = 'index'
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
-exclude_patterns = ['vizard/ipynb/*', 'vizard/snorkel/main.py', 'vizard.version', '_build']
+exclude_patterns = [
+    'vizard/ipynb/*',
+    'vizard/snorkel/main.py',
+    'vizard/models/main.py',
+
+    'vizard.version',
+    '_build']
 
 autosummary_generate = True
 
@@ -83,13 +89,15 @@ autodoc_default_options = {
     "special-members": "__init__,__call__",
     "undoc-members": True,
     "show-inheritance": True,
-    "inherited-members": True,
+    "inherited-members": False,
     "private-members": True,
 }
 
 # Subclasses should show parent classes docstrings if they don't override them.
 autodoc_inherit_docstrings = True
 
+# sort docs based on source code
+autodoc_member_order = 'bysource'
 
 # Example configuration for intersphinx: refer to the Python standard library.
 intersphinx_mapping = {
@@ -99,3 +107,13 @@ intersphinx_mapping = {
     'matplotlib': ('https://matplotlib.org/', None),
     'pandas': ('https://pandas.pydata.org/pandas-docs/stable/', None),
 }
+
+# This value contains a list of modules to be mocked up
+autodoc_mock_imports = [
+    "pandas",
+    "matplotlib",
+    "numpy",
+    "snorkel",
+    "typing",
+    "sklearn",
+    "scipy",]
