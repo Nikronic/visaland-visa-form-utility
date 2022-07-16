@@ -3947,6 +3947,96 @@ Highly correlated data:
 '''
 
 '''
+### Dimensionality Reduction for Visualization
+1. PCA 
+2. t-SNE
+'''
+
+#nb>
+#data_encoded = data.copy()
+#columns_to_encode = [c for c in data.columns.values if (data[c].dtype == 'category') and (c != 'VisaResult')]
+#data_encoded = pd.get_dummies(data_encoded, drop_first=True, columns=columns_to_encode)
+#data_encoded.shape
+
+#nb>
+#blah = [c for c in data_encoded.columns.values if data_encoded[c].isna().sum() > 0]
+#display(blah)
+#data_encoded[blah] = data_encoded[blah].fillna(0)
+
+#nb>
+#from sklearn.decomposition import PCA
+#from sklearn.manifold import TSNE
+#from sklearn.preprocessing import LabelEncoder
+#
+#Y = data_encoded['VisaResult'].to_numpy()
+#y_label_encoder = LabelEncoder()
+#Y = y_label_encoder.fit_transform(Y)
+#data_encoded.drop(['VisaResult'], axis=1, inplace=True)
+#X = data_encoded.to_numpy()
+
+'''
+#### PCA
+'''
+
+#nb>
+#pca = PCA(n_components=2)
+#Xt = pca.fit_transform(X)
+#
+#display(Xt.shape)
+#display(Y.shape)
+
+#nb>
+#plt.figure(figsize=(22, 12))
+#plot = plt.scatter(Xt[:, 0], Xt[:, 1], c=Y.flatten())
+#plt.legend(handles=plot.legend_elements()[0], labels=list(y_label_encoder.classes_))
+#plt.show()
+
+#nb>
+#pca = PCA(n_components=3)
+#Xt = pca.fit_transform(X)
+#
+#display(Xt.shape)
+#display(Y.shape)
+
+#nb>
+#fig = plt.figure(figsize=(22, 12))
+#ax = fig.add_subplot(111, projection='3d')
+#ax.scatter(Xt[:, 0], Xt[:, 1], Xt[:, 2], c=Y.flatten())
+#ax.legend(handles=plot.legend_elements()[0], labels=list(y_label_encoder.classes_))
+#plt.show()
+
+'''
+#### t-SNE
+'''
+
+#nb>
+#tsne = TSNE(n_components=2, perplexity=30, learning_rate='auto', method='exact', init='pca', random_state=SEED, n_jobs=-1)
+#Xt = tsne.fit_transform(X)
+#
+#display(Xt.shape)
+#display(Y.shape)
+
+#nb>
+#plt.figure(figsize=(22, 12))
+#plot = plt.scatter(Xt[:, 0], Xt[:, 1], c=Y.flatten())
+#plt.legend(handles=plot.legend_elements()[0], labels=list(y_label_encoder.classes_))
+#plt.show()
+
+#nb>
+#tsne = TSNE(n_components=3, perplexity=30, learning_rate='auto', method='exact', init='pca', random_state=SEED, n_jobs=-1)
+#Xt = tsne.fit_transform(X)
+#
+#display(Xt.shape)
+#display(Y.shape)
+
+#nb>
+#fig = plt.figure(figsize=(22, 12))
+#ax = fig.add_subplot(111, projection='3d')
+#ax.scatter(Xt[:, 0], Xt[:, 1], Xt[:, 2], c=Y.flatten())
+#ax.legend(handles=plot.legend_elements()[0], labels=list(y_label_encoder.classes_))
+#plt.show()
+
+'''
 ## Save Data to Disc
 **Save preprocessed data to disc, as a baseline. Why:**
 1. All type casting, feature engineering, visualization, etc all needed to be added to the main package to ensure reproducibility as being part of the same end to end pipeline
