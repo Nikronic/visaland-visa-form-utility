@@ -138,4 +138,4 @@ class loggingdecorator(object):
                                   ", ".join(argstr), ret_str)
                 return ret
             return _fn
-        return _decor
+        return _decor(*args, **kwds)
