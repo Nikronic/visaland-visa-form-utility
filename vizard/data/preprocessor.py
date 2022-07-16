@@ -45,7 +45,7 @@ class DataframePreprocessor:
         """
 
         Args:
-            dataframe (pd.DataFrame, optional): Main dataframe to be preprocessed.
+            dataframe (:class:`pandas.DataFrame`, optional): Main dataframe to be preprocessed.
                 Defaults to None.
         """
         self.dataframe = dataframe
@@ -396,14 +396,14 @@ class WorldBankXMLProcessor:
             Currently only supports starting date
 
         Args:
-            dataframe (pd.DataFrame): Pandas dataframe to be processed
+            dataframe (:class:`pandas.DataFrame`): Pandas dataframe to be processed
             start (Union[int, None], optional): start of years to include.
                 Defaults to None.
             end (Union[int, None], optional): end of years to include.
                 Defaults to None.
 
         Returns:
-            pd.DataFrame: A dataframe with a subset of years filtered on its columns.
+            :class:`pandas.DataFrame`: A dataframe with a subset of years filtered on its columns.
         """
         start = 2017 if start is None else start
 
@@ -521,7 +521,7 @@ class WorldBankDataframeProcessor:
                 See class level documents about available indicators.
 
         Returns:
-            pd.DataFrame: A filtered dataframe with only a single ``indicator``.
+            :class:`pandas.DataFrame`: A filtered dataframe with only a single ``indicator``.
         """
         # filter rows that only contain the provided `indicator_name` with type `rank` or `score`
         dataframe = self.dataframe.copy()

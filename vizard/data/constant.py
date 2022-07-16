@@ -9,7 +9,6 @@ from enum import Enum
 import datetime
 
 # DICTIONARY
-# dict of abbreviation used to shortening length of KEYS in XML to CSV conversion
 CANADA_5257E_KEY_ABBREVIATION = {
     'Page': 'P',
     'PersonalDetails': 'PD',
@@ -48,6 +47,9 @@ CANADA_5257E_KEY_ABBREVIATION = {
     'BGI2.VisaChoice1': 'noAuthStay',
     'backgroundInfoCalc': 'otherThanMedic'
 }
+"""Dict of abbreviation used to shortening length of KEYS in XML to CSV conversion
+
+"""
 
 CANADA_5645E_KEY_ABBREVIATION = {
     'page': 'p',
@@ -63,6 +65,9 @@ CANADA_5645E_KEY_ABBREVIATION = {
     'Relationship': 'Rel',
 
 }
+"""Dict of abbreviation used to shortening length of KEYS in XML to CSV conversion
+
+"""
 
 # see #29
 DATEUTIL_DEFAULT_DATETIME = {
@@ -70,13 +75,18 @@ DATEUTIL_DEFAULT_DATETIME = {
     'month': 6,  # no reason for this value (CluelessClown)
     'year': datetime.MINYEAR
 }
+"""A default date for the ``dateutil.parser.parse`` function when some part of date is not provided
 
-# dict of abbreviation used to shortening length of VALUES in XML to CSV conversion
+"""
+
 CANADA_5257E_VALUE_ABBREVIATION = {
     'BIOMETRIC ENROLMENT': 'Bio',
     '223': 'IRAN',
     '045': 'TURKEY',
 }
+"""Dict of abbreviation used to shortening length of VALUES in XML to CSV conversion
+
+"""
 
 # LIST
 CANADA_5257E_DROP_COLUMNS = [
@@ -133,6 +143,12 @@ CANADA_5257E_DROP_COLUMNS = [
     'P3.Occ.OccRow2.Employer', 'P3.Occ.OccRow3.Employer', 'P1.Age',
     'P2.MS.SecA.Psprt.TaiwanPIN', 'P2.MS.SecA.Psprt.IsraelPsprtIndicator',
 ]
+"""List of columns to be dropped before doing any preprocessing
+
+Note:
+    This list has been determined manually.
+
+"""
 
 CANADA_5645E_DROP_COLUMNS = {
     'xfa:datasets.@xmlns:xfa', 'p1.SecA.Title.@xfa:dataNode', 'p1.SecA.App.AppDOB', 'p1.SecA.App.AppCOB',
@@ -141,9 +157,13 @@ CANADA_5645E_DROP_COLUMNS = {
     'p1.SecA.SecAdate', 'p1.SecB.Title.@xfa:dataNode', 'p1.SecC.SecCsignature',
     'p1.SecC.Subform2.@xfa:dataNode', 'p1.SecA.Sps.ChdMStatus', 'formNum',
 }
+"""List of columns to be dropped before doing any preprocessing
 
-# dictionaries containing factors in used in heuristic calculations using domain knowledge
-# Ratios used to convert rent, deposit, and total worth to each other
+Note:
+    This list has been determined manually.
+
+"""
+
 FINANCIAL_RATIOS = {
     # house related
     'rent2deposit': 100./3.,  # rule of thumb provided online
@@ -157,12 +177,18 @@ FINANCIAL_RATIOS = {
     'income2worth': 15.,
     'worth2income': 1./15.,
 }
+"""Ratios used to convert rent, deposit, and total worth to each other
+
+Note:
+    This is part of dictionaries containing factors in used in heuristic
+    calculations using domain knowledge
+
+"""
 
 
 # ENUM
 class DOC_TYPES(Enum):
-    """
-    Contains all document types which can be used to customize ETL steps for each document type
+    """Contains all document types which can be used to customize ETL steps for each document type
 
     Members follow the ``<country_name>_<document_type>`` naming convention. The value 
     and its order are meaningless.

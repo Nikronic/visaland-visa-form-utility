@@ -116,7 +116,7 @@ def column_dropper(dataframe: pd.DataFrame, string: str, exclude: str = None,
     """Takes a Pandas Dataframe and drops columns matching a pattern
 
     Args:
-        dataframe (pd.DataFrame): Pandas dataframe to be processed
+        dataframe (:class:`pandas.DataFrame`): Pandas dataframe to be processed
         string (str): string to look for in ``dataframe`` columns
         exclude (str, optional): string to exclude a subset of columns from
             being dropped. Defaults to None.
@@ -125,7 +125,7 @@ def column_dropper(dataframe: pd.DataFrame, string: str, exclude: str = None,
             operation. Defaults to True.
 
     Returns:
-        Union[None, pd.DataFrame]:
+        Union[None, :class:`pandas.DataFrame`]:
             Takes a Pandas Dataframe and searches for
             columns *containing* ``string`` in them either raw string or
             regex (in latter case, use ``regex=True``) and after ``exclude`` ing a
@@ -155,7 +155,7 @@ def fillna_datetime(dataframe: pd.DataFrame, col_base_name: str, date: str, type
     """Takes names of two columns of dates (start, end) and fills them with a predefined value
 
     Args:
-        dataframe (pd.DataFrame): Pandas Dataframe to be processed
+        dataframe (:class:`pandas.DataFrame`): Pandas Dataframe to be processed
         col_base_name (str): Base column name that accepts ``'From'`` and ``'To'`` for
             extracting dates of same category
         date (str): The desired date
@@ -176,7 +176,7 @@ def fillna_datetime(dataframe: pd.DataFrame, col_base_name: str, date: str, type
         non existing items (e.g. age of children for single person).
 
     Returns:
-        Union[None, pd.DataFrame]:
+        Union[None, :class:`pandas.DataFrame`]:
             A Pandas Dataframe that two columns of dates that had no value (None)
             which was filled to the same date via ``date``.
     """
@@ -203,7 +203,7 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
     """Takes two columns of dates in string form and calculates the period of them
 
     Args:
-        dataframe (pd.DataFrame): Pandas dataframe to be processed
+        dataframe (:class:`pandas.DataFrame`): Pandas dataframe to be processed
         col_base_name (str): Base column name that accepts ``'From'`` and ``'To'`` for
             extracting dates of same category
         new_col_name (str): The column name that extends ``col_base_name`` and will be
@@ -227,7 +227,7 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
             for dateutil.parser.parse_.
 
     Returns:
-        pd.DataFrame:
+        :class:`pandas.DataFrame`:
             A Pandas Dataframe calculate the period of two columns of dates
             and represent it in integer form. The two columns used will be dropped.
 
@@ -317,7 +317,7 @@ def tag_to_regex_compatible(string: str, type: DOC_TYPES) -> str:
 
     Args:
         string (str): input string to get manipulated
-        type (DOC_TYPES): specified :class:`DOC_TYPES <vizard.data.constant.DOC_TYPES`
+        type (DOC_TYPES): specified :class:`DOC_TYPES <vizard.data.constant.DOC_TYPES>`
             to determine regex rules 
 
     Returns:
@@ -336,7 +336,7 @@ def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: Callable,
     """Changes the data type of a column with ability to fill ``None`` s
 
     Args:
-        dataframe (pd.DataFrame): Dataframe that ``column_name`` will be searched on
+        dataframe (:class:`pandas.DataFrame`): Dataframe that ``column_name`` will be searched on
         col_name (str): Desired column name of the dataframe
         dtype (Callable): target data type as a function e.g. ``np.float32``
         if_nan (Union[str, Callable], optional): What to do with None s (NaN).
@@ -353,7 +353,7 @@ def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: Callable,
             raise if ``if_nan`` is ``Callable``.
 
     Returns:
-        pd.DataFrame: 
+        :class:`pandas.DataFrame`: 
             A Pandas Dataframe calculate the period of two columns of dates 
             and represent it in integer form. The two columns used will be dropped.
     """
@@ -728,7 +728,7 @@ def detect_outliers(df: pd.DataFrame, features: Iterable) -> list:
     """Takes a dataframe and desired features and finds outliers using percentiles
 
     Args:
-        df (pd.DataFrame): Dataframe to detect outliers in
+        df (:class:`pandas.DataFrame`): Dataframe to detect outliers in
         features (Iterable): Desired columns on dataframe ``df``
 
     Returns:

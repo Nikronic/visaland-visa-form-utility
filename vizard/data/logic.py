@@ -106,7 +106,7 @@ class Logics:
         """Counts the number of previous country of resident
 
         Args:
-            series (pd.Series): Pandas Series to be processed
+            series (:class:`pandas.Series`): Pandas Series to be processed
 
         Returns:
             int: Result of counting
@@ -117,7 +117,7 @@ class Logics:
         """Counts the number of family members born in a foreign country
 
         Args:
-            series (pd.Series): Pandas Series to be processed
+            series (:class:`pandas.Series`): Pandas Series to be processed
 
         Returns:
             int: Result of counting
@@ -128,7 +128,7 @@ class Logics:
         """Counts the number of people that are accompanying main person
 
         Args:
-            series (pd.Series): Pandas Series to be processed
+            series (:class:`pandas.Series`): Pandas Series to be processed
 
         Returns:
             int: Result of counting
@@ -139,7 +139,7 @@ class Logics:
         """Counts the number of items for the given relationship
 
         Args:
-            series (pd.Series): Pandas Series to be processed
+            series (:class:`pandas.Series`): Pandas Series to be processed
 
         Returns:
             int: Result of counting
@@ -155,7 +155,7 @@ class Logics:
             see :func:`count_foreign_family_resident` for more info.
 
         Args:
-            series (pd.Series): Pandas Series to be processed
+            series (:class:`pandas.Series`): Pandas Series to be processed
 
         Returns:
             int: Result of counting
@@ -173,7 +173,7 @@ class Logics:
             :func:`count_long_distance_family_resident` instead.
 
         Args:
-            series (pd.Series): Pandas Series to be processed
+            series (:class:`pandas.Series`): Pandas Series to be processed
 
         Returns:
             int: Result of counting
@@ -198,7 +198,7 @@ class CanadaLogics(Logics):
         This way one just needs to count non-zero periods.
 
         Args:
-            series (pd.Series): Pandas Series to be processed containing
+            series (:class:`pandas.Series`): Pandas Series to be processed containing
                 residency periods
 
         Returns:
@@ -215,7 +215,7 @@ class CanadaLogics(Logics):
         country of birth.
 
         Args:
-            series (pd.Series): Pandas Series to be processed containing 
+            series (:class:`pandas.Series`): Pandas Series to be processed containing 
                 country of birth of members
 
         Returns:
@@ -232,7 +232,7 @@ class CanadaLogics(Logics):
         This has been done by checking the corresponding bool flag
 
         Args:
-            series (pd.Series): Pandas Series to be processed containing
+            series (:class:`pandas.Series`): Pandas Series to be processed containing
                 accompany binary/bool status
 
         Returns:
@@ -248,7 +248,7 @@ class CanadaLogics(Logics):
         """Counts the number of people for the given relationship, e.g. siblings.
 
         Args:
-            series (pd.Series): Pandas Series to be processed 
+            series (:class:`pandas.Series`): Pandas Series to be processed 
 
         Returns:
             int: Result of counting
@@ -269,7 +269,7 @@ class CanadaLogics(Logics):
             that case, see :func:`count_foreign_family_resident` for more info.
 
         Args:
-            series (pd.Series): Pandas Series to be processed containing 
+            series (:class:`pandas.Series`): Pandas Series to be processed containing 
                 the residency state/province in string. In practice, 
                 any string different from applicant's province will be counted
                 as difference.
@@ -313,7 +313,7 @@ class CanadaLogics(Logics):
             that case, see :func:`count_long_distance_family_resident` for more info.
 
         Args:
-            series (pd.Series): Pandas Series to be processed containing 
+            series (:class:`pandas.Series`): Pandas Series to be processed containing 
                 the residency state/province in string. In practice, 
                 any string different from applicant's province will be counted
                 as difference.

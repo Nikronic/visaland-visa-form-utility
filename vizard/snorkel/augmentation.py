@@ -28,7 +28,7 @@ from enum import Enum
 
 class SeriesNoise:
     """
-    Adds different type noise (impulse, multiplicative, or additive) to a ``Pandas.Series``
+    Adds different type noise (impulse, multiplicative, or additive) to a :class:`pandas.Series`
 
     """
 
@@ -76,13 +76,13 @@ class SeriesNoise:
         See :func:`normal_noise` for more details.
 
         Args:
-            s (pd.Series): Pandas Series to be manipulated (from ``self.df``)
+            s (:class:`pandas.Series`): Pandas Series to be manipulated (from ``self.df``)
             column (str): corresponding column in ``self.df`` and ``s`` 
             mean (float, optional): mean of normal noise. Defaults to ``0``.
             std (float, optional): standard deviation of normal noise. Defaults to ``1``.
 
         Returns:
-            pd.Series: Noisy ``column`` of ``s``
+            :class:`pandas.Series`: Noisy ``column`` of ``s``
         """
         self.__check_dataframe_initialized()
         self.df = cast(pd.DataFrame, self.df)
@@ -115,7 +115,7 @@ class SeriesNoise:
             size (Union[Tuple[int, ...], int], optional): shape of samples
 
         Returns:
-            np.ndarray: A truncated normal distribution
+            :class:`numpy.ndarray`: A truncated normal distribution
 
         .. _scipy.stats.truncnorm: https://docs.scipy.org/doc/scipy/reference/generated/scipy.stats.truncnorm.html
 
@@ -131,7 +131,7 @@ class SeriesNoise:
         See :func:`truncated_normal_noise` for more details.
 
         Args:
-            s (pd.Series): Pandas Series to be manipulated (from ``self.df``)
+            s (:class:`pandas.Series`): Pandas Series to be manipulated (from ``self.df``)
             column (str): corresponding column in ``self.df`` and ``s`` 
             mean (float):  mean of normal noise
             std (float): standard deviation of normal noise
@@ -139,7 +139,7 @@ class SeriesNoise:
             ub (float): higher bound for truncation
 
         Returns:
-            pd.Series: Noisy ``column`` of ``s``
+            :class:`pandas.Series`: Noisy ``column`` of ``s``
         """
 
         self.__check_dataframe_initialized()
@@ -158,13 +158,13 @@ class SeriesNoise:
         """Takes a pandas Series and corresponding column and switches it with uniform distribution
 
         Args:
-            s (pd.Series): Pandas Series to be manipulated (from ``self.df``)
+            s (:class:`pandas.Series`): Pandas Series to be manipulated (from ``self.df``)
             column (str): corresponding column in ``self.df`` and ``s`` 
             categories (dict): dictionary of categories to switch to
             kwargs (dict): keyword arguments for numpy.random.Generator.choice_
 
         Returns:
-            pd.Series: Categorically shuffled ``column`` of ``s``
+            :class:`pandas.Series`: Categorically shuffled ``column`` of ``s``
 
         .. _numpy.random.Generator.choice: https://numpy.org/doc/stable/reference/random/generated/numpy.random.Generator.choice.html
 
@@ -233,13 +233,13 @@ class SeriesNoise:
         See :func:`ordered_noise` for more details.
 
         Args:
-            s (pd.Series): Pandas Series to be manipulated (from ``self.df``)
+            s (:class:`pandas.Series`): Pandas Series to be manipulated (from ``self.df``)
             column (str): corresponding column in ``self.df`` and ``s``
             lb (int): lower bound for noisy value
             ub (int): upper bound for noise value
 
         Returns:
-            pd.Series: Noisy ``column`` of ``s``
+            :class:`pandas.Series`: Noisy ``column`` of ``s``
         """
         self.__check_dataframe_initialized()
         self.df = cast(pd.DataFrame, self.df)
@@ -281,10 +281,10 @@ class TFAugmentation:
         """Augments a Pandas Series by modifying a single column
 
         Args:
-            s (pd.Series): Pandas Series to be processed
+            s (:class:`pandas.Series`): Pandas Series to be processed
 
         Returns:
-            pd.Series: Augmented ``s`` on column ``COLUMN``
+            :class:`pandas.Series`: Augmented ``s`` on column ``COLUMN``
         """
         raise NotImplementedError
 
@@ -294,13 +294,13 @@ class TFAugmentation:
         """Make any function an instance of ``snorkel.TransformationFunction``
 
         Note:
-            Currently only `func` s that work on `pd.Series` that work on single `column`
-            are supported as the API is designed this way. But, it could be easily
-            modified to support any sort of function.
+            Currently only `func` s that work on :class:`pandas.Series` that work on
+            a single `column` are supported as the API is designed this way.
+            But, it could be easily modified to support any sort of function.
 
         Args:
             func (Callable): A callable that
-            column (str): column name of a ``pd.Series`` that is going to be manipulated.
+            column (str): column name of a :class:`pandas.Series` that is going to be manipulated.
                 Must be provided if ``func`` is not setting it internally. E.g. for
                 :class:`AddNormalNoiseDOBYear` you don't need to 
                 set ``column`` since it is being handled internally.
@@ -424,10 +424,10 @@ class AddNormalNoiseDOBYear(SeriesNoise, TFAugmentation):
         """Augment the series for the predetermined column
 
         Args:
-            s (pd.Series): A pandas series to get noisy on a fixed column
+            s (:class:`pandas.Series`): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy ``self.COLUMN`` of ``s``
+            :class:`pandas.Series`: Noisy ``self.COLUMN`` of ``s``
         """
 
         COLUMN = self.COLUMN
@@ -472,10 +472,10 @@ class AddNormalNoiseChildDOBX(SeriesNoise, TFAugmentation):
         """Augment the series for the predetermined column
 
         Args:
-            s (pd.Series): A pandas series to get noisy on a fixed column
+            s (:class:`pandas.Series`): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy ``self.COLUMN`` of ``s``
+            :class:`pandas.Series`: Noisy ``self.COLUMN`` of ``s``
         """
 
         COLUMN = self.COLUMN
@@ -514,10 +514,10 @@ class AddNormalNoiseFunds(SeriesNoise, TFAugmentation):
         """Augment the series for the predetermined column
 
         Args:
-            s (pd.Series): A pandas series to get noisy on a fixed column
+            s (:class:`pandas.Series`): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy ``self.COLUMN`` of ``s``
+            :class:`pandas.Series`: Noisy ``self.COLUMN`` of ``s``
         """
 
         # TODO: add fin.bb to make sure by adding more fund, it does not any issue with
@@ -555,10 +555,10 @@ class AddNormalNoiseDateOfMarr(SeriesNoise, TFAugmentation):
         """Augment the series for the predetermined column
 
         Args:
-            s (pd.Series): A pandas series to get noisy on a fixed column
+            s (:class:`pandas.Series`): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy ``self.COLUMN`` of ``s``
+            :class:`pandas.Series`: Noisy ``self.COLUMN`` of ``s``
         """
         COLUMN = self.COLUMN
         if s[COLUMN] != 0.:
@@ -593,10 +593,10 @@ class AddNormalNoiseOccRowXPeriod(SeriesNoise, TFAugmentation):
         """Augment the series for the predetermined column
 
         Args:
-            s (pd.Series): A pandas series to get noisy on a fixed column
+            s (:class:`pandas.Series`): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy ``self.COLUMN`` of ``s``
+            :class:`pandas.Series`: Noisy ``self.COLUMN`` of ``s``
         """
 
         COLUMN = self.COLUMN
@@ -637,10 +637,10 @@ class AddNormalNoiseHLS(SeriesNoise, TFAugmentation):
         """Augment the series for the predetermined column
 
         Args:
-            s (pd.Series): A pandas series to get noisy on a fixed column
+            s (:class:`pandas.Series`): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy ``self.COLUMN`` of ``s``
+            :class:`pandas.Series`: Noisy ``self.COLUMN`` of ``s``
         """
 
         COLUMN = self.COLUMN
@@ -704,10 +704,10 @@ class AddCategoricalNoiseChildRelX(SeriesNoise, TFAugmentation):
         """Augment the series for the predetermined column
 
         Args:
-            s (pd.Series): A pandas series to get noisy on a fixed column
+            s (:class:`pandas.Series`): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy ``self.COLUMN`` of ``s``
+            :class:`pandas.Series`: Noisy ``self.COLUMN`` of ``s``
         """
 
         COLUMN = self.COLUMN
@@ -757,10 +757,10 @@ class AddCategoricalNoiseSiblingRelX(SeriesNoise, TFAugmentation):
         """Augment the series for the predetermined column
 
         Args:
-            s (pd.Series): A pandas series to get noisy on a fixed column
+            s (:class:`pandas.Series`): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy ``self.COLUMN`` of ``s``
+            :class:`pandas.Series`: Noisy ``self.COLUMN`` of ``s``
         """
 
         COLUMN = self.COLUMN
@@ -807,10 +807,10 @@ class AddCategoricalNoiseSex(SeriesNoise, TFAugmentation):
         """Augment the series for the predetermined column
 
         Args:
-            s (pd.Series): A pandas series to get noisy on a fixed column
+            s (:class:`pandas.Series`): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy ``self.COLUMN`` of ``s``
+            :class:`pandas.Series`: Noisy ``self.COLUMN`` of ``s``
         """
 
         COLUMN = self.COLUMN
@@ -862,10 +862,10 @@ class AddOrderedNoiseChdAccomp(SeriesNoise, TFAugmentation):
         """Augment the series for the predetermined column
 
         Args:
-            s (pd.Series): A pandas series to get noisy on a fixed column
+            s (:class:`pandas.Series`): A pandas series to get noisy on a fixed column
 
         Returns:
-            pd.Series: Noisy ``self.COLUMN`` of ``s``
+            :class:`pandas.Series`: Noisy ``self.COLUMN`` of ``s``
         """
 
         COLUMN = self.COLUMN
