@@ -17,7 +17,8 @@ def preview_column_transformer(column_transformer: ColumnTransformer,
                                original: np.ndarray,
                                transformed: np.ndarray,
                                columns: List[str],
-                               random_state: Union[int, np.random.Generator] = np.random.default_rng()) -> pd.DataFrame:
+                               random_state: Union[int, np.random.Generator] = np.random.default_rng(),
+                               **kwargs) -> pd.DataFrame:
     """Preview transformed data next to original one obtained via ``ColumnTransformer``
 
 
@@ -34,12 +35,17 @@ def preview_column_transformer(column_transformer: ColumnTransformer,
         random_state (Union[int, np.random.Generator], optional): Random_state or
             :class:`numpy.random.Generator` for sampling. Defaults to
             :func:`numpy.random.default_rng()`.
+        **kwargs: Additional arguments as follows:
+
+            * ``n_samples`` (int): Number of samples to draw. Defaults to 1.
     
     Yields:
         pd.DataFrame: Preview dataframe for each transformer in ``column_transformer.transformers_``.
             Dataframe has twice as columns as ``original`` and ``transformed``, i.e.
             ``df.shape == (original.shape[0], 2 * original.shape[1])``
     """
+    # extract kwargs
+    n_samples = kwargs.get('n_samples', 1)
 
     # just aliases for shorter lines
     ct = column_transformer
@@ -52,7 +58,9 @@ def preview_column_transformer(column_transformer: ColumnTransformer,
         random_state = np.random.default_rng(random_state)
 
     # generate sample indices
-    sample_indices = random_state.choice(original.shape[0], size=5, replace=False)
+    sample_indices = random_state.choice(original.shape[0],
+                                         size=n_samples,
+                                         replace=False)
     sample_indices = sample_indices.reshape(-1, 1)  # to broadcast properly
 
     # loop through each transform (over subset of columns) and preview it    
@@ -80,7 +88,11 @@ def preview_column_transformer(column_transformer: ColumnTransformer,
         sample[:, ::2] = original_sample
         sample[:, 1::2] = transformed_sample
         preview_cols: List[str] = []
-        [preview_cols.extend([f'{c}_tf', f'{c}_og'])  # type: ignore
+        [preview_cols.extend([f'{c}_og', f'{c}_tf'])  # type: ignore
          for c in columns_indices_names]
         preview_df = pd.DataFrame(sample, columns=preview_cols)
-        yield preview_df
+        # yield the previews
+        if n_samples == 1:  # just better visuals for single sample
+            yield preview_df.T
+        else:
+            yield preview_df

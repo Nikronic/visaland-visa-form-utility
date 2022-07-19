@@ -106,14 +106,14 @@ ct = preprocessors.ColumnTransformer(
     [('country_continuous',
      preprocessors.StandardScaler(),
      COLUMNS_DICT['country_continuous']),
-     # convert categorical (`category`) features to one-hot encoded features
-     # ('all_categorical',
-     #  preprocessors.OneHotEncoder(),
-     #  COLUMNS_DICT['all_categorical']),
+    #  convert categorical (`category`) features to one-hot encoded features
+    #  ('all_categorical',
+    #   preprocessors.OneHotEncoder(),
+    #   COLUMNS_DICT['all_categorical']),
      ],
     remainder='passthrough',
     verbose=False,
-    verbose_feature_names_out=True,
+    verbose_feature_names_out=False,
     n_jobs=-1,
 )
 xt_train = ct.fit_transform(x_train)
@@ -123,7 +123,8 @@ preview_ct = preprocessors.preview_column_transformer(column_transformer=ct,
                                                       original=x_train,
                                                       transformed=xt_train,
                                                       columns=data.columns.values,
-                                                      random_state=SEED)
+                                                      random_state=SEED,
+                                                      n_samples=1)
 logger.info([_ for _ in preview_ct])
 
 logger.info(
