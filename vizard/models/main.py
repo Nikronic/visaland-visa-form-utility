@@ -85,6 +85,47 @@ data_tuple = preprocessors.train_test_eval_split(df=data,
                                                  random_state=SEED)
 x_train, x_test, x_eval, y_train, y_test, y_eval = data_tuple
 
+# Transform and normalize appropriately
+# keys are our custom names and values are a subset of columns
+COLUMNS_DICT = {
+    'country_continuous': preprocessors.column_selector(columns_type='numeric',
+                                                        dtype_include=np.float32,
+                                                        pattern_include='.*Country.*',
+                                                        pattern_exclude=None,
+                                                        dtype_exclude=None)(df=data),
+    'all_categorical': preprocessors.column_selector(columns_type='numeric',
+                                                     dtype_include='category',
+                                                     pattern_include=None,
+                                                     pattern_exclude=None,
+                                                     dtype_exclude=None)(df=data),
+
+}
+
+ct = preprocessors.ColumnTransformer(
+    # normalize all sort of country scores
+    [('country_continuous',
+     preprocessors.StandardScaler(),
+     COLUMNS_DICT['country_continuous']),
+     # convert categorical (`category`) features to one-hot encoded features
+     # ('all_categorical',
+     #  preprocessors.OneHotEncoder(),
+     #  COLUMNS_DICT['all_categorical']),
+     ],
+    remainder='passthrough',
+    verbose=False,
+    verbose_feature_names_out=True,
+    n_jobs=-1,
+)
+xt_train = ct.fit_transform(x_train)
+
+# preview the transformed data
+preview_ct = preprocessors.preview_column_transformer(column_transformer=ct,
+                                                      original=x_train,
+                                                      transformed=xt_train,
+                                                      columns=data.columns.values,
+                                                      random_state=SEED)
+logger.info([_ for _ in preview_ct])
+
 logger.info(
     '\t\t↑↑↑ Finished preprocessing on directly DVC `vX.X.X-dev` data ↑↑↑')
 

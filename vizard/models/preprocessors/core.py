@@ -102,3 +102,125 @@ def move_dependent_variable_to_end(df: pd.DataFrame, target_column: str) -> pd.D
     columns.pop(columns.index(target_column))
     df = df[columns + [target_column]]
     return df
+
+
+class column_selector:
+    """Selects columns based on regex pattern and dtype
+
+    User can specify the dtype of columns to select, and the dtype of columns to ignore.
+    Also, user can specify the regex pattern for including and excluding columns, separately.
+
+    This is particularly useful when combined with :class:`sklearn.compose.ColumnTransformer`
+    to apply different sort of ``transformers`` to different subsets of columns. E.g::
+
+        # select columns that contain 'Country' in their name and are of type `np.float32`
+        columns = preprocessors.column_selector(columns_type='numeric',
+                                                dtype_include=np.float32,
+                                                pattern_include='.*Country.*',
+                                                pattern_exclude=None,
+                                                dtype_exclude=None)(df=data)
+        # use a transformer for selected columns
+        ct = preprocessors.ColumnTransformer(
+            [('some_name',                   # just a name
+            preprocessors.StandardScaler(),  # the transformer
+            columns),                        # the columns to apply the transformer to
+            ],
+        )
+
+        ct.fit_transform(...)
+
+    Note:
+        If the data that is passed to the :class:`column_selector` is a :class:`pandas.DataFrame`,
+        then you can ignore calling the instance of this class and directly use it in the
+        pipeline. E.g::
+
+            # select columns that contain 'Country' in their name and are of type `np.float32`
+            columns = preprocessors.column_selector(columns_type='numeric',
+                                                    dtype_include=np.float32,
+                                                    pattern_include='.*Country.*',
+                                                    pattern_exclude=None,
+                                                    dtype_exclude=None)  # THIS LINE
+            # use a transformer for selected columns
+            ct = preprocessors.ColumnTransformer(
+                [('some_name',                   # just a name
+                preprocessors.StandardScaler(),  # the transformer
+                columns),                        # the columns to apply the transformer to
+                ],
+            )
+
+            ct.fit_transform(...)
+
+
+    See Also:
+        :class:`sklearn.compose.make_column_selector` as ``column_selector`` follows the
+        same semantics.
+
+    """
+
+    def __init__(self,
+                 columns_type: str,
+                 dtype_include: Any,
+                 pattern_include: Optional[str] = None,
+                 dtype_exclude: Any = None,
+                 pattern_exclude: Optional[str] = None) -> None:
+        """Selects columns based on regex pattern and dtype
+
+        Args:
+            columns_type (str): Type of columns:
+
+                1. 'string': returns the name of the columns. Useful for 
+                    :class:`pandas.DataFrame`
+                2. 'numeric': returns the index of the columns. Useful for
+                    :class:`numpy.ndarray`
+
+            dtype_include (type): Type of the columns to select. For more info
+                see :func:`pandas.DataFrame.select_dtypes`.
+            pattern_include (str): Regex pattern to match columns to **include**
+            dtype_exclude (type): Type of the columns to ignore. For more info
+                see :func:`pandas.DataFrame.select_dtypes`. Defaults to None.
+            pattern_exclude (str): Regex pattern to match columns to **exclude**
+        """
+        self.columns_type = columns_type
+        self.pattern_include = pattern_include
+        self.pattern_exclude = pattern_exclude
+        self.dtype_include = dtype_include
+        self.dtype_exclude = dtype_exclude
+
+    def __call__(self, df: pd.DataFrame,
+                 *args: Any, **kwds: Any) -> Union[List[str], List[int]]:
+        """
+
+        Args:
+            df (:class:`pandas.DataFrame`): Dataframe to extract columns from
+
+        Returns:
+            Union[List[str], List[int]]: List of names or indices of
+                filtered columns
+
+        Raises:
+            ValueError: If the ``df`` is not instance of :class:`pandas.DataFrame`
+
+        """
+        if not isinstance(df, pd.DataFrame):
+            raise TypeError(f'`df` must be a `DataFrame` not {type(df)}')
+
+        # since `make_column_selector` will ignore pattern if None provide,
+        # we need to set pattern (pattern_exclude) to sth pepega to ignore all columns
+        pattern_exclude = '\~' if self.pattern_exclude is None else self.pattern_exclude
+
+        # first select desired then select undesired
+        columns_to_include = make_column_selector(dtype_include=self.dtype_include,
+                                                  dtype_exclude=self.dtype_exclude,
+                                                  pattern=self.pattern_include)(df)
+        columns_to_exclude = make_column_selector(dtype_include=self.dtype_include,
+                                                  dtype_exclude=self.dtype_exclude,
+                                                  pattern=pattern_exclude)(df)
+
+        # remove columns_to_exclude from columns_to_include
+        columns = [
+            column for column in columns_to_include if column not in columns_to_exclude]
+
+        # return columns based on columns_type (`columns` is already `string`)
+        if self.columns_type == 'numeric':
+            return [df.columns.get_loc(column) for column in columns]
+        return columns
