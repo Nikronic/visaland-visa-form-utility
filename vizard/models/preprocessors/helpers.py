@@ -21,7 +21,8 @@ def preview_column_transformer(column_transformer: ColumnTransformer,
                                **kwargs) -> pd.DataFrame:
     """Preview transformed data next to original one obtained via ``ColumnTransformer``
 
-
+    TODO:
+        - add support for one hot encoding
 
     Args:
         column_transformer (ColumnTransformer): An instance
@@ -32,13 +33,16 @@ def preview_column_transformer(column_transformer: ColumnTransformer,
             Same shape as ``original``
         columns (List[str]): List of column names in original dataframe that
             ``original`` and ``transformed`` are extracted from
-        random_state (Union[int, np.random.Generator], optional): Random_state or
-            :class:`numpy.random.Generator` for sampling. Defaults to
+        random_state (Union[int, np.random.Generator], optional): A seed value or
+            instance of  :class:`numpy.random.Generator` for sampling. Defaults to
             :func:`numpy.random.default_rng()`.
         **kwargs: Additional arguments as follows:
 
             * ``n_samples`` (int): Number of samples to draw. Defaults to 1.
     
+    Raises:
+        ValueError: If ``original`` and ``transformed`` are not of the same shape
+
     Yields:
         pd.DataFrame: Preview dataframe for each transformer in ``column_transformer.transformers_``.
             Dataframe has twice as columns as ``original`` and ``transformed``, i.e.
@@ -51,7 +55,8 @@ def preview_column_transformer(column_transformer: ColumnTransformer,
     ct = column_transformer
     
     # verify shapes
-    assert original.shape == transformed.shape
+    if original.shape != transformed.shape:
+        raise ValueError('original and transformed must have the same shape')
 
     # set rng
     if isinstance(random_state, int):
