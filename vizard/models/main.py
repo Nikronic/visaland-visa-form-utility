@@ -1,6 +1,7 @@
 # core
+import enum
 import pandas as pd
-import torch
+import numpy as np
 # ours: models
 from vizard.models import estimators
 from vizard.models import evaluators
@@ -42,7 +43,7 @@ PATH = 'raw-dataset/all-dev.pkl'
 REPO = '/home/nik/visaland-visa-form-utility'
 VERSION = 'v1.2.2-dev'
 # log experiment configs
-MLFLOW_EXPERIMENT_NAME = 'setup modeling pipeline'
+MLFLOW_EXPERIMENT_NAME = 'setup modeling pipeline - preprocessing'
 mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
 MLFLOW_TAGS = {
     'stage': 'dev'  # dev, beta, production
@@ -64,21 +65,44 @@ data = pd.read_pickle(data_url)
 logger.info('DVC data URL used to load saved file: \n{}'.format(data_url))
 logger.info('\t\t↑↑↑ Finishing reading data from DVC remote storage ↑↑↑')
 
-logger.info('\t\t↓↓↓ Starting preprocessing on directly DVC `vX.X.X-dev` data ↓↓↓')
+logger.info(
+    '\t\t↓↓↓ Starting preprocessing on directly DVC `vX.X.X-dev` data ↓↓↓')
 # TODO: add preprocessing steps here
-logger.info('\t\t↑↑↑ Finished preprocessing on directly DVC `vX.X.X-dev` data ↑↑↑')
+
+# move the dependent variable to the end of the dataframe
+data = preprocessors.move_dependent_variable_to_end(
+    df=data, target_column='VisaResult')
+
+# convert to np and split to train, test, eval
+# TODO: send these configs to the config file and log the config file used
+# instead of logging every input to these functions
+data_tuple = preprocessors.train_test_eval_split(df=data,
+                                                 target_column='VisaResult',
+                                                 test_ratio=0.1,
+                                                 eval_ratio=0.1,
+                                                 shuffle=True,
+                                                 stratify=None,
+                                                 random_state=SEED)
+x_train, x_test, x_eval, y_train, y_test, y_eval = data_tuple
+
+logger.info(
+    '\t\t↑↑↑ Finished preprocessing on directly DVC `vX.X.X-dev` data ↑↑↑')
 
 logger.info('\t\t↓↓↓ Starting defining estimators models ↓↓↓')
 # TODO: add estimators definition here
 logger.info('\t\t↑↑↑ Finished defining estimators models ↑↑↑')
 
-logger.info('\t\t↓↓↓ Starting loading training config and training estimators ↓↓↓')
+logger.info(
+    '\t\t↓↓↓ Starting loading training config and training estimators ↓↓↓')
 # TODO: add training steps here
-logger.info('\t\t↑↑↑ Finished loading training config and training estimators ↑↑↑')
+logger.info(
+    '\t\t↑↑↑ Finished loading training config and training estimators ↑↑↑')
 
-logger.info('\t\t↓↓↓ Starting loading evaluation config and evaluating estimators ↓↓↓')
+logger.info(
+    '\t\t↓↓↓ Starting loading evaluation config and evaluating estimators ↓↓↓')
 # TODO: add final evaluation steps here
-logger.info('\t\t↑↑↑ Finished loading evaluation config and evaluating estimators ↑↑↑')
+logger.info(
+    '\t\t↑↑↑ Finished loading evaluation config and evaluating estimators ↑↑↑')
 
 logger.info('\t\t↓↓↓ Starting saving good weights ↓↓↓')
 # TODO: add final checkpoint here (save weights)
@@ -99,14 +123,13 @@ mlflow.log_param('data_version', VERSION)
 # TODO: log evaluator config
 # TODO: log weights
 # TODO: log anything else in between that needs to be logged
-# mlflow.log_param('labeled_dataframe_shape', data_labeled.shape)
-# mlflow.log_param('unlabeled_dataframe_shape', data_unlabeled.shape)
-# # LabelModel params
-# mlflow.log_param('LabelModel_n_epochs', LM_N_EPOCHS)
-# mlflow.log_param('LabelModel_log_freq', LM_LOG_FREQ)
-# mlflow.log_param('LabelModel_lr', LM_LR)
-# mlflow.log_param('LabelModel_optim', LM_OPTIM)
-# mlflow.log_param('LabelModel_device', LM_DEVICE)
+# preprocessing parameters params
+mlflow.log_param('x_train_shape', x_train.shape)
+mlflow.log_param('x_test_shape', x_test.shape)
+mlflow.log_param('x_val_shape', x_eval.shape)
+mlflow.log_param('y_train_shape', y_train.shape)
+mlflow.log_param('y_test_shape', y_test.shape)
+mlflow.log_param('y_val_shape', y_test.shape)
 logger.info('\t\t↑↑↑ Finished logging hyperparams and params with MLFlow ↑↑↑')
 
 # Log artifacts (logs, saved files, etc)
