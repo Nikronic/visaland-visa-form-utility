@@ -99,23 +99,42 @@ COLUMNS_DICT = {
                                                             pattern_include='.*ChdMStatus',
                                                             pattern_exclude=None,
                                                             dtype_exclude=None)(df=data),
-
+    'binary_categorical': preprocessors.column_selector(columns_type='numeric',
+                                                        dtype_include='category',
+                                                        pattern_include='.*(Indicator|Sex|Stay|Deport|PrevApply).*',
+                                                        pattern_exclude=None,
+                                                        dtype_exclude=None)(df=data),
+    'other_categorical': preprocessors.column_selector(columns_type='numeric',
+                                                        dtype_include='category',
+                                                        pattern_include='.*(Status|Country|Prps|Relationship|Study).*',
+                                                        pattern_exclude='.*(Chd).*',
+                                                        dtype_exclude=None)(df=data),
 }
 
 ct = preprocessors.ColumnTransformer(
-    # normalize all sort of country scores
-    [('country_continuous',
-     preprocessors.StandardScaler(),
-     COLUMNS_DICT['country_continuous']),
-    # convert marital status in categorical (`category`) to one-hot
-     ('ChdMStatus_categorical',
-      preprocessors.OneHotEncoder(),
-      COLUMNS_DICT['ChdMStatus_categorical']),
+    [
+        # normalize all sort of country scores
+        ('country_continuous',
+        preprocessors.StandardScaler(),
+        COLUMNS_DICT['country_continuous']),
+        # convert marital status in categorical (`category`) to one-hot
+        ('ChdMStatus_categorical',
+        preprocessors.OneHotEncoder(),
+        COLUMNS_DICT['ChdMStatus_categorical']),
+        # convert binary categorical columns to one-hot
+        ('binary_categorical',
+        preprocessors.OneHotEncoder(),
+        COLUMNS_DICT['binary_categorical']),
+        # convert other categorical columns to one-hot
+        ('other_categorical',
+        preprocessors.OneHotEncoder(),
+        COLUMNS_DICT['other_categorical']),
+
      ],
     remainder='passthrough',
     verbose=False,
     verbose_feature_names_out=False,
-    n_jobs=-1,
+    n_jobs=None,
 )
 xt_train = ct.fit_transform(x_train)
 
