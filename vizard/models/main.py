@@ -89,11 +89,11 @@ x_train, x_test, x_eval, y_train, y_test, y_eval = data_tuple
 # Transform and normalize appropriately
 # keys are our custom names and values are a subset of columns
 COLUMNS_DICT = {
-    'country_continuous': preprocessors.column_selector(columns_type='numeric',
-                                                        dtype_include=np.float32,
-                                                        pattern_include='.*Country.*',
-                                                        pattern_exclude=None,
-                                                        dtype_exclude=None)(df=data),
+    'all_continuous': preprocessors.column_selector(columns_type='numeric',
+                                                    dtype_include=np.float32,
+                                                    pattern_include=None,
+                                                    pattern_exclude=None,
+                                                    dtype_exclude=None)(df=data),
     'ChdMStatus_categorical': preprocessors.column_selector(columns_type='numeric',
                                                             dtype_include='category',
                                                             pattern_include='.*ChdMStatus',
@@ -105,18 +105,18 @@ COLUMNS_DICT = {
                                                         pattern_exclude=None,
                                                         dtype_exclude=None)(df=data),
     'other_categorical': preprocessors.column_selector(columns_type='numeric',
-                                                        dtype_include='category',
-                                                        pattern_include='.*(Status|Country|Prps|Relationship|Study).*',
-                                                        pattern_exclude='.*(Chd).*',
-                                                        dtype_exclude=None)(df=data),
+                                                       dtype_include='category',
+                                                       pattern_include='.*(Status|Country|Prps|Relationship|Study).*',
+                                                       pattern_exclude='.*(Chd).*',
+                                                       dtype_exclude=None)(df=data),
 }
 
 ct = preprocessors.ColumnTransformer(
     [
         # normalize all sort of country scores
-        ('country_continuous',
+        ('all_continuous',
         preprocessors.StandardScaler(),
-        COLUMNS_DICT['country_continuous']),
+        COLUMNS_DICT['all_continuous']),
         # convert marital status in categorical (`category`) to one-hot
         ('ChdMStatus_categorical',
         preprocessors.OneHotEncoder(),
