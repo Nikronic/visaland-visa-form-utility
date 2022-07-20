@@ -43,7 +43,7 @@ PATH = 'raw-dataset/all-dev.pkl'
 REPO = '/home/nik/visaland-visa-form-utility'
 VERSION = 'v1.2.2-dev'
 # log experiment configs
-MLFLOW_EXPERIMENT_NAME = 'setup modeling pipeline - preprocessing'
+MLFLOW_EXPERIMENT_NAME = 'setup modeling pipeline - transforming columns'
 mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
 MLFLOW_TAGS = {
     'stage': 'dev'  # dev, beta, production
@@ -93,11 +93,11 @@ COLUMNS_DICT = {
                                                         pattern_include='.*Country.*',
                                                         pattern_exclude=None,
                                                         dtype_exclude=None)(df=data),
-    'all_categorical': preprocessors.column_selector(columns_type='numeric',
-                                                     dtype_include='category',
-                                                     pattern_include=None,
-                                                     pattern_exclude=None,
-                                                     dtype_exclude=None)(df=data),
+    'ChdMStatus_categorical': preprocessors.column_selector(columns_type='numeric',
+                                                            dtype_include='category',
+                                                            pattern_include='.*ChdMStatus',
+                                                            pattern_exclude=None,
+                                                            dtype_exclude=None)(df=data),
 
 }
 
@@ -106,10 +106,10 @@ ct = preprocessors.ColumnTransformer(
     [('country_continuous',
      preprocessors.StandardScaler(),
      COLUMNS_DICT['country_continuous']),
-    #  convert categorical (`category`) features to one-hot encoded features
-    #  ('all_categorical',
-    #   preprocessors.OneHotEncoder(),
-    #   COLUMNS_DICT['all_categorical']),
+    # convert marital status in categorical (`category`) to one-hot
+     ('ChdMStatus_categorical',
+      preprocessors.OneHotEncoder(),
+      COLUMNS_DICT['ChdMStatus_categorical']),
      ],
     remainder='passthrough',
     verbose=False,
@@ -122,7 +122,7 @@ xt_train = ct.fit_transform(x_train)
 preview_ct = preprocessors.preview_column_transformer(column_transformer=ct,
                                                       original=x_train,
                                                       transformed=xt_train,
-                                                      columns=data.columns.values,
+                                                      df=data,
                                                       random_state=SEED,
                                                       n_samples=1)
 logger.info([_ for _ in preview_ct])
