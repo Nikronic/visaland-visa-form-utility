@@ -83,7 +83,13 @@ def preview_column_transformer(column_transformer: ColumnTransformer,
             return None
 
         # get indices of the transformed columns
-        transformed_columns_indices = ct.output_indices_[k]
+        transformed_columns_slice: Union[list, slice] = ct.output_indices_[k]
+        if isinstance(transformed_columns_slice, slice):
+            transformed_columns_range = range(transformed_columns_slice.stop)
+            transformed_columns_range = transformed_columns_range[transformed_columns_slice]
+            transformed_columns_indices = list(transformed_columns_range)
+        else:
+            transformed_columns_indices = transformed_columns_slice
         # get indices of the original columns
         columns_indices = ct._columns[idx]
         # get names of the original columns
@@ -120,7 +126,11 @@ def preview_column_transformer(column_transformer: ColumnTransformer,
         # show info about onehot encoder changes
         elif isinstance(ct.transformers[idx][1], OneHotEncoder):
             count_uniques = df.iloc[:, columns_indices].nunique().sum()
-            logger.info(f'{len(columns_indices)} columns are affected.')
-            logger.info(f'{count_uniques} unique values exist.'
-                        f'it is expected to have {count_uniques - len(columns_indices)} new columns '
-                        f'and {transformed.shape[1] - original.shape[1]} columns are newly produced.')
+            logger.info(f'For "{ct.transformers[idx][0]}" transformer: ')
+            logger.info(f'{len(columns_indices)} columns are affected. ')
+            logger.info(
+                f'On selected columns, {count_uniques} unique values exist. '
+                f'It is expected to have {count_uniques - len(columns_indices)}'
+                f' new columns and '
+                f'{len(transformed_columns_indices) - len(columns_indices)}'
+                f' columns are newly produced.\n')
