@@ -9,6 +9,7 @@ useful for these frameworks)
 # sklearn wrappers
 from .core import ColumnTransformer
 from .core import OneHotEncoder
+from .core import LabelEncoder
 from .core import StandardScaler
 from .core import MinMaxScaler
 from .core import RobustScaler
@@ -18,6 +19,7 @@ from .core import MaxAbsScaler
 from .core import move_dependent_variable_to_end
 from .core import train_test_eval_split
 from .core import column_selector
+from .configs import ColumnTransformerConfig
 from .helpers import preview_column_transformer
 
 # helpers

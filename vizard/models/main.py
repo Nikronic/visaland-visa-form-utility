@@ -25,7 +25,8 @@ logger = logging.getLogger(__name__)
 VERBOSE = logging.DEBUG
 logger.setLevel(VERBOSE)
 # set `models` logger to log to our logging config
-models_logger = logging.getLogger('vizard.models')  # simply top-level module name
+models_logger = logging.getLogger(
+    'vizard.models')  # simply top-level module name
 models_logger.setLevel(VERBOSE)
 
 # Set up root logger, and add a file handler to root logger
@@ -44,7 +45,7 @@ PATH = 'raw-dataset/all-dev.pkl'
 REPO = '/home/nik/visaland-visa-form-utility'
 VERSION = 'v1.2.2-dev'
 # log experiment configs
-MLFLOW_EXPERIMENT_NAME = 'setup modeling pipeline - transforming columns'
+MLFLOW_EXPERIMENT_NAME = 'setup modeling pipeline - transforming columns SWE'
 mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
 MLFLOW_TAGS = {
     'stage': 'dev'  # dev, beta, production
@@ -86,65 +87,25 @@ data_tuple = preprocessors.train_test_eval_split(df=data,
                                                  random_state=SEED)
 x_train, x_test, x_eval, y_train, y_test, y_eval = data_tuple
 
-# Transform and normalize appropriately
-# keys are our custom names and values are a subset of columns
-COLUMNS_DICT = {
-    'all_continuous': preprocessors.column_selector(columns_type='numeric',
-                                                    dtype_include=np.float32,
-                                                    pattern_include=None,
-                                                    pattern_exclude=None,
-                                                    dtype_exclude=None)(df=data),
-    'ChdMStatus_categorical': preprocessors.column_selector(columns_type='numeric',
-                                                            dtype_include='category',
-                                                            pattern_include='.*ChdMStatus',
-                                                            pattern_exclude=None,
-                                                            dtype_exclude=None)(df=data),
-    'binary_categorical': preprocessors.column_selector(columns_type='numeric',
-                                                        dtype_include='category',
-                                                        pattern_include='.*(Indicator|Sex|Stay|Deport|PrevApply).*',
-                                                        pattern_exclude=None,
-                                                        dtype_exclude=None)(df=data),
-    'other_categorical': preprocessors.column_selector(columns_type='numeric',
-                                                       dtype_include='category',
-                                                       pattern_include='.*(Status|Country|Prps|Relationship|Study).*',
-                                                       pattern_exclude='.*(Chd).*',
-                                                       dtype_exclude=None)(df=data),
-}
+# Transform and normalize appropriately given config
+column_transformers_config = preprocessors.ColumnTransformerConfig()
 
 ct = preprocessors.ColumnTransformer(
-    [
-        # normalize all sort of country scores
-        ('all_continuous',
-        preprocessors.StandardScaler(),
-        COLUMNS_DICT['all_continuous']),
-        # convert marital status in categorical (`category`) to one-hot
-        ('ChdMStatus_categorical',
-        preprocessors.OneHotEncoder(),
-        COLUMNS_DICT['ChdMStatus_categorical']),
-        # convert binary categorical columns to one-hot
-        ('binary_categorical',
-        preprocessors.OneHotEncoder(),
-        COLUMNS_DICT['binary_categorical']),
-        # convert other categorical columns to one-hot
-        ('other_categorical',
-        preprocessors.OneHotEncoder(),
-        COLUMNS_DICT['other_categorical']),
-
-     ],
-    remainder='passthrough',
-    verbose=False,
-    verbose_feature_names_out=False,
-    n_jobs=None,
+    transformers = column_transformers_config.generate_pipeline(df=data),
+    remainder = 'passthrough',
+    verbose = False,
+    verbose_feature_names_out = False,
+    n_jobs = None,
 )
-xt_train = ct.fit_transform(x_train)
+xt_train=ct.fit_transform(x_train)
 
 # preview the transformed data
-preview_ct = preprocessors.preview_column_transformer(column_transformer=ct,
-                                                      original=x_train,
-                                                      transformed=xt_train,
-                                                      df=data,
-                                                      random_state=SEED,
-                                                      n_samples=1)
+preview_ct=preprocessors.preview_column_transformer(column_transformer = ct,
+                                                    original = x_train,
+                                                    transformed = xt_train,
+                                                    df = data,
+                                                    random_state = SEED,
+                                                    n_samples = 1)
 logger.info([_ for _ in preview_ct])
 
 logger.info(
