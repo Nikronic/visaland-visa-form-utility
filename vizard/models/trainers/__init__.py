@@ -8,3 +8,10 @@ training script needs to be defined.
 Note that training scripts must be complete. I.e. they should be able to
 checkpoint, load model, load data, etc.
 """
+
+# helpers
+import logging
+
+
+# set logger
+logger = logging.getLogger(__name__)

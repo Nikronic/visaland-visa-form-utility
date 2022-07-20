@@ -22,10 +22,11 @@ SEED = 322
 
 # configure logging
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-# set snorkel logger to log to our logging config
-snorkel_logger = logging.getLogger('models')  # simply top-level module name
-snorkel_logger.setLevel(logging.INFO)
+VERBOSE = logging.DEBUG
+logger.setLevel(VERBOSE)
+# set `models` logger to log to our logging config
+models_logger = logging.getLogger('vizard.models')  # simply top-level module name
+models_logger.setLevel(VERBOSE)
 
 # Set up root logger, and add a file handler to root logger
 if not os.path.exists('artifacts'):

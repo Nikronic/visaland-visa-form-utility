@@ -12,3 +12,10 @@ Submodules:
 
 .. _sklearn-estimator: https://scikit-learn.org/stable/glossary.html#term-estimator
 """
+
+# helpers
+import logging
+
+
+# set logger
+logger = logging.getLogger(__name__)

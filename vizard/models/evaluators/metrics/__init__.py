@@ -19,3 +19,10 @@ For instance assume we have VGG models in `vizard.models.estimators.networks.vgg
 .. _sklearn.metrics: https://scikit-learn.org/stable/modules/classes.html#module-sklearn.metrics
 
 """
+
+# helpers
+import logging
+
+
+# set logger
+logger = logging.getLogger(__name__)

@@ -10,3 +10,11 @@ Submodules:
     * :mod:`vizard.models.evaluators.metrics <vizard.models.evaluators.metrics>`: contains all the metrics for evaluation
 
 """
+
+
+# helpers
+import logging
+
+
+# set logger
+logger = logging.getLogger(__name__)
