@@ -1,0 +1,6 @@
+{
+    "test_ratio": 0.1,
+    "eval_ratio": 0.1,
+    "shuffle": true,
+    "stratify": null
+}

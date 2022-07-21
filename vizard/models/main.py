@@ -81,15 +81,8 @@ data = preprocessors.move_dependent_variable_to_end(
     df=data, target_column='VisaResult')
 
 # convert to np and split to train, test, eval
-# TODO: send these configs to the config file and log the config file used
-# instead of logging every input to these functions
-data_tuple = preprocessors.train_test_eval_split(df=data,
-                                                 target_column='VisaResult',
-                                                 test_ratio=0.1,
-                                                 eval_ratio=0.1,
-                                                 shuffle=True,
-                                                 stratify=None,
-                                                 random_state=SEED)
+train_test_eval_splitter = preprocessors.TrainTestEvalSplit(random_state=SEED)
+data_tuple = train_test_eval_splitter(df=data, target_column='VisaResult')
 x_train, x_test, x_eval, y_train, y_test, y_eval = data_tuple
 
 # Transform and normalize appropriately given config
@@ -162,6 +155,7 @@ logger.info('\t\t↑↑↑ Finished logging hyperparams and params with MLFlow �
 
 # dump all json configs into artifacts
 column_transformers_config.as_mlflow_artifact(MLFLOW_ARTIFACTS_CONFIGS_PATH)
+train_test_eval_splitter.as_mlflow_artifact(MLFLOW_ARTIFACTS_CONFIGS_PATH)
 # Log artifacts (logs, saved files, etc)
 mlflow.log_artifacts(MLFLOW_ARTIFACTS_PATH)
 # delete redundant logs, files that are logged as artifact

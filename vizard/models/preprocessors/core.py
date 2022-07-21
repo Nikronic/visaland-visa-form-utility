@@ -29,10 +29,7 @@ DATA_DIR = parent_dir / 'data'
 logger = logging.getLogger(__name__)
 
 
-def train_test_eval_split(df: pd.DataFrame, target_column: str,
-                          test_ratio: float = 0.0,
-                          eval_ratio: float = 0.0,
-                          **kwargs) -> Tuple[np.ndarray, ...]:
+class TrainTestEvalSplit:
     """Convert a pandas dataframe to a numpy array for with train, test, and eval splits
 
     For conversion from :class:`pandas.DataFrame` to :class:`numpy.ndarray`, we use the same
@@ -44,38 +41,142 @@ def train_test_eval_split(df: pd.DataFrame, target_column: str,
         I.e. the eval set is a subset of train set.
         This is of course to make sure model by no means sees the test set.
 
-    Args:
-        df (:class:`pandas.DataFrame`): Dataframe to convert
-        target_column (str): Name of the target column
-        test_ratio (float): Ratio of test data
-        eval_ratio (float): Ratio of eval data
-        shuffle (bool): Whether to shuffle the data
-        stratify (Optional[np.ndarray]): If not None, this is used to stratify the data
-        random_state (Optional[int]): Random state to use for shuffling
+    Note:
+        ``Args`` cannot be set directly and need to be provided using a json file.
+        See :meth:`set_configs` for more information.
+
+    Note:
+        You can explicitly override following attributes by passing it as an argument
+        to :meth:`__init__`:
+            - :attr:`random_state`
+            - :attr:`stratify`
 
     Returns:
         Tuple[:class:`numpy.ndarray`, ...]: Order is
             ``(x_train, x_test, x_eval, y_train, y_test, y_eval)``
-
     """
 
-    # separate dependent and independent variables
-    y = df[target_column].to_numpy()
-    x = df.drop(columns=[target_column], inplace=False).to_numpy()
+    def __init__(self, stratify: Any = None,
+                 random_state: Union[np.random.Generator, int] = None) -> None:
+        self.logger = logging.getLogger(logger.name + self.__class__.__name__)
+        self.CONF = self.set_configs()
 
-    # create train and test data
-    x_train, x_test, y_train, y_test = model_selection.train_test_split(x, y, train_size=None,
-                                                                        test_size=test_ratio,
-                                                                        **kwargs)
-    if eval_ratio == 0.:
-        return (x_train, x_test, y_train, y_test)
+        # override configs if explicitly set
+        self.random_state = random_state
+        self.stratify = stratify
 
-    # create eval data from train data
-    x_train, x_eval, y_train, y_eval = model_selection.train_test_split(x_train, y_train,
-                                                                        train_size=None,
-                                                                        test_size=eval_ratio,
-                                                                        **kwargs)
-    return (x_train, x_test, x_eval, y_train, y_test, y_eval)
+    def set_configs(self, path: Union[str, pathlib.Path] = None) -> dict:
+        """Defines and sets the config to be parsed
+
+        The keys of the configs are the attributes of this class which are:
+            test_ratio (float): Ratio of test data
+            eval_ratio (float): Ratio of eval data
+            shuffle (bool): Whether to shuffle the data
+            stratify (Optional[np.ndarray]): If not None, this is used to stratify the data
+            random_state (Optional[int]): Random state to use for shuffling
+
+        Note:
+            You can explicitly override following attributes by passing it as an argument
+            to :meth:`__init__`:
+                - :attr:`random_state`
+                - :attr:`stratify`
+
+        The values of the configs are parameters and can be set manually
+        or extracted from JSON config files by providing the path to the JSON file.
+
+        Args:
+            path: path to the JSON file containing the configs
+
+        Returns:
+            dict: A dictionary of `str`: `Any` pairs of configs as class attributes
+        """
+
+        # convert str path to Path
+        if isinstance(path, str):
+            path = pathlib.Path(path)
+
+        # if no json is provided, use the default configs
+        if path is None:
+            path = DATA_DIR / 'canada_train_test_eval_split.json'
+        self.conf_path = path
+
+        # log the path used
+        self.logger.info(f'Config file "{self.conf_path}" is being used')
+
+        # read the json file
+        with open(path, 'r') as f:
+            configs = json.load(f)
+
+        # set the configs if explicit calls made to this method
+        self.CONF = configs
+        # return the parsed configs
+        return configs
+
+    def as_mlflow_artifact(self, target_path: Union[str, pathlib.Path]) -> None:
+        """Saves the configs to the MLFlow artifact directory
+
+        Args:
+            target_path: Path to the MLFlow artifact directory. The name of the file
+                will be same as original config file, hence, only provide path to dir.
+        """
+
+        # convert str path to Path
+        if isinstance(target_path, str):
+            target_path = pathlib.Path(target_path)
+
+        if self.conf_path is None:
+            raise ValueError(
+                'Configs have not been set yet. Use set_configs to set them.')
+
+        # read the json file
+        with open(self.conf_path, 'r') as f:
+            configs = json.load(f)
+
+        # save the configs to the artifact directory
+        target_path = target_path / self.conf_path.name
+        with open(target_path, 'w') as f:
+            json.dump(configs, f)
+
+    def __call__(self, df: pd.DataFrame, target_column: str,
+                 *args: Any, **kwds: Any) -> Tuple[np.ndarray, ...]:
+        """Convert a pandas dataframe to a numpy array for with train, test, and eval splits
+        
+        Args:
+            df (:class:`pandas.DataFrame`): Dataframe to convert
+            target_column (str): Name of the target column
+        
+        Returns:
+            Tuple[:class:`numpy.ndarray`, ...]: Order is
+            ``(x_train, x_test, x_eval, y_train, y_test, y_eval)``
+        """
+        # get values from config
+        test_ratio = self.CONF['test_ratio']
+        eval_ratio = self.CONF['eval_ratio']
+        shuffle = self.CONF['shuffle']
+        stratify = self.CONF['stratify']
+        random_state = self.CONF['random_state'] if self.random_state is None else self.random_state
+
+        # separate dependent and independent variables
+        y = df[target_column].to_numpy()
+        x = df.drop(columns=[target_column], inplace=False).to_numpy()
+
+        # create train and test data
+        x_train, x_test, y_train, y_test = model_selection.train_test_split(x, y, train_size=None,
+                                                                            test_size=test_ratio,
+                                                                            shuffle=shuffle,
+                                                                            stratify=stratify,
+                                                                            random_state=random_state)
+        if eval_ratio == 0.:
+            return (x_train, x_test, y_train, y_test)
+
+        # create eval data from train data
+        x_train, x_eval, y_train, y_eval = model_selection.train_test_split(x_train, y_train,
+                                                                            train_size=None,
+                                                                            test_size=eval_ratio,
+                                                                            shuffle=shuffle,
+                                                                            stratify=stratify,
+                                                                            random_state=random_state)
+        return (x_train, x_test, x_eval, y_train, y_test, y_eval)
 
 
 def move_dependent_variable_to_end(df: pd.DataFrame, target_column: str) -> pd.DataFrame:
