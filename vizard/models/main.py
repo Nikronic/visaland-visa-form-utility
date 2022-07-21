@@ -12,6 +12,7 @@ from vizard.models import weights
 import mlflow
 import dvc.api
 # helpers
+from pathlib import Path
 import logging
 import shutil
 import os
@@ -30,11 +31,15 @@ models_logger = logging.getLogger(
 models_logger.setLevel(VERBOSE)
 
 # Set up root logger, and add a file handler to root logger
-if not os.path.exists('artifacts'):
-    os.makedirs('artifacts')
-    os.makedirs('artifacts/logs')
+MLFLOW_ARTIFACTS_PATH = Path('artifacts')
+MLFLOW_ARTIFACTS_LOGS_PATH = MLFLOW_ARTIFACTS_PATH / 'logs'
+MLFLOW_ARTIFACTS_CONFIGS_PATH = MLFLOW_ARTIFACTS_PATH / 'configs'
+if not os.path.exists(MLFLOW_ARTIFACTS_PATH):
+    os.makedirs(MLFLOW_ARTIFACTS_PATH)
+    os.makedirs(MLFLOW_ARTIFACTS_LOGS_PATH)
+    os.makedirs(MLFLOW_ARTIFACTS_CONFIGS_PATH)
 
-logger_handler = logging.FileHandler(filename='artifacts/logs/models.log',
+logger_handler = logging.FileHandler(filename=MLFLOW_ARTIFACTS_LOGS_PATH / 'models.log',
                                      mode='w')
 logger.parent.addHandler(logger_handler)  # type: ignore
 logger.info('\t\t↓↓↓ Starting setting up configs: dirs, mlflow, dvc, etc ↓↓↓')
@@ -155,7 +160,9 @@ mlflow.log_param('y_test_shape', y_test.shape)
 mlflow.log_param('y_val_shape', y_test.shape)
 logger.info('\t\t↑↑↑ Finished logging hyperparams and params with MLFlow ↑↑↑')
 
+# dump all json configs into artifacts
+column_transformers_config.as_mlflow_artifact(MLFLOW_ARTIFACTS_CONFIGS_PATH)
 # Log artifacts (logs, saved files, etc)
-mlflow.log_artifacts('artifacts/')
+mlflow.log_artifacts(MLFLOW_ARTIFACTS_PATH)
 # delete redundant logs, files that are logged as artifact
-shutil.rmtree('artifacts')
+shutil.rmtree(MLFLOW_ARTIFACTS_PATH)
