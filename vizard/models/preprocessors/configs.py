@@ -1,16 +1,23 @@
+# include all libs that are used in DATA/*.json files
+import numpy as np
 # core
 import pandas as pd
-import numpy as np
+import json
 # ours
 from vizard.models import preprocessors
 # helpers
 import pathlib
+import logging
 from typing import List, Tuple, Union
 
 
 # path to all config/db files
 parent_dir = pathlib.Path(__file__).parent
 DATA_DIR = parent_dir / 'data'
+
+# configure logging
+logger = logging.getLogger(__name__)
+
 
 class ColumnTransformerConfig:
     """A helper class that parses configs for using the :class:`sklearn.compose.ColumnTransformer`
@@ -25,10 +32,11 @@ class ColumnTransformerConfig:
     """
 
     def __init__(self) -> None:
-
+        
+        self.logger = logging.getLogger(logger.name+self.__class__.__name__)
         self.CONF = self.set_configs()
 
-    def set_configs(self, json: str = None) -> dict:
+    def set_configs(self, path: Union[str, pathlib.Path] = None) -> dict:
         """Defines and sets the config to be parsed
 
         The keys of the configs are the names of the transformers. They must include
@@ -50,36 +58,61 @@ class ColumnTransformerConfig:
         or extracted from JSON config files by providing the path to the JSON file.
 
         Args:
-            json: path to the JSON file containing the configs
+            path: path to the JSON file containing the configs
 
         Returns:
             dict: A dictionary of `str`: :class:`vizard.models.preprocessors.core.column_selector`
             which will be passed to :meth:`generate_pipeline`
         """
-        # TODO: read it from a json file with API
-        COLUMN_TRANSFORMER_CONFIG = {
-            'all_continuous': preprocessors.column_selector(columns_type='numeric',
-                                                            dtype_include=np.float32,
-                                                            pattern_include=None,
-                                                            pattern_exclude=None,
-                                                            dtype_exclude=None),
-            'ChdMStatus_categorical': preprocessors.column_selector(columns_type='numeric',
-                                                                    dtype_include='category',
-                                                                    pattern_include='.*ChdMStatus',
-                                                                    pattern_exclude=None,
-                                                                    dtype_exclude=None),
-            'binary_categorical': preprocessors.column_selector(columns_type='numeric',
-                                                                dtype_include='category',
-                                                                pattern_include='.*(Indicator|Sex|Stay|Deport|PrevApply).*',
-                                                                pattern_exclude=None,
-                                                                dtype_exclude=None),
-            'other_categorical': preprocessors.column_selector(columns_type='numeric',
-                                                               dtype_include='category',
-                                                               pattern_include='.*(Status|Country|Prps|Relationship|Study).*',
-                                                               pattern_exclude='.*(Chd).*',
-                                                               dtype_exclude=None),
-        }
-        return COLUMN_TRANSFORMER_CONFIG
+
+        # convert str path to Path
+        if isinstance(path, str):
+            path = pathlib.Path(path)
+            
+        # if no json is provided, use the default configs
+        if path is None:
+            path = DATA_DIR / 'canada_column_transformer_config.json'
+        self.conf_path = path
+
+        # log the path used
+        self.logger.info(f'Config file "{self.conf_path}" is being used')
+
+        # read the json file
+        with open(path, 'r') as f:
+            configs = json.load(f)
+
+        # parse the configs (json files)
+        parsed_configs = {}
+        for key, value in configs.items():
+            parsed_values = {k: eval(v) for k, v in value.items()}
+            parsed_configs[key] = preprocessors.column_selector(**parsed_values)
+
+        # return the parsed configs
+        return parsed_configs
+
+    def as_mlflow_artifact(self, target_path: Union[str, pathlib.Path]) -> None:
+        """Saves the configs to the MLFlow artifact directory
+
+        Args:
+            target_path: Path to the MLFlow artifact directory. The name of the file
+                will be same as original config file, hence, only provide path to dir.
+        """
+
+        # convert str path to Path
+        if isinstance(target_path, str):
+            target_path = pathlib.Path(target_path)
+
+        if self.conf_path is None:
+            raise ValueError('Configs have not been set yet. Use set_configs to set them.')
+
+        # read the json file
+        with open(self.conf_path, 'r') as f:
+            configs = json.load(f)
+
+        # save the configs to the artifact directory
+        target_path = target_path / self.conf_path.name
+        with open(target_path, 'w') as f:
+            json.dump(configs, f)
     
     @staticmethod
     def extract_selected_columns(selector: preprocessors.column_selector,
