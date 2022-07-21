@@ -403,6 +403,9 @@ class ColumnTransformerConfig:
             parsed_configs[key] = column_selector(
                 **parsed_values)
 
+        # set the configs when explicit call to this method is made
+        self.CONF = parsed_configs
+
         # return the parsed configs
         return parsed_configs
 
