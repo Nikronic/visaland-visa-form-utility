@@ -26,7 +26,14 @@ DATA_DIR = parent_dir / 'data'
 
 # we have to import path to `/data` here to avoid circular import in `core.py`
 CANADA_COLUMN_TRANSFORMER_CONFIG_X = DATA_DIR / 'canada_column_transformer_config_x.json'
-"""Configs for transforming *train* data for Canada
+"""Configs for transforming *features* data for Canada
+
+For information about how to use it and what fields are expected, 
+see :class:`vizard.models.preprocessors.core.ColumnTransformerConfig`.
+"""
+
+CANADA_COLUMN_TRANSFORMER_CONFIG_Y = DATA_DIR / 'canada_column_transformer_config_y.json'
+"""Configs for transforming *target* data for Canada
 
 For information about how to use it and what fields are expected, 
 see :class:`vizard.models.preprocessors.core.ColumnTransformerConfig`.

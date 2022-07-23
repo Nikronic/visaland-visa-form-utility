@@ -2,6 +2,7 @@
 import enum
 import pandas as pd
 import numpy as np
+from sklearn.preprocessing import LabelBinarizer
 # ours: models
 from vizard.models import estimators
 from vizard.models import evaluators
@@ -50,7 +51,7 @@ PATH = 'raw-dataset/all-dev.pkl'
 REPO = '/home/nik/visaland-visa-form-utility'
 VERSION = 'v1.2.2-dev'
 # log experiment configs
-MLFLOW_EXPERIMENT_NAME = 'setup modeling pipeline - transforming columns SWE'
+MLFLOW_EXPERIMENT_NAME = 'setup modeling pipeline - transforming Y'
 mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
 MLFLOW_TAGS = {
     'stage': 'dev'  # dev, beta, production
@@ -86,24 +87,27 @@ data_tuple = train_test_eval_splitter(df=data, target_column='VisaResult')
 x_train, x_test, x_eval, y_train, y_test, y_eval = data_tuple
 
 # Transform and normalize appropriately given config
-column_transformers_config = preprocessors.ColumnTransformerConfig()
+x_column_transformers_config = preprocessors.ColumnTransformerConfig()
+x_column_transformers_config.set_configs(preprocessors.CANADA_COLUMN_TRANSFORMER_CONFIG_X)
 
-ct = preprocessors.ColumnTransformer(
-    transformers = column_transformers_config.generate_pipeline(df=data),
-    remainder = 'passthrough',
-    verbose = False,
-    verbose_feature_names_out = False,
-    n_jobs = None,
+x_ct = preprocessors.ColumnTransformer(
+    transformers=x_column_transformers_config.generate_pipeline(df=data),
+    remainder='passthrough',
+    verbose=False,
+    verbose_feature_names_out=False,
+    n_jobs=None,
 )
-xt_train=ct.fit_transform(x_train)
+
+xt_train = x_ct.fit_transform(x_train)
+yt_train = LabelBinarizer().fit_transform(y_train)
 
 # preview the transformed data
-preview_ct=preprocessors.preview_column_transformer(column_transformer = ct,
-                                                    original = x_train,
-                                                    transformed = xt_train,
-                                                    df = data,
-                                                    random_state = SEED,
-                                                    n_samples = 1)
+preview_ct = preprocessors.preview_column_transformer(column_transformer=x_ct,
+                                                      original=x_train,
+                                                      transformed=xt_train,
+                                                      df=data,
+                                                      random_state=SEED,
+                                                      n_samples=1)
 logger.info([_ for _ in preview_ct])
 
 logger.info(
@@ -146,15 +150,17 @@ mlflow.log_param('data_version', VERSION)
 # TODO: log anything else in between that needs to be logged
 # preprocessing parameters params
 mlflow.log_param('x_train_shape', x_train.shape)
+mlflow.log_param('xt_train_shape', xt_train.shape)
 mlflow.log_param('x_test_shape', x_test.shape)
 mlflow.log_param('x_val_shape', x_eval.shape)
 mlflow.log_param('y_train_shape', y_train.shape)
+mlflow.log_param('yt_train_shape', yt_train.shape)
 mlflow.log_param('y_test_shape', y_test.shape)
 mlflow.log_param('y_val_shape', y_test.shape)
 logger.info('\t\t↑↑↑ Finished logging hyperparams and params with MLFlow ↑↑↑')
 
 # dump all json configs into artifacts
-column_transformers_config.as_mlflow_artifact(MLFLOW_ARTIFACTS_CONFIGS_PATH)
+x_column_transformers_config.as_mlflow_artifact(MLFLOW_ARTIFACTS_CONFIGS_PATH)
 train_test_eval_splitter.as_mlflow_artifact(MLFLOW_ARTIFACTS_CONFIGS_PATH)
 # Log artifacts (logs, saved files, etc)
 mlflow.log_artifacts(MLFLOW_ARTIFACTS_PATH)
