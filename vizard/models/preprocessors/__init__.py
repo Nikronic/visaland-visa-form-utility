@@ -40,14 +40,38 @@ see :class:`vizard.models.preprocessors.core.TrainTestEvalSplit`.
 """
 
 
-# sklearn wrappers
-from .core import ColumnTransformer
-from .core import OneHotEncoder
-from .core import LabelEncoder
-from .core import StandardScaler
-from .core import MinMaxScaler
-from .core import RobustScaler
-from .core import MaxAbsScaler
+# sklearn
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import LabelEncoder
+from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.preprocessing import RobustScaler
+from sklearn.preprocessing import MaxAbsScaler
+from sklearn.preprocessing import LabelBinarizer
+from sklearn.preprocessing import MultiLabelBinarizer
+
+
+# a dictionary of transforms and their names
+TRANSFORMS = {
+    'OneHotEncoder': OneHotEncoder,
+    'LabelEncoder': LabelEncoder,
+    'StandardScaler': StandardScaler,
+    'MinMaxScaler': MinMaxScaler,
+    'RobustScaler': RobustScaler,
+    'MaxAbsScaler': MaxAbsScaler,
+    'LabelBinarizer': LabelBinarizer,
+    'MultiLabelBinarizer': MultiLabelBinarizer,
+}
+"""A dictionary of transforms and their names used to verify configs in :class:`vizard.models.preprocessors.core.ColumnTransformerConfig`
+
+This is used to verify that the configs are correct and that the transformers are available.
+
+Note: 
+    All transforms from third-party library or our own must be included in that list to be usable
+    by :class:`vizard.models.preprocessors.core.ColumnTransformerConfig`.
+"""
+
 
 # ours: core
 from .core import move_dependent_variable_to_end
@@ -56,7 +80,6 @@ from .core import TrainTestEvalSplit
 from .core import ColumnSelector
 # ours: helpers
 from .helpers import preview_column_transformer
-
 # helpers
 import logging
 
@@ -64,3 +87,5 @@ import logging
 
 # set logger
 logger = logging.getLogger(__name__)
+
+

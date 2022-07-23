@@ -1,0 +1,9 @@
+{
+    "target_binary": {
+        "columns_type": "'numeric'",
+        "dtype_include": "'category'",
+        "pattern_include": "'VisaResult'",
+        "pattern_exclude": "None",
+        "dtype_exclude": "None"
+    }
+}

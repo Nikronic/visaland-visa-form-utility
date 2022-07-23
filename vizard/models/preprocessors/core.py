@@ -5,18 +5,12 @@
 # core
 from sklearn import model_selection
 from sklearn.compose import make_column_selector
-from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.preprocessing import LabelEncoder
-from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.preprocessing import RobustScaler
-from sklearn.preprocessing import MaxAbsScaler
 import pandas as pd
 import numpy as np
 # ours
 from vizard.models.preprocessors import CANADA_COLUMN_TRANSFORMER_CONFIG_X
 from vizard.models.preprocessors import CANADA_TRAIN_TEST_EVAL_SPLIT
+from vizard.models.preprocessors import TRANSFORMS
 # helpers
 from typing import Tuple, Optional, Any, List, Union
 import logging
@@ -358,16 +352,31 @@ class ColumnTransformerConfig:
         """Defines and sets the config to be parsed
 
         The keys of the configs are the names of the transformers. They must include
-        one of the following at the end:
+        the API name of one of the available transforms at the end:
 
-            - ``'categorical'``: to be used with :class:`sklearn.preprocessing.OneHotEncoder`
-            or any other function that processes *categorical* data
-            - ``'continuous'``: to be used with :class:`sklearn.preprocessing.StandardScaler`
-            or any other function that processes *continuous* data
-            - ``'binary'``: to be used with :class:`sklearn.preprocessing.LabelEncoder`
-            or any other function that processes *binary* data
+            - sklearn transformers: Any class that could be used for transformation
+                that is importable as ``sklearn.preprocessing.API_NAME``
+            - custom transformers: Any class that is not a ``sklearn`` transformer
+                and is importable as ``vizard.models.preprocessors.API_NAME``
 
         This naming convention is used to create proper transformers for each type of data.
+        e.g in json format::
+
+            "age_StandardScaler": {
+                "columns_type": "'numeric'",
+                "dtype_include": "np.float32",
+                "pattern_include": "'age'",
+                "pattern_exclude": "None",
+                "dtype_exclude": "None"
+            }
+
+            "sex_OneHotEncoder": {
+                "columns_type": "'numeric'",
+                "dtype_include": "'category'",
+                "pattern_include": "'VisaResult'",
+                "pattern_exclude": "None",
+                "dtype_exclude": "None"
+            }
 
 
         The values of the configs are the columns to be transformed. The columns can be
@@ -486,7 +495,7 @@ class ColumnTransformerConfig:
 
         # just place holders for what we want
         name: str = ''              # name of the transformer
-        transformer: object = None  # transformer object
+        transformer: object = None  # initialized sklearn transformer
         columns: List = []          # columns to transform
 
         # list of (name, transformer, columns) tuples to return
@@ -494,25 +503,15 @@ class ColumnTransformerConfig:
 
         # iterate through the configs to build transformer instances appropriately
         for key, value in self.CONF.items():
-            # if categorical, use OneHotEncoder
-            if 'categorical' in key:
+            # extract transformer name
+            transformer_name = key.split('_')[-1]
+            if key.split('_')[-1] in TRANSFORMS:
                 name = key
-                transformer = OneHotEncoder()
+                transformer = TRANSFORMS[transformer_name]()
                 columns = self.extract_selected_columns(selector=value, df=df)
-            # if continuous, use StandardScaler
-            elif 'continuous' in key:
-                name = key
-                transformer = StandardScaler()
-                columns = self.extract_selected_columns(selector=value, df=df)
-            # if binary, use LabelEncoder
-            elif 'binary' in key:
-                name = key
-                transformer = LabelEncoder()
-                columns = self.extract_selected_columns(selector=value, df=df)
-            # if other, raise exception
             else:
                 raise ValueError(
-                    f'Unknown dtype type for "key:value" config: {key}:{value}')
+                    f'Unknown transformer for "key:value" config: {key}:{value}')
 
             # add to the list of transformers
             transformers.append((name, transformer, columns))
