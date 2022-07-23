@@ -357,12 +357,12 @@ class ColumnTransformerConfig:
         The keys of the configs are the names of the transformers. They must include
         one of the following at the end:
 
-            - 'categorical': to be used with :class:`sklearn.preprocessing.OneHotEncoder`
-            or any other function that processes categorical data
-            - 'continuous': to be used with :class:`sklearn.preprocessing.StandardScaler`
-            or any other function that processes continuous data
-            - 'binary': to be used with :class:`sklearn.preprocessing.LabelEncoder`
-            or any other function that processes binary data
+            - ``'categorical'``: to be used with :class:`sklearn.preprocessing.OneHotEncoder`
+            or any other function that processes *categorical* data
+            - ``'continuous'``: to be used with :class:`sklearn.preprocessing.StandardScaler`
+            or any other function that processes *continuous* data
+            - ``'binary'``: to be used with :class:`sklearn.preprocessing.LabelEncoder`
+            or any other function that processes *binary* data
 
         This naming convention is used to create proper transformers for each type of data.
 
