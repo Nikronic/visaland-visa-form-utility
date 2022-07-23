@@ -212,7 +212,7 @@ def move_dependent_variable_to_end(df: pd.DataFrame, target_column: str) -> pd.D
     return df
 
 
-class column_selector:
+class ColumnSelector:
     """Selects columns based on regex pattern and dtype
 
     User can specify the dtype of columns to select, and the dtype of columns to ignore.
@@ -222,11 +222,11 @@ class column_selector:
     to apply different sort of ``transformers`` to different subsets of columns. E.g::
 
         # select columns that contain 'Country' in their name and are of type `np.float32`
-        columns = preprocessors.column_selector(columns_type='numeric',
-                                                dtype_include=np.float32,
-                                                pattern_include='.*Country.*',
-                                                pattern_exclude=None,
-                                                dtype_exclude=None)(df=data)
+        columns = preprocessors.ColumnSelector(columns_type='numeric',
+                                               dtype_include=np.float32,
+                                               pattern_include='.*Country.*',
+                                               pattern_exclude=None,
+                                               dtype_exclude=None)(df=data)
         # use a transformer for selected columns
         ct = preprocessors.ColumnTransformer(
             [('some_name',                   # just a name
@@ -238,16 +238,16 @@ class column_selector:
         ct.fit_transform(...)
 
     Note:
-        If the data that is passed to the :class:`column_selector` is a :class:`pandas.DataFrame`,
+        If the data that is passed to the :class:`ColumnSelector` is a :class:`pandas.DataFrame`,
         then you can ignore calling the instance of this class and directly use it in the
         pipeline. E.g::
 
             # select columns that contain 'Country' in their name and are of type `np.float32`
-            columns = preprocessors.column_selector(columns_type='numeric',
-                                                    dtype_include=np.float32,
-                                                    pattern_include='.*Country.*',
-                                                    pattern_exclude=None,
-                                                    dtype_exclude=None)  # THIS LINE
+            columns = preprocessors.ColumnSelector(columns_type='numeric',
+                                                   dtype_include=np.float32,
+                                                   pattern_include='.*Country.*',
+                                                   pattern_exclude=None,
+                                                   dtype_exclude=None)  # THIS LINE
             # use a transformer for selected columns
             ct = preprocessors.ColumnTransformer(
                 [('some_name',                   # just a name
@@ -260,7 +260,7 @@ class column_selector:
 
 
     See Also:
-        :class:`sklearn.compose.make_column_selector` as ``column_selector`` follows the
+        :class:`sklearn.compose.make_column_selector` as ``ColumnSelector`` follows the
         same semantics.
 
     """
@@ -276,9 +276,9 @@ class column_selector:
         Args:
             columns_type (str): Type of columns:
 
-                1. 'string': returns the name of the columns. Useful for 
+                1. ``'string'``: returns the name of the columns. Useful for 
                     :class:`pandas.DataFrame`
-                2. 'numeric': returns the index of the columns. Useful for
+                2. ``'numeric'``: returns the index of the columns. Useful for
                     :class:`numpy.ndarray`
 
             dtype_include (type): Type of the columns to select. For more info
@@ -368,7 +368,7 @@ class ColumnTransformerConfig:
 
 
         The values of the configs are the columns to be transformed. The columns can be
-        obtained by using :class:`vizard.models.preprocessors.core.column_selector`
+        obtained by using :class:`vizard.models.preprocessors.core.ColumnSelector`
         which requires user to pass certain parameters. This parameters can be set manually
         or extracted from JSON config files by providing the path to the JSON file.
 
@@ -376,7 +376,7 @@ class ColumnTransformerConfig:
             path: path to the JSON file containing the configs
 
         Returns:
-            dict: A dictionary of `str`: :class:`vizard.models.preprocessors.core.column_selector`
+            dict: A dictionary of `str`: :class:`vizard.models.preprocessors.core.ColumnSelector`
             which will be passed to :meth:`generate_pipeline`
         """
 
@@ -400,8 +400,7 @@ class ColumnTransformerConfig:
         parsed_configs = {}
         for key, value in configs.items():
             parsed_values = {k: eval(v) for k, v in value.items()}
-            parsed_configs[key] = column_selector(
-                **parsed_values)
+            parsed_configs[key] = ColumnSelector(**parsed_values)
 
         # set the configs when explicit call to this method is made
         self.CONF = parsed_configs
@@ -435,16 +434,16 @@ class ColumnTransformerConfig:
             json.dump(configs, f)
 
     @staticmethod
-    def extract_selected_columns(selector: column_selector,
+    def extract_selected_columns(selector: ColumnSelector,
                                  df: pd.DataFrame) -> Union[List[str], List[int]]:
         """Extracts the columns from the dataframe based on the selector
 
         Note:
-            This method is simply a wrapper around :class:`vizard.models.preprocessors.core.column_selector`
+            This method is simply a wrapper around :class:`vizard.models.preprocessors.core.ColumnSelector`
             that makes the call given a dataframe. I.e.::
 
                 # assuming same configs
-                selector = preprocessors.column_selector(...)
+                selector = preprocessors.ColumnSelector(...)
                 A = ColumnTransformerConfig.extract_selected_columns(selector=selector, df=df)
                 B = selector(df)
                 A == B  # True
@@ -452,7 +451,7 @@ class ColumnTransformerConfig:
             Also, this is a static method.
 
         Args:
-            selector (:class:`vizard.models.preprocessors.core.column_selector`): Initialized
+            selector (:class:`vizard.models.preprocessors.core.ColumnSelector`): Initialized
                 selector object
             df (pd.DataFrame): Dataframe to extract columns from
 

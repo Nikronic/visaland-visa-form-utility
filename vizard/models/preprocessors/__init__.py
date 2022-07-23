@@ -19,7 +19,7 @@ from .core import MaxAbsScaler
 from .core import move_dependent_variable_to_end
 from .core import ColumnTransformerConfig
 from .core import TrainTestEvalSplit
-from .core import column_selector
+from .core import ColumnSelector
 # ours: helpers
 from .helpers import preview_column_transformer
 
