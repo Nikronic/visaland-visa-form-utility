@@ -14,6 +14,9 @@ from sklearn.preprocessing import RobustScaler
 from sklearn.preprocessing import MaxAbsScaler
 import pandas as pd
 import numpy as np
+# ours
+from vizard.models.preprocessors import CANADA_COLUMN_TRANSFORMER_CONFIG_X
+from vizard.models.preprocessors import CANADA_TRAIN_TEST_EVAL_SPLIT
 # helpers
 from typing import Tuple, Optional, Any, List, Union
 import logging
@@ -97,7 +100,7 @@ class TrainTestEvalSplit:
 
         # if no json is provided, use the default configs
         if path is None:
-            path = DATA_DIR / 'canada_train_test_eval_split.json'
+            path = CANADA_TRAIN_TEST_EVAL_SPLIT
         self.conf_path = path
 
         # log the path used
@@ -386,7 +389,7 @@ class ColumnTransformerConfig:
 
         # if no json is provided, use the default configs
         if path is None:
-            path = DATA_DIR / 'canada_column_transformer_config.json'
+            path = CANADA_COLUMN_TRANSFORMER_CONFIG_X
         self.conf_path = path
 
         # log the path used
