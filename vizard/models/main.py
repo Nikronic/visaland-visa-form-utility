@@ -21,14 +21,13 @@ import os
 
 # globals
 SEED = 322
+VERBOSE = logging.DEBUG
 
 # configure logging
 logger = logging.getLogger(__name__)
-VERBOSE = logging.DEBUG
 logger.setLevel(VERBOSE)
 # set `models` logger to log to our logging config
-models_logger = logging.getLogger(
-    'vizard.models')  # simply top-level module name
+models_logger = logging.getLogger('vizard.models')
 models_logger.setLevel(VERBOSE)
 
 # Set up root logger, and add a file handler to root logger
@@ -88,7 +87,8 @@ x_train, x_test, x_eval, y_train, y_test, y_eval = data_tuple
 
 # Transform and normalize appropriately given config
 x_column_transformers_config = preprocessors.ColumnTransformerConfig()
-x_column_transformers_config.set_configs(preprocessors.CANADA_COLUMN_TRANSFORMER_CONFIG_X)
+x_column_transformers_config.set_configs(
+    preprocessors.CANADA_COLUMN_TRANSFORMER_CONFIG_X)
 
 x_ct = preprocessors.ColumnTransformer(
     transformers=x_column_transformers_config.generate_pipeline(df=data),
@@ -99,7 +99,7 @@ x_ct = preprocessors.ColumnTransformer(
 )
 
 xt_train = x_ct.fit_transform(x_train)
-yt_train = LabelBinarizer().fit_transform(y_train)
+yt_train = LabelBinarizer().fit_transform(y_train)  # TODO: see #54
 
 # preview the transformed data
 preview_ct = preprocessors.preview_column_transformer(column_transformer=x_ct,
