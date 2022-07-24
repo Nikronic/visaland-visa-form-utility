@@ -1,10 +1,11 @@
 __all__ = [
-    'deprecated', 'loggingdecorator'
+    'deprecated', 'loggingdecorator', 'LoggerWriter'
 ]
 
 # helpers
 import functools
 from functools import wraps as _wraps
+from io import TextIOBase
 import inspect
 from typing import Callable, Any
 import warnings
@@ -139,3 +140,26 @@ class loggingdecorator(object):
                 return ret
             return _fn
         return _decor(*args, **kwds)
+
+
+class LoggerWriter(TextIOBase):
+    """Writes std out and err to a logger
+
+    References:
+        - https://stackoverflow.com/a/66209331/18971263
+
+    """
+    def __init__(self, logfct):
+        self.logfct = logfct
+        self.buf = []
+
+    def write(self, msg):
+        if msg.endswith('\n'):
+            self.buf.append(msg.rstrip('\n'))
+            self.logfct(''.join(self.buf))
+            self.buf = []
+        else:
+            self.buf.append(msg)
+
+    def flush(self):
+        pass
