@@ -128,7 +128,7 @@ class loggingdecorator(object):
 
             def _fn(*args, **kwds):
                 ret = fn(*args, **kwds)
-                if input:
+                if self.input:
                     argstr = [str(x) for x in args]
                     argstr += [key+"="+str(val) for key, val in kwds.items()]
                 else:
