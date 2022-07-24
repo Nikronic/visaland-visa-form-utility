@@ -1,13 +1,13 @@
 """
 Only run this code for generating [dataset_name].pkl file, every time we want to create a new version
-    of our dataset, then after this step, we use DVC to version it.
+of our dataset, then after this step, we use DVC to version it.
 In main.py, we just rerun this step but integrated into MLFlow to track which version we are
-    USING (than generating).
+USING (than generating).
 
 In simple terms, if you added new samples, changed columns or anything that should be considered
-    permanent at the time, you should run this script, then version it with DVC and for doing
-    data analysis or machine learning for prediction, only pull from DVC remote storage of 
-    this version (or any version you want).
+permanent at the time, you should run this script, then version it with DVC and for doing
+data analysis or machine learning for prediction, only pull from DVC remote storage of 
+this version (or any version you want).
 """
 
 # core
@@ -19,37 +19,42 @@ from vizard.data.preprocessor import MakeContentCopyProtectedMachineReadable
 from vizard.data.preprocessor import CanadaDataframePreprocessor
 from vizard.data.preprocessor import FileTransformCompose
 from vizard.data.preprocessor import CopyFile
-
 # devops
 import mlflow
 # helpers
+from pathlib import Path
 import enlighten
 import logging
 import shutil
-import uuid
 import sys
 import os
 
 
+# globals
+SEED = 322
+VERBOSE = logging.DEBUG
+
 # configure logging
-VERBOSITY = logging.DEBUG
+logger = logging.getLogger(__name__)
+logger.setLevel(VERBOSE)
 
 # Set up root logger, and add a file handler to root logger
-if not os.path.exists('artifacts'):
-    os.makedirs('artifacts')
-    os.makedirs('artifacts/logs')
+MLFLOW_ARTIFACTS_PATH = Path('artifacts')
+MLFLOW_ARTIFACTS_LOGS_PATH = MLFLOW_ARTIFACTS_PATH / 'logs'
+MLFLOW_ARTIFACTS_CONFIGS_PATH = MLFLOW_ARTIFACTS_PATH / 'configs'
+if not os.path.exists(MLFLOW_ARTIFACTS_PATH):
+    os.makedirs(MLFLOW_ARTIFACTS_PATH)
+    os.makedirs(MLFLOW_ARTIFACTS_LOGS_PATH)
+    os.makedirs(MLFLOW_ARTIFACTS_CONFIGS_PATH)
 
-logger = logging.getLogger(__name__)
-logger.setLevel(VERBOSITY)
-log_file_name = uuid.uuid4()
-logger_handler = logging.FileHandler(filename='artifacts/logs/{}.log'.format(log_file_name),
+logger_handler = logging.FileHandler(filename=MLFLOW_ARTIFACTS_LOGS_PATH / 'import-data.log',
                                      mode='w')
-logger.addHandler(logger_handler)
+logger.parent.addHandler(logger_handler)  # type: ignore
 # set libs to log to our logging config
 __libs = ['snorkel', 'vizard']
 for __l in __libs:
     __libs_logger = logging.getLogger(__l)
-    __libs_logger.setLevel(logging.INFO)
+    __libs_logger.setLevel(VERBOSE)
     __libs_logger.addHandler(logger_handler)
 
 manager = enlighten.get_manager(sys.stderr)  # setup progress bar
@@ -64,22 +69,23 @@ DST_DIR = 'raw-dataset/all/'  # path to decrypted pdf
 # data versioning config
 PATH = DST_DIR[:-1] + '.pkl'  # path to source data, e.g. data.pkl file
 REPO = '/home/nik/visaland-visa-form-utility'
-VERSION = 'v1.0.3'  # the version it is GOING TO BE (the version you gonna `dvc add` and `git tag`)
+# the version it is GOING TO BE (the version you gonna `dvc add` and `git tag`)
+VERSION = 'v1.0.3'
 # run `git tag` and use a newer version than anything with this pattern `vx.x.x` (without `-field-*`)
 
 # log experiment configs
-MLFLOW_EXPERIMENT_NAME = 'full dataset construction from raw documents to csv data tables (prior to data analysis)'
+MLFLOW_EXPERIMENT_NAME = 'full dataset construction from raw documents to csv'
 mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
 MLFLOW_TAGS = {
     'stage': 'dev'  # dev, beta, production
 }
 mlflow.set_tags(MLFLOW_TAGS)
 
-logger.info('MLflow experiment name: {}'.format(MLFLOW_EXPERIMENT_NAME))
-logger.info('MLflow experiment id: {}'.format(mlflow.active_run().info.run_id))
-logger.info('DVC data version: {}'.format(VERSION))
-logger.info('DVC repo (root): {}'.format(REPO))
-logger.info('DVC data source path: {}'.format(PATH))
+logger.info(f'MLflow experiment name: {MLFLOW_EXPERIMENT_NAME}')
+logger.info(f'MLflow experiment id: {mlflow.active_run().info.run_id}')
+logger.info(f'DVC data version: {VERSION}')
+logger.info(f'DVC repo (root): {REPO}')
+logger.info(f'DVC data source path: {PATH}')
 logger.info(
     '\t\t↑↑↑ Finished setting up configs: dirs, mlflow, dvc, etc ↑↑↑')
 
@@ -98,8 +104,6 @@ logger.info('\t\t↑↑↑ Finished data extraction ↑↑↑')
 
 logger.info('\t\t↓↓↓ Starting data preprocessing ↓↓↓')
 # convert PDFs to pandas dataframes
-data_iter_logger = logging.getLogger(logger.name+'.data_iter')
-
 SRC_DIR = DST_DIR[:-1]
 dataframe = pd.DataFrame()
 progress_bar = manager.counter(total=len(next(os.walk(DST_DIR), (None, [], None))[1]),
@@ -139,15 +143,15 @@ for dirpath, dirnames, all_filenames in os.walk(SRC_DIR):
                           verify_integrity=True, ignore_index=True)
     # logging
     i += 1
-    data_iter_logger.info('Processed {}th data point...'.format(i))
+    logger.info(f'Processed {i}th data point...')
     progress_bar.update()
 
 # save dataframe to disc as pickle
-logger.info('\t\t↓↓↓ Starting saving dataframe to disc ↓↓↓')
+logger.info('\t↓↓↓ Starting saving dataframe to disc ↓↓↓')
 dataset_path = DST_DIR[:-1] + '.pkl'
 dataframe.to_pickle(dataset_path)
-logger.info('Dataframe saved to path={}'.format(dataset_path))
-logger.info('\t\t↑↑↑ Finished saving dataframe to disc ↑↑↑')
+logger.info(f'Dataframe saved to path={dataset_path}')
+logger.info('\t↑↑↑ Finished saving dataframe to disc ↑↑↑')
 logger.info('\t\t↑↑↑ Finished data preprocessing ↑↑↑')
 
 # log data params
@@ -160,6 +164,6 @@ mlflow.log_param('input_dtypes', dataframe.dtypes.values)
 logger.info('\t\t↑↑↑ Finished logging with MLFlow ↑↑↑')
 
 # Log artifacts (logs, saved files, etc)
-mlflow.log_artifacts('artifacts/')
+mlflow.log_artifacts(MLFLOW_ARTIFACTS_PATH)
 # delete redundant logs, files that are logged as artifact
-shutil.rmtree('artifacts')
+shutil.rmtree(MLFLOW_ARTIFACTS_PATH)
