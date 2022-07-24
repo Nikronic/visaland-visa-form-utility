@@ -18,10 +18,6 @@ import pathlib
 import json
 
 
-# path to all config/db files
-parent_dir = pathlib.Path(__file__).parent
-DATA_DIR = parent_dir / 'data'
-
 # configure logging
 logger = logging.getLogger(__name__)
 
