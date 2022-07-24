@@ -50,7 +50,7 @@ PATH = 'raw-dataset/all-dev.pkl'
 REPO = '/home/nik/visaland-visa-form-utility'
 VERSION = 'v1.2.2-dev'
 # log experiment configs
-MLFLOW_EXPERIMENT_NAME = 'setup modeling pipeline - preprocessing module'
+MLFLOW_EXPERIMENT_NAME = 'missed columns for preprocessing'
 mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
 MLFLOW_TAGS = {
     'stage': 'dev'  # dev, beta, production
@@ -97,8 +97,7 @@ x_ct = preprocessors.ColumnTransformer(
     verbose_feature_names_out=False,
     n_jobs=None,
 )
-
-xt_train = x_ct.fit_transform(x_train)
+xt_train = x_ct.fit_transform(x_train).astype(np.float32)
 yt_train = LabelBinarizer().fit_transform(y_train)  # TODO: see #54
 
 # preview the transformed data

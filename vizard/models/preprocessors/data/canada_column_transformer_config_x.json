@@ -7,14 +7,6 @@
         "dtype_exclude": "None"
     },
 
-    "ChdMStatus_categorical_OneHotEncoder": {
-        "columns_type": "'numeric'",
-        "dtype_include": "'category'",
-        "pattern_include": "'.*ChdMStatus'",
-        "pattern_exclude": "None",
-        "dtype_exclude": "None"
-    },
-
     "binary_categorical_OneHotEncoder": {
         "columns_type": "'numeric'",
         "dtype_include": "'category'",
@@ -26,8 +18,8 @@
     "other_categorical_OneHotEncoder": {
         "columns_type": "'numeric'",
         "dtype_include": "'category'",
-        "pattern_include": "'.*(Status|Country|Prps|Relationship|Study).*'",
-        "pattern_exclude": "'.*(Chd).*'",
+        "pattern_include": "'.*(ChdMStatus|ChdRel|Status|Country|Prps|Relationship|Study|Occ).*'",
+        "pattern_exclude": "None",
         "dtype_exclude": "None"
     }
 }
