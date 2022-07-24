@@ -20,5 +20,9 @@ setup(name='vizard', version=VERSION["VERSION"], packages=find_packages(),
       author_email='nikan.doosti@outlook.com',
       long_description=long_description,
       long_description_content_type='text/markdown',
-      data_files=glob.glob('vizard/configs/**'),
+      include_package_data = True,
+      package_data={
+          'configs': ['data/*.csv'],
+          'preprocessors': ['data/*.json'],
+        }
       )
