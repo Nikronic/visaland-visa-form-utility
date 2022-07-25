@@ -76,7 +76,7 @@ if __name__ == '__main__':
         VERSION = 'v1.2.2-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
-        MLFLOW_EXPERIMENT_NAME = f'snorkel -> full pipelines - {VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'fix #57 - full pipelines - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         # VIZARD_VERSION is used to differentiate states of progress of
         #  FULL pipeline implementation.
@@ -102,8 +102,8 @@ if __name__ == '__main__':
         # read dataset from remote (local) data storage
         data = pd.read_pickle(data_url)
         logger.info(f'preprocessed data in raw PATH={PATH}'
-                    f' with VERSION={VERSION}, loaded from',
-                    f' DVC storage at {data_url}.')
+                    f' with VERSION={VERSION},\n'
+                    f'loaded from DVC storage at {data_url}.')
         logger.info('\t\t↑↑↑ Finished loading preprocessed (EDA) data from DVC ↑↑↑')
 
         # using snorkel for weak supervision to label the data
