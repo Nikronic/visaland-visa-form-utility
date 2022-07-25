@@ -26,27 +26,25 @@ class TrainTestEvalSplit:
     """Convert a pandas dataframe to a numpy array for with train, test, and eval splits
 
     For conversion from :class:`pandas.DataFrame` to :class:`numpy.ndarray`, we use the same
-    functionality as :class:`pandas.DataFrame.to_numpy`, but it separates dependent and
+    functionality as ``pandas.DataFrame.to_numpy``, but it separates dependent and
     independent variables given the target column ``target_column``.
 
     Note:
-        To obtain the eval set, we use the train set as the original data to be splitted
-        I.e. the eval set is a subset of train set.
-        This is of course to make sure model by no means sees the test set.
 
-    Note:
-        ``Args`` cannot be set directly and need to be provided using a json file.
-        See :meth:`set_configs` for more information.
+        * To obtain the eval set, we use the train set as the original data to be splitted 
+          i.e. the eval set is a subset of train set. This is of course to make 
+          sure model by no means sees the test set.
+        * ``args`` cannot be set directly and need to be provided using a json file. 
+          See :meth:`set_configs` for more information.
+        * You can explicitly override following ``args`` by passing it as an argument
+          to :meth:`__init__`:
 
-    Note:
-        You can explicitly override following attributes by passing it as an argument
-        to :meth:`__init__`:
-            - :attr:`random_state`
-            - :attr:`stratify`
+            * :attr:`random_state`
+            * :attr:`stratify`
 
     Returns:
         Tuple[:class:`numpy.ndarray`, ...]: Order is
-            ``(x_train, x_test, x_eval, y_train, y_test, y_eval)``
+        ``(x_train, x_test, x_eval, y_train, y_test, y_eval)``
     """
 
     def __init__(self, stratify: Any = None,
@@ -62,17 +60,19 @@ class TrainTestEvalSplit:
         """Defines and sets the config to be parsed
 
         The keys of the configs are the attributes of this class which are:
-            test_ratio (float): Ratio of test data
-            eval_ratio (float): Ratio of eval data
-            shuffle (bool): Whether to shuffle the data
-            stratify (Optional[np.ndarray]): If not None, this is used to stratify the data
-            random_state (Optional[int]): Random state to use for shuffling
+
+            * test_ratio (float): Ratio of test data
+            * eval_ratio (float): Ratio of eval data
+            * shuffle (bool): Whether to shuffle the data
+            * stratify (Optional[np.ndarray]): If not None, this is used to stratify the data
+            * random_state (Optional[int]): Random state to use for shuffling
 
         Note:
             You can explicitly override following attributes by passing it as an argument
             to :meth:`__init__`:
-                - :attr:`random_state`
-                - :attr:`stratify`
+
+                * :attr:`random_state`
+                * :attr:`stratify`
 
         The values of the configs are parameters and can be set manually
         or extracted from JSON config files by providing the path to the JSON file.
@@ -176,7 +176,7 @@ def move_dependent_variable_to_end(df: pd.DataFrame, target_column: str) -> pd.D
     """Move the dependent variable to the end of the dataframe
 
     This is useful for some frameworks that require the dependent variable to be the last
-    or in general form, it is way easier to play with :class:`numpy.ndarray`s when the
+    or in general form, it is way easier to play with :class:`numpy.ndarray` s when the
     dependent variable is the last one.
 
     Note:
@@ -270,9 +270,9 @@ class ColumnSelector:
             columns_type (str): Type of columns:
 
                 1. ``'string'``: returns the name of the columns. Useful for 
-                    :class:`pandas.DataFrame`
+                   :class:`pandas.DataFrame`
                 2. ``'numeric'``: returns the index of the columns. Useful for
-                    :class:`numpy.ndarray`
+                   :class:`numpy.ndarray`
 
             dtype_include (type): Type of the columns to select. For more info
                 see :func:`pandas.DataFrame.select_dtypes`.
@@ -296,7 +296,7 @@ class ColumnSelector:
 
         Returns:
             Union[List[str], List[int]]: List of names or indices of
-                filtered columns
+            filtered columns
 
         Raises:
             ValueError: If the ``df`` is not instance of :class:`pandas.DataFrame`
@@ -350,10 +350,10 @@ class ColumnTransformerConfig:
         The keys of the configs are the names of the transformers. They must include
         the API name of one of the available transforms at the end:
 
-            - sklearn transformers: Any class that could be used for transformation
-                that is importable as ``sklearn.preprocessing.API_NAME``
-            - custom transformers: Any class that is not a ``sklearn`` transformer
-                and is importable as ``vizard.models.preprocessors.API_NAME``
+            * sklearn transformers: Any class that could be used for transformation
+              that is importable as ``sklearn.preprocessing.API_NAME``
+            * custom transformers: Any class that is not a ``sklearn`` transformer
+              and is importable as ``vizard.models.preprocessors.API_NAME``
 
         This naming convention is used to create proper transformers for each type of data.
         e.g in json format::
@@ -461,7 +461,7 @@ class ColumnTransformerConfig:
         Args:
             selector (:class:`vizard.models.preprocessors.core.ColumnSelector`): Initialized
                 selector object
-            df (pd.DataFrame): Dataframe to extract columns from
+            df (:class:`pandas.DataFrame`): Dataframe to extract columns from
 
         Returns:
             Union[List[str], List[int]]: List of columns to be transformed
@@ -476,7 +476,7 @@ class ColumnTransformerConfig:
             :meth:`set_configs` and :meth:`extract_selected_columns`.
 
         Args:
-            df (pd.DataFrame): Dataframe to extract columns from
+            df (:class:`pandas.DataFrame`): Dataframe to extract columns from
 
         Raises:
             ValueError: If the naming convention used for the keys in the

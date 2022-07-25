@@ -13,17 +13,6 @@ Subpackages
    vizard.models.trainers
    vizard.models.weights
 
-Submodules
-----------
-
-vizard.models.main module
--------------------------
-
-.. automodule:: vizard.models.main
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 Module contents
 ---------------
 
