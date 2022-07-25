@@ -1,7 +1,23 @@
 # core
 import pandas as pd
-# ours: data
+import torch
+# ours: snorkel
+from vizard.snorkel import labeling
+from vizard.snorkel import modeling
+from vizard.snorkel import augmentation
+from vizard.snorkel import slicing
+from vizard.snorkel import PandasLFApplier
+from vizard.snorkel import PandasTFApplier
+from vizard.snorkel import PandasSFApplier
+from vizard.snorkel import LFAnalysis
+from vizard.snorkel import LabelModel
+from vizard.snorkel import ApplyAllPolicy
+from vizard.snorkel import Scorer
+from vizard.snorkel import preview_tfs
+from vizard.snorkel import slice_dataframe
+# ours: models
 from vizard.models import preprocessors
+# ours: helpers
 from vizard.version import VERSION as VIZARD_VERSION
 # devops
 import dvc.api
@@ -60,7 +76,7 @@ if __name__ == '__main__':
         VERSION = 'v1.2.2-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
-        MLFLOW_EXPERIMENT_NAME = f'full pipelines - {VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'snorkel -> full pipelines - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         # VIZARD_VERSION is used to differentiate states of progress of
         #  FULL pipeline implementation.
@@ -89,6 +105,118 @@ if __name__ == '__main__':
                     f' with VERSION={VERSION}, loaded from',
                     f' DVC storage at {data_url}.')
         logger.info('\t\t↑↑↑ Finished loading preprocessed (EDA) data from DVC ↑↑↑')
+
+        # using snorkel for weak supervision to label the data
+        logger.info('\t\t↓↓↓ Starting labeling data with snorkel ↓↓↓')
+        logger.info('prepare data by separating already labeled (`acc` and `rej`)'
+                    ' from weak and unlabeled data (`w-acc`, `w-rej` and `no idea`)')
+        output_name = 'VisaResult'
+        # for training the snorkel label model
+        data_unlabeled = data[(data[output_name] != 'acc') &
+                        (data[output_name] != 'rej')].copy()
+        # for testing the snorkel label model
+        data_labeled = data[(data[output_name] == 'acc') |
+                        (data[output_name] == 'rej')].copy()
+        logger.info(f'shape of unlabeled data: {data_unlabeled.shape}')
+        logger.info(f'shape of labeled unlabeled data: {data_labeled.shape}')
+        # convert strong to weak temporary to `lf_weak_*` so `LabelFunction`s'
+        #   can work i.e. convert `acc` and `rej` in *labeled* dataset to `w-acc` and `w-rej`'
+        data_labeled[output_name] = data_labeled[output_name].apply(
+            lambda x: 'w-acc' if x == 'acc' else 'w-rej')
+        
+        logger.info('\t↓↓↓ Starting extracting label matrices (L) by applying `LabelFunction`s ↓↓↓')
+        # labeling functions
+        lf_compose = [
+            labeling.WeakAccept(),
+            labeling.WeakReject(),
+            labeling.NoIdea(),
+        ]
+        lfs = labeling.ComposeLFLabeling(labelers=lf_compose)()
+        applier = PandasLFApplier(lfs)
+        # apply LFs to the unlabeled (for `LabelModel` training) and labeled (for `LabelModel` test)
+        label_matrix_train = applier.apply(data_unlabeled)
+        # Remark: only should be used for evaluation of trained `LabelModel` and no where else
+        label_matrix_test = applier.apply(data_labeled)
+
+        y_test = data_labeled[output_name].apply(
+            lambda x: labeling.ACC if x == 'w-acc' else labeling.REJ).values
+        y_train = data_unlabeled[output_name].apply(
+            lambda x: labeling.ACC if x == 'w-acc' else labeling.REJ).values
+        # LF reports
+        logger.info(LFAnalysis(L=label_matrix_train, lfs=lfs).lf_summary())
+        logger.info('\t↑↑↑ Finishing extracting label matrices (L) by applying `LabelFunction`s ↑↑↑')
+        
+        logger.info('\t↓↓ Starting training `LabelModel` ↓↓↓')
+        # train the label model and compute the training labels
+        LM_N_EPOCHS = 2000  # LM = LabelModel
+        LM_LOG_FREQ = 100
+        LM_LR = 1e-4
+        LM_OPTIM = 'adam'
+        LM_DEVICE = 'cuda'
+        logger.info(f'Training using device="{LM_DEVICE}"')
+        label_model = LabelModel(cardinality=2, verbose=True, device=LM_DEVICE)
+        label_model.train()
+        label_model.fit(label_matrix_train, n_epochs=LM_N_EPOCHS, log_freq=LM_LOG_FREQ, lr=LM_LR,
+                        optimizer=LM_OPTIM, seed=SEED)
+        logger.info('\t↑↑↑ Finished training LabelModel ↑↑↑')
+        
+        logger.info('\tt↓↓↓ Starting inference on LabelModel ↓↓↓')
+        # test the label model
+        with torch.inference_mode():
+            # predict labels for unlabeled data
+            label_model.eval()
+            auto_label_column_name = 'AL'
+            logger.info(f'ModelLabel prediction is saved in "{auto_label_column_name}" column.')
+            data_unlabeled.loc[:, auto_label_column_name] = label_model.predict(
+                L=label_matrix_train, tie_break_policy='abstain')
+            # report train accuracy (train data here is our unlabeled data)
+            metrics = ['accuracy', 'coverage', 'precision', 'recall', 'f1']
+            modeling.report_label_model(label_model=label_model, label_matrix=label_matrix_train,
+                                        gold_labels=y_train, metrics=metrics, set='train')
+            # report test accuracy (test data here is our labeled data which is larger (good!))
+            modeling.report_label_model(label_model=label_model, label_matrix=label_matrix_test,
+                                        gold_labels=y_test, metrics=metrics, set='test')
+        logger.info('\t↑↑↑ Finishing inference on LabelModel ↑↑↑')
+        logger.info('\t\t↑↑↑ Finished labeling data with snorkel ↑↑↑')
+
+        logger.info('\t\t↓↓↓ Starting augmentation via snorkel (TFs) ↓↓↓')
+        # transformation functions
+        tf_compose = [
+            augmentation.AddOrderedNoiseChdAccomp(dataframe=data, sec='B'),
+            augmentation.AddOrderedNoiseChdAccomp(dataframe=data, sec='C')
+        ]
+        tfs = augmentation.ComposeTFAugmentation(augments=tf_compose)()
+        # define policy for applying TFs
+        all_policy = ApplyAllPolicy(n_tfs=len(tfs), #sequence_length=len(tfs),
+                                    n_per_original=2,  # TODO: #20
+                                    keep_original=True)
+        # apply TFs to all data (labels are not used, so no worries currently)
+        tf_applier = PandasTFApplier(tfs, all_policy)
+        data_augmented = tf_applier.apply(data)
+        # TF reports
+        logger.info(f'Original dataset size: {len(data)}')
+        logger.info(f'Augmented dataset size: {len(data_augmented)}')
+        cond1 = (data['p1.SecB.Chd.X.ChdAccomp.Count'] > 0) & (data['p1.SecB.Chd.X.ChdRel.ChdCount'] > data['p1.SecB.Chd.X.ChdAccomp.Count'])
+        cond2 = (data['p1.SecC.Chd.X.ChdAccomp.Count'] > 0) & (data['p1.SecC.Chd.X.ChdRel.ChdCount'] > data['p1.SecC.Chd.X.ChdAccomp.Count'])
+        cond = cond1 | cond2
+        logger.info(preview_tfs(dataframe=data[cond], tfs=tfs, n_samples=5))
+        logger.info('\t\t↑↑↑ Finishing augmentation via snorkel (TFs) ↑↑↑')
+
+        logger.info('\t\t↓↓↓ Starting slicing by snorkel (SFs) ↓↓↓')
+        # slicing functions
+        sf_compose = [
+            slicing.SinglePerson(),
+        ]
+        sfs = slicing.ComposeSFSlicing(slicers=sf_compose)()
+        single_person_slice = slice_dataframe(data_augmented, sfs[0])
+        logger.info(single_person_slice.sample(5))
+        sf_applier = PandasSFApplier(sfs)
+        data_augmented_sliced = sf_applier.apply(data_augmented)
+        scorer = Scorer(metrics=metrics)
+        # TODO: use slicing `scorer` only for `test` set
+        # logger.info(scorer.score_slices(S=S_test, golds=Y_test,
+        #             preds=preds_test, probs=probs_test, as_dataframe=True))
+        logger.info('\t\t↑↑↑ Finishing slicing by snorkel (SFs) ↑↑↑')
 
         logger.info('\t\t↓↓↓ Starting preprocessing on directly DVC `vX.X.X-dev` data ↓↓↓')
         # TODO: add preprocessing steps here
@@ -160,7 +288,16 @@ if __name__ == '__main__':
         # TODO: add final checkpoint here (save weights)
         logger.info('\t\t↑↑↑ Finished logging preview of results and other stuff ↑↑↑')
 
-        # log data params
+    except Exception as e:
+        logger.error(e)
+    
+    # cleanup code
+    finally:
+        # Log artifacts (logs, saved files, etc)
+        mlflow.log_artifacts(MLFLOW_ARTIFACTS_PATH)
+        # delete redundant logs, files that are logged as artifact
+        shutil.rmtree(MLFLOW_ARTIFACTS_PATH)
+
         logger.info('\t\t↓↓↓ Starting logging hyperparams and params with MLFlow ↓↓↓')
         # TODO: log preprocessor configs
         # TODO: log estimator params
@@ -176,6 +313,15 @@ if __name__ == '__main__':
         mlflow.log_param('EDA_input_shape', data.shape)
         mlflow.log_param('EDA_input_columns', data.columns.values)
         mlflow.log_param('EDA_input_dtypes', data.dtypes.values)
+        # LabelModel params
+        logger.info('Log Snorkel `LabelModel` params as MLflow params...')
+        mlflow.log_param('LabelModel_n_epochs', LM_N_EPOCHS)
+        mlflow.log_param('LabelModel_log_freq', LM_LOG_FREQ)
+        mlflow.log_param('LabelModel_lr', LM_LR)
+        mlflow.log_param('LabelModel_optim', LM_OPTIM)
+        mlflow.log_param('LabelModel_device', LM_DEVICE)
+        mlflow.log_param('labeled_dataframe_shape', data_labeled.shape)
+        mlflow.log_param('unlabeled_dataframe_shape', data_unlabeled.shape)
         # log modeling preprocessed params
         logger.info('Log modeling preprocessed params as MLflow params...')
         mlflow.log_param('x_train_shape', x_train.shape)
@@ -186,11 +332,4 @@ if __name__ == '__main__':
         mlflow.log_param('yt_train_shape', yt_train.shape)
         mlflow.log_param('y_test_shape', y_test.shape)
         mlflow.log_param('y_val_shape', y_test.shape)
-        logger.info('\t\t↑↑↑ Finished logging with MLFlow ↑↑↑')
-
-    except Exception as e:
-        logger.error(e)
-        # Log artifacts (logs, saved files, etc)
-        mlflow.log_artifacts(MLFLOW_ARTIFACTS_PATH)
-        # delete redundant logs, files that are logged as artifact
-        shutil.rmtree(MLFLOW_ARTIFACTS_PATH)
+        logger.info('\t\t↑↑↑ Finished logging hyperparams and params with MLFlow ↑↑↑')
