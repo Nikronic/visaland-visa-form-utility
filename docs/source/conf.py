@@ -12,7 +12,7 @@
 import datetime
 import os
 import sys
-sys.path.insert(0, os.path.abspath('..'))
+sys.path.insert(0, os.path.abspath('../..'))
 
 
 # -- Project information -----------------------------------------------------
@@ -63,10 +63,8 @@ master_doc = 'index'
 # directories to ignore when looking for source files.
 # This pattern also affects html_static_path and html_extra_path.
 exclude_patterns = [
-    'vizard/ipynb/*',
-    'vizard/snorkel/main.py',
-    'vizard/models/main.py',
-
+    'vizard.ipynb/*',
+    'vizard.*main.py',
     'vizard.version',
     '_build']
 
