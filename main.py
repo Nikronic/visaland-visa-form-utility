@@ -76,7 +76,7 @@ if __name__ == '__main__':
         VERSION = 'v1.2.2-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
-        MLFLOW_EXPERIMENT_NAME = f'fix #58 - full pipelines - {VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'logging Snorkel LabelModel metrics - full pipelines - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         # VIZARD_VERSION is used to differentiate states of progress of
         #  FULL pipeline implementation.
@@ -171,11 +171,21 @@ if __name__ == '__main__':
                 L=label_matrix_train, tie_break_policy='abstain')
             # report train accuracy (train data here is our unlabeled data)
             metrics = ['accuracy', 'coverage', 'precision', 'recall', 'f1']
-            modeling.report_label_model(label_model=label_model, label_matrix=label_matrix_train,
-                                        gold_labels=y_train, metrics=metrics, set='train')
+            modeling.report_label_model(label_model=label_model,
+                                        label_matrix=label_matrix_train,
+                                        gold_labels=y_train,
+                                        metrics=metrics,
+                                        set='train')
             # report test accuracy (test data here is our labeled data which is larger (good!))
-            modeling.report_label_model(label_model=label_model, label_matrix=label_matrix_test,
-                                        gold_labels=y_test, metrics=metrics, set='test')
+            label_model_metrics = modeling.report_label_model(label_model=label_model,
+                                                              label_matrix=label_matrix_test,
+                                                              gold_labels=y_test,
+                                                              metrics=metrics,
+                                                              set='test')
+            
+            for m in metrics:
+                mlflow.log_metric(key=f'SnorkelLabelModel_{m}',
+                                  value=label_model_metrics[m])
         logger.info('\t↑↑↑ Finishing inference on LabelModel ↑↑↑')
         logger.info('\t\t↑↑↑ Finished labeling data with snorkel ↑↑↑')
 

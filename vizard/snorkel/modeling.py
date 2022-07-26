@@ -9,6 +9,7 @@ from snorkel.labeling.model import LabelModel
 # ours
 from vizard.utils.helpers import loggingdecorator
 # helpers
+from typing import Dict
 import logging
 
 
@@ -16,10 +17,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-@loggingdecorator(logger.name+'.func', level=logging.INFO, output=False, input=False)
 def report_label_model(label_model: LabelModel, label_matrix: np.ndarray,
                        gold_labels: np.ndarray, metrics: list,
-                       set: str, **kwargs) -> None:
+                       set: str, **kwargs) -> Dict[str, float]:
     """Reports given ``metrics`` for the ``snorkel.LabelModel``
 
     Args:
@@ -37,6 +37,8 @@ def report_label_model(label_model: LabelModel, label_matrix: np.ndarray,
     .. _sklearn.metrics: https://scikit-learn.org/stable/modules/classes.html#sklearn-metrics-metrics
     .. _snorkel.labeling.model.LabelModel.score: https://snorkel.readthedocs.io/en/latest/packages/_autosummary/labeling/snorkel.labeling.model.label_model.LabelModel.html#snorkel.labeling.model.label_model.LabelModel.score
 
+    Returns:
+        Dict[str, float]: a dictionary of metrics with keys as given in ``metrics``
     """
     tie_break_policy = kwargs.get('tie_break_policy', 'abstain')
 
@@ -47,3 +49,5 @@ def report_label_model(label_model: LabelModel, label_matrix: np.ndarray,
     for m in metrics:
         logger.info('Label Model {}ing {}: {:.1f}%'.format(
             set, m, label_model_metrics[m] * 100))
+    
+    return label_model_metrics
