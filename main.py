@@ -76,7 +76,7 @@ if __name__ == '__main__':
         VERSION = 'v1.2.2-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
-        MLFLOW_EXPERIMENT_NAME = f'logging Snorkel LabelModel metrics - full pipelines - {VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'using snorkel augmented data for training - full pipelines - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         # VIZARD_VERSION is used to differentiate states of progress of
         #  FULL pipeline implementation.
@@ -187,6 +187,12 @@ if __name__ == '__main__':
                 mlflow.log_metric(key=f'SnorkelLabelModel_{m}',
                                   value=label_model_metrics[m])
         logger.info('\t↑↑↑ Finishing inference on LabelModel ↑↑↑')
+        # merge unlabeled data into all data
+        data_unlabeled[auto_label_column_name] = data_unlabeled[auto_label_column_name].apply(
+            lambda x: 'acc' if x == labeling.ACC else 
+            'rej' if x == labeling.REJ else 'no idea')
+        data.loc[data_unlabeled.index, [output_name]] = data_unlabeled[auto_label_column_name]
+        data[output_name] = data[output_name].astype('object').astype('category')
         logger.info('\t\t↑↑↑ Finished labeling data with snorkel ↑↑↑')
 
         logger.info('\t\t↓↓↓ Starting augmentation via snorkel (TFs) ↓↓↓')
@@ -231,13 +237,17 @@ if __name__ == '__main__':
         logger.info('\t\t↓↓↓ Starting preprocessing on directly DVC `vX.X.X-dev` data ↓↓↓')
         # TODO: add preprocessing steps here
 
+        # change dtype of augmented data to be as original data
+        data_augmented = data_augmented.astype(data.dtypes)
+        # use augmented data from now on
+        data = data_augmented
         # move the dependent variable to the end of the dataframe
         data = preprocessors.move_dependent_variable_to_end(
-            df=data, target_column='VisaResult')
+            df=data, target_column=output_name)
 
         # convert to np and split to train, test, eval
         train_test_eval_splitter = preprocessors.TrainTestEvalSplit(random_state=SEED)
-        data_tuple = train_test_eval_splitter(df=data, target_column='VisaResult')
+        data_tuple = train_test_eval_splitter(df=data, target_column=output_name)
         x_train, x_test, x_eval, y_train, y_test, y_eval = data_tuple
         # dump json config into artifacts
         train_test_eval_splitter.as_mlflow_artifact(MLFLOW_ARTIFACTS_CONFIGS_PATH)

@@ -168,3 +168,4 @@ if __name__ == '__main__':
     mlflow.log_artifacts(MLFLOW_ARTIFACTS_PATH)
     # delete redundant logs, files that are logged as artifact
     shutil.rmtree(MLFLOW_ARTIFACTS_PATH)
+>>>>>>> 0a6906e6686991de7591c2406fb621445eff6e78
