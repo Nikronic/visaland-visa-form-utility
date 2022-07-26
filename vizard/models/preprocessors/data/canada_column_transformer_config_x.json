@@ -4,7 +4,8 @@
         "dtype_include": "np.float32",
         "pattern_include": "None",
         "pattern_exclude": "None",
-        "dtype_exclude": "None"
+        "dtype_exclude": "None",
+        "group": "False"
     },
 
     "ChdMStatus_categorical_OneHotEncoder": {
@@ -12,7 +13,8 @@
         "dtype_include": "'category'",
         "pattern_include": "'.*ChdMStatus'",
         "pattern_exclude": "None",
-        "dtype_exclude": "None"
+        "dtype_exclude": "None",
+        "group": "True"
     },
 
     "binary_categorical_OneHotEncoder": {
@@ -20,7 +22,8 @@
         "dtype_include": "'category'",
         "pattern_include": "'.*(Indicator|Sex|Stay|Deport|PrevApply).*'",
         "pattern_exclude": "None",
-        "dtype_exclude": "None"
+        "dtype_exclude": "None",
+        "group": "False"
     },
 
     "other_categorical_OneHotEncoder": {
@@ -28,6 +31,7 @@
         "dtype_include": "'category'",
         "pattern_include": "'.*(Status|Country|Prps|Relationship|Study).*'",
         "pattern_exclude": "'.*(Chd).*'",
-        "dtype_exclude": "None"
+        "dtype_exclude": "None",
+        "group": "False"
     }
 }

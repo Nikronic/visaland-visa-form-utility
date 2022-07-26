@@ -76,7 +76,7 @@ if __name__ == '__main__':
         VERSION = 'v1.2.2-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
-        MLFLOW_EXPERIMENT_NAME = f'fix #57 - full pipelines - {VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'fix #58 - full pipelines - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         # VIZARD_VERSION is used to differentiate states of progress of
         #  FULL pipeline implementation.
