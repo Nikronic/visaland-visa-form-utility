@@ -8,3 +8,23 @@ Module contents
    :members:
    :undoc-members:
    :show-inheritance:
+
+
+Submodules
+----------
+
+vizard.models.preprocessors.core module
+---------------------------------------
+
+.. automodule:: vizard.models.preprocessors.core
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vizard.models.preprocessors.helpers module
+------------------------------------------
+
+.. automodule:: vizard.models.preprocessors.helpers
+   :members:
+   :undoc-members:
+   :show-inheritance:
