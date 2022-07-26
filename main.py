@@ -76,7 +76,7 @@ if __name__ == '__main__':
         VERSION = 'v1.2.2-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
-        MLFLOW_EXPERIMENT_NAME = f'Merge Snorkel labeled into main dataframe - full pipelines - {VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'using snorkel augmented data for training - full pipelines - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         # VIZARD_VERSION is used to differentiate states of progress of
         #  FULL pipeline implementation.
@@ -237,6 +237,10 @@ if __name__ == '__main__':
         logger.info('\t\t↓↓↓ Starting preprocessing on directly DVC `vX.X.X-dev` data ↓↓↓')
         # TODO: add preprocessing steps here
 
+        # change dtype of augmented data to be as original data
+        data_augmented = data_augmented.astype(data.dtypes)
+        # use augmented data from now on
+        data = data_augmented
         # move the dependent variable to the end of the dataframe
         data = preprocessors.move_dependent_variable_to_end(
             df=data, target_column=output_name)
