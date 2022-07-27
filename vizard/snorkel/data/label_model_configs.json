@@ -1,0 +1,15 @@
+{
+    "method_init":
+    {
+        "LM_CARDINALITY": 2
+    },
+
+    "method_fit":
+    {
+        "LM_N_EPOCHS": 2000,
+        "LM_LOG_FREQ": 100,
+        "LM_LR": 1e-4,
+        "LM_OPTIM": "adam"
+    }
+    
+}
