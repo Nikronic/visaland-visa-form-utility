@@ -2,6 +2,7 @@
 import pandas as pd
 import torch
 # ours: snorkel
+from vizard.snorkel import LABEL_MODEL_CONFIGS
 from vizard.snorkel import labeling
 from vizard.snorkel import modeling
 from vizard.snorkel import augmentation
@@ -19,6 +20,7 @@ from vizard.snorkel import slice_dataframe
 from vizard.models import preprocessors
 # ours: helpers
 from vizard.version import VERSION as VIZARD_VERSION
+from vizard.configs import JsonConfigHandler
 # devops
 import dvc.api
 import mlflow
@@ -37,6 +39,7 @@ if __name__ == '__main__':
     # globals
     SEED = 322
     VERBOSE = logging.DEBUG
+    DEVICE = 'cuda'
 
     # configure logging
     logger = logging.getLogger(__name__)
@@ -61,7 +64,10 @@ if __name__ == '__main__':
         __libs_logger.setLevel(VERBOSE)
         __libs_logger.addHandler(logger_handler)
     # logging: setup progress bar
-    manager = enlighten.get_manager(sys.stderr)  
+    manager = enlighten.get_manager(sys.stderr)
+
+    # internal config handler
+    config_handler = JsonConfigHandler()
 
     try:
         logger.info(
@@ -76,7 +82,7 @@ if __name__ == '__main__':
         VERSION = 'v1.2.2-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
-        MLFLOW_EXPERIMENT_NAME = f'using snorkel augmented data for training - full pipelines - {VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'handle json configs - full pipelines - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         # VIZARD_VERSION is used to differentiate states of progress of
         #  FULL pipeline implementation.
@@ -93,8 +99,7 @@ if __name__ == '__main__':
         logger.info(f'DVC data version: {VERSION}')
         logger.info(f'DVC repo (root): {REPO}')
         logger.info(f'DVC data source path: {PATH}')
-        logger.info(
-            '\t\t↑↑↑ Finished setting up configs: dirs, mlflow, dvc, etc ↑↑↑')
+        logger.info('\t\t↑↑↑ Finished setting up configs: dirs, mlflow, and dvc. ↑↑↑')
 
         logger.info('\t\t↓↓↓ Starting loading preprocessed (EDA) data from DVC ↓↓↓')
         # get url data from DVC data storage
@@ -146,21 +151,21 @@ if __name__ == '__main__':
         logger.info(LFAnalysis(L=label_matrix_train, lfs=lfs).lf_summary())
         logger.info('\t↑↑↑ Finishing extracting label matrices (L) by applying `LabelFunction`s ↑↑↑')
         
-        logger.info('\t↓↓ Starting training `LabelModel` ↓↓↓')
+        logger.info('\t↓↓↓ Starting training `LabelModel` ↓↓↓')
         # train the label model and compute the training labels
-        LM_N_EPOCHS = 2000  # LM = LabelModel
-        LM_LOG_FREQ = 100
-        LM_LR = 1e-4
-        LM_OPTIM = 'adam'
-        LM_DEVICE = 'cuda'
-        logger.info(f'Training using device="{LM_DEVICE}"')
-        label_model = LabelModel(cardinality=2, verbose=True, device=LM_DEVICE)
+        label_model_args = config_handler.parse(filename=LABEL_MODEL_CONFIGS,
+                                                target='LabelModel')
+        config_handler.as_mlflow_artifact(MLFLOW_ARTIFACTS_CONFIGS_PATH)
+        logger.info(f'Training using device="{DEVICE}"')
+        label_model = LabelModel(**label_model_args['method_init'],
+                                 verbose=True, device=DEVICE)
         label_model.train()
-        label_model.fit(label_matrix_train, n_epochs=LM_N_EPOCHS, log_freq=LM_LOG_FREQ, lr=LM_LR,
-                        optimizer=LM_OPTIM, seed=SEED)
+        label_model.fit(label_matrix_train,
+                        **label_model_args['method_fit'],
+                        seed=SEED)
         logger.info('\t↑↑↑ Finished training LabelModel ↑↑↑')
         
-        logger.info('\tt↓↓↓ Starting inference on LabelModel ↓↓↓')
+        logger.info('\t↓↓↓ Starting inference on LabelModel ↓↓↓')
         # test the label model
         with torch.inference_mode():
             # predict labels for unlabeled data
@@ -319,6 +324,8 @@ if __name__ == '__main__':
         shutil.rmtree(MLFLOW_ARTIFACTS_PATH)
 
         logger.info('\t\t↓↓↓ Starting logging hyperparams and params with MLFlow ↓↓↓')
+        logger.info('Log global params')
+        mlflow.log_param('device', DEVICE)
         # TODO: log preprocessor configs
         # TODO: log estimator params
         # TODO: log trainer config
@@ -335,11 +342,7 @@ if __name__ == '__main__':
         mlflow.log_param('EDA_input_dtypes', data.dtypes.values)
         # LabelModel params
         logger.info('Log Snorkel `LabelModel` params as MLflow params...')
-        mlflow.log_param('LabelModel_n_epochs', LM_N_EPOCHS)
-        mlflow.log_param('LabelModel_log_freq', LM_LOG_FREQ)
-        mlflow.log_param('LabelModel_lr', LM_LR)
-        mlflow.log_param('LabelModel_optim', LM_OPTIM)
-        mlflow.log_param('LabelModel_device', LM_DEVICE)
+        mlflow.log_param('LabelModel_fit_method', label_model_args['method_fit'])
         mlflow.log_param('labeled_dataframe_shape', data_labeled.shape)
         mlflow.log_param('unlabeled_dataframe_shape', data_unlabeled.shape)
         # log modeling preprocessed params
