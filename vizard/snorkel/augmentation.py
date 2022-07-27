@@ -24,6 +24,11 @@ from snorkel.augmentation import TransformationFunction
 # helpers
 from typing import Any, Callable, List, Optional, Sequence, Tuple, Union, cast
 from enum import Enum
+import logging
+
+
+# configure logging
+logger = logging.getLogger(__name__)
 
 
 class SeriesNoise:
@@ -355,6 +360,11 @@ class TFAugmentation:
         """
         if section not in sections:
             raise ValueError(f'Section must be in {sections}, got {section}')
+    
+    def __repr__(self) -> str:
+        msg = (f'TransformationFunction "{self.__class__.__name__}" is being used'
+               f' on column "{self.COLUMN}"')
+        return msg
 
 
 class ComposeTFAugmentation(TFAugmentation):
@@ -377,6 +387,14 @@ class ComposeTFAugmentation(TFAugmentation):
                 raise TypeError(f'Keys must be instance of {TFAugmentation}.')
 
         self.augments = augments
+
+        # set logger
+        self.logger = logging.getLogger(logger.name + '.ComposeTFAugmentation')
+
+        # log the augmenters
+        self.logger.info(f'Following transformation functions are being used:')
+        for augment in self.augments:
+            self.logger.info(f'* {augment}')
 
     def __call__(self, *args: Any, **kwds: Any) -> list[TransformationFunction]:
         """Takes a list of :class:`TFAugmentation` and converts to ``snorkel.TransformationFunction``

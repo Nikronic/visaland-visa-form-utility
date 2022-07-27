@@ -10,6 +10,11 @@ from snorkel.slicing import slicing_function
 from snorkel.slicing import SlicingFunction
 # helpers
 from typing import Optional, Any, List, Callable, Sequence
+import logging
+
+
+# configure logging
+logger = logging.getLogger(__name__)
 
 
 class SFSlicing:
@@ -115,6 +120,11 @@ class SFSlicing:
         """
         if section not in sections:
             raise ValueError(f'Section must be in {sections}, got {section}')
+    
+    def __repr__(self) -> str:
+        msg = (f'SlicingFunction "{self.__class__.__name__}" is being used'
+               f' on column "{self.COLUMN}"')
+        return msg
 
 
 class ComposeSFSlicing(SFSlicing):
@@ -137,6 +147,14 @@ class ComposeSFSlicing(SFSlicing):
                 raise TypeError(f'Keys must be instance of {SFSlicing}.')
 
         self.slicers = slicers
+
+        # set logger
+        self.logger = logging.getLogger(logger.name + '.ComposeSFSlicing')
+
+        # log the slicers
+        self.logger.info(f'Following slicing functions are being used:')
+        for slicer in self.slicers:
+            self.logger.info(f'* {slicer}')
 
     def __call__(self, *args: Any, **kwds: Any) -> List[SlicingFunction]:
         """Takes a list of :class:`SFSlicing` and converts to ``snorkel.SlicingFunction``

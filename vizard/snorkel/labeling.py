@@ -13,7 +13,11 @@ from snorkel.labeling import labeling_function
 from snorkel.labeling import LabelingFunction
 # helper
 from typing import Optional, Any, List, Callable, Sequence
+import logging
 
+
+# configure logging
+logger = logging.getLogger(__name__)
 
 # TODO: move this to `vizard.snorkel.constant.py`
 # define the label mappings
@@ -127,6 +131,11 @@ class LFLabeling:
         if section not in sections:
             raise ValueError(f'Section must be in {sections}, got {section}')
 
+    def __repr__(self) -> str:
+        msg = (f'LabelingFunction "{self.__class__.__name__}" is being used'
+               f' on column "{self.COLUMN}"')
+        return msg
+
 
 class ComposeLFLabeling(LFLabeling):
     """Composes a list of :class:`LFLabeling` instances 
@@ -148,6 +157,14 @@ class ComposeLFLabeling(LFLabeling):
                 raise TypeError(f'Keys must be instance of {LFLabeling}.')
 
         self.labelers = labelers
+
+        # set logger
+        self.logger = logging.getLogger(logger.name + '.ComposeLFLabeling')
+
+        # log the labelers
+        self.logger.info(f'Following labeling functions are being used:')
+        for labeler in self.labelers:
+            self.logger.info(f'* {labeler}')
 
     def __call__(self, *args: Any, **kwds: Any) -> List[LabelingFunction]:
         """Takes a list of :class:`LFLabeling` and converts to ``snorkel.LabelingFunction``
