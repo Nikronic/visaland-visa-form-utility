@@ -1,6 +1,4 @@
-__all__ = [
-    'CANADA_COUNTRY_CODE_TO_NAME', 'IRAN_PROVINCE_TO_CITY',
-]
+from .core import JsonConfigHandler
 
 # ref: https://stackoverflow.com/a/50797410/18971263
 import pathlib
