@@ -18,6 +18,7 @@ from vizard.snorkel import preview_tfs
 from vizard.snorkel import slice_dataframe
 # ours: models
 from vizard.models import preprocessors
+from vizard.models import trainers
 # ours: helpers
 from vizard.version import VERSION as VIZARD_VERSION
 from vizard.configs import JsonConfigHandler
@@ -45,6 +46,9 @@ if __name__ == '__main__':
     # configure logging
     logger = logging.getLogger(__name__)
     logger.setLevel(VERBOSE)
+    logger_formatter = logging.Formatter(
+        "[%(name)s: %(asctime)s] {%(lineno)d} %(levelname)s - %(message)s", "%m-%d %H:%M:%S"
+    )
 
     # Set up root logger, and add a file handler to root logger
     MLFLOW_ARTIFACTS_PATH = Path('artifacts')
@@ -59,13 +63,23 @@ if __name__ == '__main__':
 
     logger_handler = logging.FileHandler(filename=MLFLOW_ARTIFACTS_LOGS_PATH / 'main.log',
                                         mode='w')
+    stdout_stream_handler = logging.StreamHandler(stream=sys.stdout)
+    stderr_stream_handler = logging.StreamHandler(stream=sys.stderr)
+    logger_handler.setFormatter(logger_formatter)
+    stdout_stream_handler.setFormatter(logger_formatter)
+    stderr_stream_handler.setFormatter(logger_formatter)
     logger.addHandler(logger_handler)  # type: ignore
+    logger.addHandler(stdout_stream_handler)
+    logger.addHandler(stderr_stream_handler)
+    
     # set libs to log to our logging config
-    __libs = ['snorkel', 'vizard']
+    __libs = ['snorkel', 'vizard', 'flaml']
     for __l in __libs:
         __libs_logger = logging.getLogger(__l)
         __libs_logger.setLevel(VERBOSE)
         __libs_logger.addHandler(logger_handler)
+        __libs_logger.addHandler(stdout_stream_handler)
+        __libs_logger.addHandler(stderr_stream_handler)
     # logging: setup progress bar
     manager = enlighten.get_manager(sys.stderr)
 
@@ -85,7 +99,7 @@ if __name__ == '__main__':
         VERSION = 'v1.2.2-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
-        MLFLOW_EXPERIMENT_NAME = f'Add #56 - FLAML AutoML - full pipelines - {VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'Fix #61 - FLAML AutoML - full pipelines - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         # VIZARD_VERSION is used to differentiate states of progress of
         #  FULL pipeline implementation.
@@ -308,7 +322,6 @@ if __name__ == '__main__':
 
         logger.info('\t\t↓↓↓ Starting loading training config and training estimators ↓↓↓')
         # TODO: add training steps here
-        from vizard.models import trainers
         flaml_automl = trainers.AutoML()
         flaml_automl_args = config_handler.parse(filename=trainers.FLAML_AUTOML_CONFIGS,
                                                  target='FLAML_AutoML')
