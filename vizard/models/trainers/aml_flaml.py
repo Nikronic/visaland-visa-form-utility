@@ -20,8 +20,9 @@ def get_loss_score(y_predict: np.ndarray, y_true: np.ndarray,
         y_true (np.ndarray): Ground truth labels, same shape as ``y_predict``
         metrics (Union[List[str], str, callable]): ``metrics`` can be either
             a metric name (``str``) or a list of metric names that is supported
-            by :func:`flaml.ml.sklearn_metric_loss_score`.
-            ``metrics` can also be a custom metric which in that case must be class
+            by ``flaml.ml.sklearn_metric_loss_score``.
+            
+            ``metrics`` can also be a custom metric which in that case must be class
             that implements ``__call__`` method with following signature:::
 
                 def __call__(
@@ -32,11 +33,12 @@ def get_loss_score(y_predict: np.ndarray, y_true: np.ndarray,
                     return metric_to_minimize, metrics_to_log
 
     Returns:
-        Dict[str, Any]: Dictionary of ``{'metric_name': metric_value}`` for all given
-            ``metrics``.
+        Dict[str, Any]:
+        Dictionary of ``{'metric_name': metric_value}`` for all given
+        ``metrics``.
 
     See Also:
-        * :func:`report_loss_score <vizard.models.trainer.aml_flaml.report_loss_score>`
+        * :func:`report_loss_score`
     """
     # name of metrics for logging purposes
     metrics_names: List[str] = []
@@ -71,18 +73,18 @@ def get_loss_score(y_predict: np.ndarray, y_true: np.ndarray,
 def report_loss_score(metrics: Dict[str, Any]) -> str:
     """Prints a dictionary of ``{'metric_name': metric_value}``
 
-    Such a dictionary can be produced via
-    :func:`get_loss_score <vizard.models.trainer.aml_flaml.get_loss_score>`.
+    Such a dictionary can be produced via :func:`get_loss_score`.
 
     Args:
         metrics (Dict[str, Any]): Dictionary of ``{'metric_name': metric_value}``
 
     Returns: 
-        str: A string containing the loss score and their corresponding names
-            in a new line. e.g.::
+        str: 
+        A string containing the loss score and their corresponding names
+        in a new line. e.g.::
 
-                'accuracy: 0.97'
-                'f1: 0.94'
+            'accuracy: 0.97'
+            'f1: 0.94'
 
     """
     msg: str = ''

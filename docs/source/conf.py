@@ -114,4 +114,5 @@ autodoc_mock_imports = [
     "snorkel",
     "typing",
     "sklearn",
-    "scipy",]
+    "scipy",
+    "flaml",]

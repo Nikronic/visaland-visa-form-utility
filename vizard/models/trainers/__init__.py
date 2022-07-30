@@ -29,11 +29,14 @@ DATA_DIR = parent_dir / 'data'
 
 # we have to import path to `/data` here to avoid circular import
 FLAML_AUTOML_CONFIGS = DATA_DIR / 'flaml_automl_configs.json'
-"""Configs for ``flaml`` AutoML configs as JSON
+"""Configs for FLAML_ AutoML args and params as JSON
 
 For more information:
 
     * about how to use it please see :class:`vizard.configs.core.JsonConfigHandler`.
     * about what fields are expected, see :class:`flaml.AutoML` respectively.
+
+
+.. _FLAML: https://microsoft.github.io/FLAML/
 
 """
