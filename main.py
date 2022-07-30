@@ -96,10 +96,10 @@ if __name__ == '__main__':
         # data versioning config
         PATH = DST_DIR[:-1] + '-dev.pkl'  # path to source data, e.g. data.pkl file
         REPO = '/home/nik/visaland-visa-form-utility'
-        VERSION = 'v1.2.2-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
+        VERSION = 'v1.2.3-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
-        MLFLOW_EXPERIMENT_NAME = f'Fix #61 - FLAML AutoML - full pipelines - {VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'FLAML AutoML - full pipelines - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         # VIZARD_VERSION is used to differentiate states of progress of
         #  FULL pipeline implementation.
@@ -123,11 +123,6 @@ if __name__ == '__main__':
         data_url = dvc.api.get_url(path=PATH, repo=REPO, rev=VERSION)
         # read dataset from remote (local) data storage
         data = pd.read_pickle(data_url)
-
-        #################  # TODO: fix DATA
-        z = data.isna().sum() != 0 
-        data.iloc[:, z.values] = data.iloc[:, z.values].fillna(value=85, inplace=False)
-        #################  # TODO: fix DATA
 
         logger.info(f'preprocessed data in raw PATH={PATH}'
                     f' with VERSION={VERSION},\n'
