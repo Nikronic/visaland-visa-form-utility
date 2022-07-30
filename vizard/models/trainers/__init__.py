@@ -9,9 +9,29 @@ Note that training scripts must be complete. I.e. they should be able to
 checkpoint, load model, load data, etc.
 """
 
+# flaml
+from .aml_flaml import sklearn_metric_loss_score
+from .aml_flaml import AutoML
 # helpers
 import logging
+import pathlib
 
 
 # set logger
 logger = logging.getLogger(__name__)
+
+
+# path to all config/db files
+parent_dir = pathlib.Path(__file__).parent
+DATA_DIR = parent_dir / 'data'
+
+# we have to import path to `/data` here to avoid circular import
+FLAML_AUTOML_CONFIGS = DATA_DIR / 'flaml_automl_configs.json'
+"""Configs for ``flaml`` AutoML configs as JSON
+
+For more information:
+
+    * about how to use it please see :class:`vizard.configs.core.JsonConfigHandler`.
+    * about what fields are expected, see :class:`flaml.AutoML` respectively.
+
+"""

@@ -76,6 +76,23 @@ class JsonConfigHandler:
                 'method_fit': fit_args,
                 'method_init': init_args,
             }
+        elif target == 'FLAML_AutoML':
+            # args of `fit` method of FLAML.AutoML 
+            method_fit_configs = configs['method_fit']
+            fit_args = {
+                'task': method_fit_configs['FLAML_AUTOML_TASK'],
+                'metric': method_fit_configs['FLAML_AUTOML_METRIC'],
+                'max_iter': method_fit_configs['FLAML_AUTOML_MAX_ITER'],
+                'mem_thres': method_fit_configs['FLAML_AUTOML_MEM_THRES'],
+                'n_concurrent_trials': method_fit_configs['FLAML_AUTOML_N_CONCURRENT_TRIALS'],
+                'auto_augment': method_fit_configs['FLAML_AUTOML_AUTO_AUGMENT'],
+                'early_stop': method_fit_configs['FLAML_AUTOML_EARLY_STOP'],
+                'verbose': method_fit_configs['FLAML_AUTOML_VERBOSE'],
+            }
+
+            return {
+                'method_fit': fit_args,
+            }
         else:
             raise ValueError(f'{target} is not implemented or not supported.')
         
