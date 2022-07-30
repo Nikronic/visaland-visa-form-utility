@@ -28,6 +28,7 @@ import mlflow
 from pathlib import Path
 import enlighten
 import logging
+import pickle
 import shutil
 import sys
 import os
@@ -49,10 +50,12 @@ if __name__ == '__main__':
     MLFLOW_ARTIFACTS_PATH = Path('artifacts')
     MLFLOW_ARTIFACTS_LOGS_PATH = MLFLOW_ARTIFACTS_PATH / 'logs'
     MLFLOW_ARTIFACTS_CONFIGS_PATH = MLFLOW_ARTIFACTS_PATH / 'configs'
+    MLFLOW_ARTIFACTS_WEIGHTS_PATH = MLFLOW_ARTIFACTS_PATH / 'weights'
     if not os.path.exists(MLFLOW_ARTIFACTS_PATH):
         os.makedirs(MLFLOW_ARTIFACTS_PATH)
         os.makedirs(MLFLOW_ARTIFACTS_LOGS_PATH)
         os.makedirs(MLFLOW_ARTIFACTS_CONFIGS_PATH)
+        os.makedirs(MLFLOW_ARTIFACTS_WEIGHTS_PATH)
 
     logger_handler = logging.FileHandler(filename=MLFLOW_ARTIFACTS_LOGS_PATH / 'main.log',
                                         mode='w')
@@ -82,7 +85,7 @@ if __name__ == '__main__':
         VERSION = 'v1.2.2-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
-        MLFLOW_EXPERIMENT_NAME = f'handle json configs - full pipelines - {VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'Add #56 - FLAML AutoML - full pipelines - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         # VIZARD_VERSION is used to differentiate states of progress of
         #  FULL pipeline implementation.
@@ -106,6 +109,12 @@ if __name__ == '__main__':
         data_url = dvc.api.get_url(path=PATH, repo=REPO, rev=VERSION)
         # read dataset from remote (local) data storage
         data = pd.read_pickle(data_url)
+
+        #################  # TODO: fix DATA
+        z = data.isna().sum() != 0 
+        data.iloc[:, z.values] = data.iloc[:, z.values].fillna(value=85, inplace=False)
+        #################  # TODO: fix DATA
+
         logger.info(f'preprocessed data in raw PATH={PATH}'
                     f' with VERSION={VERSION},\n'
                     f'loaded from DVC storage at {data_url}.')
@@ -299,6 +308,26 @@ if __name__ == '__main__':
 
         logger.info('\t\t↓↓↓ Starting loading training config and training estimators ↓↓↓')
         # TODO: add training steps here
+        from vizard.models import trainers
+        flaml_automl = trainers.AutoML()
+        flaml_automl_args = config_handler.parse(filename=trainers.FLAML_AUTOML_CONFIGS,
+                                                 target='FLAML_AutoML')
+        config_handler.as_mlflow_artifact(MLFLOW_ARTIFACTS_CONFIGS_PATH)
+        flaml_automl.fit(X_train=xt_train, y_train=yt_train,
+                         X_val=xt_eval, y_val=yt_eval, seed=SEED,
+                         append_log=False,
+                         log_file_name=MLFLOW_ARTIFACTS_LOGS_PATH / 'flaml.log',
+                         **flaml_automl_args['method_fit'])
+        y_pred = flaml_automl.predict(xt_test)
+        logger.info(f'Best FLAML model: {flaml_automl.model.estimator}')
+        metrics = ['accuracy', 'log_loss', 'f1', 'roc_auc', ]
+        metrics_loss_score_dict = trainers.get_loss_score(y_predict=y_pred,
+                                                          y_true=yt_test,
+                                                          metrics=metrics)
+        logger.info(trainers.report_loss_score(metrics=metrics_loss_score_dict))
+        # Save the model
+        with open(MLFLOW_ARTIFACTS_WEIGHTS_PATH / 'flaml_automl.pkl', 'wb') as f:
+            pickle.dump(flaml_automl, f, pickle.HIGHEST_PROTOCOL)
         logger.info('\t\t↑↑↑ Finished loading training config and training estimators ↑↑↑')
 
         logger.info('\t\t↓↓↓ Starting loading evaluation config and evaluating estimators ↓↓↓')
@@ -345,6 +374,9 @@ if __name__ == '__main__':
         mlflow.log_param('LabelModel_fit_method', label_model_args['method_fit'])
         mlflow.log_param('labeled_dataframe_shape', data_labeled.shape)
         mlflow.log_param('unlabeled_dataframe_shape', data_unlabeled.shape)
+        # log FLAML AutoML params
+        logger.info('Log `FLAML` `AutoML` params as MLflow params...')
+        mlflow.log_metrics(metrics_loss_score_dict)
         # log modeling preprocessed params
         logger.info('Log modeling preprocessed params as MLflow params...')
         mlflow.log_param('x_train_shape', x_train.shape)
