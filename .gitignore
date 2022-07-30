@@ -74,3 +74,6 @@ raw-dataset/field_data
 # ignore redundant logs
 mlruns
 notebooks/mlruns
+mlflow-runs
+artifacts
+mlflow.db

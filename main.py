@@ -43,6 +43,11 @@ if __name__ == '__main__':
     VERBOSE = logging.DEBUG
     DEVICE = 'cuda'
 
+    # configure MLFlow tracking remote server
+    #  see `mlflow-server.sh` for port and hostname. Since
+    #  we are running locally, we can use the default values.
+    mlflow.set_tracking_uri('http://localhost:5000')
+
     # configure logging
     logger = logging.getLogger(__name__)
     logger.setLevel(VERBOSE)
@@ -99,7 +104,7 @@ if __name__ == '__main__':
         VERSION = 'v1.2.3-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
-        MLFLOW_EXPERIMENT_NAME = f'FLAML AutoML - full pipelines - {VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'Add MLFlow model registry - full pipelines - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         # VIZARD_VERSION is used to differentiate states of progress of
         #  FULL pipeline implementation.
