@@ -4,10 +4,10 @@ vizard.models.trainers package
 Submodules
 ----------
 
-vizard.models.trainers.utils module
------------------------------------
+vizard.models.trainers.aml\_flaml module
+----------------------------------------
 
-.. automodule:: vizard.models.trainers.utils
+.. automodule:: vizard.models.trainers.aml_flaml
    :members:
    :undoc-members:
    :show-inheritance:
