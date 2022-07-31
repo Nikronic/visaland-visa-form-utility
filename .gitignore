@@ -77,3 +77,8 @@ notebooks/mlruns
 mlflow-runs
 artifacts
 mlflow.db
+
+# gradio
+gradio_queue.db
+gradio/flags
+gradio/models
