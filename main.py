@@ -59,12 +59,12 @@ if __name__ == '__main__':
     MLFLOW_ARTIFACTS_PATH = Path('artifacts')
     MLFLOW_ARTIFACTS_LOGS_PATH = MLFLOW_ARTIFACTS_PATH / 'logs'
     MLFLOW_ARTIFACTS_CONFIGS_PATH = MLFLOW_ARTIFACTS_PATH / 'configs'
-    MLFLOW_ARTIFACTS_WEIGHTS_PATH = MLFLOW_ARTIFACTS_PATH / 'weights'
+    MLFLOW_ARTIFACTS_MODELS_PATH = MLFLOW_ARTIFACTS_PATH / 'models'
     if not os.path.exists(MLFLOW_ARTIFACTS_PATH):
         os.makedirs(MLFLOW_ARTIFACTS_PATH)
         os.makedirs(MLFLOW_ARTIFACTS_LOGS_PATH)
         os.makedirs(MLFLOW_ARTIFACTS_CONFIGS_PATH)
-        os.makedirs(MLFLOW_ARTIFACTS_WEIGHTS_PATH)
+        os.makedirs(MLFLOW_ARTIFACTS_MODELS_PATH)
 
     logger_handler = logging.FileHandler(filename=MLFLOW_ARTIFACTS_LOGS_PATH / 'main.log',
                                         mode='w')
@@ -92,8 +92,7 @@ if __name__ == '__main__':
     config_handler = JsonConfigHandler()
 
     try:
-        logger.info(
-            '\t\t↓↓↓ Starting setting up configs: dirs, mlflow, dvc, etc ↓↓↓')
+        logger.info('\t\t↓↓↓ Starting setting up configs: dirs, mlflow, dvc, etc ↓↓↓')
         # main path
         SRC_DIR = '/mnt/e/dataset/processed/all/'  # path to source encrypted pdf
         DST_DIR = 'raw-dataset/all/'  # path to decrypted pdf
@@ -104,7 +103,7 @@ if __name__ == '__main__':
         VERSION = 'v1.2.3-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
-        MLFLOW_EXPERIMENT_NAME = f'Add MLFlow model registry - full pipelines - {VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'Gradio - full pipelines - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         # VIZARD_VERSION is used to differentiate states of progress of
         #  FULL pipeline implementation.
@@ -298,6 +297,9 @@ if __name__ == '__main__':
         # fit and transform on train data
         xt_train = x_ct.fit_transform(x_train)  # TODO: see #53
         yt_train = y_ct.fit_transform(y_train)  # TODO: see #54
+        # save the fitted transforms as artifacts for later use
+        with open(MLFLOW_ARTIFACTS_MODELS_PATH / 'train_sklearn_column_transfer.pkl', 'wb') as f:
+            pickle.dump(x_ct, f, pickle.HIGHEST_PROTOCOL)
         # transform on eval data
         xt_eval = x_ct.transform(x_eval)
         yt_eval = y_ct.transform(y_eval)
@@ -339,7 +341,7 @@ if __name__ == '__main__':
                                                           metrics=metrics)
         logger.info(trainers.report_loss_score(metrics=metrics_loss_score_dict))
         # Save the model
-        with open(MLFLOW_ARTIFACTS_WEIGHTS_PATH / 'flaml_automl.pkl', 'wb') as f:
+        with open(MLFLOW_ARTIFACTS_MODELS_PATH / 'flaml_automl.pkl', 'wb') as f:
             pickle.dump(flaml_automl, f, pickle.HIGHEST_PROTOCOL)
         logger.info('\t\t↑↑↑ Finished loading training config and training estimators ↑↑↑')
 
