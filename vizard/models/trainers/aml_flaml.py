@@ -130,3 +130,30 @@ def is_score_or_loss(metric: str) -> bool:
             ]:
         result = True
     return result
+
+
+def report_feature_importances(flaml_automl: Any,
+                               feature_names: List[str]) -> str:
+    """Prints feature importances of an fitted ``flaml.AutoML`` instance
+
+    Args:
+        estimator (Any): ``flaml.AutoML`` object that has ``feature_importances_``
+            attribute, i.e. ``flaml_obj.model.estimator.feature_importances_``. 
+        feature_names (List[str]): List of feature names. One can pass
+            columns of original dataframe as ``feature_names``
+
+    Returns:
+        str: 
+        A string containing the feature importances in a new line. e.g.::
+
+            'feature_1: 1'
+            'feature_2: 0'
+            'feature_2: 4'
+
+    """
+    msg: str = ''
+    feature_importance = flaml_automl.model.estimator.feature_importances_
+    for feature_name, feature_importance in zip(feature_names,
+                                               feature_importance):
+        msg += f'{feature_name}: {feature_importance:.2f}\n'
+    return msg

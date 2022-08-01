@@ -10,6 +10,7 @@ checkpoint, load model, load data, etc.
 """
 
 # flaml
+from .aml_flaml import report_feature_importances
 from .aml_flaml import sklearn_metric_loss_score
 from .aml_flaml import report_loss_score
 from .aml_flaml import get_loss_score
