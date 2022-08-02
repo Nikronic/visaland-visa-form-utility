@@ -40,7 +40,7 @@ import os
 if __name__ == '__main__':
 
     # globals
-    SEED = 5
+    SEED = 58
     VERBOSE = logging.DEBUG
     DEVICE = 'cuda'
 
@@ -104,7 +104,7 @@ if __name__ == '__main__':
         VERSION = 'v1.2.3-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
-        MLFLOW_EXPERIMENT_NAME = f'Fix #66 - full pipelines - {VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'Fix #67 - full pipelines - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         # VIZARD_VERSION is used to differentiate states of progress of
         #  FULL pipeline implementation.
@@ -128,6 +128,10 @@ if __name__ == '__main__':
         data_url = dvc.api.get_url(path=PATH, repo=REPO, rev=VERSION)
         # read dataset from remote (local) data storage
         data = pd.read_pickle(data_url)
+
+        # get a copy of all data for extracting all categories for normalization
+        #   for more information, see: issues #67 and #58
+        data_all = data.copy(deep=True)
 
         logger.info(f'preprocessed data in raw PATH={PATH}'
                     f' with VERSION={VERSION},\n'
@@ -299,7 +303,7 @@ if __name__ == '__main__':
         x_column_transformers_config.as_mlflow_artifact(MLFLOW_ARTIFACTS_CONFIGS_PATH)
 
         x_ct = preprocessors.ColumnTransformer(
-            transformers=x_column_transformers_config.generate_pipeline(df=data),
+            transformers=x_column_transformers_config.generate_pipeline(df=data, df_all=data_all),
             remainder='passthrough',
             verbose=False,
             verbose_feature_names_out=False,
@@ -307,8 +311,8 @@ if __name__ == '__main__':
         )
         y_ct = preprocessors.LabelBinarizer()
         # fit and transform on train data
-        xt_train = x_ct.fit_transform(x_train)  # TODO: see #53
-        yt_train = y_ct.fit_transform(y_train)  # TODO: see #54
+        xt_train = x_ct.fit_transform(x_train)  # TODO: see #53, #67
+        yt_train = y_ct.fit_transform(y_train)  # TODO: see #54, #67
         # save the fitted transforms as artifacts for later use
         with open(MLFLOW_ARTIFACTS_MODELS_PATH / 'train_sklearn_column_transfer.pkl', 'wb') as f:
             pickle.dump(x_ct, f, pickle.HIGHEST_PROTOCOL)

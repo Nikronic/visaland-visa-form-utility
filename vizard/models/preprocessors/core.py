@@ -505,7 +505,8 @@ class ColumnTransformerConfig:
                 "pattern_include": "'age'",
                 "pattern_exclude": "None",
                 "dtype_exclude": "None",
-                "group": false
+                "group": "False",
+                "use_global": "False"
             }
 
             "sex_OneHotEncoder": {
@@ -514,7 +515,8 @@ class ColumnTransformerConfig:
                 "pattern_include": "'VisaResult'",
                 "pattern_exclude": "None",
                 "dtype_exclude": "None",
-                "group": true
+                "group": "True",
+                "use_global": "True"
             }
 
         The values of the configs are the columns to be transformed. The columns can be
@@ -529,6 +531,12 @@ class ColumnTransformerConfig:
         then all unique categories of all of those columns are extracted, then transformed.
         if ``group`` is ``False``, then each column will have be transformed based on their unique
         categories independently. (``group`` cannot be passed to :class:`ColumnSelector`)
+
+        The ``use_global`` key is used to determine if the transformer should be applied
+        considering the all data or train data (since fitting transformation for normalization
+        need to be only done on *train* data). If ``use_global`` is ``True``, then the transformer
+        will be applied on all data. This is particularly useful for one hot encoding categorical
+        features where some categories might are rare and might only exist in test and eval data.
 
         Args:
             path: path to the JSON file containing the configs
@@ -559,12 +567,19 @@ class ColumnTransformerConfig:
         parsed_configs = {}
         for key, value in configs.items():
             parsed_values = {k: eval(v) for k, v in value.items()}
-            # extract 'group' if didn't exist in configs, then set it to False
+
+            # extract 'group'; if didn't exist in configs, then set it to False
             group = parsed_values.get('group', False)
             # remove 'group' from parsed_values after parsing it
             if 'group' in parsed_values: 
                 del parsed_values['group']
-            parsed_configs[key] = (ColumnSelector(**parsed_values), group)
+            
+            # extract 'use_global'; if didn't exist in configs, then set it to False
+            use_global = parsed_values.get('use_global', False)
+            # remove 'use_global' from parsed_values after parsing it
+            if 'use_global' in parsed_values:
+                del parsed_values['use_global']
+            parsed_configs[key] = (ColumnSelector(**parsed_values), group, use_global)
 
         # set the configs when explicit call to this method is made
         self.CONF = parsed_configs
@@ -664,13 +679,15 @@ class ColumnTransformerConfig:
         if isinstance(loc, str):
             return list(df.loc[:, loc].unique())
         
-    def calculate_group_params(self, df: pd.DataFrame, columns: List,
-                               transformer_name: str) -> dict:
+    def calculate_params(self, df: pd.DataFrame, columns: List,
+                         group: bool, transformer_name: str) -> dict:
         """Calculates the parameters for the group transformation w.r.t. the transformer name
 
         Args:
             df (:class:`pandas.DataFrame`): Dataframe to extract columns from
             columns (List): List of columns to be transformed
+            group (bool): If True, then the columns will be grouped together and
+                the parameters will be calculated over all columns passed in
             transformer_name (str): Name of the transformer. It is used to determine
                 the type of params to be passed to the transformer. E.g. if ``transformer_name``
                 corresponds to ``OneHotEncoding``, then params would be unique categories.
@@ -688,10 +705,17 @@ class ColumnTransformerConfig:
         # if transformer is OneHotEncoder, extract the unique categories from all columns
         if transformer_name == 'OneHotEncoder':
             unique_values: list = []
-            # get all uniques
-            for col in columns:
-                unique_values.extend(self.__get_df_column_unique(df=df, loc=col))
-            unique_values = list(set(unique_values))
+            # get all uniques from all columns if 'group' is True
+            if group:
+                for col in columns:
+                    unique_values.extend(self.__get_df_column_unique(df=df, loc=col))
+                unique_values = list(set(unique_values))
+            else:
+                # if columns is a list, then we assume that user wants default behavior 
+                #   of OneHotEncoder and left finding categories to 3rd party library
+                if len(columns) > 1:
+                    return {}  # return empty params
+                unique_values = self.__get_df_column_unique(df=df, loc=columns[0])
             # check correct arg to set given the transformer object signature
             transformer_arg = 'categories'
             self.__check_arg_exists(TRANSFORMS[transformer_name], transformer_arg)
@@ -699,11 +723,14 @@ class ColumnTransformerConfig:
             # for OneHotEncoder, the arg is 'categories'
             params[transformer_arg] = [unique_values for _ in range(len(columns))]
         else:
-            raise NotImplementedError(
-                f'Group transformation param calculation is not implemented for {transformer_name}')
+            if group:
+                raise NotImplementedError(
+                    f'Group transformation param calculation'
+                    f'is not implemented for {transformer_name}')
         return params
 
-    def generate_pipeline(self, df: pd.DataFrame) -> list:
+    def generate_pipeline(self, df: pd.DataFrame,
+                          df_all: Optional[pd.DataFrame] = None) -> list:
         """Generates the list of transformers to be used by the :class:`sklearn.compose.ColumnTransformer`
 
         Note:
@@ -713,6 +740,10 @@ class ColumnTransformerConfig:
 
         Args:
             df (:class:`pandas.DataFrame`): Dataframe to extract columns from
+                if ``df_all`` is None, then this is interpreted as train data
+            df_all (Optional[:class:`pandas.DataFrame`]): Dataframe to extract columns from
+                if ``df_all`` is not None, then this is interpreted as entire data. For
+                more info see :meth:`set_configs`.
 
         Raises:
             ValueError: If the naming convention used for the keys in the
@@ -738,22 +769,28 @@ class ColumnTransformerConfig:
             # value is tuple of (selector, group)
             selector: ColumnSelector = value[0]
             group: bool = value[1]
+            use_global: bool = value[2]
             # extract transformer name
             transformer_name = key.split('_')[-1]
             if transformer_name in TRANSFORMS:
                 name = key
                 # extract list of columns names
                 columns = self.extract_selected_columns(selector=selector, df=df)
+                # TODO: throw warnings if columns of different self.CONF overlap
+                #   i.e. to set of different transforms happening on a column
+                #   that is already has been transformed
+                # this should not be an exception since we should be able to pipe
+                #   similar transforms sequentially (e.g. `add` -> `divide`)
                 # if group not false, extract group level transformation params
                 group_params: dict = {}
-                if group:
-                    group_params = self.calculate_group_params(df=df, columns=columns,
-                                                               transformer_name=transformer_name)
-                # build transformer object
+                group_params = self.calculate_params(df=df_all if use_global else df,
+                                                     columns=columns,
+                                                     group=group,
+                                                     transformer_name=transformer_name)
+            # build transformer object
                 transformer = TRANSFORMS[transformer_name](**group_params)
             else:
-                raise ValueError(
-                    f'Unknown transformer {key} in config.')
+                raise ValueError(f'Unknown transformer {key} in config.')
 
             # add to the list of transformers
             transformers.append((name, transformer, columns))
