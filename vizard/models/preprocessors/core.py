@@ -9,6 +9,7 @@ import pandas as pd
 import numpy as np
 # ours
 from vizard.models.preprocessors import CANADA_COLUMN_TRANSFORMER_CONFIG_X
+from vizard.models.preprocessors import CANADA_PANDAS_TRAIN_TEST_SPLIT
 from vizard.models.preprocessors import CANADA_TRAIN_TEST_EVAL_SPLIT
 from vizard.models.preprocessors import TRANSFORMS
 # helpers
@@ -171,6 +172,145 @@ class TrainTestEvalSplit:
                                                                             stratify=stratify,
                                                                             random_state=random_state)
         return (x_train, x_test, x_eval, y_train, y_test, y_eval)
+
+class PandasTrainTestSplit:
+    """Split a pandas dataframe with train and test
+
+    Note:
+        This is a class very similar to :class:`TrainTestEvalSplit` with this difference
+        that this class is specialized for Pandas Dataframe and since we are going to use
+        augmentation on Pandas Dataframe rather than Numpy, then this class enable us
+        to do augmentation only on train split and let the test part stay as it is.
+
+    Note:
+
+        * ``args`` cannot be set directly and need to be provided using a json file. 
+          See :meth:`set_configs` for more information.
+        * You can explicitly override following ``args`` by passing it as an argument
+          to :meth:`__init__`:
+
+            * :attr:`random_state`
+            * :attr:`stratify`
+
+    Returns:
+        Tuple[:class:`numpy.ndarray`, ...]: A tuple of 
+        ``(data_train, data_test)`` which contains both dependent and 
+        independent variables
+    """
+
+    def __init__(self, stratify: Any = None,
+                 random_state: Union[np.random.Generator, int] = None) -> None:
+        self.logger = logging.getLogger(logger.name + self.__class__.__name__)
+        self.CONF = self.set_configs()
+
+        # override configs if explicitly set
+        self.random_state = random_state
+        self.stratify = stratify
+
+    def set_configs(self, path: Union[str, pathlib.Path] = None) -> dict:
+        """Defines and sets the config to be parsed
+
+        The keys of the configs are the attributes of this class which are:
+
+            * train_ratio (float): Ratio of train data
+            * shuffle (bool): Whether to shuffle the data
+            * stratify (Optional[np.ndarray]): If not None, this is used to stratify the data
+            * random_state (Optional[int]): Random state to use for shuffling
+
+        Note:
+            You can explicitly override following attributes by passing it as an argument
+            to :meth:`__init__`:
+
+                * :attr:`random_state`
+                * :attr:`stratify`
+
+        The values of the configs are parameters and can be set manually
+        or extracted from JSON config files by providing the path to the JSON file.
+
+        Args:
+            path: path to the JSON file containing the configs
+
+        Returns:
+            dict: A dictionary of `str`: `Any` pairs of configs as class attributes
+        """
+
+        # convert str path to Path
+        if isinstance(path, str):
+            path = pathlib.Path(path)
+
+        # if no json is provided, use the default configs
+        if path is None:
+            path = CANADA_PANDAS_TRAIN_TEST_SPLIT
+        self.conf_path = path
+
+        # log the path used
+        self.logger.info(f'Config file "{self.conf_path}" is being used')
+
+        # read the json file
+        with open(path, 'r') as f:
+            configs = json.load(f)
+
+        # set the configs if explicit calls made to this method
+        self.CONF = configs
+        # return the parsed configs
+        return configs
+
+    def as_mlflow_artifact(self, target_path: Union[str, pathlib.Path]) -> None:
+        """Saves the configs to the MLFlow artifact directory
+
+        Args:
+            target_path: Path to the MLFlow artifact directory. The name of the file
+                will be same as original config file, hence, only provide path to dir.
+        """
+
+        # convert str path to Path
+        if isinstance(target_path, str):
+            target_path = pathlib.Path(target_path)
+
+        if self.conf_path is None:
+            raise ValueError(
+                'Configs have not been set yet. Use set_configs to set them.')
+
+        # read the json file
+        with open(self.conf_path, 'r') as f:
+            configs = json.load(f)
+
+        # save the configs to the artifact directory
+        target_path = target_path / self.conf_path.name
+        with open(target_path, 'w') as f:
+            json.dump(configs, f)
+
+    def __call__(self, df: pd.DataFrame, target_column: str,
+                 *args: Any, **kwds: Any) -> Tuple[pd.DataFrame, pd.DataFrame]:
+        """Split a pandas dataframe with train and test splits
+        
+        Args:
+            df (:class:`pandas.DataFrame`): Dataframe to convert
+            target_column (str): Name of the target column
+        
+        Returns:
+            Tuple[:class:`numpy.ndarray`, ...]: Order is
+            ``(data_train, data_test)``
+        """
+        # get values from config
+        train_ratio = self.CONF['train_ratio']
+        shuffle = self.CONF['shuffle']
+        stratify = self.CONF['stratify']
+        random_state = self.CONF['random_state'] if self.random_state is None else self.random_state
+
+        # shuffle dataframe
+        if shuffle:
+            df = df.sample(frac=1, random_state=random_state)
+        
+        # stratify dataframe
+        if stratify is not None:
+            raise NotImplementedError('Stratify is not implemented yet. Sadge :(')
+
+        # split dataframe into train and test by rows
+        idx: int = int(len(df) * train_ratio)
+        data_train: pd.DataFrame = df.iloc[:idx, :]
+        data_test: pd.DataFrame = df.iloc[idx:, :]
+        return (data_train, data_test)
 
 
 def move_dependent_variable_to_end(df: pd.DataFrame, target_column: str) -> pd.DataFrame:

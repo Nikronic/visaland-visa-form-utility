@@ -26,6 +26,7 @@ from vizard.configs import JsonConfigHandler
 import dvc.api
 import mlflow
 # helpers
+from typing import Any, Tuple
 from pathlib import Path
 import enlighten
 import logging
@@ -39,7 +40,7 @@ import os
 if __name__ == '__main__':
 
     # globals
-    SEED = 322
+    SEED = 5
     VERBOSE = logging.DEBUG
     DEVICE = 'cuda'
 
@@ -103,7 +104,7 @@ if __name__ == '__main__':
         VERSION = 'v1.2.3-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
-        MLFLOW_EXPERIMENT_NAME = f'Gradio - full pipelines - {VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'Fix #66 - full pipelines - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         # VIZARD_VERSION is used to differentiate states of progress of
         #  FULL pipeline implementation.
@@ -222,6 +223,15 @@ if __name__ == '__main__':
         data[output_name] = data[output_name].astype('object').astype('category')
         logger.info('\t\t↑↑↑ Finished labeling data with snorkel ↑↑↑')
 
+        # split to train and test to only augment train set
+        pandas_train_test_splitter = preprocessors.PandasTrainTestSplit(random_state=SEED)
+        data_tuple: Tuple[Any, ...] = pandas_train_test_splitter(df=data, target_column=output_name)
+        data_train: pd.DataFrame = data_tuple[0]
+        data_test: pd.DataFrame = data_tuple[1]
+        data = data_train
+        # dump json config into artifacts
+        pandas_train_test_splitter.as_mlflow_artifact(MLFLOW_ARTIFACTS_CONFIGS_PATH)
+
         logger.info('\t\t↓↓↓ Starting augmentation via snorkel (TFs) ↓↓↓')
         # transformation functions
         tf_compose = [
@@ -273,9 +283,11 @@ if __name__ == '__main__':
             df=data, target_column=output_name)
 
         # convert to np and split to train, test, eval
+        y_train = data[output_name].to_numpy()
+        x_train = data.drop(columns=[output_name], inplace=False).to_numpy()
         train_test_eval_splitter = preprocessors.TrainTestEvalSplit(random_state=SEED)
-        data_tuple = train_test_eval_splitter(df=data, target_column=output_name)
-        x_train, x_test, x_eval, y_train, y_test, y_eval = data_tuple
+        data_tuple = train_test_eval_splitter(df=data_test, target_column=output_name)
+        x_test, x_eval, y_test, y_eval = data_tuple
         # dump json config into artifacts
         train_test_eval_splitter.as_mlflow_artifact(MLFLOW_ARTIFACTS_CONFIGS_PATH)
 
@@ -333,6 +345,9 @@ if __name__ == '__main__':
                          append_log=False,
                          log_file_name=MLFLOW_ARTIFACTS_LOGS_PATH / 'flaml.log',
                          **flaml_automl_args['method_fit'])
+        # report feature importance
+        logger.info(trainers.report_feature_importances(flaml_automl=flaml_automl,
+                                                        feature_names=data.columns.values))
         y_pred = flaml_automl.predict(xt_test)
         logger.info(f'Best FLAML model: {flaml_automl.model.estimator}')
         metrics = ['accuracy', 'log_loss', 'f1', 'roc_auc', ]

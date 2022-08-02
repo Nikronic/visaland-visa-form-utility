@@ -46,6 +46,13 @@ For information about how to use it and what fields are expected,
 see :class:`vizard.models.preprocessors.core.TrainTestEvalSplit`.
 """
 
+CANADA_PANDAS_TRAIN_TEST_SPLIT = DATA_DIR / 'canada_pandas_train_test_split.json'
+"""Configs for splitting dataframe train and test for Canada
+
+For information about how to use it and what fields are expected,
+see :class:`vizard.models.preprocessors.core.PandasTrainTestSplit`.
+"""
+
 
 # sklearn
 from sklearn.compose import ColumnTransformer
@@ -83,6 +90,7 @@ Note:
 # ours: core
 from .core import move_dependent_variable_to_end
 from .core import ColumnTransformerConfig
+from .core import PandasTrainTestSplit
 from .core import TrainTestEvalSplit
 from .core import ColumnSelector
 # ours: helpers
@@ -99,6 +107,7 @@ __all__ = [
     'CANADA_COLUMN_TRANSFORMER_CONFIG_X',
     'CANADA_COLUMN_TRANSFORMER_CONFIG_Y',
     'CANADA_TRAIN_TEST_EVAL_SPLIT',
+    'CANADA_PANDAS_TRAIN_TEST_SPLIT',
     # other constants
     'TRANSFORMS',
     # sklearn
@@ -112,6 +121,7 @@ __all__ = [
     'LabelBinarizer',
     'MultiLabelBinarizer',
     # ours
+    'PandasTrainTestSplit',
     'TrainTestEvalSplit',
     'ColumnTransformerConfig',
     'ColumnSelector',
