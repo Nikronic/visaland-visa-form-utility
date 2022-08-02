@@ -19,7 +19,7 @@ PATH = 'raw-dataset/all-dev.pkl'
 REPO = '/home/nik/visaland-visa-form-utility'
 VERSION = 'v1.2.3-dev'  # TODO
 # MLFLOW_RUN_ID = 'abe11fab2aca405091ac1d64d8bdc858'
-MLFLOW_RUN_ID = 'b2670da5ce4d4c01b7a7a091320e082c'
+MLFLOW_RUN_ID = 'f0b0f12950b94fde95313f08473bc561'
 mlflow.set_tracking_uri('http://localhost:5000')
 
 # read data from DVC storage

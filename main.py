@@ -239,13 +239,35 @@ if __name__ == '__main__':
         logger.info('\t\t↓↓↓ Starting augmentation via snorkel (TFs) ↓↓↓')
         # transformation functions
         tf_compose = [
+            augmentation.AddNormalNoiseDOBYear(dataframe=data),
+            augmentation.AddNormalNoiseChildDOBX(dataframe=data, row=0),
+            augmentation.AddNormalNoiseChildDOBX(dataframe=data, row=1),
+            augmentation.AddNormalNoiseChildDOBX(dataframe=data, row=2),
+            augmentation.AddNormalNoiseChildDOBX(dataframe=data, row=3),
+            augmentation.AddNormalNoiseDateOfMarr(dataframe=data),
+            augmentation.AddNormalNoiseOccRowXPeriod(dataframe=data, row=1),
+            augmentation.AddNormalNoiseOccRowXPeriod(dataframe=data, row=2),
+            augmentation.AddNormalNoiseOccRowXPeriod(dataframe=data, row=3),
+            augmentation.AddNormalNoiseHLS(dataframe=data),
+            augmentation.AddCategoricalNoiseChildRelX(dataframe=data, row=0),
+            augmentation.AddCategoricalNoiseChildRelX(dataframe=data, row=1),
+            augmentation.AddCategoricalNoiseChildRelX(dataframe=data, row=2),
+            augmentation.AddCategoricalNoiseChildRelX(dataframe=data, row=3),
+            augmentation.AddCategoricalNoiseSiblingRelX(dataframe=data, row=0),
+            augmentation.AddCategoricalNoiseSiblingRelX(dataframe=data, row=1),
+            augmentation.AddCategoricalNoiseSiblingRelX(dataframe=data, row=2),
+            augmentation.AddCategoricalNoiseSiblingRelX(dataframe=data, row=3),
+            augmentation.AddCategoricalNoiseSiblingRelX(dataframe=data, row=4),
+            augmentation.AddCategoricalNoiseSiblingRelX(dataframe=data, row=5),
+            augmentation.AddCategoricalNoiseSiblingRelX(dataframe=data, row=6),
+            augmentation.AddCategoricalNoiseSex(dataframe=data),
             augmentation.AddOrderedNoiseChdAccomp(dataframe=data, sec='B'),
             augmentation.AddOrderedNoiseChdAccomp(dataframe=data, sec='C')
         ]
-        tfs = augmentation.ComposeTFAugmentation(augments=tf_compose)()
+        tfs = augmentation.ComposeTFAugmentation(augments=tf_compose)()  # type: ignore
         # define policy for applying TFs
         all_policy = ApplyAllPolicy(n_tfs=len(tfs), #sequence_length=len(tfs),
-                                    n_per_original=2,  # TODO: #20
+                                    n_per_original=1,  # TODO: #20
                                     keep_original=True)
         # apply TFs to all data (labels are not used, so no worries currently)
         tf_applier = PandasTFApplier(tfs, all_policy)
@@ -256,7 +278,7 @@ if __name__ == '__main__':
         cond1 = (data['p1.SecB.Chd.X.ChdAccomp.Count'] > 0) & (data['p1.SecB.Chd.X.ChdRel.ChdCount'] > data['p1.SecB.Chd.X.ChdAccomp.Count'])
         cond2 = (data['p1.SecC.Chd.X.ChdAccomp.Count'] > 0) & (data['p1.SecC.Chd.X.ChdRel.ChdCount'] > data['p1.SecC.Chd.X.ChdAccomp.Count'])
         cond = cond1 | cond2
-        logger.info(preview_tfs(dataframe=data[cond], tfs=tfs, n_samples=5))
+        logger.info(preview_tfs(dataframe=data[cond], tfs=tfs, n_samples=2))
         logger.info('\t\t↑↑↑ Finishing augmentation via snorkel (TFs) ↑↑↑')
 
         logger.info('\t\t↓↓↓ Starting slicing by snorkel (SFs) ↓↓↓')
