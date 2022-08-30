@@ -82,3 +82,4 @@ mlflow.db
 gradio_queue.db
 gradio/flags
 gradio/models
+*.db-journal
