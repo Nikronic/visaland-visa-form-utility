@@ -22,6 +22,7 @@ from vizard.models import trainers
 # ours: helpers
 from vizard.version import VERSION as VIZARD_VERSION
 from vizard.configs import JsonConfigHandler
+from vizard.utils import loggers
 # devops
 import dvc.api
 import mlflow
@@ -33,8 +34,6 @@ import logging
 import pickle
 import shutil
 import sys
-import os
-
 
 
 if __name__ == '__main__':
@@ -47,45 +46,20 @@ if __name__ == '__main__':
     # configure MLFlow tracking remote server
     #  see `mlflow-server.sh` for port and hostname. Since
     #  we are running locally, we can use the default values.
-    mlflow.set_tracking_uri('http://localhost:5000')
-
-    # configure logging
-    logger = logging.getLogger(__name__)
-    logger.setLevel(VERBOSE)
-    logger_formatter = logging.Formatter(
-        "[%(name)s: %(asctime)s] {%(lineno)d} %(levelname)s - %(message)s", "%m-%d %H:%M:%S"
-    )
+    mlflow.set_tracking_uri('http://0.0.0.0:5000')
 
     # Set up root logger, and add a file handler to root logger
-    MLFLOW_ARTIFACTS_PATH = Path('artifacts')
-    MLFLOW_ARTIFACTS_LOGS_PATH = MLFLOW_ARTIFACTS_PATH / 'logs'
-    MLFLOW_ARTIFACTS_CONFIGS_PATH = MLFLOW_ARTIFACTS_PATH / 'configs'
-    MLFLOW_ARTIFACTS_MODELS_PATH = MLFLOW_ARTIFACTS_PATH / 'models'
-    if not os.path.exists(MLFLOW_ARTIFACTS_PATH):
-        os.makedirs(MLFLOW_ARTIFACTS_PATH)
-        os.makedirs(MLFLOW_ARTIFACTS_LOGS_PATH)
-        os.makedirs(MLFLOW_ARTIFACTS_CONFIGS_PATH)
-        os.makedirs(MLFLOW_ARTIFACTS_MODELS_PATH)
-
-    logger_handler = logging.FileHandler(filename=MLFLOW_ARTIFACTS_LOGS_PATH / 'main.log',
-                                        mode='w')
-    stdout_stream_handler = logging.StreamHandler(stream=sys.stdout)
-    stderr_stream_handler = logging.StreamHandler(stream=sys.stderr)
-    logger_handler.setFormatter(logger_formatter)
-    stdout_stream_handler.setFormatter(logger_formatter)
-    stderr_stream_handler.setFormatter(logger_formatter)
-    logger.addHandler(logger_handler)  # type: ignore
-    logger.addHandler(stdout_stream_handler)
-    logger.addHandler(stderr_stream_handler)
-    
+    MLFLOW_ARTIFACTS_BASE_PATH: Path = Path('artifacts')
+    if MLFLOW_ARTIFACTS_BASE_PATH.exists():
+        shutil.rmtree(MLFLOW_ARTIFACTS_BASE_PATH)
     # set libs to log to our logging config
     __libs = ['snorkel', 'vizard', 'flaml']
-    for __l in __libs:
-        __libs_logger = logging.getLogger(__l)
-        __libs_logger.setLevel(VERBOSE)
-        __libs_logger.addHandler(logger_handler)
-        __libs_logger.addHandler(stdout_stream_handler)
-        __libs_logger.addHandler(stderr_stream_handler)
+    logger = loggers.Logger(
+        name=__name__,
+        level=VERBOSE,
+        mlflow_artifacts_base_path=MLFLOW_ARTIFACTS_BASE_PATH,
+        libs=__libs
+    )
     # logging: setup progress bar
     manager = enlighten.get_manager(sys.stderr)
 
@@ -93,6 +67,7 @@ if __name__ == '__main__':
     config_handler = JsonConfigHandler()
 
     try:
+        logger.create_artifact_instance()
         logger.info('\t\t↓↓↓ Starting setting up configs: dirs, mlflow, dvc, etc ↓↓↓')
         # main path
         SRC_DIR = '/mnt/e/dataset/processed/all/'  # path to source encrypted pdf
@@ -104,17 +79,9 @@ if __name__ == '__main__':
         VERSION = 'v1.2.3-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
-        MLFLOW_EXPERIMENT_NAME = f'Fix #67 - full pipelines - {VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'refactor - full pipelines - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
-        # VIZARD_VERSION is used to differentiate states of progress of
-        #  FULL pipeline implementation.
-        # Since I update version of the pipeline every time I make a considerable
-        #  change, using this for MLflow experiment name would help to identify
-        #  the state of the pipeline and its issues.
-        MLFLOW_TAGS = {
-            'stage': 'dev'  # dev, beta, production
-        }
-        mlflow.set_tags(MLFLOW_TAGS)
+        mlflow.start_run()
 
         logger.info(f'MLflow experiment name: {MLFLOW_EXPERIMENT_NAME}')
         logger.info(f'MLflow experiment id: {mlflow.active_run().info.run_id}')
@@ -180,16 +147,25 @@ if __name__ == '__main__':
         
         logger.info('\t↓↓↓ Starting training `LabelModel` ↓↓↓')
         # train the label model and compute the training labels
-        label_model_args = config_handler.parse(filename=LABEL_MODEL_CONFIGS,
-                                                target='LabelModel')
-        config_handler.as_mlflow_artifact(MLFLOW_ARTIFACTS_CONFIGS_PATH)
+        label_model_args = config_handler.parse(
+            filename=LABEL_MODEL_CONFIGS,
+            target='LabelModel'
+        )
+        config_handler.as_mlflow_artifact(
+            logger.MLFLOW_ARTIFACTS_CONFIGS_PATH
+        )
         logger.info(f'Training using device="{DEVICE}"')
-        label_model = LabelModel(**label_model_args['method_init'],
-                                 verbose=True, device=DEVICE)
+        label_model = LabelModel(
+            **label_model_args['method_init'],
+            verbose=True,
+            device=DEVICE
+        )
         label_model.train()
-        label_model.fit(label_matrix_train,
-                        **label_model_args['method_fit'],
-                        seed=SEED)
+        label_model.fit(
+            label_matrix_train,
+            **label_model_args['method_fit'],
+            seed=SEED
+        )
         logger.info('\t↑↑↑ Finished training LabelModel ↑↑↑')
         
         logger.info('\t↓↓↓ Starting inference on LabelModel ↓↓↓')
@@ -200,24 +176,32 @@ if __name__ == '__main__':
             auto_label_column_name = 'AL'
             logger.info(f'ModelLabel prediction is saved in "{auto_label_column_name}" column.')
             data_unlabeled.loc[:, auto_label_column_name] = label_model.predict(
-                L=label_matrix_train, tie_break_policy='abstain')
+                L=label_matrix_train,
+                tie_break_policy='abstain'
+            )
             # report train accuracy (train data here is our unlabeled data)
             metrics = ['accuracy', 'coverage', 'precision', 'recall', 'f1']
-            modeling.report_label_model(label_model=label_model,
-                                        label_matrix=label_matrix_train,
-                                        gold_labels=y_train,
-                                        metrics=metrics,
-                                        set='train')
+            modeling.report_label_model(
+                label_model=label_model,
+                label_matrix=label_matrix_train,
+                gold_labels=y_train,
+                metrics=metrics,
+                set='train'
+            )
             # report test accuracy (test data here is our labeled data which is larger (good!))
-            label_model_metrics = modeling.report_label_model(label_model=label_model,
-                                                              label_matrix=label_matrix_test,
-                                                              gold_labels=y_test,
-                                                              metrics=metrics,
-                                                              set='test')
+            label_model_metrics = modeling.report_label_model(
+                label_model=label_model,
+                label_matrix=label_matrix_test,
+                gold_labels=y_test,
+                metrics=metrics,
+                set='test'
+            )
             
             for m in metrics:
-                mlflow.log_metric(key=f'SnorkelLabelModel_{m}',
-                                  value=label_model_metrics[m])
+                mlflow.log_metric(
+                    key=f'SnorkelLabelModel_{m}',
+                    value=label_model_metrics[m]
+                )
         logger.info('\t↑↑↑ Finishing inference on LabelModel ↑↑↑')
         # merge unlabeled data into all data
         data_unlabeled[auto_label_column_name] = data_unlabeled[auto_label_column_name].apply(
@@ -228,13 +212,20 @@ if __name__ == '__main__':
         logger.info('\t\t↑↑↑ Finished labeling data with snorkel ↑↑↑')
 
         # split to train and test to only augment train set
-        pandas_train_test_splitter = preprocessors.PandasTrainTestSplit(random_state=SEED)
-        data_tuple: Tuple[Any, ...] = pandas_train_test_splitter(df=data, target_column=output_name)
+        pandas_train_test_splitter = preprocessors.PandasTrainTestSplit(
+            random_state=SEED
+        )
+        data_tuple: Tuple[Any, ...] = pandas_train_test_splitter(
+            df=data,
+            target_column=output_name
+        )
         data_train: pd.DataFrame = data_tuple[0]
         data_test: pd.DataFrame = data_tuple[1]
         data = data_train
         # dump json config into artifacts
-        pandas_train_test_splitter.as_mlflow_artifact(MLFLOW_ARTIFACTS_CONFIGS_PATH)
+        pandas_train_test_splitter.as_mlflow_artifact(
+            logger.MLFLOW_ARTIFACTS_CONFIGS_PATH
+        )
 
         logger.info('\t\t↓↓↓ Starting augmentation via snorkel (TFs) ↓↓↓')
         # transformation functions
@@ -266,9 +257,11 @@ if __name__ == '__main__':
         ]
         tfs = augmentation.ComposeTFAugmentation(augments=tf_compose)()  # type: ignore
         # define policy for applying TFs
-        all_policy = ApplyAllPolicy(n_tfs=len(tfs), #sequence_length=len(tfs),
-                                    n_per_original=1,  # TODO: #20
-                                    keep_original=True)
+        all_policy = ApplyAllPolicy(
+            n_tfs=len(tfs), #sequence_length=len(tfs),
+            n_per_original=1,  # TODO: #20
+            keep_original=True
+        )
         # apply TFs to all data (labels are not used, so no worries currently)
         tf_applier = PandasTFApplier(tfs, all_policy)
         data_augmented = tf_applier.apply(data)
@@ -306,26 +299,41 @@ if __name__ == '__main__':
         data = data_augmented
         # move the dependent variable to the end of the dataframe
         data = preprocessors.move_dependent_variable_to_end(
-            df=data, target_column=output_name)
+            df=data,
+            target_column=output_name
+        )
 
         # convert to np and split to train, test, eval
         y_train = data[output_name].to_numpy()
         x_train = data.drop(columns=[output_name], inplace=False).to_numpy()
-        train_test_eval_splitter = preprocessors.TrainTestEvalSplit(random_state=SEED)
-        data_tuple = train_test_eval_splitter(df=data_test, target_column=output_name)
+        train_test_eval_splitter = preprocessors.TrainTestEvalSplit(
+            random_state=SEED
+        )
+        data_tuple = train_test_eval_splitter(
+            df=data_test,
+            target_column=output_name
+        )
         x_test, x_eval, y_test, y_eval = data_tuple
         # dump json config into artifacts
-        train_test_eval_splitter.as_mlflow_artifact(MLFLOW_ARTIFACTS_CONFIGS_PATH)
+        train_test_eval_splitter.as_mlflow_artifact(
+            logger.MLFLOW_ARTIFACTS_CONFIGS_PATH
+        )
 
         # Transform and normalize appropriately given config
         x_column_transformers_config = preprocessors.ColumnTransformerConfig()
         x_column_transformers_config.set_configs(
-            preprocessors.CANADA_COLUMN_TRANSFORMER_CONFIG_X)
+            preprocessors.CANADA_COLUMN_TRANSFORMER_CONFIG_X
+        )
         # dump json config into artifacts
-        x_column_transformers_config.as_mlflow_artifact(MLFLOW_ARTIFACTS_CONFIGS_PATH)
+        x_column_transformers_config.as_mlflow_artifact(
+            logger.MLFLOW_ARTIFACTS_CONFIGS_PATH
+        )
 
         x_ct = preprocessors.ColumnTransformer(
-            transformers=x_column_transformers_config.generate_pipeline(df=data, df_all=data_all),
+            transformers=x_column_transformers_config.generate_pipeline(
+                df=data,
+                df_all=data_all
+            ),
             remainder='passthrough',
             verbose=False,
             verbose_feature_names_out=False,
@@ -333,10 +341,12 @@ if __name__ == '__main__':
         )
         y_ct = preprocessors.LabelBinarizer()
         # fit and transform on train data
-        xt_train = x_ct.fit_transform(x_train)  # TODO: see #53, #67
-        yt_train = y_ct.fit_transform(y_train)  # TODO: see #54, #67
+        xt_train = x_ct.fit_transform(x_train)  # TODO: see #41, #42
+        yt_train = y_ct.fit_transform(y_train)  # TODO: see #47, #42
         # save the fitted transforms as artifacts for later use
-        with open(MLFLOW_ARTIFACTS_MODELS_PATH / 'train_sklearn_column_transfer.pkl', 'wb') as f:
+        with open(
+            logger.MLFLOW_ARTIFACTS_MODELS_PATH / 'train_sklearn_column_transfer.pkl', 'wb'
+            ) as f:
             pickle.dump(x_ct, f, pickle.HIGHEST_PROTOCOL)
         # transform on eval data
         xt_eval = x_ct.transform(x_eval)
@@ -346,14 +356,15 @@ if __name__ == '__main__':
         yt_test = y_ct.transform(y_test)
 
         # preview the transformed data
-        preview_ct = preprocessors.preview_column_transformer(column_transformer=x_ct,
-                                                            original=x_train,
-                                                            transformed=xt_train,
-                                                            df=data,
-                                                            random_state=SEED,
-                                                            n_samples=1)
+        preview_ct = preprocessors.preview_column_transformer(
+            column_transformer=x_ct,
+            original=x_train,
+            transformed=xt_train,
+            df=data,
+            random_state=SEED,
+            n_samples=1
+        )
         logger.info([_ for _ in preview_ct])
-
         logger.info('\t\t↑↑↑ Finished preprocessing on directly DVC `vX.X.X-dev` data ↑↑↑')
 
         logger.info('\t\t↓↓↓ Starting defining estimators models ↓↓↓')
@@ -363,26 +374,41 @@ if __name__ == '__main__':
         logger.info('\t\t↓↓↓ Starting loading training config and training estimators ↓↓↓')
         # TODO: add training steps here
         flaml_automl = trainers.AutoML()
-        flaml_automl_args = config_handler.parse(filename=trainers.FLAML_AUTOML_CONFIGS,
-                                                 target='FLAML_AutoML')
-        config_handler.as_mlflow_artifact(MLFLOW_ARTIFACTS_CONFIGS_PATH)
-        flaml_automl.fit(X_train=xt_train, y_train=yt_train,
-                         X_val=xt_eval, y_val=yt_eval, seed=SEED,
-                         append_log=False,
-                         log_file_name=MLFLOW_ARTIFACTS_LOGS_PATH / 'flaml.log',
-                         **flaml_automl_args['method_fit'])
+        flaml_automl_args = config_handler.parse(
+            filename=trainers.FLAML_AUTOML_CONFIGS,
+            target='FLAML_AutoML'
+        )
+        config_handler.as_mlflow_artifact(
+            logger.MLFLOW_ARTIFACTS_CONFIGS_PATH
+        )
+        flaml_automl.fit(
+            X_train=xt_train,
+            y_train=yt_train,
+            X_val=xt_eval,
+            y_val=yt_eval,
+            seed=SEED,
+            append_log=False,
+            log_file_name=logger.MLFLOW_ARTIFACTS_LOGS_PATH / 'flaml.log',
+            **flaml_automl_args['method_fit'])
         # report feature importance
-        logger.info(trainers.report_feature_importances(flaml_automl=flaml_automl,
-                                                        feature_names=data.columns.values))
+        logger.info(trainers.report_feature_importances(
+            flaml_automl=flaml_automl,
+            feature_names=data.columns.values
+            )
+        )
         y_pred = flaml_automl.predict(xt_test)
         logger.info(f'Best FLAML model: {flaml_automl.model.estimator}')
         metrics = ['accuracy', 'log_loss', 'f1', 'roc_auc', ]
-        metrics_loss_score_dict = trainers.get_loss_score(y_predict=y_pred,
-                                                          y_true=yt_test,
-                                                          metrics=metrics)
+        metrics_loss_score_dict = trainers.get_loss_score(
+            y_predict=y_pred,
+            y_true=yt_test,
+            metrics=metrics
+        )
         logger.info(trainers.report_loss_score(metrics=metrics_loss_score_dict))
         # Save the model
-        with open(MLFLOW_ARTIFACTS_MODELS_PATH / 'flaml_automl.pkl', 'wb') as f:
+        with open(
+            logger.MLFLOW_ARTIFACTS_MODELS_PATH / 'flaml_automl.pkl', 'wb'
+            ) as f:
             pickle.dump(flaml_automl, f, pickle.HIGHEST_PROTOCOL)
         logger.info('\t\t↑↑↑ Finished loading training config and training estimators ↑↑↑')
 
@@ -404,9 +430,9 @@ if __name__ == '__main__':
     # cleanup code
     finally:
         # Log artifacts (logs, saved files, etc)
-        mlflow.log_artifacts(MLFLOW_ARTIFACTS_PATH)
+        mlflow.log_artifacts(MLFLOW_ARTIFACTS_BASE_PATH)
         # delete redundant logs, files that are logged as artifact
-        shutil.rmtree(MLFLOW_ARTIFACTS_PATH)
+        shutil.rmtree(MLFLOW_ARTIFACTS_BASE_PATH)
 
         logger.info('\t\t↓↓↓ Starting logging hyperparams and params with MLFlow ↓↓↓')
         logger.info('Log global params')
@@ -444,3 +470,4 @@ if __name__ == '__main__':
         mlflow.log_param('y_test_shape', y_test.shape)
         mlflow.log_param('y_val_shape', y_test.shape)
         logger.info('\t\t↑↑↑ Finished logging hyperparams and params with MLFlow ↑↑↑')
+        mlflow.end_run()
