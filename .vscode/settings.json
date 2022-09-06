@@ -41,9 +41,11 @@
         "thres",
         "Tikhonov",
         "typehints",
+        "unedu",
         "viewcode",
         "violinplot",
-        "XFAPDF"
+        "XFAPDF",
+        "XGBD"
     ],
     "python.linting.mypyEnabled": true,
     "python.linting.enabled": true,
