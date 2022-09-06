@@ -76,10 +76,10 @@ if __name__ == '__main__':
         # data versioning config
         PATH = DST_DIR[:-1] + '-dev.pkl'  # path to source data, e.g. data.pkl file
         REPO = '/home/nik/visaland-visa-form-utility'
-        VERSION = 'v1.2.3-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
+        VERSION = 'v1.2.4-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
-        MLFLOW_EXPERIMENT_NAME = f'full pipelines - {VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'fix53 - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         mlflow.start_run()
 
