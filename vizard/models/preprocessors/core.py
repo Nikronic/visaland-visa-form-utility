@@ -729,6 +729,45 @@ class ColumnTransformerConfig:
                     f'is not implemented for {transformer_name}')
         return params
 
+    def _check_overlap_in_transformation_columns(self, transformers: List[Tuple]) -> None:
+        """Checks if there are multiple transformers on the same columns and reports them
+
+        Throw info if columns of different transformers overlap. I.e. at least another
+        transform is happening on a column that is already has been transformed.
+
+        Notes:
+            This is not a bug or misbehavior since we should be able to pipe
+            multiple transformers sequentially on the same column (e.g. ``add`` -> ``divide``).
+            The warning is thrown when user didn't meant to do so since the output might be
+            acceptable but wrong values and there is no way to find out except manual inspection.
+            Hence, this method will make the user aware that something might be wrong.
+
+        Args:
+            transformers (List[Tuple]):
+                A list of tuples, where each tuple is a in the form of
+                ``(name, transformer, columns)`` where ``name`` is the name of the
+                transformer, ``transformer`` is the transformer object and ``columns``
+                is the list of columns names to be transformed.
+        Todo:
+            Should I also check if each list of column is a set? (no duplicate in same list)
+            see https://stackoverflow.com/a/3697450/18971263
+        """
+        
+        count = len(transformers)
+
+        for i in range(count):
+            for j in range(i+1, count):
+                columns_a: List[Union[int, str]] = transformers[i][-1]  # (_ , _, columns)
+                columns_b: List[Union[int, str]] = transformers[j][-1]  # (_ , _, columns)
+                overlap: List[Union[int, str]] = list(set(columns_a).intersection(columns_b))
+                if len(overlap) > 0:  # found overlap
+                    name_a: str = transformers[i][0]  # (name, _, _)
+                    name_b: str = transformers[j][0]  # (name, _, _)
+                    self.logger.info(
+                        f'transformer "{name_a}" is overlapping with\n'
+                        f' transformer "{name_b}" on columns {overlap}')
+
+
     def generate_pipeline(self, df: pd.DataFrame,
                           df_all: Optional[pd.DataFrame] = None) -> list:
         """Generates the list of transformers to be used by the :class:`sklearn.compose.ColumnTransformer`
@@ -776,11 +815,6 @@ class ColumnTransformerConfig:
                 name = key
                 # extract list of columns names
                 columns = self.extract_selected_columns(selector=selector, df=df)
-                # TODO: throw warnings if columns of different self.CONF overlap
-                #   i.e. to set of different transforms happening on a column
-                #   that is already has been transformed
-                # this should not be an exception since we should be able to pipe
-                #   similar transforms sequentially (e.g. `add` -> `divide`)
                 # if group not false, extract group level transformation params
                 group_params: dict = {}
                 group_params = self.calculate_params(df=df_all if use_global else df,
@@ -795,4 +829,6 @@ class ColumnTransformerConfig:
             # add to the list of transformers
             transformers.append((name, transformer, columns))
 
+        # throw logs if columns of different self.CONF overlap
+        self._check_overlap_in_transformation_columns(transformers)
         return transformers
