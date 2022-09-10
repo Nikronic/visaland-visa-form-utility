@@ -22,7 +22,7 @@
             "program": "${file}",
             "console": "integratedTerminal",
             "env": {"PYDEVD_WARN_SLOW_RESOLVE_TIMEOUT": "2"},
-            "justMyCode": true
+            "justMyCode": false
         }
     ]
 }
