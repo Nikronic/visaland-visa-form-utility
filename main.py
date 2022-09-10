@@ -80,7 +80,7 @@ if __name__ == '__main__':
         VERSION = 'v1.2.4-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
-        MLFLOW_EXPERIMENT_NAME = f'fix51 - {VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'fix55 - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         mlflow.start_run()
 
@@ -392,11 +392,14 @@ if __name__ == '__main__':
             log_file_name=logger.MLFLOW_ARTIFACTS_LOGS_PATH / 'flaml.log',
             **flaml_automl_args['method_fit'])
         # report feature importance
-        logger.info(trainers.report_feature_importances(
-            flaml_automl=flaml_automl,
-            feature_names=data.columns.values
-            # FIXME: #55, use this line
-            # feature_names = list(x_ct.get_feature_names_out())
+        feature_names = preprocessors.get_transformed_feature_names(
+            column_transformer=x_ct,
+            original_columns_names=data.drop(columns=[output_name]).columns.values,
+        )
+        logger.info(
+            trainers.report_feature_importances(
+                estimator=flaml_automl.model.estimator,
+                feature_names=feature_names
             )
         )
         y_pred = flaml_automl.predict(xt_test)

@@ -4,6 +4,7 @@
 
 # core
 from sklearn import model_selection
+from sklearn.compose import ColumnTransformer
 from sklearn.compose import make_column_selector
 import pandas as pd
 import numpy as np
@@ -832,3 +833,62 @@ class ColumnTransformerConfig:
         # throw logs if columns of different self.CONF overlap
         self._check_overlap_in_transformation_columns(transformers)
         return transformers
+
+
+def get_transformed_feature_names(
+    column_transformer: ColumnTransformer,
+    original_columns_names: List[str],
+    ) -> List[str]:
+    """Gives feature names for transformed data via original feature names
+
+    This is super useful as the default
+    :meth:`sklearn.compose.ColumnTransformer.get_feature_names_out` uses meaningless names
+    for features after transformation which makes tracking the transformed features almost 
+    impossible as it uses ``f0[_category], f1[_category], ... fn[_category]` as feature names.
+    This method for example, extracts the name of original column ``A`` (with categories ``[a, b]``)
+    before transformation and finds new columns after transforming that column and names them
+    ``A_a`` and ``A_b`` meanwhile ``sklearn`` method gives ``x[num0]_a`` and ``x_[num0]_b``.
+
+    Args:
+        column_transformer (:class:`sklearn.compose.ColumnTransformer`): A **fitted**
+            column transformer that has ``.transformers_`` where each is a tuple
+            as ``(name, transformer, in_columns)``. ``in_columns`` used to detect the
+            original index of transformed columns. 
+        original_columns_names (List[str]): List of original columns names before transformation
+    
+    Returns:
+        List[str]: A list of transformed columns names prefixed with original columns names
+
+    """
+
+    # build a dictionary of index:feature_name from untransformed dataset
+    original_columns_dict: dict = {}
+    # build index of transformed columns from transformers
+    new_index: List[int] = []
+    for t in column_transformer.transformers_:
+        new_index.extend(t[2])  # (name, transformer, **in_columns**)
+    # build a mapping between original index of columns and their names
+    for ni in new_index:
+        original_columns_dict[ni] = original_columns_names[ni]
+    # original_columns_dict = dict(sorted(original_columns_dict.items()))
+    original_columns_dict = dict(
+        sorted(
+            original_columns_dict.items(),
+            key=lambda x:x[0],
+            reverse=True
+        )
+    )
+    # replace idx with `original feature name` in `transformed feature names``
+    feature_names: List[str] = column_transformer.get_feature_names_out()
+    new_feature_names: List[str] = []
+    for fn in feature_names:
+        # reverse it so if we have '10', it does not get replaced with '1' and '0' first
+        for k, v in original_columns_dict.items():
+            # if index of orig feature is in transformed name
+            if str(k) in fn:
+                fn = fn.replace(f'x{k}', v)  # replace `x[num]` with original column names
+                new_feature_names.append(fn)
+                # we can have only one index, so go for next feature if u found one already
+                break
+    
+    return new_feature_names

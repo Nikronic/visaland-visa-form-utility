@@ -89,6 +89,7 @@ Note:
 
 # ours: core
 from .core import move_dependent_variable_to_end
+from .core import get_transformed_feature_names
 from .core import ColumnTransformerConfig
 from .core import PandasTrainTestSplit
 from .core import TrainTestEvalSplit
@@ -127,4 +128,5 @@ __all__ = [
     'ColumnSelector',
     'move_dependent_variable_to_end',
     'preview_column_transformer',
+    'get_transformed_feature_names'
 ]
