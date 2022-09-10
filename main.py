@@ -21,6 +21,7 @@ from vizard.models import preprocessors
 from vizard.models import trainers
 # ours: helpers
 from vizard.version import VERSION as VIZARD_VERSION
+from vizard.utils.dtreeviz import FLAMLDTreeViz
 from vizard.configs import JsonConfigHandler
 from vizard.utils import loggers
 # devops
@@ -79,7 +80,7 @@ if __name__ == '__main__':
         VERSION = 'v1.2.4-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
-        MLFLOW_EXPERIMENT_NAME = f'fix53 - {VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'fix51 - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         mlflow.start_run()
 
@@ -394,6 +395,8 @@ if __name__ == '__main__':
         logger.info(trainers.report_feature_importances(
             flaml_automl=flaml_automl,
             feature_names=data.columns.values
+            # FIXME: #55, use this line
+            # feature_names = list(x_ct.get_feature_names_out())
             )
         )
         y_pred = flaml_automl.predict(xt_test)
@@ -423,6 +426,16 @@ if __name__ == '__main__':
         logger.info('\t\t↓↓↓ Starting logging preview of results and other stuff ↓↓↓')
         # TODO: add final checkpoint here (save weights)
         logger.info('\t\t↑↑↑ Finished logging preview of results and other stuff ↑↑↑')
+
+        dtreeviz_visualizer = FLAMLDTreeViz(
+            flaml_automl=flaml_automl,
+            x_data=xt_train,
+            y_data=yt_train.flatten(),
+            target_name='VisaResult',
+            feature_names=flaml_automl.feature_names_in_,
+            class_names=list(y_ct.classes_),
+            explanation_type='plain_english'
+        )
 
     except Exception as e:
         logger.error(e)
