@@ -2,7 +2,6 @@ from setuptools import find_packages
 from setuptools import setup
 from pathlib import Path
 from typing import Dict
-import glob
 
 
 this_directory = Path(__file__).parent
@@ -22,7 +21,10 @@ setup(name='vizard', version=VERSION["VERSION"], packages=find_packages(),
       long_description_content_type='text/markdown',
       include_package_data = True,
       package_data={
-          'configs': ['data/*.csv'],
-          'preprocessors': ['data/*.json'],
+        # ref https://stackoverflow.com/a/73649552/18971263
+          'vizard.configs': ['**/*.csv'],
+          'vizard.models.preprocessors': ['**/*.json'],
+          'vizard.models.trainers': ['**/*.json'],
+          'vizard.snorkel': ['**/*.json']
         }
       )
