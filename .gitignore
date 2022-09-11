@@ -61,8 +61,8 @@ target/
 # temp files
 temp.py
 
-# decrypted sample pdf files
-sample/dec_sample
+# sample files
+sample
 
 # ignore logs, they are going to be recorded as artifacts using DVC
 logs
