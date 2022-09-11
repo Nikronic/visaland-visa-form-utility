@@ -41,8 +41,12 @@ logger = logging.getLogger(__name__)
 
 
 @loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=False)
-def dict_summarizer(d: dict, cutoff_term: str, KEY_ABBREVIATION_DICT: dict = None,
-                    VALUE_ABBREVIATION_DICT: dict = None) -> dict:
+def dict_summarizer(
+    d: dict,
+    cutoff_term: str,
+    KEY_ABBREVIATION_DICT: dict = None,
+    VALUE_ABBREVIATION_DICT: dict = None
+) -> dict:
     """Takes a flattened dictionary and shortens its keys
 
     Args:
@@ -111,8 +115,13 @@ def dict_to_csv(d: dict, path: str) -> None:
         w.writerow(d)
 
 
-def column_dropper(dataframe: pd.DataFrame, string: str, exclude: str = None,
-                   regex: bool = False, inplace: bool = True) -> Optional[pd.DataFrame]:
+def column_dropper(
+    dataframe: pd.DataFrame,
+    string: str,
+    exclude: str = None,
+    regex: bool = False,
+    inplace: bool = True
+) -> Optional[pd.DataFrame]:
     """Takes a Pandas Dataframe and drops columns matching a pattern
 
     Args:
@@ -150,8 +159,14 @@ def column_dropper(dataframe: pd.DataFrame, string: str, exclude: str = None,
     return None if inplace else dataframe
 
 
-def fillna_datetime(dataframe: pd.DataFrame, col_base_name: str, date: str, type: DOC_TYPES,
-                    one_sided: Union[str, bool] = False, inplace: bool = False) -> Optional[pd.DataFrame]:
+def fillna_datetime(
+    dataframe: pd.DataFrame,
+    col_base_name: str,
+    date: str,
+    type: DOC_TYPES,
+    one_sided: Union[str, bool] = False,
+    inplace: bool = False
+) -> Optional[pd.DataFrame]:
     """Takes names of two columns of dates (start, end) and fills them with a predefined value
 
     Args:
@@ -196,10 +211,17 @@ def fillna_datetime(dataframe: pd.DataFrame, col_base_name: str, date: str, type
     return None if inplace else dataframe
 
 
-def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name: str,
-                       type: DOC_TYPES, if_nan: Union[str, Callable, None] = 'skip',
-                       one_sided: str = None, reference_date: str = None,
-                       current_date: str = None, **kwargs) -> pd.DataFrame:
+def aggregate_datetime(
+    dataframe: pd.DataFrame,
+    col_base_name: str,
+    new_col_name: str,
+    type: DOC_TYPES,
+    if_nan: Union[str, Callable, None] = 'skip',
+    one_sided: str = None,
+    reference_date: str = None,
+    current_date: str = None,
+    **kwargs
+) -> pd.DataFrame:
     """Takes two columns of dates in string form and calculates the period of them
 
     Args:
@@ -235,9 +257,11 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
     .. _dateutil.parser.parse: https://dateutil.readthedocs.io/en/stable/parser.html
     """
 
-    default_datetime = datetime.datetime(year=DATEUTIL_DEFAULT_DATETIME['year'],
-                                         month=DATEUTIL_DEFAULT_DATETIME['month'],
-                                         day=DATEUTIL_DEFAULT_DATETIME['day'])
+    default_datetime = datetime.datetime(
+        year=DATEUTIL_DEFAULT_DATETIME['year'],
+        month=DATEUTIL_DEFAULT_DATETIME['month'],
+        day=DATEUTIL_DEFAULT_DATETIME['day']
+    )
     default_datetime = kwargs.get('default_datetime', default_datetime)
 
     aggregated_column_name = None
@@ -303,8 +327,11 @@ def aggregate_datetime(dataframe: pd.DataFrame, col_base_name: str, new_col_name
     dataframe[aggregated_column_name] = dataframe[aggregated_column_name].dt.days.astype(
         'int32')  # change to int of days
 
-    dataframe.drop(columns_to_aggregate_names, axis=1,
-                   inplace=True)  # drop from/to columns
+    dataframe.drop(
+        columns_to_aggregate_names,
+        axis=1,
+        inplace=True
+    )  # drop from/to columns
     return dataframe
 
 
@@ -331,8 +358,13 @@ def tag_to_regex_compatible(string: str, type: DOC_TYPES) -> str:
     return string
 
 
-def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: Callable,
-                 if_nan: Union[str, Callable] = 'skip', **kwargs) -> pd.DataFrame:
+def change_dtype(
+    dataframe: pd.DataFrame,
+    col_name: str,
+    dtype: Callable,
+    if_nan: Union[str, Callable] = 'skip',
+    **kwargs
+) -> pd.DataFrame:
     """Changes the data type of a column with ability to fill ``None`` s
 
     Args:
@@ -358,9 +390,11 @@ def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: Callable,
             and represent it in integer form. The two columns used will be dropped.
     """
 
-    default_datetime = datetime.datetime(year=DATEUTIL_DEFAULT_DATETIME['year'],
-                                         month=DATEUTIL_DEFAULT_DATETIME['month'],
-                                         day=DATEUTIL_DEFAULT_DATETIME['day'])
+    default_datetime = datetime.datetime(
+        year=DATEUTIL_DEFAULT_DATETIME['year'],
+        month=DATEUTIL_DEFAULT_DATETIME['month'],
+        day=DATEUTIL_DEFAULT_DATETIME['day']
+    )
     default_datetime = kwargs.get('default_datetime', default_datetime)
 
     # define `func` for different cases of predefined logics
@@ -398,8 +432,11 @@ def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: Callable,
                 # we want YYYY-MM-DD
                 # MMDDYYYY format (Canada Common Forms)
                 if len(value) == 8 and value.isnumeric():
-                    value = '{}-{}-{}'.format(value[4:],
-                                              value[2:4], value[0:2])
+                    value = '{}-{}-{}'.format(
+                        value[4:],
+                        value[2:4],
+                        value[0:2]
+                    )
 
                 # fix values
                 if value[5:7] == '02' and value[8:10] == '30':  # using >28 for February
@@ -431,7 +468,10 @@ def change_dtype(dataframe: pd.DataFrame, col_name: str, dtype: Callable,
 
 
 @loggingdecorator(logger.name+'.func', level=logging.INFO, output=False)
-def dump_directory_structure_csv(src: str, shallow: bool = True) -> None:
+def dump_directory_structure_csv(
+    src: str,
+    shallow: bool = True
+) -> None:
     """Saves a tree structure of a directory in csv file
 
     Takes a ``src`` directory path, creates a tree of dir structure and writes
@@ -561,9 +601,14 @@ def unit_converter(sparse: float, dense: float, factor: float) -> float:
 
 
 @loggingdecorator(logger.name+'.func', level=logging.INFO, output=False, input=True)
-def process_directory(src_dir: str, dst_dir: str, compose: FileTransformCompose,
-                      file_pattern: str = '*', manager: Optional[Manager] = None) -> None:
-    """Transforms all files that match pattern in given directory and saves new files preserving dir structure
+def process_directory(
+    src_dir: str,
+    dst_dir: str,
+    compose: FileTransformCompose,
+    file_pattern: str = '*',
+    manager: Optional[Manager] = None
+) -> None:
+    """Transforms all files that match pattern in given dir and saves new files preserving dir structure
 
     Note:
         A methods used for handling files from manually processed dataset to raw-dataset
@@ -589,8 +634,11 @@ def process_directory(src_dir: str, dst_dir: str, compose: FileTransformCompose,
 
     # logging
     manager = enlighten.get_manager(sys.stderr) if manager is None else manager
-    progress_bar = manager.counter(total=len(next(os.walk(src_dir), (None, [], None))[1]),
-                                   desc='Extracted', unit='data point files')
+    progress_bar = manager.counter(
+        total=len(next(os.walk(src_dir), (None, [], None))[1]),
+        desc='Extracted',
+        unit='data point files'
+    )
     i = 0
 
     # process directories
@@ -638,8 +686,12 @@ def search_dict(string: str, dic: dict, if_nan: str) -> str:
 
 
 @loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=True, input=True)
-def extended_dict_get(string: str, dic: dict, if_nan: str,
-                      condition: Union[Callable, bool, None] = None):
+def extended_dict_get(
+    string: str,
+    dic: dict,
+    if_nan: str,
+    condition: Union[Callable, bool, None] = None
+):
     """Takes a string and looks for it inside a dictionary with default value if condition is satisfied
 
     Args:
@@ -673,7 +725,11 @@ def extended_dict_get(string: str, dic: dict, if_nan: str,
 
 
 @loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=True, input=True)
-def fix_typo(string: str, typos: Union[list, dict], fix: Optional[str] = None) -> str:
+def fix_typo(
+    string: str,
+    typos: Union[list, dict],
+    fix: Optional[str] = None
+) -> str:
     """Fixes a typo in a token/word given a list of typos or dictionary of typos
 
     Args:

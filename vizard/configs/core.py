@@ -3,14 +3,14 @@ import json
 # ours
 from snorkel.labeling.model import LabelModel
 # helper
-from typing import Any, Callable, Union
+from typing import Any, Union
 from pathlib import Path
 
 
 class JsonConfigHandler:
     def __init__(self) -> None:
         return None
-    
+
     @staticmethod
     def load(filename: str) -> Any:
         with open(filename, 'r') as f:
@@ -57,7 +57,7 @@ class JsonConfigHandler:
 
         # parse configs for each target
         if target == 'LabelModel':
-            # args of `fit` method of LabelModel 
+            # args of `fit` method of LabelModel
             method_fit_configs = configs['method_fit']
             fit_args = {
                 'n_epochs': method_fit_configs['LM_N_EPOCHS'],
@@ -77,7 +77,7 @@ class JsonConfigHandler:
                 'method_init': init_args,
             }
         elif target == 'FLAML_AutoML':
-            # args of `fit` method of FLAML.AutoML 
+            # args of `fit` method of FLAML.AutoML
             method_fit_configs = configs['method_fit']
             fit_args = {
                 'task': method_fit_configs['FLAML_AUTOML_TASK'],
@@ -95,7 +95,6 @@ class JsonConfigHandler:
             }
         else:
             raise ValueError(f'{target} is not implemented or not supported.')
-        
 
     def as_mlflow_artifact(self, target_path: Union[Path, str]) -> None:
         """Saves the configs to the MLFlow artifact directory
@@ -110,7 +109,9 @@ class JsonConfigHandler:
             target_path = Path(target_path)
 
         if self.conf_path is None:
-            raise ValueError('Configs have not been set yet. Use `.parse` to set them.')
+            raise ValueError(
+                'Configs have not been set yet. Use `.parse` to set them.'
+            )
 
         # save the configs to the artifact directory
         target_path = target_path / self.conf_path.name
