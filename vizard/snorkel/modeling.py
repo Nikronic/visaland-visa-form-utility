@@ -15,9 +15,14 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def report_label_model(label_model: LabelModel, label_matrix: np.ndarray,
-                       gold_labels: np.ndarray, metrics: list,
-                       set: str, **kwargs) -> Dict[str, float]:
+def report_label_model(
+    label_model: LabelModel,
+    label_matrix: np.ndarray,
+    gold_labels: np.ndarray,
+    metrics: list,
+    set: str,
+    **kwargs
+) -> Dict[str, float]:
     """Reports given ``metrics`` for the ``snorkel.LabelModel``
 
     Args:
@@ -47,5 +52,5 @@ def report_label_model(label_model: LabelModel, label_matrix: np.ndarray,
     for m in metrics:
         logger.info('Label Model {}ing {}: {:.1f}%'.format(
             set, m, label_model_metrics[m] * 100))
-    
+
     return label_model_metrics

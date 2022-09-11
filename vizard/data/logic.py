@@ -7,7 +7,7 @@ from functools import reduce
 import pandas as pd
 import numpy as np
 # helpers
-from typing import Callable, List, Union, cast
+from typing import Callable, cast
 
 
 class Logics:
@@ -64,9 +64,12 @@ class Logics:
         """
         self.df = dataframe
 
-    def add_agg_column(self, aggregator: Callable,
-                       agg_column_name: str,
-                       columns: list) -> pd.DataFrame:
+    def add_agg_column(
+        self,
+        aggregator: Callable,
+        agg_column_name: str,
+        columns: list
+    ) -> pd.DataFrame:
         """Aggregate columns and adds it to the original dataframe using an aggregator function
 
         Args:
@@ -297,9 +300,12 @@ class CanadaLogics(Logics):
         apps_loc: str = series['p1.SecA.App.AppAddr']
 
         def counter(y):
-            return np.sum(np.invert(np.isin([y],
-                                            [apps_loc, None, 'foreign', 'deceased']),  # type: ignore
-                                    dtype=bool))
+            return np.sum(
+                np.invert(
+                    np.isin([y], [apps_loc, None, 'foreign', 'deceased']),  # type: ignore
+                    dtype=bool
+                )
+            )
         return reduce(lambda x, y: x + counter(y), series, 0)
 
     def count_foreign_family_resident(self, series: pd.Series) -> int:

@@ -28,13 +28,13 @@ class LoggingLevels(IntEnum):
 
 
 class Logger(logging.Logger):
-    def __init__(self,
-                 name: str,
-                 level: Union[LoggingLevels, int],
-                 mlflow_artifacts_base_path: Union[Path, str],
-                 libs: Optional[List[str]] = None
-
-                 ) -> None:
+    def __init__(
+        self,
+        name: str,
+        level: Union[LoggingLevels, int],
+        mlflow_artifacts_base_path: Union[Path, str],
+        libs: Optional[List[str]] = None
+    ) -> None:
         super().__init__(name, level)
 
         self.__mlflow_artifacts_base_path = mlflow_artifacts_base_path

@@ -15,13 +15,13 @@ logger = logging.getLogger(__name__)
 
 
 @loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=False, input=False)
-def preview_column_transformer(column_transformer: ColumnTransformer,
-                               original: np.ndarray,
-                               transformed: np.ndarray,
-                               df: pd.DataFrame,
-                               random_state: Union[int, np.random.Generator] = np.random.default_rng(
-                               ),
-                               **kwargs) -> pd.DataFrame:
+def preview_column_transformer(
+    column_transformer: ColumnTransformer,
+    original: np.ndarray,
+    transformed: np.ndarray,
+    df: pd.DataFrame,
+    random_state: Union[int, np.random.Generator] = np.random.default_rng(),
+    **kwargs) -> pd.DataFrame:
     """Preview transformed data next to original one obtained via ``ColumnTransformer``
 
     When the transformation is not :class:`sklearn.preprocessing.OneHotEncoder`,
@@ -99,17 +99,27 @@ def preview_column_transformer(column_transformer: ColumnTransformer,
         if not isinstance(ct.transformers[idx][1], OneHotEncoder):
 
             # compare the values of the transformed and the original columns
-            original_sample = original[sample_indices, columns_indices]
-            transformed_sample = transformed[sample_indices,
-                                             transformed_columns_indices]
+            original_sample = original[
+                sample_indices,
+                columns_indices
+            ]
+            transformed_sample = transformed[
+                sample_indices,
+                transformed_columns_indices
+            ]
             # fix shapes to be 2d
-            original_sample = original_sample.reshape(sample_indices.shape[0],
-                                                      columns_indices.__len__())
-            transformed_sample = transformed_sample.reshape(sample_indices.shape[0],
-                                                            columns_indices.__len__())
+            original_sample = original_sample.reshape(
+                sample_indices.shape[0],
+                columns_indices.__len__()
+            )
+            transformed_sample = transformed_sample.reshape(
+                sample_indices.shape[0],
+                columns_indices.__len__()
+            )
             # create a dataframe with the original and transformed columns side by side
             sample = np.empty(
-                shape=(original_sample.shape[0], original_sample.shape[1] * 2))
+                shape=(original_sample.shape[0], original_sample.shape[1] * 2)
+            )
             sample[:, ::2] = original_sample
             sample[:, 1::2] = transformed_sample
             preview_cols: List[str] = []

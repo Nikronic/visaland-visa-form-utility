@@ -6,7 +6,7 @@ __all__ = [
 import functools
 from functools import wraps as _wraps
 import inspect
-from typing import Callable, Any, List
+from typing import Any
 import warnings
 import logging
 
@@ -90,8 +90,13 @@ def deprecated(reason):
 
 class loggingdecorator(object):
 
-    def __init__(self, name: str, level: int = logging.DEBUG,
-                 input: bool = False, output: bool = False) -> None:
+    def __init__(
+        self,
+        name: str,
+        level: int = logging.DEBUG,
+        input: bool = False,
+        output: bool = False
+    ) -> None:
         self.name = name
         self.level = level
         self.input = input

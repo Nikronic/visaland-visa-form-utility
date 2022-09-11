@@ -11,8 +11,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def get_loss_score(y_predict: np.ndarray, y_true: np.ndarray,
-                      metrics: Union[List[str], str, Callable]) -> Dict[str, Any]:
+def get_loss_score(
+    y_predict: np.ndarray,
+    y_true: np.ndarray,
+    metrics: Union[List[str], str, Callable]
+) -> Dict[str, Any]:
     """Gives loss score given predicted and true labels and metrics
 
     Args:
@@ -21,7 +24,7 @@ def get_loss_score(y_predict: np.ndarray, y_true: np.ndarray,
         metrics (Union[List[str], str, callable]): ``metrics`` can be either
             a metric name (``str``) or a list of metric names that is supported
             by ``flaml.ml.sklearn_metric_loss_score``.
-            
+
             ``metrics`` can also be a custom metric which in that case must be class
             that implements ``__call__`` method with following signature:::
 
@@ -48,27 +51,35 @@ def get_loss_score(y_predict: np.ndarray, y_true: np.ndarray,
     # if `metrics` is one of flaml's metrics
     if isinstance(metrics, str):
         metrics_names = [metrics]
-        metrics_values = sklearn_metric_loss_score(metric_name=metrics,
-                                                  y_predict=y_predict,
-                                                  y_true=y_true)
+        metrics_values = sklearn_metric_loss_score(
+            metric_name=metrics,
+            y_predict=y_predict,
+            y_true=y_true
+        )
     # if `metrics` is a list of metrics of flaml's metrics
     elif isinstance(metrics, list):
         metrics_names = metrics
-        metrics_values = [sklearn_metric_loss_score(metric_name=metric,
-                                                    y_predict=y_predict,
-                                                    y_true=y_true) for metric in metrics]
+        metrics_values = [
+            sklearn_metric_loss_score(
+                metric_name=metric,
+                y_predict=y_predict,
+                y_true=y_true) for metric in metrics
+        ]
     # if `metrics` is a class
     # TODO: fix complaining that mypy does not understand Callable (herald :D)
     elif isinstance(metrics, Callable):  # type: ignore
         metrics = metrics()
         metrics_names = [f'custom_{metrics.__class__.__name__}']
-        metrics_values = [metrics(y_predict=y_predict, y_true=y_true)]  # type: ignore
+        metrics_values = [
+            metrics(y_predict=y_predict, y_true=y_true)  # type: ignore
+        ]
 
     # return dictionary of metrics values and their names
     metrics_name_value: dict = {}
     for metric_name, metric_value in zip(metrics_names, metrics_values):
         metrics_name_value[metric_name] = metric_value
     return metrics_name_value
+
 
 def report_loss_score(metrics: Dict[str, Any]) -> str:
     """Prints a dictionary of ``{'metric_name': metric_value}``
@@ -95,6 +106,7 @@ def report_loss_score(metrics: Dict[str, Any]) -> str:
             msg += f'{metric_name} loss: {metric_value:.2f}\n'
     return msg
 
+
 def is_score_or_loss(metric: str) -> bool:
     """Check if metric is a score or loss
 
@@ -108,7 +120,7 @@ def is_score_or_loss(metric: str) -> bool:
     Args:
         metric (str): metric name that is supported by ``flaml``. For 
             more info see :func:`flaml.ml.sklearn_metric_loss_score`.
-    
+
     See Also:
         * :func:`report_loss_score <vizard.models.trainer.aml_flaml.report_loss_score>`
 
@@ -118,22 +130,24 @@ def is_score_or_loss(metric: str) -> bool:
     # determine if it is 'score' (maximization) or 'loss' (minimization)
     result = False
     if metric in [
-                "r2",
-                "accuracy",
-                "roc_auc",
-                "roc_auc_ovr",
-                "roc_auc_ovo",
-                "f1",
-                "ap",
-                "micro_f1",
-                "macro_f1",
-            ]:
+        'r2',
+        'accuracy',
+        'roc_auc',
+        'roc_auc_ovr',
+        'roc_auc_ovo',
+        'f1',
+        'ap',
+        'micro_f1',
+        'macro_f1',
+    ]:
         result = True
     return result
 
 
-def report_feature_importances(estimator: Any,
-                               feature_names: List[str]) -> str:
+def report_feature_importances(
+    estimator: Any,
+    feature_names: List[str]
+) -> str:
     """Prints feature importances of an fitted ``flaml.AutoML`` instance
 
     Args:
@@ -154,6 +168,6 @@ def report_feature_importances(estimator: Any,
     msg: str = ''
     feature_importance = estimator.feature_importances_
     for feature_name, feature_importance in zip(feature_names,
-                                               feature_importance):
+                                                feature_importance):
         msg += f'{feature_name}: {feature_importance:.2f}\n'
     return msg

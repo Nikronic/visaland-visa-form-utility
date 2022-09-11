@@ -52,9 +52,12 @@ class SFSlicing:
         """
         raise NotImplementedError
 
-    def make_sf(self, func: Callable,
-                class_name: Optional[str] = None,
-                **kwargs) -> SlicingFunction:
+    def make_sf(
+        self,
+        func: Callable,
+        class_name: Optional[str] = None,
+        **kwargs
+    ) -> SlicingFunction:
         """Make any function an instance of ``snorkel.SlicingFunction``
 
         Note:
@@ -120,7 +123,7 @@ class SFSlicing:
         """
         if section not in sections:
             raise ValueError(f'Section must be in {sections}, got {section}')
-    
+
     def __repr__(self) -> str:
         msg = (f'SlicingFunction "{self.__class__.__name__}" is being used'
                f' on column "{self.COLUMN}"')
@@ -165,8 +168,11 @@ class ComposeSFSlicing(SFSlicing):
         """
         slicers_sf: List[SlicingFunction] = []
         for slicer in self.slicers:
-            slicer = self.make_sf(func=slicer.slice, column=slicer.COLUMN,
-                                  class_name=slicer.__class__.__name__)
+            slicer = self.make_sf(
+                func=slicer.slice,
+                column=slicer.COLUMN,
+                class_name=slicer.__class__.__name__
+            )
             slicers_sf.append(slicer)
         return slicers_sf
 
@@ -202,6 +208,5 @@ class SinglePerson(SFSlicing):
         COLUMN = self.COLUMN
         HELPER_COLUMN = self.HELPER_COLUMN
 
-        condition = (s[COLUMN] == 7) & (
-            s[HELPER_COLUMN] == 0)
+        condition = (s[COLUMN] == 7) & (s[HELPER_COLUMN] == 0)
         return True if condition else False
