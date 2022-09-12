@@ -122,7 +122,7 @@ def is_score_or_loss(metric: str) -> bool:
             more info see :func:`flaml.ml.sklearn_metric_loss_score`.
 
     See Also:
-        * :func:`report_loss_score <vizard.models.trainer.aml_flaml.report_loss_score>`
+        * :func:`report_loss_score`
 
     Returns:
         bool: If is a score then return ``True``, otherwise return ``False``

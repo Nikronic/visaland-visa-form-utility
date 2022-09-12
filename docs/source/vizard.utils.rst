@@ -4,10 +4,26 @@ vizard.utils package
 Submodules
 ----------
 
+vizard.utils.dtreeviz module
+----------------------------
+
+.. automodule:: vizard.utils.dtreeviz
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 vizard.utils.helpers module
 ---------------------------
 
 .. automodule:: vizard.utils.helpers
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+vizard.utils.loggers module
+---------------------------
+
+.. automodule:: vizard.utils.loggers
    :members:
    :undoc-members:
    :show-inheritance:

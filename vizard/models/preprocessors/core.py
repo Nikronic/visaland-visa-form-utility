@@ -29,7 +29,7 @@ class TrainTestEvalSplit:
     """Convert a pandas dataframe to a numpy array for with train, test, and eval splits
 
     For conversion from :class:`pandas.DataFrame` to :class:`numpy.ndarray`, we use the same
-    functionality as ``pandas.DataFrame.to_numpy``, but it separates dependent and
+    functionality as :meth:`pandas.DataFrame.to_numpy`, but it separates dependent and
     independent variables given the target column ``target_column``.
 
     Note:
@@ -70,7 +70,7 @@ class TrainTestEvalSplit:
             * test_ratio (float): Ratio of test data
             * eval_ratio (float): Ratio of eval data
             * shuffle (bool): Whether to shuffle the data
-            * stratify (Optional[np.ndarray]): If not None, this is used to stratify the data
+            * stratify (Optional[:class:`numpy.ndarray`]): If not None, this is used to stratify the data
             * random_state (Optional[int]): Random state to use for shuffling
 
         Note:
@@ -438,10 +438,10 @@ class ColumnSelector:
                    :class:`numpy.ndarray`
 
             dtype_include (type): Type of the columns to select. For more info
-                see :func:`pandas.DataFrame.select_dtypes`.
+                see :meth:`pandas.DataFrame.select_dtypes`.
             pattern_include (str): Regex pattern to match columns to **include**
             dtype_exclude (type): Type of the columns to ignore. For more info
-                see :func:`pandas.DataFrame.select_dtypes`. Defaults to None.
+                see :meth:`pandas.DataFrame.select_dtypes`. Defaults to None.
             pattern_exclude (str): Regex pattern to match columns to **exclude**
         """
         self.columns_type = columns_type
@@ -787,7 +787,7 @@ class ColumnTransformerConfig:
         Throw info if columns of different transformers overlap. I.e. at least another
         transform is happening on a column that is already has been transformed.
 
-        Notes:
+        Note:
             This is not a bug or misbehavior since we should be able to pipe
             multiple transformers sequentially on the same column (e.g. ``add`` -> ``divide``).
             The warning is thrown when user didn't meant to do so since the output might be
@@ -832,7 +832,7 @@ class ColumnTransformerConfig:
         Note:
             For more info about how the transformers are created, see methods
             :meth:`set_configs`, :meth:`extract_selected_columns` and
-            :meth:`calculate_group_params`.
+            :meth:`calculate_params`.
 
         Args:
             df (:class:`pandas.DataFrame`): Dataframe to extract columns from
