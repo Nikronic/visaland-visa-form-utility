@@ -115,4 +115,6 @@ autodoc_mock_imports = [
     "typing",
     "sklearn",
     "scipy",
-    "flaml",]
+    "flaml",
+    "dtreeviz",
+    ]

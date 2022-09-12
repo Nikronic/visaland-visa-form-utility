@@ -42,7 +42,7 @@ def preview_column_transformer(
             Same shape as ``transformed``
         transformed (np.ndarray): Transformed data as a :class:`numpy.ndarray`.
             Same shape as ``original``
-        df (pd.DataFrame): A dataframe that hosts the ``original`` and ``transformed``
+        df (:class:`pandas.DataFrame`): A dataframe that hosts the ``original`` and ``transformed``
             data. Used to extract column names and unique values for logging
             information about the transformations done
         random_state (Union[int, np.random.Generator], optional): A seed value or
@@ -56,7 +56,8 @@ def preview_column_transformer(
         ValueError: If ``original`` and ``transformed`` are not of the same shape
 
     Yields:
-        pd.DataFrame: Preview dataframe for each transformer in ``column_transformer.transformers_``.
+        :class:`pandas.DataFrame`:
+        Preview dataframe for each transformer in ``column_transformer.transformers_``.
             Dataframe has twice as columns as ``original`` and ``transformed``, i.e.
             ``df.shape == (original.shape[0], 2 * original.shape[1])``
     """

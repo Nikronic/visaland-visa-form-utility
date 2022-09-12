@@ -102,7 +102,7 @@ class FLAMLDTreeViz:
         return self.__class_names
 
     def _find_estimator(self) -> Any:
-        """Finds underlying fitted estimator from :attr:`self.flaml_automl` as the tree for ``dtreeviz``
+        """Finds underlying fitted estimator from :attr:`flaml_automl` as the tree for ``dtreeviz``
 
         Raises:
             NotImplementedError: If ``flaml_automl`` underlying ``model.estimator`` is not
@@ -207,9 +207,9 @@ class FLAMLDTreeViz:
 
         Args:
             tree_index (int): The index of tree in ensemble tree methods
-            scale (float, optional): Scale if figure. Defaults to 1.0.
-            orientation (str, optional): Orientation of graph, top-down `'TD'` or
-                left-right `'LR'`. Defaults to 'TD'.
+            scale (float, optional): Scale the figure. Defaults to 1.0.
+            orientation (str, optional): Orientation of graph, top-down ``'TD'`` or
+                left-right ``'LR'``. Defaults to 'TD'.
             plot (Optional[Path], optional): Whether or not to plot the result.
                 If ``plot`` is a :class:`pathlib.Path`, then plot will be saved
                 in that path, otherwise ``plt.show`` would be called. Defaults to None.
@@ -244,11 +244,11 @@ class FLAMLDTreeViz:
         Args:
             tree_index (int): The index of tree in ensemble tree methods
             instance_index (int): A single instance of :attr:`x_data`
-            plot (Optional[Path], optional): Whether or not to plot the result.
+            plot (Optional[:class:`pathlib.Path`], optional): Whether or not to plot the result.
                 If ``plot`` is a :class:`pathlib.Path`, then plot will be saved
                 in that path, otherwise ``plt.show`` would be called. Defaults to None.
             explanation_type (str, optional): Explanation format, ``'plain_english'`` (string)
-                or ``'sklearn_default'`` image. Defaults to 'plain_english'.
+                or ``'sklearn_default'`` (image). Defaults to 'plain_english'.
 
         Raises:
             ValueError: If ``'sklearn_image'`` is chosen but ``plot`` is None
