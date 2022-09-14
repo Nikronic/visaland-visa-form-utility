@@ -4,6 +4,7 @@ from flaml import AutoML
 from flaml.ml import sklearn_metric_loss_score
 # helpers
 from typing import Any, Dict, List, Union, Callable
+from enum import Enum
 import logging
 
 
@@ -171,3 +172,21 @@ def report_feature_importances(
                                                 feature_importance):
         msg += f'{feature_name}: {feature_importance:.2f}\n'
     return msg
+
+
+class EvalMode(Enum):
+    """Evaluation methods available in ``flaml``
+    """
+    holdout = 'holdout'
+    """A fixed holdout set for evaluating the model
+
+    Note:
+        You might want to set ``split_ratio`` too
+    """
+    
+    cv = 'cv'
+    """Cross-validation with ``n`` splits
+
+    Note:
+        You might want to set ``n_splits`` too
+    """
