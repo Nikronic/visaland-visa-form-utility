@@ -41,7 +41,7 @@ import sys
 if __name__ == '__main__':
 
     # args
-    EVAL_MODE: EvalMode = EvalMode.holdout
+    EVAL_MODE: EvalMode = EvalMode.cv
 
     # globals
     SEED = 58
@@ -84,7 +84,7 @@ if __name__ == '__main__':
         VERSION = 'v1.2.5-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
-        MLFLOW_EXPERIMENT_NAME = f'fix53 - {VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'fix65 - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         mlflow.start_run()
 
@@ -432,7 +432,7 @@ if __name__ == '__main__':
                 y_true=yt_test,
                 metrics=metrics
             )
-        logger.info(trainers.report_loss_score(metrics=metrics_loss_score_dict))
+            logger.info(trainers.report_loss_score(metrics=metrics_loss_score_dict))
 
         # Save the model
         with open(
