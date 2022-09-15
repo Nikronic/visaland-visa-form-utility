@@ -34,11 +34,11 @@ dependencies:
   - brotlipy=0.7.0=py38h0a891b7_1004
   - bzip2=1.0.8=h7f98852_4
   - c-ares=1.18.1=h7f98852_0
-  - ca-certificates=2022.6.15.1=ha878542_0
+  - ca-certificates=2022.9.14=ha878542_0
   - cached-property=1.5.2=hd8ed1ab_1
   - cached_property=1.5.2=pyha770c72_1
   - cachetools=5.0.0=pyhd8ed1ab_0
-  - certifi=2022.6.15.1=pyhd8ed1ab_0
+  - certifi=2022.9.14=pyhd8ed1ab_0
   - cffi=1.14.4=py38ha312104_0
   - charset-normalizer=2.1.0=pyhd8ed1ab_0
   - colorama=0.4.5=pyhd8ed1ab_0
@@ -64,7 +64,7 @@ dependencies:
   - dvclive=0.10.0=pyhd8ed1ab_0
   - entrypoints=0.4=pyhd8ed1ab_0
   - executing=0.8.3=pyhd8ed1ab_0
-  - flaml=1.0.11=pyhd8ed1ab_1
+  - flaml=1.0.12=pyhd8ed1ab_0
   - flatten-dict=0.4.2=pyhd8ed1ab_1
   - flit-core=3.7.1=pyhd8ed1ab_0
   - flufl.lock=7.0=pyhd8ed1ab_0
