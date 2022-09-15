@@ -19,6 +19,7 @@ from vizard.snorkel import slice_dataframe
 # ours: models
 from vizard.models import preprocessors
 from vizard.models import trainers
+from vizard.models.trainers.aml_flaml import EvalMode
 # ours: helpers
 from vizard.version import VERSION as VIZARD_VERSION
 from vizard.utils.dtreeviz import FLAMLDTreeViz
@@ -38,6 +39,9 @@ import sys
 
 
 if __name__ == '__main__':
+
+    # args
+    EVAL_MODE: EvalMode = EvalMode.cv
 
     # globals
     SEED = 58
@@ -77,10 +81,10 @@ if __name__ == '__main__':
         # data versioning config
         PATH = DST_DIR[:-1] + '-dev.pkl'  # path to source data, e.g. data.pkl file
         REPO = '/home/nik/visaland-visa-form-utility'
-        VERSION = 'v1.2.4-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
+        VERSION = 'v1.2.5-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
-        MLFLOW_EXPERIMENT_NAME = f'fix55 - {VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'fix65 - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         mlflow.start_run()
 
@@ -212,21 +216,26 @@ if __name__ == '__main__':
         data[output_name] = data[output_name].astype('object').astype('category')
         logger.info('\t\t↑↑↑ Finished labeling data with snorkel ↑↑↑')
 
-        # split to train and test to only augment train set
-        pandas_train_test_splitter = preprocessors.PandasTrainTestSplit(
-            random_state=SEED
-        )
-        data_tuple: Tuple[Any, ...] = pandas_train_test_splitter(
-            df=data,
-            target_column=output_name
-        )
-        data_train: pd.DataFrame = data_tuple[0]
-        data_test: pd.DataFrame = data_tuple[1]
-        data = data_train
-        # dump json config into artifacts
-        pandas_train_test_splitter.as_mlflow_artifact(
-            logger.MLFLOW_ARTIFACTS_CONFIGS_PATH
-        )
+        if EVAL_MODE == EvalMode.cv:
+            pass
+        else:
+            # split to train and test to only augment train set
+            pandas_train_test_splitter = preprocessors.PandasTrainTestSplit(
+                random_state=SEED
+            )
+
+            data_tuple: Tuple[Any, ...] = pandas_train_test_splitter(
+                df=data,
+                target_column=output_name
+            )
+            data_train: pd.DataFrame = data_tuple[0]
+            data_test: pd.DataFrame = data_tuple[1]
+            data = data_train
+
+            # dump json config into artifacts
+            pandas_train_test_splitter.as_mlflow_artifact(
+                logger.MLFLOW_ARTIFACTS_CONFIGS_PATH
+            )
 
         logger.info('\t\t↓↓↓ Starting augmentation via snorkel (TFs) ↓↓↓')
         # transformation functions
@@ -307,18 +316,22 @@ if __name__ == '__main__':
         # convert to np and split to train, test, eval
         y_train = data[output_name].to_numpy()
         x_train = data.drop(columns=[output_name], inplace=False).to_numpy()
-        train_test_eval_splitter = preprocessors.TrainTestEvalSplit(
-            random_state=SEED
-        )
-        data_tuple = train_test_eval_splitter(
-            df=data_test,
-            target_column=output_name
-        )
-        x_test, x_eval, y_test, y_eval = data_tuple
-        # dump json config into artifacts
-        train_test_eval_splitter.as_mlflow_artifact(
-            logger.MLFLOW_ARTIFACTS_CONFIGS_PATH
-        )
+
+        if EVAL_MODE == EvalMode.cv:
+            pass
+        else:
+            train_test_eval_splitter = preprocessors.TrainTestEvalSplit(
+                random_state=SEED
+            )
+            data_tuple = train_test_eval_splitter(
+                df=data_test,
+                target_column=output_name
+            )
+            x_test, x_eval, y_test, y_eval = data_tuple
+            # dump json config into artifacts
+            train_test_eval_splitter.as_mlflow_artifact(
+                logger.MLFLOW_ARTIFACTS_CONFIGS_PATH
+            )
 
         # Transform and normalize appropriately given config
         x_column_transformers_config = preprocessors.ColumnTransformerConfig()
@@ -349,12 +362,16 @@ if __name__ == '__main__':
             logger.MLFLOW_ARTIFACTS_MODELS_PATH / 'train_sklearn_column_transfer.pkl', 'wb'
             ) as f:
             pickle.dump(x_ct, f, pickle.HIGHEST_PROTOCOL)
-        # transform on eval data
-        xt_eval = x_ct.transform(x_eval)
-        yt_eval = y_ct.transform(y_eval)
-        # transform on test data
-        xt_test = x_ct.transform(x_test)
-        yt_test = y_ct.transform(y_test)
+        
+        if EVAL_MODE == EvalMode.cv:
+            pass
+        else:
+            # transform on eval data
+            xt_eval = x_ct.transform(x_eval)
+            yt_eval = y_ct.transform(y_eval)
+            # transform on test data
+            xt_test = x_ct.transform(x_test)
+            yt_test = y_ct.transform(y_test)
 
         # preview the transformed data
         preview_ct = preprocessors.preview_column_transformer(
@@ -385,8 +402,9 @@ if __name__ == '__main__':
         flaml_automl.fit(
             X_train=xt_train,
             y_train=yt_train,
-            X_val=xt_eval,
-            y_val=yt_eval,
+            X_val=None if EVAL_MODE==EvalMode.cv else xt_eval,
+            y_val=None if EVAL_MODE==EvalMode.cv else yt_eval,
+            eval_method=EVAL_MODE.value,
             seed=SEED,
             append_log=False,
             log_file_name=logger.MLFLOW_ARTIFACTS_LOGS_PATH / 'flaml.log',
@@ -402,15 +420,20 @@ if __name__ == '__main__':
                 feature_names=feature_names
             )
         )
-        y_pred = flaml_automl.predict(xt_test)
-        logger.info(f'Best FLAML model: {flaml_automl.model.estimator}')
-        metrics = ['accuracy', 'log_loss', 'f1', 'roc_auc', ]
-        metrics_loss_score_dict = trainers.get_loss_score(
-            y_predict=y_pred,
-            y_true=yt_test,
-            metrics=metrics
-        )
-        logger.info(trainers.report_loss_score(metrics=metrics_loss_score_dict))
+
+        if EVAL_MODE == EvalMode.cv:
+            pass
+        else:
+            y_pred = flaml_automl.predict(xt_test)
+            logger.info(f'Best FLAML model: {flaml_automl.model.estimator}')
+            metrics = ['accuracy', 'log_loss', 'f1', 'roc_auc', ]
+            metrics_loss_score_dict = trainers.get_loss_score(
+                y_predict=y_pred,
+                y_true=yt_test,
+                metrics=metrics
+            )
+            logger.info(trainers.report_loss_score(metrics=metrics_loss_score_dict))
+
         # Save the model
         with open(
             logger.MLFLOW_ARTIFACTS_MODELS_PATH / 'flaml_automl.pkl', 'wb'
@@ -474,16 +497,22 @@ if __name__ == '__main__':
         mlflow.log_param('unlabeled_dataframe_shape', data_unlabeled.shape)
         # log FLAML AutoML params
         logger.info('Log `FLAML` `AutoML` params as MLflow params...')
-        mlflow.log_metrics(metrics_loss_score_dict)
+        if EVAL_MODE == EvalMode.cv:
+            pass
+        else:
+            mlflow.log_metrics(metrics_loss_score_dict)
         # log modeling preprocessed params
         logger.info('Log modeling preprocessed params as MLflow params...')
         mlflow.log_param('x_train_shape', x_train.shape)
         mlflow.log_param('xt_train_shape', xt_train.shape)
-        mlflow.log_param('x_test_shape', x_test.shape)
-        mlflow.log_param('x_val_shape', x_eval.shape)
         mlflow.log_param('y_train_shape', y_train.shape)
         mlflow.log_param('yt_train_shape', yt_train.shape)
-        mlflow.log_param('y_test_shape', y_test.shape)
-        mlflow.log_param('y_val_shape', y_test.shape)
-        logger.info('\t\t↑↑↑ Finished logging hyperparams and params with MLFlow ↑↑↑')
+        if EVAL_MODE == EvalMode.cv:
+            pass
+        else:
+            mlflow.log_param('x_test_shape', x_test.shape)
+            mlflow.log_param('x_val_shape', x_eval.shape)
+            mlflow.log_param('y_test_shape', y_test.shape)
+            mlflow.log_param('y_val_shape', y_test.shape)
+            logger.info('\t\t↑↑↑ Finished logging hyperparams and params with MLFlow ↑↑↑')
         mlflow.end_run()

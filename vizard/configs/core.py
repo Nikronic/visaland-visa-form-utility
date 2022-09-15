@@ -83,6 +83,7 @@ class JsonConfigHandler:
                 'task': method_fit_configs['FLAML_AUTOML_TASK'],
                 'metric': method_fit_configs['FLAML_AUTOML_METRIC'],
                 'max_iter': method_fit_configs['FLAML_AUTOML_MAX_ITER'],
+                'split_ratio': method_fit_configs['FLAML_SPLIT_RATIO'],
                 'mem_thres': method_fit_configs['FLAML_AUTOML_MEM_THRES'],
                 'n_concurrent_trials': method_fit_configs['FLAML_AUTOML_N_CONCURRENT_TRIALS'],
                 'auto_augment': method_fit_configs['FLAML_AUTOML_AUTO_AUGMENT'],
