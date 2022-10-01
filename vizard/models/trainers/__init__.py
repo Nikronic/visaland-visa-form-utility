@@ -14,6 +14,7 @@ from .aml_flaml import report_feature_importances
 from .aml_flaml import sklearn_metric_loss_score
 from .aml_flaml import report_loss_score
 from .aml_flaml import get_loss_score
+from .aml_flaml import log_model
 from .aml_flaml import AutoML
 # helpers
 import logging

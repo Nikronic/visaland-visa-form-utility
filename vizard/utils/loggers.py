@@ -105,6 +105,7 @@ class Logger(logging.Logger):
             - logging prints: ``logs``
             - configs of classes, setting, etc as json files: ``configs``
             - model weights or objects: ``models``
+            - ``MLflow`` flavor-specific tracked model: ``MLmodel`` 
 
         Notes:
             If you are using this class for just flagging the data,
@@ -119,17 +120,20 @@ class Logger(logging.Logger):
         MLFLOW_ARTIFACTS_CONFIGS_PATH = base_path / 'configs'
         MLFLOW_ARTIFACTS_IMAGES_PATH = base_path / 'images'
         MLFLOW_ARTIFACTS_MODELS_PATH = base_path / 'models'
+        MLFLOW_ARTIFACTS_MLMODELS_PATH = base_path / 'MLmodel'
         if not base_path.exists():
             base_path.mkdir(parents=True)
             MLFLOW_ARTIFACTS_LOGS_PATH.mkdir(parents=True)
             MLFLOW_ARTIFACTS_CONFIGS_PATH.mkdir(parents=True)
             MLFLOW_ARTIFACTS_IMAGES_PATH.mkdir(parents=True)
             MLFLOW_ARTIFACTS_MODELS_PATH.mkdir(parents=True)
+            MLFLOW_ARTIFACTS_MLMODELS_PATH.mkdir(parents=True)
 
         self.MLFLOW_ARTIFACTS_LOGS_PATH = MLFLOW_ARTIFACTS_LOGS_PATH
         self.MLFLOW_ARTIFACTS_CONFIGS_PATH = MLFLOW_ARTIFACTS_CONFIGS_PATH
         self.MLFLOW_ARTIFACTS_IMAGES_PATH = MLFLOW_ARTIFACTS_IMAGES_PATH
         self.MLFLOW_ARTIFACTS_MODELS_PATH = MLFLOW_ARTIFACTS_MODELS_PATH
+        self.MLFLOW_ARTIFACTS_MLMODELS_PATH = MLFLOW_ARTIFACTS_MLMODELS_PATH
 
     def _remove_previous_handlers(self) -> None:
         """This is used to remove file related handlers on each new run of :meth:`create_artifact_instance`

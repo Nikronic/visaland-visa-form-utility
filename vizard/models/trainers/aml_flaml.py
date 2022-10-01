@@ -1,9 +1,21 @@
 # core
+from xgboost import XGBClassifier
+from lightgbm import LGBMClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import (
+    DecisionTreeClassifier,
+    ExtraTreeClassifier
+)
+from catboost import CatBoostClassifier
 import numpy as np
+import flaml
 from flaml import AutoML
 from flaml.ml import sklearn_metric_loss_score
+# devops
+import mlflow
 # helpers
-from typing import Any, Dict, List, Union, Callable
+from typing import Any, Dict, List, Optional, Union, Callable
+from pathlib import Path
 from enum import Enum
 import logging
 
@@ -183,10 +195,113 @@ class EvalMode(Enum):
     Note:
         You might want to set ``split_ratio`` too
     """
-    
+
     cv = 'cv'
     """Cross-validation with ``n`` splits
 
     Note:
         You might want to set ``n_splits`` too
     """
+
+
+def find_estimator(flaml_automl: flaml.AutoML):
+    """Finds underlying fitted estimator from given ``flaml`` model
+
+    Args:
+        flaml_automl (flaml.AutoML): An already fitted :class:`flaml.AutoML` instance
+
+    Raises:
+        NotImplementedError:
+            If ``flaml_automl`` 's underlying ``model.estimator``
+            is not implemented yet
+
+    Returns:
+        Any:
+        The underlying estimator itself or a component of it that 
+        quacks like sklearn estimators
+    """
+    # get best fitted estimator
+    estimator: Any = flaml_automl.model.estimator
+    # find algorithm/type of estimator
+    if isinstance(estimator, XGBClassifier):
+        pass  # xgboost
+    elif isinstance(estimator, LGBMClassifier):
+        estimator = estimator.booster_  # lgbm
+    elif isinstance(estimator, RandomForestClassifier):
+        pass  # sklearn
+    elif isinstance(estimator, CatBoostClassifier):
+        pass  # catboost
+    elif isinstance(estimator, DecisionTreeClassifier):
+        pass  # sklearn
+    elif isinstance(estimator, ExtraTreeClassifier):
+        pass  # sklearn
+    else:
+        raise NotImplementedError(
+            f'estimator "{estimator.__class__.__name__}" not found'
+        )
+    return estimator
+
+
+def log_model(
+    estimator: Any,
+    artifact_path: Union[Path, str],
+    conda_env: str,
+    registered_model_name: Optional[str] = None
+):
+    """Logs the underlying estimator of :class:`flaml.AutoML` as an flavor-specific ``MLflow`` artifact
+
+    Note:
+        FLAML does not exposes the underlying estimator with the same API
+        for ``mlflow.[flavor].log_model``. Hence, it is needed to the find the estimator first,
+        then use the correct flavor for it.
+
+    Args:
+        estimator (Any): A trained :class:`flaml.AutoML` model that has ``flaml.model`` populated.
+            Note that the list of estimators can be found by ``flaml.AutoML.estimator_list``.
+        artifact_path (Union[Path, str]): A path to save the tracked model as an mlflow artifact
+        conda_env (str): Path to conda environment. If None, inferred by mlflow.
+        registered_model_name (Optional[str]): The name of the model if registration of the
+            model is desired. Giving the same name for multiple models, uses the default
+            versioning by mlflow. Defaults to None.
+    """
+    # find the estimator algorithm/type
+    estimator = find_estimator(flaml_automl=estimator)
+    # convert Path to posix since mlflow only accept posix
+    if isinstance(artifact_path, Path):
+        artifact_path = artifact_path.as_posix()
+
+    # find the mlflow model flavor and track the underlying estimator with it
+    if isinstance(estimator, XGBClassifier):
+        mlflow.xgboost.log_model(
+            xgb_model=estimator,
+            artifact_path=artifact_path,
+            conda_env=conda_env,
+            registered_model_name=registered_model_name
+        )
+    if isinstance(estimator, LGBMClassifier):
+        mlflow.lightgbm.log_model(
+            lgb_model=estimator,
+            artifact_path=artifact_path,
+            conda_env=conda_env,
+            registered_model_name=registered_model_name
+        )
+    if isinstance(estimator, CatBoostClassifier):
+        mlflow.catboost.log_model(
+            cb_model=estimator,
+            artifact_path=artifact_path,
+            conda_env=conda_env,
+            registered_model_name=registered_model_name
+        )
+    else:
+        # sklearn api: RandomForestClassifier, DecisionTreeClassifier, ...
+        mlflow.sklearn.log_model(
+            sk_model=estimator,
+            artifact_path=artifact_path,
+            conda_env=conda_env,
+            registered_model_name=registered_model_name
+        )
+
+    logger.info(
+        f'model of type "{estimator.__class__.__name__}"'
+        f' is tracked via MLflow.'
+    )

@@ -84,7 +84,7 @@ if __name__ == '__main__':
         VERSION = 'v1.2.5-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
-        MLFLOW_EXPERIMENT_NAME = f'fix65 - {VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'fix46 - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         mlflow.start_run()
 
@@ -439,6 +439,13 @@ if __name__ == '__main__':
             logger.MLFLOW_ARTIFACTS_MODELS_PATH / 'flaml_automl.pkl', 'wb'
             ) as f:
             pickle.dump(flaml_automl, f, pickle.HIGHEST_PROTOCOL)
+        # track (and register) the model via mlflow flavors
+        trainers.aml_flaml.log_model(
+            estimator=flaml_automl,
+            artifact_path='/'.join(logger.MLFLOW_ARTIFACTS_MLMODELS_PATH.parts[1:]),
+            conda_env='conda_env.yml',
+            registered_model_name=None  # manually register desired models
+        )
         logger.info('\t\t↑↑↑ Finished loading training config and training estimators ↑↑↑')
 
         logger.info('\t\t↓↓↓ Starting loading evaluation config and evaluating estimators ↓↓↓')
