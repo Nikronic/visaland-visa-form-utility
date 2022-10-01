@@ -241,12 +241,13 @@ def find_estimator(flaml_automl: flaml.AutoML):
         )
     return estimator
 
+
 def log_model(
     estimator: Any,
     artifact_path: Union[Path, str],
     conda_env: str,
     registered_model_name: Optional[str] = None
-    ):
+):
     """Logs the underlying estimator of :class:`flaml.AutoML` as an flavor-specific ``MLflow`` artifact
 
     Note:
@@ -268,7 +269,7 @@ def log_model(
     # convert Path to posix since mlflow only accept posix
     if isinstance(artifact_path, Path):
         artifact_path = artifact_path.as_posix()
-    
+
     # find the mlflow model flavor and track the underlying estimator with it
     if isinstance(estimator, XGBClassifier):
         mlflow.xgboost.log_model(
@@ -299,5 +300,8 @@ def log_model(
             conda_env=conda_env,
             registered_model_name=registered_model_name
         )
-    
-    logger.info(f'model of type "{estimator.__class__.__name__}" is tracked via MLflow.')
+
+    logger.info(
+        f'model of type "{estimator.__class__.__name__}"'
+        f' is tracked via MLflow.'
+    )
