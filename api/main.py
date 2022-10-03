@@ -707,7 +707,9 @@ def _preprocess(**kwargs):
     return features
 
 
-def _predict(*args, **kwargs):
+def _predict(**kwargs):
+    # convert api data to model data
+    args = _preprocess(**kwargs)
     # convert to dataframe
     x_test = pd.DataFrame(data=[list(args)], columns=data.columns)
     x_test = x_test.astype(data.dtypes)
@@ -728,119 +730,119 @@ async def predict(
 ):
     try:
         result = _predict(
-            features.alias_name_indicator,
-            features.sex,
+            alias_name_indicator = features.alias_name_indicator,
+            sex = features.sex,
 
-            features.current_country_of_residence_country,
-            features.current_country_of_residence_status,
-            features.previous_country_of_residence_country2,
-            features.previous_country_of_residence_country3,
+            current_country_of_residence_country = features.current_country_of_residence_country,
+            current_country_of_residence_status = features.current_country_of_residence_status,
+            previous_country_of_residence_country2 = features.previous_country_of_residence_country2,
+            previous_country_of_residence_country3 = features.previous_country_of_residence_country3,
 
-            features.same_as_country_of_residence_indicator,
-            features.country_where_applying_country,
-            features.country_where_applying_status,
+            same_as_country_of_residence_indicator = features.same_as_country_of_residence_indicator,
+            country_where_applying_country = features.country_where_applying_country,
+            country_where_applying_status = features.country_where_applying_status,
 
-            features.previous_marriage_indicator,
+            previous_marriage_indicator = features.previous_marriage_indicator,
 
-            features.purpose_of_visit,
-            features.funds,
-            features.contact_relation_to_me,
-            features.contact_relation_to_me2,
+            purpose_of_visit = features.purpose_of_visit,
+            funds = features.funds,
+            contact_relation_to_me = features.contact_relation_to_me,
+            contact_relation_to_me2 = features.contact_relation_to_me2,
 
-            features.education_indicator,
-            features.education_field_of_study,
-            features.education_country,
+            education_indicator = features.education_indicator,
+            education_field_of_study = features.education_field_of_study,
+            education_country = features.education_country,
 
-            features.occupation_title1,
-            features.occupation_country1,
-            features.occupation_title2,
-            features.occupation_country2,
-            features.occupation_title3,
-            features.occupation_country3,
+            occupation_title1 = features.occupation_title1,
+            occupation_country1 = features.occupation_country1,
+            occupation_title2 = features.occupation_title2,
+            occupation_country2 = features.occupation_country2,
+            occupation_title3 = features.occupation_title3,
+            occupation_country3 = features.occupation_country3,
 
-            features.no_authorized_stay,
-            features.refused_entry_or_deport,
-            features.previous_apply,
+            no_authorized_stay = features.no_authorized_stay,
+            refused_entry_or_deport = features.refused_entry_or_deport,
+            previous_apply = features.previous_apply,
 
-            features.date_of_birth,
+            date_of_birth = features.date_of_birth,
 
-            features.previous_country_of_residency_period2,
-            features.previous_country_of_residency_period3,
+            previous_country_of_residency_period2 = features.previous_country_of_residency_period2,
+            previous_country_of_residency_period3 = features.previous_country_of_residency_period3,
 
-            features.country_where_applying_period,  # days
+            country_where_applying_period = features.country_where_applying_period,  # days
 
-            features.marriage_period,
-            features.previous_marriage_period,
+            marriage_period = features.marriage_period,
+            previous_marriage_period = features.previous_marriage_period,
 
-            features.passport_expiry_date_remaining,  # years?
-            features.how_long_stay_period,  # days
+            passport_expiry_date_remaining = features.passport_expiry_date_remaining,  # years?
+            how_long_stay_period = features.how_long_stay_period,  # days
 
-            features.education_period,
+            education_period = features.education_period,
 
-            features.occupation_period,
-            features.occupation_period2,
-            features.occupation_period3,
+            occupation_period = features.occupation_period,
+            occupation_period2 = features.occupation_period2,
+            occupation_period3 = features.occupation_period3,
 
-            features.applicant_marital_status,
-            features.mother_marital_status,
-            features.father_marital_status,
+            applicant_marital_status = features.applicant_marital_status,
+            mother_marital_status = features.mother_marital_status,
+            father_marital_status = features.father_marital_status,
 
-            features.child_marital_status0,
-            features.child_relation0,
-            features.child_marital_status1,
-            features.child_relation1,
-            features.child_marital_status2,
-            features.child_relation2,
-            features.child_marital_status3,
-            features.child_relation3,
+            child_marital_status0 = features.child_marital_status0,
+            child_relation0 = features.child_relation0,
+            child_marital_status1 = features.child_marital_status1,
+            child_relation1 = features.child_relation1,
+            child_marital_status2 = features.child_marital_status2,
+            child_relation2 = features.child_relation2,
+            child_marital_status3 = features.child_marital_status3,
+            child_relation3 = features.child_relation3,
 
-            features.sibling_marital_status0,
-            features.sibling_relation0,
-            features.sibling_marital_status1,
-            features.sibling_relation1,
-            features.sibling_marital_status2,
-            features.sibling_relation2,
-            features.sibling_marital_status3,
-            features.sibling_relation3,
-            features.sibling_marital_status4,
-            features.sibling_relation4,
-            features.sibling_marital_status5,
-            features.sibling_relation5,
-            features.sibling_marital_status6,
-            features.sibling_relation6,
+            sibling_marital_status0 = features.sibling_marital_status0,
+            sibling_relation0 = features.sibling_relation0,
+            sibling_marital_status1 = features.sibling_marital_status1,
+            sibling_relation1 = features.sibling_relation1,
+            sibling_marital_status2 = features.sibling_marital_status2,
+            sibling_relation2 = features.sibling_relation2,
+            sibling_marital_status3 = features.sibling_marital_status3,
+            sibling_relation3 = features.sibling_relation3,
+            sibling_marital_status4 = features.sibling_marital_status4,
+            sibling_relation4 = features.sibling_relation4,
+            sibling_marital_status5 = features.sibling_marital_status5,
+            sibling_relation5 = features.sibling_relation5,
+            sibling_marital_status6 = features.sibling_marital_status6,
+            sibling_relation6 = features.sibling_relation6,
 
-            features.spouse_date_of_birth,
-            features.mother_date_of_birth,
-            features.father_date_of_birth,
+            spouse_date_of_birth = features.spouse_date_of_birth,
+            mother_date_of_birth = features.mother_date_of_birth,
+            father_date_of_birth = features.father_date_of_birth,
 
-            features.child_date_of_birth0,
-            features.child_date_of_birth1,
-            features.child_date_of_birth2,
-            features.child_date_of_birth3,
+            child_date_of_birth0 = features.child_date_of_birth0,
+            child_date_of_birth1 = features.child_date_of_birth1,
+            child_date_of_birth2 = features.child_date_of_birth2,
+            child_date_of_birth3 = features.child_date_of_birth3,
 
-            features.sibling_date_of_birth0,
-            features.sibling_date_of_birth1,
-            features.sibling_date_of_birth2,
-            features.sibling_date_of_birth3,
-            features.sibling_date_of_birth4,
-            features.sibling_date_of_birth5,
-            features.sibling_date_of_birth6,
+            sibling_date_of_birth0 = features.sibling_date_of_birth0,
+            sibling_date_of_birth1 = features.sibling_date_of_birth1,
+            sibling_date_of_birth2 = features.sibling_date_of_birth2,
+            sibling_date_of_birth3 = features.sibling_date_of_birth3,
+            sibling_date_of_birth4 = features.sibling_date_of_birth4,
+            sibling_date_of_birth5 = features.sibling_date_of_birth5,
+            sibling_date_of_birth6 = features.sibling_date_of_birth6,
 
-            features.previous_country_of_residence_count,
+            previous_country_of_residence_count = features.previous_country_of_residence_count,
 
-            features.sibling_foreigner_count,
-            features.child_mother_father_spouse_foreigner_count,
+            sibling_foreigner_count = features.sibling_foreigner_count,
+            child_mother_father_spouse_foreigner_count = features.child_mother_father_spouse_foreigner_count,
 
-            features.child_accompany,
-            features.parent_accompany,
-            features.spouse_accompany,
-            features.sibling_accompany,
+            child_accompany = features.child_accompany,
+            parent_accompany = features.parent_accompany,
+            spouse_accompany = features.spouse_accompany,
+            sibling_accompany = features.sibling_accompany,
 
-            features.child_count,
-            features.sibling_count,
+            child_count = features.child_count,
+            sibling_count = features.sibling_count,
 
-            features.long_distance_child_sibling_count,
-            features.foreign_living_child_sibling_count,
+            long_distance_child_sibling_count = features.long_distance_child_sibling_count,
+            foreign_living_child_sibling_count = features.foreign_living_child_sibling_count,
         )
 
         logger.info('Inference finished')
@@ -863,119 +865,119 @@ async def flag(
 
     try:
         result = _predict(
-            features.alias_name_indicator,
-            features.sex,
+            alias_name_indicator = features.alias_name_indicator,
+            sex = features.sex,
 
-            features.current_country_of_residence_country,
-            features.current_country_of_residence_status,
-            features.previous_country_of_residence_country2,
-            features.previous_country_of_residence_country3,
+            current_country_of_residence_country = features.current_country_of_residence_country,
+            current_country_of_residence_status = features.current_country_of_residence_status,
+            previous_country_of_residence_country2 = features.previous_country_of_residence_country2,
+            previous_country_of_residence_country3 = features.previous_country_of_residence_country3,
 
-            features.same_as_country_of_residence_indicator,
-            features.country_where_applying_country,
-            features.country_where_applying_status,
+            same_as_country_of_residence_indicator = features.same_as_country_of_residence_indicator,
+            country_where_applying_country = features.country_where_applying_country,
+            country_where_applying_status = features.country_where_applying_status,
 
-            features.previous_marriage_indicator,
+            previous_marriage_indicator = features.previous_marriage_indicator,
 
-            features.purpose_of_visit,
-            features.funds,
-            features.contact_relation_to_me,
-            features.contact_relation_to_me2,
+            purpose_of_visit = features.purpose_of_visit,
+            funds = features.funds,
+            contact_relation_to_me = features.contact_relation_to_me,
+            contact_relation_to_me2 = features.contact_relation_to_me2,
 
-            features.education_indicator,
-            features.education_field_of_study,
-            features.education_country,
+            education_indicator = features.education_indicator,
+            education_field_of_study = features.education_field_of_study,
+            education_country = features.education_country,
 
-            features.occupation_title1,
-            features.occupation_country1,
-            features.occupation_title2,
-            features.occupation_country2,
-            features.occupation_title3,
-            features.occupation_country3,
+            occupation_title1 = features.occupation_title1,
+            occupation_country1 = features.occupation_country1,
+            occupation_title2 = features.occupation_title2,
+            occupation_country2 = features.occupation_country2,
+            occupation_title3 = features.occupation_title3,
+            occupation_country3 = features.occupation_country3,
 
-            features.no_authorized_stay,
-            features.refused_entry_or_deport,
-            features.previous_apply,
+            no_authorized_stay = features.no_authorized_stay,
+            refused_entry_or_deport = features.refused_entry_or_deport,
+            previous_apply = features.previous_apply,
 
-            features.date_of_birth,
+            date_of_birth = features.date_of_birth,
 
-            features.previous_country_of_residency_period2,
-            features.previous_country_of_residency_period3,
+            previous_country_of_residency_period2 = features.previous_country_of_residency_period2,
+            previous_country_of_residency_period3 = features.previous_country_of_residency_period3,
 
-            features.country_where_applying_period,  # days
+            country_where_applying_period = features.country_where_applying_period,  # days
 
-            features.marriage_period,
-            features.previous_marriage_period,
+            marriage_period = features.marriage_period,
+            previous_marriage_period = features.previous_marriage_period,
 
-            features.passport_expiry_date_remaining,  # years?
-            features.how_long_stay_period,  # days
+            passport_expiry_date_remaining = features.passport_expiry_date_remaining,  # years?
+            how_long_stay_period = features.how_long_stay_period,  # days
 
-            features.education_period,
+            education_period = features.education_period,
 
-            features.occupation_period,
-            features.occupation_period2,
-            features.occupation_period3,
+            occupation_period = features.occupation_period,
+            occupation_period2 = features.occupation_period2,
+            occupation_period3 = features.occupation_period3,
 
-            features.applicant_marital_status,
-            features.mother_marital_status,
-            features.father_marital_status,
+            applicant_marital_status = features.applicant_marital_status,
+            mother_marital_status = features.mother_marital_status,
+            father_marital_status = features.father_marital_status,
 
-            features.child_marital_status0,
-            features.child_relation0,
-            features.child_marital_status1,
-            features.child_relation1,
-            features.child_marital_status2,
-            features.child_relation2,
-            features.child_marital_status3,
-            features.child_relation3,
+            child_marital_status0 = features.child_marital_status0,
+            child_relation0 = features.child_relation0,
+            child_marital_status1 = features.child_marital_status1,
+            child_relation1 = features.child_relation1,
+            child_marital_status2 = features.child_marital_status2,
+            child_relation2 = features.child_relation2,
+            child_marital_status3 = features.child_marital_status3,
+            child_relation3 = features.child_relation3,
 
-            features.sibling_marital_status0,
-            features.sibling_relation0,
-            features.sibling_marital_status1,
-            features.sibling_relation1,
-            features.sibling_marital_status2,
-            features.sibling_relation2,
-            features.sibling_marital_status3,
-            features.sibling_relation3,
-            features.sibling_marital_status4,
-            features.sibling_relation4,
-            features.sibling_marital_status5,
-            features.sibling_relation5,
-            features.sibling_marital_status6,
-            features.sibling_relation6,
+            sibling_marital_status0 = features.sibling_marital_status0,
+            sibling_relation0 = features.sibling_relation0,
+            sibling_marital_status1 = features.sibling_marital_status1,
+            sibling_relation1 = features.sibling_relation1,
+            sibling_marital_status2 = features.sibling_marital_status2,
+            sibling_relation2 = features.sibling_relation2,
+            sibling_marital_status3 = features.sibling_marital_status3,
+            sibling_relation3 = features.sibling_relation3,
+            sibling_marital_status4 = features.sibling_marital_status4,
+            sibling_relation4 = features.sibling_relation4,
+            sibling_marital_status5 = features.sibling_marital_status5,
+            sibling_relation5 = features.sibling_relation5,
+            sibling_marital_status6 = features.sibling_marital_status6,
+            sibling_relation6 = features.sibling_relation6,
 
-            features.spouse_date_of_birth,
-            features.mother_date_of_birth,
-            features.father_date_of_birth,
+            spouse_date_of_birth = features.spouse_date_of_birth,
+            mother_date_of_birth = features.mother_date_of_birth,
+            father_date_of_birth = features.father_date_of_birth,
 
-            features.child_date_of_birth0,
-            features.child_date_of_birth1,
-            features.child_date_of_birth2,
-            features.child_date_of_birth3,
+            child_date_of_birth0 = features.child_date_of_birth0,
+            child_date_of_birth1 = features.child_date_of_birth1,
+            child_date_of_birth2 = features.child_date_of_birth2,
+            child_date_of_birth3 = features.child_date_of_birth3,
 
-            features.sibling_date_of_birth0,
-            features.sibling_date_of_birth1,
-            features.sibling_date_of_birth2,
-            features.sibling_date_of_birth3,
-            features.sibling_date_of_birth4,
-            features.sibling_date_of_birth5,
-            features.sibling_date_of_birth6,
+            sibling_date_of_birth0 = features.sibling_date_of_birth0,
+            sibling_date_of_birth1 = features.sibling_date_of_birth1,
+            sibling_date_of_birth2 = features.sibling_date_of_birth2,
+            sibling_date_of_birth3 = features.sibling_date_of_birth3,
+            sibling_date_of_birth4 = features.sibling_date_of_birth4,
+            sibling_date_of_birth5 = features.sibling_date_of_birth5,
+            sibling_date_of_birth6 = features.sibling_date_of_birth6,
 
-            features.previous_country_of_residence_count,
+            previous_country_of_residence_count = features.previous_country_of_residence_count,
 
-            features.sibling_foreigner_count,
-            features.child_mother_father_spouse_foreigner_count,
+            sibling_foreigner_count = features.sibling_foreigner_count,
+            child_mother_father_spouse_foreigner_count = features.child_mother_father_spouse_foreigner_count,
 
-            features.child_accompany,
-            features.parent_accompany,
-            features.spouse_accompany,
-            features.sibling_accompany,
+            child_accompany = features.child_accompany,
+            parent_accompany = features.parent_accompany,
+            spouse_accompany = features.spouse_accompany,
+            sibling_accompany = features.sibling_accompany,
 
-            features.child_count,
-            features.sibling_count,
+            child_count = features.child_count,
+            sibling_count = features.sibling_count,
 
-            features.long_distance_child_sibling_count,
-            features.foreign_living_child_sibling_count,
+            long_distance_child_sibling_count = features.long_distance_child_sibling_count,
+            foreign_living_child_sibling_count = features.foreign_living_child_sibling_count,
         )
 
         # if need to be flagged, save as artifact
