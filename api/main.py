@@ -102,6 +102,17 @@ worldbank_gdp_dataframe = pd.read_pickle(
 eco_country_score_preprocessor = preprocessor.WorldBankXMLProcessor(
     dataframe=worldbank_gdp_dataframe
 )
+# data file for converting country names to continuous score in "all" possible senses
+worldbank_overall_dataframe = pd.read_pickle(
+    dvc.api.get_url(
+        path=HELPER_PATH_OVERALL,
+        repo=REPO,
+        rev=HELPER_VERSION_OVERALL
+    )
+)
+edu_country_score_preprocessor = preprocessor.EducationCountryScoreDataframePreprocessor(
+    dataframe=worldbank_overall_dataframe
+)
 
 
 # configure logging
@@ -168,6 +179,530 @@ app.add_middleware(
 
 def _preprocess(**kwargs):
     features: List = []
+    
+    # 0 P1.PD.AliasName.AliasNameIndicator.AliasNameIndicator
+    alias_name_indicator = kwargs['alias_name_indicator']
+    features.append(alias_name_indicator)
+
+    # 1 P1.PD.Sex.Sex
+    sex = kwargs['sex']
+    sex = sex.lower().title()  # female -> Female, ...
+    features.append(sex)
+
+    # 2 P1.PD.CurrCOR.Row2.Country
+    current_country_of_residence_country = kwargs['current_country_of_residence_country']
+    current_country_of_residence_country = functional.extended_dict_get(
+        current_country_of_residence_country,
+        functional.config_csv_to_dict(CANADA_COUNTRY_CODE_TO_NAME),
+        'Unknown',
+        str.isnumeric,
+    )
+    current_country_of_residence_country = eco_country_score_preprocessor.convert_country_name_to_numeric(
+        current_country_of_residence_country
+    )
+    features.append(current_country_of_residence_country)
+
+    # 3 P1.PD.CurrCOR.Row2.Status
+    def f(string: str) -> int:
+        """convert residency status string to code
+
+        Args:
+            string (str): Residency string, either ``'citizen'`` or ``'visitor'``.
+
+        Returns:
+            int: Residency code {1: 'citizen', 3: 'visitor'}
+        """
+        string = string.lower().strip()
+        if string == 'citizen':
+            return 1
+        elif string == 'visitor':
+            return 3
+        elif string == 'other':
+            return 6
+        else:
+            raise ValueError(f'"{string}" is not an acceptable residency status')
+    
+    current_country_of_residence_status = kwargs['current_country_of_residence_status']
+    current_country_of_residence_status = f(current_country_of_residence_status)
+    features.append(current_country_of_residence_status)
+
+    # 4 P1.PD.PrevCOR.Row2.Country
+    previous_country_of_residence_country2 = kwargs['previous_country_of_residence_country2']
+    previous_country_of_residence_country2 = functional.extended_dict_get(
+        previous_country_of_residence_country2,
+        functional.config_csv_to_dict(CANADA_COUNTRY_CODE_TO_NAME),
+        'Unknown',
+        str.isnumeric,
+    )
+    previous_country_of_residence_country2 = eco_country_score_preprocessor.convert_country_name_to_numeric(
+        previous_country_of_residence_country2
+    )
+    features.append(previous_country_of_residence_country2)
+
+    # 5 P1.PD.PrevCOR.Row3.Country
+    previous_country_of_residence_country3 = kwargs['previous_country_of_residence_country3']
+    previous_country_of_residence_country3 = functional.extended_dict_get(
+        previous_country_of_residence_country3,
+        functional.config_csv_to_dict(CANADA_COUNTRY_CODE_TO_NAME),
+        'Unknown',
+        str.isnumeric,
+    )
+    previous_country_of_residence_country3 = eco_country_score_preprocessor.convert_country_name_to_numeric(
+        previous_country_of_residence_country3
+    )
+    features.append(previous_country_of_residence_country3)
+
+    # 6 P1.PD.SameAsCORIndicator
+    same_as_country_of_residence_indicator = kwargs['same_as_country_of_residence_indicator']
+    features.append(same_as_country_of_residence_indicator)
+
+    # 7 P1.PD.CWA.Row2.Country
+    country_where_applying_country = kwargs['country_where_applying_country']
+    features.append(country_where_applying_country)
+
+    # 8 P1.PD.CWA.Row2.Status
+    country_where_applying_status = kwargs['country_where_applying_status']
+    country_where_applying_status = f(country_where_applying_status)
+    features.append(country_where_applying_status)
+
+    # 9 P2.MS.SecA.PrevMarrIndicator
+    previous_marriage_indicator = kwargs['previous_marriage_indicator']
+    features.append(previous_marriage_indicator)
+
+    # 10 P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit
+    purpose_of_visit = kwargs['purpose_of_visit']
+    features.append(purpose_of_visit)
+
+    # 11 P3.DOV.PrpsRow1.Funds.Funds
+    funds = kwargs['funds']
+    features.append(funds)
+
+    # 12 P3.DOV.cntcts_Row1.RelationshipToMe.RelationshipToMe
+    contact_relation_to_me = kwargs['contact_relation_to_me']
+    features.append(contact_relation_to_me)
+
+    # 13 P3.cntcts_Row2.Relationship.RelationshipToMe
+    contact_relation_to_me2 = kwargs['contact_relation_to_me2']
+    features.append(contact_relation_to_me2)
+
+    # 14 P3.Edu.EduIndicator
+    education_indicator = kwargs['education_indicator']
+    features.append(education_indicator)
+
+    # 15 P3.Edu.Edu_Row1.FieldOfStudy
+    education_field_of_study = kwargs['education_field_of_study']
+    features.append(education_field_of_study)
+
+    # 16 P3.Edu.Edu_Row1.Country.Country
+    education_country = kwargs['education_country']
+    education_country = edu_country_score_preprocessor.convert_country_name_to_numeric(
+        education_country
+    )
+    features.append(education_country)
+
+    # 17 P3.Occ.OccRow1.Occ.Occ
+    occupation_title1 = kwargs['occupation_title1']
+    # order is important, e.g. `'student of computer engineering'` should be
+    #   categorized as `'student'` not `'specialist'` (because of `'eng'`)
+    occ_cat_dict = {
+        'manager': ['manager', 'chair', 'business', 'direct', 'owner', 'share', 'board', 'head', 'ceo'],
+        'student': ['student', 'intern'],
+        'retired': ['retire'],
+        'specialist': ['eng', 'doc', 'med', 'arch', 'expert'],
+        'employee': ['sale', 'employee', 'teacher', 'retail'],
+        'housewife': ['wife'],
+    }
+    def categorize_occ(x: str, d: dict, default='employee') -> str:
+        """if `x` found in any of `d.value`, return the corresponding `d.key`.
+
+        Args:
+            x (str): input string to search for
+            d (dict): the dictionary to look for `x` in its values and return the key
+            default (str, optional): if `x` no found in `d` at all. Defaults to 'employee'.
+                except cases mentioned in `d` or `'OTHER'` 
+
+        Returns:
+            str: string containing a key in `d`
+        """
+        x = x.lower()
+
+        # find occurrences
+        for k in d.keys():
+            d_vals = d[k]
+            found = len([v for v in d_vals if v in x]) > 0
+            if found:
+                return k
+        return default if x != 'other' else 'OTHER'
+
+    occupation_title1 = categorize_occ(occupation_title1, d=occ_cat_dict, default='employee')
+    features.append(occupation_title1)
+
+    # 18 P3.Occ.OccRow1.Country.Country
+    occupation_country1 = kwargs['occupation_country1']
+    occupation_country1 = functional.extended_dict_get(
+        occupation_country1,
+        functional.config_csv_to_dict(CANADA_COUNTRY_CODE_TO_NAME),
+        'Unknown',
+        str.isnumeric,
+    )
+    occupation_country1 = eco_country_score_preprocessor.convert_country_name_to_numeric(
+        occupation_country1
+    )
+    features.append(occupation_country1)
+
+    # 19 P3.Occ.OccRow2.Occ.Occ
+    occupation_title2 = kwargs['occupation_title2']
+    occupation_title2 = categorize_occ(occupation_title2, d=occ_cat_dict, default='employee')
+    features.append(occupation_title2)
+
+    # 20 P3.Occ.OccRow2.Country.Country
+    occupation_country2 = kwargs['occupation_country2']
+    occupation_country2 = functional.extended_dict_get(
+        occupation_country2,
+        functional.config_csv_to_dict(CANADA_COUNTRY_CODE_TO_NAME),
+        'Unknown',
+        str.isnumeric,
+    )
+    occupation_country2 = eco_country_score_preprocessor.convert_country_name_to_numeric(
+        occupation_country2
+    )
+    features.append(occupation_country2)
+
+    # 21 P3.Occ.OccRow3.Occ.Occ
+    occupation_title3 = kwargs['occupation_title3']
+    occupation_title3 = categorize_occ(occupation_title3, d=occ_cat_dict, default='employee')
+    features.append(occupation_title3)
+
+    # 22 P3.Occ.OccRow3.Country.Country
+    occupation_country3 = kwargs['occupation_country3']
+    occupation_country3 = functional.extended_dict_get(
+        occupation_country3,
+        functional.config_csv_to_dict(CANADA_COUNTRY_CODE_TO_NAME),
+        'Unknown',
+        str.isnumeric,
+    )
+    occupation_country3 = eco_country_score_preprocessor.convert_country_name_to_numeric(
+        occupation_country3
+    )
+    features.append(occupation_country3)
+
+    # 23 P3.noAuthStay
+    no_authorized_stay = kwargs['no_authorized_stay']
+    features.append(no_authorized_stay)
+
+    # 24 P3.refuseDeport
+    refused_entry_or_deport = kwargs['refused_entry_or_deport']
+    features.append(refused_entry_or_deport)
+
+    # 25 P3.BGI2.PrevApply
+    previous_apply = kwargs['previous_apply']
+    features.append(previous_apply)
+
+    # 26 P1.PD.DOBYear.Period
+    date_of_birth = kwargs['date_of_birth']
+    date_of_birth = date_of_birth / 365.
+    features.append(date_of_birth)
+
+    # 27 P1.PD.PrevCOR.Row2.Period
+    previous_country_of_residency_period2 = kwargs['previous_country_of_residency_period2']
+    previous_country_of_residency_period2 = previous_country_of_residency_period2 / 365.
+    features.append(previous_country_of_residency_period2)
+
+    # 28 P1.PD.PrevCOR.Row3.Period
+    previous_country_of_residency_period3 = kwargs['previous_country_of_residency_period3']
+    previous_country_of_residency_period3 = previous_country_of_residency_period3 / 365.
+    features.append(previous_country_of_residency_period3)
+
+    # 29 P1.PD.CWA.Row2.Period
+    country_where_applying_period = kwargs['country_where_applying_period']
+    features.append(country_where_applying_period)
+
+    # 30 P1.MS.SecA.DateOfMarr.Period
+    marriage_period = kwargs['marriage_period']
+    marriage_period = marriage_period / 365.
+    features.append(marriage_period)
+
+    # 31 P2.MS.SecA.Period
+    previous_marriage_period = kwargs['previous_marriage_period']
+    previous_marriage_period = previous_marriage_period / 365.
+    features.append(previous_marriage_period)
+
+    # 32 P2.MS.SecA.Psprt.ExpiryDate.Remaining
+    passport_expiry_date_remaining = kwargs['passport_expiry_date_remaining']
+    passport_expiry_date_remaining = passport_expiry_date_remaining / 365.
+    features.append(passport_expiry_date_remaining)
+
+    # 33 P3.DOV.PrpsRow1.HLS.Period
+    how_long_stay_period = kwargs['how_long_stay_period']
+    features.append(how_long_stay_period)
+
+    # 34 P3.Edu.Edu_Row1.Period
+    education_period = kwargs['education_period']
+    education_period = education_period / 365.
+    features.append(education_period)
+
+    # 35 P3.Occ.OccRow1.Period
+    occupation_period = kwargs['occupation_period']
+    occupation_period = occupation_period / 365.
+    features.append(occupation_period)
+
+    # 36 P3.Occ.OccRow2.Period
+    occupation_period2 = kwargs['occupation_period2']
+    occupation_period2 = occupation_period2 / 365.
+    features.append(occupation_period2)
+
+    # 37 P3.Occ.OccRow3.Period
+    occupation_period3 = kwargs['occupation_period3']
+    occupation_period3 = occupation_period3 / 365.
+    features.append(occupation_period3)
+
+    # 38 p1.SecA.App.ChdMStatus
+    applicant_marital_status = kwargs['applicant_marital_status']
+    
+    # convert marital status string to code
+    def marital_status_code(string: str) -> int:
+        string = string.lower().strip()
+        
+        if string == 'divorced':
+            return 3
+        if string == 'married':
+            return 5
+        if string == 'single':
+            return 6
+        if string == 'unknown':
+            return 7
+        if string == 'widowed':
+            return 8
+        else:
+            raise ValueError(f'"{string}" is not a valid marital status.') 
+
+    applicant_marital_status = marital_status_code(applicant_marital_status)
+    features.append(applicant_marital_status)
+
+    # 39 p1.SecA.Mo.ChdMStatus
+    mother_marital_status = kwargs['mother_marital_status']
+    mother_marital_status = marital_status_code(mother_marital_status)
+    features.append(mother_marital_status)
+
+    # 40 p1.SecA.Fa.ChdMStatus
+    father_marital_status = kwargs['father_marital_status']
+    father_marital_status = marital_status_code(father_marital_status)
+    features.append(father_marital_status)
+
+    # 41 p1.SecB.Chd.[0].ChdMStatus
+    child_marital_status0 = kwargs['child_marital_status0']
+    child_marital_status0 = marital_status_code(child_marital_status0)
+    features.append(child_marital_status0)
+
+    # 42 p1.SecB.Chd.[0].ChdRel
+    child_relation0 = kwargs['child_relation0']
+    features.append(child_relation0)
+
+    # 43 p1.SecB.Chd.[1].ChdMStatus
+    child_marital_status1 = kwargs['child_marital_status1']
+    child_marital_status1 = marital_status_code(child_marital_status1)
+    features.append(child_marital_status1)
+
+    # 44 p1.SecB.Chd.[1].ChdRel
+    child_relation1 = kwargs['child_relation1']
+    features.append(child_relation1)
+
+    # 45 p1.SecB.Chd.[2].ChdMStatus
+    child_marital_status2 = kwargs['child_marital_status2']
+    child_marital_status2 = marital_status_code(child_marital_status2)
+    features.append(child_marital_status2)
+
+    # 46 p1.SecB.Chd.[2].ChdRel
+    child_relation2 = kwargs['child_relation2']
+    features.append(child_relation2)
+
+    # 47 p1.SecB.Chd.[3].ChdMStatus
+    child_marital_status3 = kwargs['child_marital_status3']
+    child_marital_status3 = marital_status_code(child_marital_status3)
+    features.append(child_marital_status3)
+
+    # 48 p1.SecB.Chd.[3].ChdRel
+    child_relation3 = kwargs['child_relation3']
+    features.append(child_relation3)
+
+    # 49 p1.SecC.Chd.[0].ChdMStatus
+    sibling_marital_status0 = kwargs['sibling_marital_status0']
+    sibling_marital_status0 = marital_status_code(sibling_marital_status0)
+    features.append(sibling_marital_status0)
+
+    # 50 p1.SecC.Chd.[0].ChdRel
+    sibling_relation0 = kwargs['sibling_relation0']
+    features.append(sibling_relation0)
+
+    # 51 p1.SecC.Chd.[1].ChdMStatus
+    sibling_marital_status1 = kwargs['sibling_marital_status1']
+    sibling_marital_status1 = marital_status_code(sibling_marital_status1)
+    features.append(sibling_marital_status1)
+
+    # 52 p1.SecC.Chd.[1].ChdRel
+    sibling_relation1 = kwargs['sibling_relation1']
+    features.append(sibling_relation1)
+
+    # 53 p1.SecC.Chd.[2].ChdMStatus
+    sibling_marital_status2 = kwargs['sibling_marital_status2']
+    sibling_marital_status2 = marital_status_code(sibling_marital_status2)
+    features.append(sibling_marital_status2)
+
+    # 54 p1.SecC.Chd.[2].ChdRel
+    sibling_relation2 = kwargs['sibling_relation2']
+    features.append(sibling_relation2)
+
+    # 55 p1.SecC.Chd.[3].ChdMStatus
+    sibling_marital_status3 = kwargs['sibling_marital_status3']
+    sibling_marital_status3 = marital_status_code(sibling_marital_status3)
+    features.append(sibling_marital_status3)
+
+    # 56 p1.SecC.Chd.[3].ChdRel
+    sibling_relation3 = kwargs['sibling_relation3']
+    features.append(sibling_relation3)
+
+    # 57 p1.SecC.Chd.[4].ChdMStatus
+    sibling_marital_status4 = kwargs['sibling_marital_status4']
+    sibling_marital_status4 = marital_status_code(sibling_marital_status4)
+    features.append(sibling_marital_status4)
+
+    # 58 p1.SecC.Chd.[4].ChdRel
+    sibling_relation4 = kwargs['sibling_relation4']
+    features.append(sibling_relation4)
+
+    # 59 p1.SecC.Chd.[5].ChdMStatus
+    sibling_marital_status5 = kwargs['sibling_marital_status5']
+    sibling_marital_status5 = marital_status_code(sibling_marital_status5)
+    features.append(sibling_marital_status5)
+
+    # 60 p1.SecC.Chd.[5].ChdRel
+    sibling_relation5 = kwargs['sibling_relation5']
+    features.append(sibling_relation5)
+
+    # 61 p1.SecC.Chd.[6].ChdMStatus
+    sibling_marital_status6 = kwargs['sibling_marital_status6']
+    sibling_marital_status6 = marital_status_code(sibling_marital_status6)
+    features.append(sibling_marital_status6)
+
+    # 62 p1.SecC.Chd.[6].ChdRel
+    sibling_relation6 = kwargs['sibling_relation6']
+    features.append(sibling_relation6)
+
+    # 63 p1.SecA.Sps.SpsDOB.Period
+    spouse_date_of_birth = kwargs['spouse_date_of_birth']
+    spouse_date_of_birth = spouse_date_of_birth / 365.
+    features.append(spouse_date_of_birth)
+
+    # 64 p1.SecA.Mo.MoDOB.Period
+    mother_date_of_birth = kwargs['mother_date_of_birth']
+    mother_date_of_birth = mother_date_of_birth /365.
+    features.append(mother_date_of_birth)
+
+    # 65 p1.SecA.Fa.FaDOB.Period
+    father_date_of_birth = kwargs['father_date_of_birth']
+    father_date_of_birth = father_date_of_birth / 365.
+    features.append(father_date_of_birth)
+
+    # 66 p1.SecB.Chd.[0].ChdDOB.Period
+    child_date_of_birth0 = kwargs['child_date_of_birth0']
+    child_date_of_birth0 = child_date_of_birth0 / 365.
+    features.append(child_date_of_birth0)
+
+    # 67 p1.SecB.Chd.[1].ChdDOB.Period
+    child_date_of_birth1 = kwargs['child_date_of_birth1']
+    child_date_of_birth1 = child_date_of_birth1 / 365.
+    features.append(child_date_of_birth1)
+
+    # 68 p1.SecB.Chd.[2].ChdDOB.Period
+    child_date_of_birth2 = kwargs['child_date_of_birth2']
+    child_date_of_birth2 = child_date_of_birth2 / 365.
+    features.append(child_date_of_birth2)
+
+    # 69 p1.SecB.Chd.[3].ChdDOB.Period
+    child_date_of_birth3 = kwargs['child_date_of_birth3']
+    child_date_of_birth3 = child_date_of_birth3 / 365.
+    features.append(child_date_of_birth3)
+
+    # 70 p1.SecC.Chd.[0].ChdDOB.Period 
+    sibling_date_of_birth0 = kwargs['sibling_date_of_birth0']
+    sibling_date_of_birth0 = sibling_date_of_birth0 / 365.
+    features.append(sibling_date_of_birth0)
+
+    # 71 p1.SecC.Chd.[1].ChdDOB.Period 
+    sibling_date_of_birth1 = kwargs['sibling_date_of_birth1']
+    sibling_date_of_birth1 = sibling_date_of_birth1 / 365.
+    features.append(sibling_date_of_birth1)
+
+    # 72 p1.SecC.Chd.[2].ChdDOB.Period 
+    sibling_date_of_birth2 = kwargs['sibling_date_of_birth2']
+    sibling_date_of_birth2 = sibling_date_of_birth2 / 365.
+    features.append(sibling_date_of_birth2)
+
+    # 73 p1.SecC.Chd.[3].ChdDOB.Period 
+    sibling_date_of_birth3 = kwargs['sibling_date_of_birth3']
+    sibling_date_of_birth3 = sibling_date_of_birth3 / 365.
+    features.append(sibling_date_of_birth3)
+
+    # 74 p1.SecC.Chd.[4].ChdDOB.Period 
+    sibling_date_of_birth4 = kwargs['sibling_date_of_birth4']
+    sibling_date_of_birth4 = sibling_date_of_birth4 / 365.
+    features.append(sibling_date_of_birth4)
+
+    # 75 p1.SecC.Chd.[5].ChdDOB.Period 
+    sibling_date_of_birth5 = kwargs['sibling_date_of_birth5']
+    sibling_date_of_birth5 = sibling_date_of_birth5 / 365.
+    features.append(sibling_date_of_birth5)
+
+    # 76 p1.SecC.Chd.[6].ChdDOB.Period 
+    sibling_date_of_birth6 = kwargs['sibling_date_of_birth6']
+    sibling_date_of_birth6 = sibling_date_of_birth6 / 365.
+    features.append(sibling_date_of_birth6)
+
+    # 77 VisaResult -> the label -> dropped
+    
+    # 78 P1.PD.PrevCOR.Row.Count
+    previous_country_of_residence_count = kwargs['previous_country_of_residence_count']
+    features.append(previous_country_of_residence_count)
+
+    # 79 p1.SecC.Chd.X.ChdCOB.ForeignerCount
+    sibling_foreigner_count = kwargs['sibling_foreigner_count']
+    features.append(sibling_foreigner_count)
+
+    # 80 p1.SecB.ChdMoFaSps.X.ChdCOB.ForeignerCount
+    child_mother_father_spouse_foreigner_count = kwargs['child_mother_father_spouse_foreigner_count']
+    features.append(child_mother_father_spouse_foreigner_count)
+
+    # 81 p1.SecB.Chd.X.ChdAccomp.Count
+    child_accompany = kwargs['child_accompany']
+    features.append(child_accompany)
+
+    # 82 p1.SecA.ParAccomp.Count
+    parent_accompany = kwargs['parent_accompany']
+    features.append(parent_accompany)
+
+    # 83 p1.SecA.Sps.SpsAccomp.Count
+    spouse_accompany = kwargs['spouse_accompany']
+    features.append(spouse_accompany)
+
+    # 84 p1.SecC.Chd.X.ChdAccomp.Count
+    sibling_accompany = kwargs['sibling_accompany']
+    features.append(sibling_accompany)
+
+    # 85 p1.SecB.Chd.X.ChdRel.ChdCount
+    child_count = kwargs['child_count']
+    features.append(child_count)
+
+    # 86 p1.SecC.Chd.X.ChdRel.ChdCount
+    sibling_count = kwargs['sibling_count']
+    features.append(sibling_count)
+
+    # 87 p1.SecX.LongDistAddr
+    long_distance_child_sibling_count = kwargs['long_distance_child_sibling_count']
+    features.append(long_distance_child_sibling_count)
+
+    # 88 p1.SecX.ForeignAddr
+    foreign_living_child_sibling_count = kwargs['foreign_living_child_sibling_count']
+    features.append(foreign_living_child_sibling_count)
 
     return features
 
