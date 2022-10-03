@@ -158,7 +158,7 @@ FLAML_AUTOML_NAME = 'flaml_automl.pkl'
 flaml_automl_path = mlflow.artifacts.download_artifacts(
     run_id=MLFLOW_RUN_ID,
     artifact_path=f'0/models/{FLAML_AUTOML_NAME}',
-    dst_path=f'api/'
+    dst_path=f'api/artifacts'
 )
 with open(flaml_automl_path, 'rb') as f:
     flaml_automl: trainers.AutoML = pickle.load(f)
