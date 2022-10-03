@@ -64,7 +64,7 @@ class Payload(BaseModel):
     refused_entry_or_deport: bool = False
     previous_apply: bool = False
 
-    date_of_birth: float = 25. * 365.  # FIXME: remove after debugging
+    date_of_birth: float = 25.  # FIXME: remove after debugging
 
     previous_country_of_residency_period2: float = 0
     previous_country_of_residency_period3: float = 0
@@ -74,12 +74,12 @@ class Payload(BaseModel):
     marriage_period: float = 0.
     previous_marriage_period: float = 0.
 
-    passport_expiry_date_remaining: float = 3. * 365.  # years
+    passport_expiry_date_remaining: float = 3.  # years
     how_long_stay_period: float = 30.  # days
 
     education_period: float = 0.
 
-    occupation_period: float = 4. * 365.  # FIXME: remove after debugging
+    occupation_period: float = 4.  # FIXME: remove after debugging
     occupation_period2: float = 0.
     occupation_period3: float = 0.
 
@@ -112,8 +112,8 @@ class Payload(BaseModel):
     sibling_relation6: str = 'other'
 
     spouse_date_of_birth: float = 0.
-    mother_date_of_birth: float = 50. * 365.  # FIXME: remove after debugging
-    father_date_of_birth: float = 53. * 365.  # FIXME: remove after debugging
+    mother_date_of_birth: float = 50.  # FIXME: remove after debugging
+    father_date_of_birth: float = 53.  # FIXME: remove after debugging
     
     child_date_of_birth0: float = 0.
     child_date_of_birth1: float = 0.

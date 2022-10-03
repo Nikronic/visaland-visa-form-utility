@@ -400,17 +400,17 @@ def _preprocess(**kwargs):
 
     # 26 P1.PD.DOBYear.Period
     date_of_birth = kwargs['date_of_birth']
-    date_of_birth = date_of_birth / 365.
+    date_of_birth = date_of_birth  # int years
     features.append(date_of_birth)
 
     # 27 P1.PD.PrevCOR.Row2.Period
     previous_country_of_residency_period2 = kwargs['previous_country_of_residency_period2']
-    previous_country_of_residency_period2 = previous_country_of_residency_period2 / 365.
+    previous_country_of_residency_period2 = previous_country_of_residency_period2  # int years
     features.append(previous_country_of_residency_period2)
 
     # 28 P1.PD.PrevCOR.Row3.Period
     previous_country_of_residency_period3 = kwargs['previous_country_of_residency_period3']
-    previous_country_of_residency_period3 = previous_country_of_residency_period3 / 365.
+    previous_country_of_residency_period3 = previous_country_of_residency_period3  # int years
     features.append(previous_country_of_residency_period3)
 
     # 29 P1.PD.CWA.Row2.Period
@@ -419,17 +419,17 @@ def _preprocess(**kwargs):
 
     # 30 P1.MS.SecA.DateOfMarr.Period
     marriage_period = kwargs['marriage_period']
-    marriage_period = marriage_period / 365.
+    marriage_period = marriage_period  # int years
     features.append(marriage_period)
 
     # 31 P2.MS.SecA.Period
     previous_marriage_period = kwargs['previous_marriage_period']
-    previous_marriage_period = previous_marriage_period / 365.
+    previous_marriage_period = previous_marriage_period  # int years
     features.append(previous_marriage_period)
 
     # 32 P2.MS.SecA.Psprt.ExpiryDate.Remaining
     passport_expiry_date_remaining = kwargs['passport_expiry_date_remaining']
-    passport_expiry_date_remaining = passport_expiry_date_remaining / 365.
+    passport_expiry_date_remaining = passport_expiry_date_remaining  # int years
     features.append(passport_expiry_date_remaining)
 
     # 33 P3.DOV.PrpsRow1.HLS.Period
@@ -438,22 +438,22 @@ def _preprocess(**kwargs):
 
     # 34 P3.Edu.Edu_Row1.Period
     education_period = kwargs['education_period']
-    education_period = education_period / 365.
+    education_period = education_period  # int years
     features.append(education_period)
 
     # 35 P3.Occ.OccRow1.Period
     occupation_period = kwargs['occupation_period']
-    occupation_period = occupation_period / 365.
+    occupation_period = occupation_period  # int years
     features.append(occupation_period)
 
     # 36 P3.Occ.OccRow2.Period
     occupation_period2 = kwargs['occupation_period2']
-    occupation_period2 = occupation_period2 / 365.
+    occupation_period2 = occupation_period2  # int years
     features.append(occupation_period2)
 
     # 37 P3.Occ.OccRow3.Period
     occupation_period3 = kwargs['occupation_period3']
-    occupation_period3 = occupation_period3 / 365.
+    occupation_period3 = occupation_period3  # int years
     features.append(occupation_period3)
 
     # 38 p1.SecA.App.ChdMStatus
@@ -593,72 +593,72 @@ def _preprocess(**kwargs):
 
     # 63 p1.SecA.Sps.SpsDOB.Period
     spouse_date_of_birth = kwargs['spouse_date_of_birth']
-    spouse_date_of_birth = spouse_date_of_birth / 365.
+    spouse_date_of_birth = spouse_date_of_birth  # int years
     features.append(spouse_date_of_birth)
 
     # 64 p1.SecA.Mo.MoDOB.Period
     mother_date_of_birth = kwargs['mother_date_of_birth']
-    mother_date_of_birth = mother_date_of_birth /365.
+    mother_date_of_birth = mother_date_of_birth  # int years
     features.append(mother_date_of_birth)
 
     # 65 p1.SecA.Fa.FaDOB.Period
     father_date_of_birth = kwargs['father_date_of_birth']
-    father_date_of_birth = father_date_of_birth / 365.
+    father_date_of_birth = father_date_of_birth  # int years
     features.append(father_date_of_birth)
 
     # 66 p1.SecB.Chd.[0].ChdDOB.Period
     child_date_of_birth0 = kwargs['child_date_of_birth0']
-    child_date_of_birth0 = child_date_of_birth0 / 365.
+    child_date_of_birth0 = child_date_of_birth0  # int years
     features.append(child_date_of_birth0)
 
     # 67 p1.SecB.Chd.[1].ChdDOB.Period
     child_date_of_birth1 = kwargs['child_date_of_birth1']
-    child_date_of_birth1 = child_date_of_birth1 / 365.
+    child_date_of_birth1 = child_date_of_birth1  # int years
     features.append(child_date_of_birth1)
 
     # 68 p1.SecB.Chd.[2].ChdDOB.Period
     child_date_of_birth2 = kwargs['child_date_of_birth2']
-    child_date_of_birth2 = child_date_of_birth2 / 365.
+    child_date_of_birth2 = child_date_of_birth2  # int years
     features.append(child_date_of_birth2)
 
     # 69 p1.SecB.Chd.[3].ChdDOB.Period
     child_date_of_birth3 = kwargs['child_date_of_birth3']
-    child_date_of_birth3 = child_date_of_birth3 / 365.
+    child_date_of_birth3 = child_date_of_birth3  # int years
     features.append(child_date_of_birth3)
 
     # 70 p1.SecC.Chd.[0].ChdDOB.Period 
     sibling_date_of_birth0 = kwargs['sibling_date_of_birth0']
-    sibling_date_of_birth0 = sibling_date_of_birth0 / 365.
+    sibling_date_of_birth0 = sibling_date_of_birth0  # int years
     features.append(sibling_date_of_birth0)
 
     # 71 p1.SecC.Chd.[1].ChdDOB.Period 
     sibling_date_of_birth1 = kwargs['sibling_date_of_birth1']
-    sibling_date_of_birth1 = sibling_date_of_birth1 / 365.
+    sibling_date_of_birth1 = sibling_date_of_birth1  # int years
     features.append(sibling_date_of_birth1)
 
     # 72 p1.SecC.Chd.[2].ChdDOB.Period 
     sibling_date_of_birth2 = kwargs['sibling_date_of_birth2']
-    sibling_date_of_birth2 = sibling_date_of_birth2 / 365.
+    sibling_date_of_birth2 = sibling_date_of_birth2  # int years
     features.append(sibling_date_of_birth2)
 
     # 73 p1.SecC.Chd.[3].ChdDOB.Period 
     sibling_date_of_birth3 = kwargs['sibling_date_of_birth3']
-    sibling_date_of_birth3 = sibling_date_of_birth3 / 365.
+    sibling_date_of_birth3 = sibling_date_of_birth3  # int years
     features.append(sibling_date_of_birth3)
 
     # 74 p1.SecC.Chd.[4].ChdDOB.Period 
     sibling_date_of_birth4 = kwargs['sibling_date_of_birth4']
-    sibling_date_of_birth4 = sibling_date_of_birth4 / 365.
+    sibling_date_of_birth4 = sibling_date_of_birth4  # int years
     features.append(sibling_date_of_birth4)
 
     # 75 p1.SecC.Chd.[5].ChdDOB.Period 
     sibling_date_of_birth5 = kwargs['sibling_date_of_birth5']
-    sibling_date_of_birth5 = sibling_date_of_birth5 / 365.
+    sibling_date_of_birth5 = sibling_date_of_birth5  # int years
     features.append(sibling_date_of_birth5)
 
     # 76 p1.SecC.Chd.[6].ChdDOB.Period 
     sibling_date_of_birth6 = kwargs['sibling_date_of_birth6']
-    sibling_date_of_birth6 = sibling_date_of_birth6 / 365.
+    sibling_date_of_birth6 = sibling_date_of_birth6  # int years
     features.append(sibling_date_of_birth6)
 
     # 77 VisaResult -> the label -> dropped
