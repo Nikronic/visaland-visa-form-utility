@@ -64,24 +64,24 @@ class Payload(BaseModel):
     refused_entry_or_deport: bool = False
     previous_apply: bool = False
 
-    date_of_birth: float = 25.  # FIXME: remove after debugging
+    date_of_birth: float = 25.  # years  # FIXME: remove after debugging
 
-    previous_country_of_residency_period2: float = 0
-    previous_country_of_residency_period3: float = 0
+    previous_country_of_residency_period2: float = 0  # years
+    previous_country_of_residency_period3: float = 0  # years
 
     country_where_applying_period: float = 30.  # days
 
-    marriage_period: float = 0.
-    previous_marriage_period: float = 0.
+    marriage_period: float = 0.  # years
+    previous_marriage_period: float = 0.  # years
 
     passport_expiry_date_remaining: float = 3.  # years
     how_long_stay_period: float = 30.  # days
 
-    education_period: float = 0.
+    education_period: float = 0.  # years
 
     occupation_period: float = 4.  # FIXME: remove after debugging
-    occupation_period2: float = 0.
-    occupation_period3: float = 0.
+    occupation_period2: float = 0.  # years
+    occupation_period3: float = 0.  # years
 
     applicant_marital_status: str = 'single'
     mother_marital_status: str = 'married'
@@ -111,22 +111,22 @@ class Payload(BaseModel):
     sibling_marital_status6: str = 'unknown'
     sibling_relation6: str = 'other'
 
-    spouse_date_of_birth: float = 0.
-    mother_date_of_birth: float = 50.  # FIXME: remove after debugging
-    father_date_of_birth: float = 53.  # FIXME: remove after debugging
+    spouse_date_of_birth: float = 0.  # years
+    mother_date_of_birth: float = 50.  # years  # FIXME: remove after debugging
+    father_date_of_birth: float = 53.  # years  # FIXME: remove after debugging
     
-    child_date_of_birth0: float = 0.
-    child_date_of_birth1: float = 0.
-    child_date_of_birth2: float = 0.
-    child_date_of_birth3: float = 0.
+    child_date_of_birth0: float = 0.  # years
+    child_date_of_birth1: float = 0.  # years
+    child_date_of_birth2: float = 0.  # years
+    child_date_of_birth3: float = 0.  # years
 
-    sibling_date_of_birth0: float = 0.
-    sibling_date_of_birth1: float = 0.
-    sibling_date_of_birth2: float = 0.
-    sibling_date_of_birth3: float = 0.
-    sibling_date_of_birth4: float = 0.
-    sibling_date_of_birth5: float = 0.
-    sibling_date_of_birth6: float = 0.
+    sibling_date_of_birth0: float = 0.  # years
+    sibling_date_of_birth1: float = 0.  # years
+    sibling_date_of_birth2: float = 0.  # years
+    sibling_date_of_birth3: float = 0.  # years
+    sibling_date_of_birth4: float = 0.  # years
+    sibling_date_of_birth5: float = 0.  # years
+    sibling_date_of_birth6: float = 0.  # years
 
     previous_country_of_residence_count: int = 0
 
