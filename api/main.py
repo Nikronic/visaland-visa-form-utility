@@ -462,17 +462,20 @@ def _preprocess(**kwargs):
     # convert marital status string to code
     def marital_status_code(string: str) -> int:
         string = string.lower().strip()
-        
+        if string == 'common-law':
+            return 2
         if string == 'divorced':
             return 3
+        if string == 'separated':
+            return 4
         if string == 'married':
             return 5
         if string == 'single':
-            return 6
-        if string == 'unknown':
             return 7
         if string == 'widowed':
             return 8
+        if string == 'unknown':
+            return 9
         else:
             raise ValueError(f'"{string}" is not a valid marital status.') 
 
