@@ -3,10 +3,16 @@ __all__ = [
     'CANADA_5257E_DROP_COLUMNS', 'CANADA_5645E_DROP_COLUMNS', 'FINANCIAL_RATIOS', 'DOC_TYPES',
     'CANADA_CUTOFF_TERMS', 'CANADA_FILLNA', 'DATEUTIL_DEFAULT_DATETIME',
 
+    # Data Enums shared all over the place
+    'CustomNamingEnum', 'CanadaMarriageStatus', 'SiblingRelation', 'ChildRelation',
+    'CanadaContactRelation', 'CanadaResidencyStatus', 'Sex'
 ]
 
-from enum import Enum
 import datetime
+from enum import Enum, auto
+from types import DynamicClassAttribute
+from typing import List
+
 
 # DICTIONARY
 CANADA_5257E_KEY_ABBREVIATION = {
@@ -226,3 +232,116 @@ class CANADA_FILLNA(Enum):
     """
 
     ChdMStatus_5645e = 9
+
+
+class CustomNamingEnum(Enum):
+    """Extends base :class:`enum.Enum` to support custom naming for members
+
+    Note:
+        Class attribute :attr:`name` has been overridden to return the name
+        of a marital status that matches with the dataset and not the ``Enum``
+        naming convention of Python. For instance, ``COMMON_LAW`` -> ``common-law`` in
+        case of Canada forms.
+
+    Note:
+        Devs should subclass this class and add their desired members in newly
+        created classes. E.g. see :class:`CanadaMarriageStatus`
+
+    Note:
+        Classes that subclass this, for values of their members should use :class:`enum.auto`
+        to demonstrate that chosen value is not domain-specific. Otherwise, any explicit
+        value given to members should implicate a domain-specific (e.g. extracted from dataset)
+        value. Values that are explicitly provided are the values used in original data. Hence,
+        it should not be modified by any means as it is tied to dataset, transformation,
+        and other domain-specific values. E.g. compare values in :class:`CanadaMarriageStatus`
+        and :class:`SiblingRelation`.
+    """
+
+    @DynamicClassAttribute
+    def name(self):
+        _name = super(CustomNamingEnum, self).name
+        _name: str = _name.lower()
+        # convert FOO_BAR to foo-bar (dataset convention)
+        _name = _name.replace('_', '-')
+        self._name_ = _name
+        return self._name_
+
+    @classmethod
+    def get_member_names(cls):
+        _member_names_: List[str] = []
+        for mem_name in cls._member_names_:
+            _member_names_.append(cls._member_map_[mem_name].name)
+        return _member_names_
+
+
+class CanadaMarriageStatus(CustomNamingEnum):
+    """States of marriage in Canada forms
+
+    Note:
+        Values for the members are the values used in original Canada forms. Hence,
+        it should not be modified by any means as it is tied to dataset, transformation,
+        and other domain-specific values.
+    """
+
+    COMMON_LAW = 2
+    DIVORCED = 3
+    SEPARATED = 4
+    MARRIED = 5
+    SINGLE = 7
+    WIDOWED = 8
+    UNKNOWN = 9
+
+
+class SiblingRelation(CustomNamingEnum):
+    """Sibling relation types in general
+    """
+
+    SISTER = auto()
+    BROTHER = auto()
+    OTHER = auto()
+
+
+class ChildRelation(CustomNamingEnum):
+    """Child relation types in general
+    """
+
+    SON = auto()
+    DAUGHTER = auto()
+    OTHER = auto()
+
+
+class CanadaContactRelation(CustomNamingEnum):
+    """Contact relation in Canada data
+    """
+
+    F1 = auto()
+    F2 = auto()
+    HOTEL = auto()
+    WORK = auto()
+    FRIEND = auto()
+    UKN = auto()
+
+
+class CanadaResidencyStatus(CustomNamingEnum):
+    """Residency status in a country in Canada data
+    """
+
+    CITIZEN = auto()
+    VISITOR = auto()
+    OTHER = auto()
+
+
+class Sex(CustomNamingEnum):
+    """Sex types in general
+    """
+
+    Female = auto()
+    Male = auto()
+
+    @DynamicClassAttribute
+    def name(self):
+        _name = super(CustomNamingEnum, self).name
+        # convert foobar to Foobar
+        _name: str = _name.lower().capitalize()
+        self._name_ = _name
+        return self._name_

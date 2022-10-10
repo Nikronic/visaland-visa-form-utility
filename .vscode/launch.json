@@ -5,6 +5,25 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: FastAPI main",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/",
+            "program": "${workspaceFolder}/api/main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--experiment_name", "fastapi",
+                "--run_id", "",
+                "--bind", "0.0.0.0",
+                "--gunicorn_port", "8000",
+                "--mlflow_port", "5000",
+                "--verbose", "debug",
+                "--workers", "1"
+            ],
+            "justMyCode": false
+        },
+
+        {
             "name": "Python: nb2py",
             "type": "python",
             "request": "launch",
