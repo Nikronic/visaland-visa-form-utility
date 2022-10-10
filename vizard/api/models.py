@@ -41,7 +41,7 @@ class PredictionResponse(BaseModel):
 class Payload(BaseModel):
     alias_name_indicator: bool = False
 
-    sex: str = 'Female'  # FIXME: remove after debugging
+    sex: str
     @validator('sex')
     def _sex(cls, value):
         if value not in Sex.get_member_names():
@@ -119,7 +119,7 @@ class Payload(BaseModel):
     refused_entry_or_deport: bool = False
     previous_apply: bool = False
 
-    date_of_birth: float = 25.  # years  # FIXME: remove after debugging
+    date_of_birth: float
     @validator('date_of_birth')
     def _date_of_birth(cls, value):
         if value < 18:
@@ -176,7 +176,7 @@ class Payload(BaseModel):
             raise ValueError('Value cannot be negative')
         return value
 
-    occupation_period: float = 4.  # FIXME: remove after debugging
+    occupation_period: float
     occupation_period2: float = 0.  # years    
     occupation_period3: float = 0.  # years
     @validator(
@@ -267,8 +267,8 @@ class Payload(BaseModel):
         return value
 
     spouse_date_of_birth: float = 0.  # years
-    mother_date_of_birth: float = 50.  # years  # FIXME: remove after debugging
-    father_date_of_birth: float = 53.  # years  # FIXME: remove after debugging
+    mother_date_of_birth: float
+    father_date_of_birth: float
     
     child_date_of_birth0: float = 0.  # years
     child_date_of_birth1: float = 0.  # years
