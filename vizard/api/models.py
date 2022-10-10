@@ -2,6 +2,15 @@
 import pydantic
 from pydantic import validator
 import json
+# ours
+from vizard.data.constant import (
+    CanadaMarriageStatus,
+    SiblingRelation,
+    ChildRelation,
+    CanadaContactRelation,
+    CanadaResidencyStatus,
+    Sex
+)
 # helpers
 from typing import Any
 
@@ -30,16 +39,12 @@ class PredictionResponse(BaseModel):
 
 
 class Payload(BaseModel):
-    # TODO: make sure default values are in correct type and value
     alias_name_indicator: bool = False
 
     sex: str = 'Female'  # FIXME: remove after debugging
     @validator('sex')
     def _sex(cls, value):
-        if value not in [
-            'Male',
-            'Female',
-        ]:
+        if value not in Sex.get_member_names():
             raise ValueError(f'"{value}" is not valid')
         return value
 
@@ -58,11 +63,7 @@ class Payload(BaseModel):
     )
     def _residence_status(cls, value):
         value = value.lower().strip()
-        if value not in [
-            'citizen',
-            'visitor',
-            'other',
-        ]:
+        if value not in CanadaResidencyStatus.get_member_names():
             raise ValueError(f'"{value}" is not valid')
         return value
 
@@ -84,14 +85,7 @@ class Payload(BaseModel):
     )
     def _contact_relation_to_me(cls, value):
         value = value.lower().strip()
-        if value not in [
-            'f1',
-            'f2',
-            'hotel',
-            'work',
-            'friend',
-            'ukn',
-        ]:
+        if value not in CanadaContactRelation.get_member_names():
             raise ValueError(f'"{value}" is not valid')
         return value
 
@@ -216,11 +210,7 @@ class Payload(BaseModel):
     )
     def _child_relation(cls, value):
         value = value.lower().strip()
-        if value not in [
-            'son',
-            'daughter',
-            'other',
-        ]:
+        if value not in ChildRelation.get_member_names():
             raise ValueError(f'"{value}" is not valid')
         return value
     
@@ -250,11 +240,7 @@ class Payload(BaseModel):
     )
     def _sibling_relation(cls, value):
         value = value.lower().strip()
-        if value not in [
-            'sister',
-            'brother',
-            'other',
-        ]:
+        if value not in SiblingRelation.get_member_names():
             raise ValueError(f'"{value}" is not valid')
         return value
 
@@ -276,15 +262,7 @@ class Payload(BaseModel):
     )
     def _marital_status(cls, value):
         value = value.lower().strip()
-        if value not in [
-            'common-law',
-            'divorced',
-            'separated',
-            'married',
-            'single',
-            'widowed',
-            'unknown',
-        ]:
+        if value not in CanadaMarriageStatus.get_member_names():
             raise ValueError(f'"{value}" is not valid')
         return value
 

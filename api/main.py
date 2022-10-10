@@ -6,6 +6,10 @@ import pickle
 # ours
 from vizard.data import functional
 from vizard.data import preprocessor
+from vizard.data.constant import (
+    CanadaResidencyStatus,
+    CanadaMarriageStatus
+)
 from vizard.models import preprocessors
 from vizard.models import trainers
 from vizard.api import apps as api_apps
@@ -213,12 +217,12 @@ def _preprocess(**kwargs):
             int: Residency code {1: 'citizen', 3: 'visitor'}
         """
         string = string.lower().strip()
-        if string == 'citizen':
-            return 1
-        elif string == 'visitor':
-            return 3
-        elif string == 'other':
-            return 6
+        if string == CanadaResidencyStatus.CITIZEN.name:
+            return CanadaResidencyStatus.CITIZEN.value
+        elif string == CanadaResidencyStatus.VISITOR.name:
+            return CanadaResidencyStatus.VISITOR.value
+        elif string == CanadaResidencyStatus.OTHER.name:
+            return CanadaResidencyStatus.OTHER.value
         else:
             raise ValueError(f'"{string}" is not an acceptable residency status')
     
@@ -462,20 +466,20 @@ def _preprocess(**kwargs):
     # convert marital status string to code
     def marital_status_code(string: str) -> int:
         string = string.lower().strip()
-        if string == 'common-law':
-            return 2
-        if string == 'divorced':
-            return 3
-        if string == 'separated':
-            return 4
-        if string == 'married':
-            return 5
-        if string == 'single':
-            return 7
-        if string == 'widowed':
-            return 8
-        if string == 'unknown':
-            return 9
+        if string == CanadaMarriageStatus.COMMON_LAW.name:
+            return CanadaMarriageStatus.COMMON_LAW.value
+        if string == CanadaMarriageStatus.DIVORCED.name:
+            return CanadaMarriageStatus.DIVORCED.value
+        if string == CanadaMarriageStatus.SEPARATED.name:
+            return CanadaMarriageStatus.SEPARATED.value
+        if string == CanadaMarriageStatus.MARRIED.name:
+            return CanadaMarriageStatus.MARRIED.value
+        if string == CanadaMarriageStatus.SINGLE.name:
+            return CanadaMarriageStatus.SINGLE.value
+        if string == CanadaMarriageStatus.WIDOWED.name:
+            return CanadaMarriageStatus.WIDOWED.value
+        if string == CanadaMarriageStatus.UNKNOWN.name:
+            return CanadaMarriageStatus.UNKNOWN.value
         else:
             raise ValueError(f'"{string}" is not a valid marital status.') 
 
