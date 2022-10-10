@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   vizard.api
    vizard.configs
    vizard.data
    vizard.models
