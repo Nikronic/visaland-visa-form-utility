@@ -326,9 +326,9 @@ class CanadaResidencyStatus(CustomNamingEnum):
     """Residency status in a country in Canada data
     """
 
-    CITIZEN = auto()
-    VISITOR = auto()
-    OTHER = auto()
+    CITIZEN = 1
+    VISITOR = 3
+    OTHER = 6
 
 
 class Sex(CustomNamingEnum):
