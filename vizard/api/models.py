@@ -79,7 +79,7 @@ class Payload(BaseModel):
 
     contact_relation_to_me: str = 'hotel'
     contact_relation_to_me2: str = 'ukn'
-    validator(
+    @validator(
         'contact_relation_to_me',
         'contact_relation_to_me2'
     )
@@ -92,7 +92,7 @@ class Payload(BaseModel):
     education_indicator: bool = False
 
     education_field_of_study: str = 'unedu'
-    validator('education_field_of_study')
+    @validator('education_field_of_study')
     def _education_field_of_study(cls, value):
         value = value.lower().strip()
         if value not in [
