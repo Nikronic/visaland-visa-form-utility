@@ -9,7 +9,8 @@ from vizard.data.constant import (
     ChildRelation,
     CanadaContactRelation,
     CanadaResidencyStatus,
-    Sex
+    Sex,
+    EducationFieldOfStudy
 )
 # helpers
 from typing import Any
@@ -95,14 +96,7 @@ class Payload(BaseModel):
     @validator('education_field_of_study')
     def _education_field_of_study(cls, value):
         value = value.lower().strip()
-        if value not in [
-            'apprentice',
-            'diploma',
-            'bachelor',
-            'master',
-            'phd',
-            'unedu',
-        ]:
+        if value not in EducationFieldOfStudy.get_member_names():
             raise ValueError(f'"{value}" is not valid')
         return value
     

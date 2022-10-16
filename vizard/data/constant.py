@@ -5,7 +5,7 @@ __all__ = [
 
     # Data Enums shared all over the place
     'CustomNamingEnum', 'CanadaMarriageStatus', 'SiblingRelation', 'ChildRelation',
-    'CanadaContactRelation', 'CanadaResidencyStatus', 'Sex'
+    'CanadaContactRelation', 'CanadaResidencyStatus', 'Sex', 'EducationFieldOfStudy'
 ]
 
 import datetime
@@ -330,6 +330,17 @@ class CanadaResidencyStatus(CustomNamingEnum):
     VISITOR = 3
     OTHER = 6
 
+
+class EducationFieldOfStudy(CustomNamingEnum):
+    """Field of study types in general
+    """
+
+    APPRENTICE = auto()
+    DIPLOMA = auto()
+    BACHELOR = auto()
+    MASTER = auto()
+    PHD = auto()
+    UNEDU = auto()
 
 class Sex(CustomNamingEnum):
     """Sex types in general
