@@ -335,13 +335,13 @@ class Sex(CustomNamingEnum):
     """Sex types in general
     """
 
-    Female = auto()
-    Male = auto()
+    FEMALE = auto()
+    MALE = auto()
 
     @DynamicClassAttribute
     def name(self):
         _name = super(CustomNamingEnum, self).name
-        # convert foobar to Foobar
+        # convert foobar to Foobar (i.e. Female, Male)
         _name: str = _name.lower().capitalize()
         self._name_ = _name
         return self._name_
