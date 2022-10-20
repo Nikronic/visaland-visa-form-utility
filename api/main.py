@@ -7,8 +7,12 @@ import pickle
 from vizard.data import functional
 from vizard.data import preprocessor
 from vizard.data.constant import (
+    CanadaContactRelation,
     CanadaResidencyStatus,
-    CanadaMarriageStatus
+    CanadaMarriageStatus,
+    ChildRelation,
+    EducationFieldOfStudy,
+    SiblingRelation
 )
 from vizard.models import preprocessors
 from vizard.models import trainers
@@ -959,6 +963,110 @@ async def flag(
         logger.exception(error)
         e = sys.exc_info()[1]
         raise fastapi.HTTPException(status_code=500, detail=str(e))
+
+
+@app.get(
+    '/const/country_names',
+    response_model=api_models.CountryNamesResponse)
+async def get_country_names():
+    """Returns a list of names of countries
+
+    Note:
+        See :class:`vizard.api.models.CountryNamesResponse` for more info.
+    """
+    return {
+        'country_names': list(eco_country_score_preprocessor.country_name_to_numeric_dict)
+    }
+
+
+@app.get(
+    '/const/canada_marriage_status',
+    response_model=api_models.CanadaMarriageStatusResponse)
+async def get_canada_marriage_status():
+    """Returns a list of names of marital statuses in Canada
+
+    Note:
+        See :class:`vizard.api.models.CanadaMarriageStatusResponse` for more info.
+    """
+
+    return {
+        'marriage_status_types': CanadaMarriageStatus.get_member_names()
+    }
+
+
+@app.get(
+    '/const/sibling_relation_types',
+    response_model=api_models.SiblingRelationResponse)
+async def get_sibling_relation_types():
+    """Returns a list of names of sibling relation types
+
+    Note:
+        See :class:`vizard.api.models.SiblingRelationResponse` for more info.
+    """
+
+    return {
+        'sibling_relation_types': SiblingRelation.get_member_names()
+    }
+
+
+@app.get(
+    '/const/child_relation_types',
+    response_model=api_models.ChildRelationResponse)
+async def get_child_relation_types():
+    """Returns a list of names of child relation types
+
+    Note:
+        See :class:`vizard.api.models.ChildRelationResponse` for more info.
+    """
+
+    return {
+        'child_relation_types': ChildRelation.get_member_names()
+    }
+
+
+@app.get(
+    '/const/canada_contact_relation_types',
+    response_model=api_models.CanadaContactRelationResponse)
+async def get_canada_contact_relation_types():
+    """Returns a list of names of contact relation types in Canada (dataset wise)
+
+    Note:
+        See :class:`vizard.api.models.CanadaContactRelationResponse` for more info.
+    """
+
+    return {
+        'canada_contact_relation_types': CanadaContactRelation.get_member_names()
+    }
+
+
+@app.get(
+    '/const/canada_residency_status_types',
+    response_model=api_models.CanadaResidencyStatusResponse)
+async def get_canada_residency_status_types():
+    """Returns a list of names of residency status types in Canada (dataset wise)
+
+    Note:
+        See :class:`vizard.api.models.CanadaResidencyStatusResponse` for more info.
+    """
+
+    return {
+        'canada_residency_status_types': CanadaResidencyStatus.get_member_names()
+    }
+
+
+@app.get(
+    '/const/education_field_of_study_types',
+    response_model=api_models.EducationFieldOfStudyResponse)
+async def get_education_field_of_study_types():
+    """Returns a list of names of education field of study types
+
+    Note:
+        See :class:`vizard.api.models.EducationFieldOfStudyResponse`
+    """
+
+    return {
+        'education_field_of_study_types': EducationFieldOfStudy.get_member_names()
+    }
 
 
 if __name__ == '__main__':

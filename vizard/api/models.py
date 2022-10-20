@@ -1,3 +1,10 @@
+__all__ = [
+    'PredictionResponse', 'Payload',
+    'CountryNamesResponse', 'CanadaMarriageStatusResponse', 'SiblingRelationResponse',
+    'ChildRelationResponse', 'CanadaContactRelationResponse', 'CanadaResidencyStatusResponse',
+    'EducationFieldOfStudyResponse'
+]
+
 # core
 import pydantic
 from pydantic import validator
@@ -13,7 +20,7 @@ from vizard.data.constant import (
     EducationFieldOfStudy
 )
 # helpers
-from typing import Any
+from typing import Any, List
 
 
 class BaseModel(pydantic.BaseModel):
@@ -381,3 +388,77 @@ class Payload(BaseModel):
 
     class Config:
         orm_mode = True
+
+
+class CountryNamesResponse(BaseModel):
+    """Country names used in our application
+
+    Note:
+        Country names are extracted from :class:`vizard.data.preprocessor.WorldBankXMLProcessor`
+        which are country names used in WorldBank dataset.
+
+    """
+
+    country_names: List[str]
+
+
+class CanadaMarriageStatusResponse(BaseModel):
+    """Canada marriage status states in string format
+
+    Note:
+        See :class:`vizard.data.constant.CanadaMarriageStatus` for more info
+        for possible values.
+    """
+
+    marriage_status_types: List[str]
+
+class SiblingRelationResponse(BaseModel):
+    """Sibling relation types names
+
+    Note:
+        See :class:`vizard.data.constant.SiblingRelation` for more info
+        for possible values.
+    """
+
+    sibling_relation_types: List[str]
+
+class ChildRelationResponse(BaseModel):
+    """Child relation types names
+
+    Note:
+        See :class:`vizard.data.constant.ChildRelation` for more info
+        for possible values.
+    """
+
+    child_relation_types: List[str]
+
+class CanadaContactRelationResponse(BaseModel):
+    """Contact relation types names in Canada
+
+    Note:
+        See :class:`vizard.data.constant.CanadaContactRelation` for more info
+        for possible values.
+    """
+
+    canada_contact_relation_types: List[str]
+
+class CanadaResidencyStatusResponse(BaseModel):
+    """Residency status types names in Canada
+
+    Note:
+        See :class:`vizard.data.constant.CanadaResidencyStatus` for more info
+        for possible values.
+    """
+
+    canada_residency_status_types: List[str]
+
+
+class EducationFieldOfStudyResponse(BaseModel):
+    """Education field of study types names
+
+    Note:
+        See :class:`vizard.data.constant.EducationFieldOfStudy` for more info
+        for possible values.
+    """
+
+    education_field_of_study_types: List[str]
