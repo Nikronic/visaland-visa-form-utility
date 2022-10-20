@@ -24,7 +24,8 @@ from typing import Any, List
 
 
 class BaseModel(pydantic.BaseModel):
-    """
+    """Extension of :class:`pydantic.BaseModel` to parse ``File`` and ``Form`` data along side each other
+
     Reference:
         * https://stackoverflow.com/a/70640522/18971263
     """
@@ -43,6 +44,11 @@ class BaseModel(pydantic.BaseModel):
 
 
 class PredictionResponse(BaseModel):
+    """Response model for the prediction of machine learning model
+
+    Note:
+        This is the final goal of the project from technical aspect
+    """
     result: float
 
 
