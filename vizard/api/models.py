@@ -56,6 +56,7 @@ class Payload(BaseModel):
     alias_name_indicator: bool = False
 
     sex: str
+
     @validator('sex')
     def _sex(cls, value):
         if value not in Sex.get_member_names():
@@ -85,6 +86,7 @@ class Payload(BaseModel):
 
     purpose_of_visit: str = 'tourism'
     funds: float = 8000.
+
     @validator('funds')
     def _funds(cls, value):
         if value <= 0.:
@@ -93,6 +95,7 @@ class Payload(BaseModel):
 
     contact_relation_to_me: str = 'hotel'
     contact_relation_to_me2: str = 'ukn'
+
     @validator(
         'contact_relation_to_me',
         'contact_relation_to_me2'
@@ -106,27 +109,29 @@ class Payload(BaseModel):
     education_indicator: bool = False
 
     education_field_of_study: str = 'unedu'
+
     @validator('education_field_of_study')
     def _education_field_of_study(cls, value):
         value = value.lower().strip()
         if value not in EducationFieldOfStudy.get_member_names():
             raise ValueError(f'"{value}" is not valid')
         return value
-    
+
     education_country: str = 'Unknown'
-    
+
     occupation_title1: str = 'OTHER'
     occupation_country1: str = 'iran'
     occupation_title2: str = 'OTHER'
     occupation_country2: str = 'iran'
     occupation_title3: str = 'OTHER'
     occupation_country3: str = 'iran'
-    
+
     no_authorized_stay: bool = False
     refused_entry_or_deport: bool = False
     previous_apply: bool = False
 
     date_of_birth: float
+
     @validator('date_of_birth')
     def _date_of_birth(cls, value):
         if value < 18:
@@ -135,6 +140,7 @@ class Payload(BaseModel):
 
     previous_country_of_residency_period2: float = 0  # years
     previous_country_of_residency_period3: float = 0  # years
+
     @validator(
         'previous_country_of_residency_period2',
         'previous_country_of_residency_period3'
@@ -145,6 +151,7 @@ class Payload(BaseModel):
         return value
 
     country_where_applying_period: float = 30.  # days
+
     @validator('country_where_applying_period')
     def _country_where_applying_period(cls, value):
         if value < 0:
@@ -153,6 +160,7 @@ class Payload(BaseModel):
 
     marriage_period: float = 0.  # years
     previous_marriage_period: float = 0.  # years
+
     @validator(
         'marriage_period',
         'previous_marriage_period'
@@ -163,13 +171,15 @@ class Payload(BaseModel):
         return value
 
     passport_expiry_date_remaining: float = 3.  # years
+
     @validator('passport_expiry_date_remaining')
     def _passport_expiry_date_remaining(cls, value):
         if (value < 0) and (value > 10):
             raise ValueError('Value cannot be negative or > 10')
         return value
-    
+
     how_long_stay_period: float = 30.  # days
+
     @validator('how_long_stay_period')
     def _how_long_stay_period(cls, value):
         if value < 0:
@@ -177,6 +187,7 @@ class Payload(BaseModel):
         return value
 
     education_period: float = 0.  # years
+
     @validator('education_period')
     def _education_period(cls, value):
         if (value < 0) and (value > 10):
@@ -184,8 +195,9 @@ class Payload(BaseModel):
         return value
 
     occupation_period: float
-    occupation_period2: float = 0.  # years    
+    occupation_period2: float = 0.  # years
     occupation_period3: float = 0.  # years
+
     @validator(
         'occupation_period',
         'occupation_period2',
@@ -220,7 +232,7 @@ class Payload(BaseModel):
         if value not in ChildRelation.get_member_names():
             raise ValueError(f'"{value}" is not valid')
         return value
-    
+
     sibling_marital_status0: str = 'unknown'
     sibling_relation0: str = 'other'
     sibling_marital_status1: str = 'unknown'
@@ -276,7 +288,7 @@ class Payload(BaseModel):
     spouse_date_of_birth: float = 0.  # years
     mother_date_of_birth: float
     father_date_of_birth: float
-    
+
     child_date_of_birth0: float = 0.  # years
     child_date_of_birth1: float = 0.  # years
     child_date_of_birth2: float = 0.  # years
@@ -314,6 +326,7 @@ class Payload(BaseModel):
         return value
 
     previous_country_of_residence_count: int = 0
+
     @validator('previous_country_of_residence_count')
     def _previous_country_of_residence_count(cls, value):
         if (value < 0) and (value > 5):
@@ -321,6 +334,7 @@ class Payload(BaseModel):
         return value
 
     sibling_foreigner_count: int = 0
+
     @validator('sibling_foreigner_count')
     def _sibling_foreigner_count(cls, value):
         if (value < 0) and (value > 7):
@@ -328,6 +342,7 @@ class Payload(BaseModel):
         return value
 
     child_mother_father_spouse_foreigner_count: int = 0
+
     @validator('child_mother_father_spouse_foreigner_count')
     def _child_mother_father_spouse_foreigner_count(cls, value):
         if (value < 0) and (value > 4 + 2 + 1):
@@ -335,6 +350,7 @@ class Payload(BaseModel):
         return value
 
     child_accompany: int = 0
+
     @validator('child_accompany')
     def _child_accompany(cls, value):
         if (value < 0) and (value > 4):
@@ -342,6 +358,7 @@ class Payload(BaseModel):
         return value
 
     parent_accompany: int = 0
+
     @validator('parent_accompany')
     def _parent_accompany(cls, value):
         if (value < 0) and (value > 2):
@@ -349,6 +366,7 @@ class Payload(BaseModel):
         return value
 
     spouse_accompany: int = 0
+
     @validator('spouse_accompany')
     def _spouse_accompany(cls, value):
         if (value < 0) and (value > 1):
@@ -358,6 +376,7 @@ class Payload(BaseModel):
             )
         return value
     sibling_accompany: int = 0
+
     @validator('sibling_accompany')
     def _sibling_accompany(cls, value):
         if (value < 0) and (value > 7):
@@ -365,13 +384,15 @@ class Payload(BaseModel):
         return value
 
     child_count: int = 0
+
     @validator('child_count')
     def _child_count(cls, value):
         if (value < 0) and (value > 4):
             raise ValueError('Value cannot be negative or > 4')
         return value
-    
+
     sibling_count: int = 0
+
     @validator('sibling_count')
     def _sibling_count(cls, value):
         if (value < 0) and (value > 7):
@@ -379,13 +400,15 @@ class Payload(BaseModel):
         return value
 
     long_distance_child_sibling_count: int = 0
+
     @validator('long_distance_child_sibling_count')
     def _long_distance_child_sibling_count(cls, value):
         if (value < 0) and (value > 7 + 4):
             raise ValueError('Value cannot be negative or > 7 + 4')
         return value
-    
+
     foreign_living_child_sibling_count: int = 0
+
     @validator('foreign_living_child_sibling_count')
     def _foreign_living_child_sibling_count(cls, value):
         if (value < 0) and (value > 7 + 4):
@@ -418,6 +441,7 @@ class CanadaMarriageStatusResponse(BaseModel):
 
     marriage_status_types: List[str]
 
+
 class SiblingRelationResponse(BaseModel):
     """Sibling relation types names
 
@@ -427,6 +451,7 @@ class SiblingRelationResponse(BaseModel):
     """
 
     sibling_relation_types: List[str]
+
 
 class ChildRelationResponse(BaseModel):
     """Child relation types names
@@ -438,6 +463,7 @@ class ChildRelationResponse(BaseModel):
 
     child_relation_types: List[str]
 
+
 class CanadaContactRelationResponse(BaseModel):
     """Contact relation types names in Canada
 
@@ -447,6 +473,7 @@ class CanadaContactRelationResponse(BaseModel):
     """
 
     canada_contact_relation_types: List[str]
+
 
 class CanadaResidencyStatusResponse(BaseModel):
     """Residency status types names in Canada
