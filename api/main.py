@@ -11,6 +11,7 @@ from vizard.data.constant import (
     CanadaMarriageStatus,
     ChildRelation,
     EducationFieldOfStudy,
+    OccupationTitle,
     SiblingRelation
 )
 from vizard.models import preprocessors
@@ -145,41 +146,6 @@ def residency_status_code(string: str) -> int:
         return CanadaResidencyStatus.OTHER.value
     else:
         raise ValueError(f'"{string}" is not an acceptable residency status')
-
-
-# order is important, e.g. `'student of computer engineering'` should be
-#   categorized as `'student'` not `'specialist'` (because of `'eng'`)
-occ_cat_dict = {
-    'manager': ['manager', 'chair', 'business', 'direct', 'owner', 'share', 'board', 'head', 'ceo'],
-    'student': ['student', 'intern'],
-    'retired': ['retire'],
-    'specialist': ['eng', 'doc', 'med', 'arch', 'expert'],
-    'employee': ['sale', 'employee', 'teacher', 'retail'],
-    'housewife': ['wife'],
-}
-
-
-def categorize_occ(x: str, d: dict, default='employee') -> str:
-    """if `x` found in any of `d.value`, return the corresponding `d.key`.
-
-    Args:
-        x (str): input string to search for
-        d (dict): the dictionary to look for `x` in its values and return the key
-        default (str, optional): if `x` no found in `d` at all. Defaults to 'employee'.
-            except cases mentioned in `d` or `'OTHER'` 
-
-    Returns:
-        str: string containing a key in `d`
-    """
-    x = x.lower()
-
-    # find occurrences
-    for k in d.keys():
-        d_vals = d[k]
-        found = len([v for v in d_vals if v in x]) > 0
-        if found:
-            return k
-    return default if x != 'other' else 'OTHER'
 
 
 # convert marital status string to code
@@ -357,11 +323,6 @@ def _preprocess(**kwargs):
 
     # 17 P3.Occ.OccRow1.Occ.Occ
     occupation_title1 = kwargs['occupation_title1']
-    occupation_title1 = categorize_occ(
-        occupation_title1,
-        d=occ_cat_dict,
-        default='employee'
-    )
     features.append(occupation_title1)
 
     # 18 P3.Occ.OccRow1.Country.Country
@@ -373,11 +334,6 @@ def _preprocess(**kwargs):
 
     # 19 P3.Occ.OccRow2.Occ.Occ
     occupation_title2 = kwargs['occupation_title2']
-    occupation_title2 = categorize_occ(
-        occupation_title2,
-        d=occ_cat_dict,
-        default='employee'
-    )
     features.append(occupation_title2)
 
     # 20 P3.Occ.OccRow2.Country.Country
@@ -389,11 +345,6 @@ def _preprocess(**kwargs):
 
     # 21 P3.Occ.OccRow3.Occ.Occ
     occupation_title3 = kwargs['occupation_title3']
-    occupation_title3 = categorize_occ(
-        occupation_title3,
-        d=occ_cat_dict,
-        default='employee'
-    )
     features.append(occupation_title3)
 
     # 22 P3.Occ.OccRow3.Country.Country
@@ -1070,6 +1021,21 @@ async def get_education_field_of_study_types():
 
     return {
         'education_field_of_study_types': EducationFieldOfStudy.get_member_names()
+    }
+
+
+@app.get(
+    '/const/occupation_title_types',
+    response_model=api_models.OccupationTitleResponse)
+async def get_occupation_title_types():
+    """Returns a list of names of education field of study types
+
+    Note:
+        See :class:`vizard.api.models.OccupationTitleResponse`
+    """
+
+    return {
+        'occupation_title_types': OccupationTitle.get_member_names()
     }
 
 

@@ -342,6 +342,35 @@ class EducationFieldOfStudy(CustomNamingEnum):
     PHD = auto()
     UNEDU = auto()
 
+class OccupationTitle(CustomNamingEnum):
+    """Occupation title (position) types in general
+
+    Todo:
+        ``HOUSEWIFE`` need to be deleted and assumed ``'OTHER'`` or something similar.
+    """
+
+    MANAGER = auto()
+    STUDENT = auto()
+    RETIRED = auto()
+    SPECIALIST = auto()
+    EMPLOYEE = auto()
+    HOUSEWIFE = auto()
+    OTHER = auto()
+
+    # TODO: OTHER name has to be be ``'OTHER'``, fix the below hardcoding
+    @DynamicClassAttribute
+    def name(self):
+        _name = super(CustomNamingEnum, self).name
+        _name: str = _name.lower()
+        # convert FOO_BAR to foo-bar (dataset convention)
+        _name = _name.replace('_', '-')
+        # set `OTHER`'s name to 'OTHER'
+        if _name == 'other':
+            _name = 'OTHER'
+        self._name_ = _name
+        return self._name_
+
+
 class Sex(CustomNamingEnum):
     """Sex types in general
     """

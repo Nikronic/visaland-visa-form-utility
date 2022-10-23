@@ -495,3 +495,14 @@ class EducationFieldOfStudyResponse(BaseModel):
     """
 
     education_field_of_study_types: List[str]
+
+
+class OccupationTitleResponse(BaseModel):
+    """ Occupation title types names
+
+    Note:
+        See :class:`vizard.data.constant.OccupationTitle` for more info
+        for possible values.
+    """
+
+    occupation_title_types: List[str]
