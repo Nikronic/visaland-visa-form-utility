@@ -5,7 +5,7 @@ __all__ = [
 
     # Data Enums shared all over the place
     'CustomNamingEnum', 'CanadaMarriageStatus', 'SiblingRelation', 'ChildRelation',
-    'CanadaContactRelation', 'CanadaResidencyStatus', 'Sex'
+    'CanadaContactRelation', 'CanadaResidencyStatus', 'Sex', 'EducationFieldOfStudy'
 ]
 
 import datetime
@@ -326,22 +326,62 @@ class CanadaResidencyStatus(CustomNamingEnum):
     """Residency status in a country in Canada data
     """
 
-    CITIZEN = auto()
-    VISITOR = auto()
+    CITIZEN = 1
+    VISITOR = 3
+    OTHER = 6
+
+
+class EducationFieldOfStudy(CustomNamingEnum):
+    """Field of study types in general
+    """
+
+    APPRENTICE = auto()
+    DIPLOMA = auto()
+    BACHELOR = auto()
+    MASTER = auto()
+    PHD = auto()
+    UNEDU = auto()
+
+class OccupationTitle(CustomNamingEnum):
+    """Occupation title (position) types in general
+
+    Todo:
+        ``HOUSEWIFE`` need to be deleted and assumed ``'OTHER'`` or something similar.
+    """
+
+    MANAGER = auto()
+    STUDENT = auto()
+    RETIRED = auto()
+    SPECIALIST = auto()
+    EMPLOYEE = auto()
+    HOUSEWIFE = auto()
     OTHER = auto()
+
+    # TODO: OTHER name has to be be ``'OTHER'``, fix the below hardcoding
+    @DynamicClassAttribute
+    def name(self):
+        _name = super(CustomNamingEnum, self).name
+        _name: str = _name.lower()
+        # convert FOO_BAR to foo-bar (dataset convention)
+        _name = _name.replace('_', '-')
+        # set `OTHER`'s name to 'OTHER'
+        if _name == 'other':
+            _name = 'OTHER'
+        self._name_ = _name
+        return self._name_
 
 
 class Sex(CustomNamingEnum):
     """Sex types in general
     """
 
-    Female = auto()
-    Male = auto()
+    FEMALE = auto()
+    MALE = auto()
 
     @DynamicClassAttribute
     def name(self):
         _name = super(CustomNamingEnum, self).name
-        # convert foobar to Foobar
+        # convert foobar to Foobar (i.e. Female, Male)
         _name: str = _name.lower().capitalize()
         self._name_ = _name
         return self._name_

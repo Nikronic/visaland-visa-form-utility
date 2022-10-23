@@ -1,5 +1,4 @@
 # core
-from typing import List
 import pandas as pd
 import numpy as np
 import pickle
@@ -7,8 +6,13 @@ import pickle
 from vizard.data import functional
 from vizard.data import preprocessor
 from vizard.data.constant import (
+    CanadaContactRelation,
     CanadaResidencyStatus,
-    CanadaMarriageStatus
+    CanadaMarriageStatus,
+    ChildRelation,
+    EducationFieldOfStudy,
+    OccupationTitle,
+    SiblingRelation
 )
 from vizard.models import preprocessors
 from vizard.models import trainers
@@ -26,6 +30,7 @@ import uvicorn
 import mlflow
 import dvc.api
 # helpers
+from typing import List
 from pathlib import Path
 import argparse
 import logging
@@ -119,6 +124,51 @@ edu_country_score_preprocessor = preprocessor.EducationCountryScoreDataframePrep
 )
 
 
+def residency_status_code(string: str) -> int:
+    """convert residency status string to code
+
+    Note:
+        Condition on ``string`` and the resulting value derived from
+        enumerator :class:`vizard.data.constant.CanadaResidencyStatus`.
+
+    Args:
+        string (str): Residency string, either ``'citizen'`` or ``'visitor'``.
+
+    Returns:
+        int: Residency code ``{1: 'citizen', 3: 'visitor', 6: 'other'}``
+    """
+    string = string.lower().strip()
+    if string == CanadaResidencyStatus.CITIZEN.name:
+        return CanadaResidencyStatus.CITIZEN.value
+    elif string == CanadaResidencyStatus.VISITOR.name:
+        return CanadaResidencyStatus.VISITOR.value
+    elif string == CanadaResidencyStatus.OTHER.name:
+        return CanadaResidencyStatus.OTHER.value
+    else:
+        raise ValueError(f'"{string}" is not an acceptable residency status')
+
+
+# convert marital status string to code
+def marital_status_code(string: str) -> int:
+    string = string.lower().strip()
+    if string == CanadaMarriageStatus.COMMON_LAW.name:
+        return CanadaMarriageStatus.COMMON_LAW.value
+    if string == CanadaMarriageStatus.DIVORCED.name:
+        return CanadaMarriageStatus.DIVORCED.value
+    if string == CanadaMarriageStatus.SEPARATED.name:
+        return CanadaMarriageStatus.SEPARATED.value
+    if string == CanadaMarriageStatus.MARRIED.name:
+        return CanadaMarriageStatus.MARRIED.value
+    if string == CanadaMarriageStatus.SINGLE.name:
+        return CanadaMarriageStatus.SINGLE.value
+    if string == CanadaMarriageStatus.WIDOWED.name:
+        return CanadaMarriageStatus.WIDOWED.value
+    if string == CanadaMarriageStatus.UNKNOWN.name:
+        return CanadaMarriageStatus.UNKNOWN.value
+    else:
+        raise ValueError(f'"{string}" is not a valid marital status.')
+
+
 # configure logging
 VERBOSE = logging.DEBUG if args.verbose == 'debug' else logging.INFO
 MLFLOW_ARTIFACTS_BASE_PATH: Path = Path('artifacts')
@@ -183,7 +233,7 @@ app.add_middleware(
 
 def _preprocess(**kwargs):
     features: List = []
-    
+
     # 0 P1.PD.AliasName.AliasNameIndicator.AliasNameIndicator
     alias_name_indicator = kwargs['alias_name_indicator']
     features.append(alias_name_indicator)
@@ -195,49 +245,20 @@ def _preprocess(**kwargs):
 
     # 2 P1.PD.CurrCOR.Row2.Country
     current_country_of_residence_country = kwargs['current_country_of_residence_country']
-    current_country_of_residence_country = functional.extended_dict_get(
-        current_country_of_residence_country,
-        functional.config_csv_to_dict(CANADA_COUNTRY_CODE_TO_NAME),
-        'Unknown',
-        str.isnumeric,
-    )
     current_country_of_residence_country = eco_country_score_preprocessor.convert_country_name_to_numeric(
         current_country_of_residence_country
     )
     features.append(current_country_of_residence_country)
 
     # 3 P1.PD.CurrCOR.Row2.Status
-    def f(string: str) -> int:
-        """convert residency status string to code
-
-        Args:
-            string (str): Residency string, either ``'citizen'`` or ``'visitor'``.
-
-        Returns:
-            int: Residency code {1: 'citizen', 3: 'visitor'}
-        """
-        string = string.lower().strip()
-        if string == CanadaResidencyStatus.CITIZEN.name:
-            return CanadaResidencyStatus.CITIZEN.value
-        elif string == CanadaResidencyStatus.VISITOR.name:
-            return CanadaResidencyStatus.VISITOR.value
-        elif string == CanadaResidencyStatus.OTHER.name:
-            return CanadaResidencyStatus.OTHER.value
-        else:
-            raise ValueError(f'"{string}" is not an acceptable residency status')
-    
     current_country_of_residence_status = kwargs['current_country_of_residence_status']
-    current_country_of_residence_status = f(current_country_of_residence_status)
+    current_country_of_residence_status = residency_status_code(
+        current_country_of_residence_status
+    )
     features.append(current_country_of_residence_status)
 
     # 4 P1.PD.PrevCOR.Row2.Country
     previous_country_of_residence_country2 = kwargs['previous_country_of_residence_country2']
-    previous_country_of_residence_country2 = functional.extended_dict_get(
-        previous_country_of_residence_country2,
-        functional.config_csv_to_dict(CANADA_COUNTRY_CODE_TO_NAME),
-        'Unknown',
-        str.isnumeric,
-    )
     previous_country_of_residence_country2 = eco_country_score_preprocessor.convert_country_name_to_numeric(
         previous_country_of_residence_country2
     )
@@ -245,12 +266,6 @@ def _preprocess(**kwargs):
 
     # 5 P1.PD.PrevCOR.Row3.Country
     previous_country_of_residence_country3 = kwargs['previous_country_of_residence_country3']
-    previous_country_of_residence_country3 = functional.extended_dict_get(
-        previous_country_of_residence_country3,
-        functional.config_csv_to_dict(CANADA_COUNTRY_CODE_TO_NAME),
-        'Unknown',
-        str.isnumeric,
-    )
     previous_country_of_residence_country3 = eco_country_score_preprocessor.convert_country_name_to_numeric(
         previous_country_of_residence_country3
     )
@@ -266,7 +281,9 @@ def _preprocess(**kwargs):
 
     # 8 P1.PD.CWA.Row2.Status
     country_where_applying_status = kwargs['country_where_applying_status']
-    country_where_applying_status = f(country_where_applying_status)
+    country_where_applying_status = residency_status_code(
+        country_where_applying_status
+    )
     features.append(country_where_applying_status)
 
     # 9 P2.MS.SecA.PrevMarrIndicator
@@ -306,49 +323,10 @@ def _preprocess(**kwargs):
 
     # 17 P3.Occ.OccRow1.Occ.Occ
     occupation_title1 = kwargs['occupation_title1']
-    # order is important, e.g. `'student of computer engineering'` should be
-    #   categorized as `'student'` not `'specialist'` (because of `'eng'`)
-    occ_cat_dict = {
-        'manager': ['manager', 'chair', 'business', 'direct', 'owner', 'share', 'board', 'head', 'ceo'],
-        'student': ['student', 'intern'],
-        'retired': ['retire'],
-        'specialist': ['eng', 'doc', 'med', 'arch', 'expert'],
-        'employee': ['sale', 'employee', 'teacher', 'retail'],
-        'housewife': ['wife'],
-    }
-    def categorize_occ(x: str, d: dict, default='employee') -> str:
-        """if `x` found in any of `d.value`, return the corresponding `d.key`.
-
-        Args:
-            x (str): input string to search for
-            d (dict): the dictionary to look for `x` in its values and return the key
-            default (str, optional): if `x` no found in `d` at all. Defaults to 'employee'.
-                except cases mentioned in `d` or `'OTHER'` 
-
-        Returns:
-            str: string containing a key in `d`
-        """
-        x = x.lower()
-
-        # find occurrences
-        for k in d.keys():
-            d_vals = d[k]
-            found = len([v for v in d_vals if v in x]) > 0
-            if found:
-                return k
-        return default if x != 'other' else 'OTHER'
-
-    occupation_title1 = categorize_occ(occupation_title1, d=occ_cat_dict, default='employee')
     features.append(occupation_title1)
 
     # 18 P3.Occ.OccRow1.Country.Country
     occupation_country1 = kwargs['occupation_country1']
-    occupation_country1 = functional.extended_dict_get(
-        occupation_country1,
-        functional.config_csv_to_dict(CANADA_COUNTRY_CODE_TO_NAME),
-        'Unknown',
-        str.isnumeric,
-    )
     occupation_country1 = eco_country_score_preprocessor.convert_country_name_to_numeric(
         occupation_country1
     )
@@ -356,17 +334,10 @@ def _preprocess(**kwargs):
 
     # 19 P3.Occ.OccRow2.Occ.Occ
     occupation_title2 = kwargs['occupation_title2']
-    occupation_title2 = categorize_occ(occupation_title2, d=occ_cat_dict, default='employee')
     features.append(occupation_title2)
 
     # 20 P3.Occ.OccRow2.Country.Country
     occupation_country2 = kwargs['occupation_country2']
-    occupation_country2 = functional.extended_dict_get(
-        occupation_country2,
-        functional.config_csv_to_dict(CANADA_COUNTRY_CODE_TO_NAME),
-        'Unknown',
-        str.isnumeric,
-    )
     occupation_country2 = eco_country_score_preprocessor.convert_country_name_to_numeric(
         occupation_country2
     )
@@ -374,17 +345,10 @@ def _preprocess(**kwargs):
 
     # 21 P3.Occ.OccRow3.Occ.Occ
     occupation_title3 = kwargs['occupation_title3']
-    occupation_title3 = categorize_occ(occupation_title3, d=occ_cat_dict, default='employee')
     features.append(occupation_title3)
 
     # 22 P3.Occ.OccRow3.Country.Country
     occupation_country3 = kwargs['occupation_country3']
-    occupation_country3 = functional.extended_dict_get(
-        occupation_country3,
-        functional.config_csv_to_dict(CANADA_COUNTRY_CODE_TO_NAME),
-        'Unknown',
-        str.isnumeric,
-    )
     occupation_country3 = eco_country_score_preprocessor.convert_country_name_to_numeric(
         occupation_country3
     )
@@ -404,17 +368,14 @@ def _preprocess(**kwargs):
 
     # 26 P1.PD.DOBYear.Period
     date_of_birth = kwargs['date_of_birth']
-    date_of_birth = date_of_birth  # int years
     features.append(date_of_birth)
 
     # 27 P1.PD.PrevCOR.Row2.Period
     previous_country_of_residency_period2 = kwargs['previous_country_of_residency_period2']
-    previous_country_of_residency_period2 = previous_country_of_residency_period2  # int years
     features.append(previous_country_of_residency_period2)
 
     # 28 P1.PD.PrevCOR.Row3.Period
     previous_country_of_residency_period3 = kwargs['previous_country_of_residency_period3']
-    previous_country_of_residency_period3 = previous_country_of_residency_period3  # int years
     features.append(previous_country_of_residency_period3)
 
     # 29 P1.PD.CWA.Row2.Period
@@ -423,17 +384,14 @@ def _preprocess(**kwargs):
 
     # 30 P1.MS.SecA.DateOfMarr.Period
     marriage_period = kwargs['marriage_period']
-    marriage_period = marriage_period  # int years
     features.append(marriage_period)
 
     # 31 P2.MS.SecA.Period
     previous_marriage_period = kwargs['previous_marriage_period']
-    previous_marriage_period = previous_marriage_period  # int years
     features.append(previous_marriage_period)
 
     # 32 P2.MS.SecA.Psprt.ExpiryDate.Remaining
     passport_expiry_date_remaining = kwargs['passport_expiry_date_remaining']
-    passport_expiry_date_remaining = passport_expiry_date_remaining  # int years
     features.append(passport_expiry_date_remaining)
 
     # 33 P3.DOV.PrpsRow1.HLS.Period
@@ -442,47 +400,22 @@ def _preprocess(**kwargs):
 
     # 34 P3.Edu.Edu_Row1.Period
     education_period = kwargs['education_period']
-    education_period = education_period  # int years
     features.append(education_period)
 
     # 35 P3.Occ.OccRow1.Period
     occupation_period = kwargs['occupation_period']
-    occupation_period = occupation_period  # int years
     features.append(occupation_period)
 
     # 36 P3.Occ.OccRow2.Period
     occupation_period2 = kwargs['occupation_period2']
-    occupation_period2 = occupation_period2  # int years
     features.append(occupation_period2)
 
     # 37 P3.Occ.OccRow3.Period
     occupation_period3 = kwargs['occupation_period3']
-    occupation_period3 = occupation_period3  # int years
     features.append(occupation_period3)
 
     # 38 p1.SecA.App.ChdMStatus
     applicant_marital_status = kwargs['applicant_marital_status']
-    
-    # convert marital status string to code
-    def marital_status_code(string: str) -> int:
-        string = string.lower().strip()
-        if string == CanadaMarriageStatus.COMMON_LAW.name:
-            return CanadaMarriageStatus.COMMON_LAW.value
-        if string == CanadaMarriageStatus.DIVORCED.name:
-            return CanadaMarriageStatus.DIVORCED.value
-        if string == CanadaMarriageStatus.SEPARATED.name:
-            return CanadaMarriageStatus.SEPARATED.value
-        if string == CanadaMarriageStatus.MARRIED.name:
-            return CanadaMarriageStatus.MARRIED.value
-        if string == CanadaMarriageStatus.SINGLE.name:
-            return CanadaMarriageStatus.SINGLE.value
-        if string == CanadaMarriageStatus.WIDOWED.name:
-            return CanadaMarriageStatus.WIDOWED.value
-        if string == CanadaMarriageStatus.UNKNOWN.name:
-            return CanadaMarriageStatus.UNKNOWN.value
-        else:
-            raise ValueError(f'"{string}" is not a valid marital status.') 
-
     applicant_marital_status = marital_status_code(applicant_marital_status)
     features.append(applicant_marital_status)
 
@@ -597,76 +530,62 @@ def _preprocess(**kwargs):
 
     # 63 p1.SecA.Sps.SpsDOB.Period
     spouse_date_of_birth = kwargs['spouse_date_of_birth']
-    spouse_date_of_birth = spouse_date_of_birth  # int years
     features.append(spouse_date_of_birth)
 
     # 64 p1.SecA.Mo.MoDOB.Period
     mother_date_of_birth = kwargs['mother_date_of_birth']
-    mother_date_of_birth = mother_date_of_birth  # int years
     features.append(mother_date_of_birth)
 
     # 65 p1.SecA.Fa.FaDOB.Period
     father_date_of_birth = kwargs['father_date_of_birth']
-    father_date_of_birth = father_date_of_birth  # int years
     features.append(father_date_of_birth)
 
     # 66 p1.SecB.Chd.[0].ChdDOB.Period
     child_date_of_birth0 = kwargs['child_date_of_birth0']
-    child_date_of_birth0 = child_date_of_birth0  # int years
     features.append(child_date_of_birth0)
 
     # 67 p1.SecB.Chd.[1].ChdDOB.Period
     child_date_of_birth1 = kwargs['child_date_of_birth1']
-    child_date_of_birth1 = child_date_of_birth1  # int years
     features.append(child_date_of_birth1)
 
     # 68 p1.SecB.Chd.[2].ChdDOB.Period
     child_date_of_birth2 = kwargs['child_date_of_birth2']
-    child_date_of_birth2 = child_date_of_birth2  # int years
     features.append(child_date_of_birth2)
 
     # 69 p1.SecB.Chd.[3].ChdDOB.Period
     child_date_of_birth3 = kwargs['child_date_of_birth3']
-    child_date_of_birth3 = child_date_of_birth3  # int years
     features.append(child_date_of_birth3)
 
-    # 70 p1.SecC.Chd.[0].ChdDOB.Period 
+    # 70 p1.SecC.Chd.[0].ChdDOB.Period
     sibling_date_of_birth0 = kwargs['sibling_date_of_birth0']
-    sibling_date_of_birth0 = sibling_date_of_birth0  # int years
     features.append(sibling_date_of_birth0)
 
-    # 71 p1.SecC.Chd.[1].ChdDOB.Period 
+    # 71 p1.SecC.Chd.[1].ChdDOB.Period
     sibling_date_of_birth1 = kwargs['sibling_date_of_birth1']
-    sibling_date_of_birth1 = sibling_date_of_birth1  # int years
     features.append(sibling_date_of_birth1)
 
-    # 72 p1.SecC.Chd.[2].ChdDOB.Period 
+    # 72 p1.SecC.Chd.[2].ChdDOB.Period
     sibling_date_of_birth2 = kwargs['sibling_date_of_birth2']
-    sibling_date_of_birth2 = sibling_date_of_birth2  # int years
     features.append(sibling_date_of_birth2)
 
-    # 73 p1.SecC.Chd.[3].ChdDOB.Period 
+    # 73 p1.SecC.Chd.[3].ChdDOB.Period
     sibling_date_of_birth3 = kwargs['sibling_date_of_birth3']
-    sibling_date_of_birth3 = sibling_date_of_birth3  # int years
     features.append(sibling_date_of_birth3)
 
-    # 74 p1.SecC.Chd.[4].ChdDOB.Period 
+    # 74 p1.SecC.Chd.[4].ChdDOB.Period
     sibling_date_of_birth4 = kwargs['sibling_date_of_birth4']
-    sibling_date_of_birth4 = sibling_date_of_birth4  # int years
     features.append(sibling_date_of_birth4)
 
-    # 75 p1.SecC.Chd.[5].ChdDOB.Period 
+    # 75 p1.SecC.Chd.[5].ChdDOB.Period
     sibling_date_of_birth5 = kwargs['sibling_date_of_birth5']
-    sibling_date_of_birth5 = sibling_date_of_birth5  # int years
     features.append(sibling_date_of_birth5)
 
-    # 76 p1.SecC.Chd.[6].ChdDOB.Period 
+    # 76 p1.SecC.Chd.[6].ChdDOB.Period
     sibling_date_of_birth6 = kwargs['sibling_date_of_birth6']
-    sibling_date_of_birth6 = sibling_date_of_birth6  # int years
     features.append(sibling_date_of_birth6)
 
     # 77 VisaResult -> the label -> dropped
-    
+
     # 78 P1.PD.PrevCOR.Row.Count
     previous_country_of_residence_count = kwargs['previous_country_of_residence_count']
     features.append(previous_country_of_residence_count)
@@ -737,119 +656,119 @@ async def predict(
 ):
     try:
         result = _predict(
-            alias_name_indicator = features.alias_name_indicator,
-            sex = features.sex,
+            alias_name_indicator=features.alias_name_indicator,
+            sex=features.sex,
 
-            current_country_of_residence_country = features.current_country_of_residence_country,
-            current_country_of_residence_status = features.current_country_of_residence_status,
-            previous_country_of_residence_country2 = features.previous_country_of_residence_country2,
-            previous_country_of_residence_country3 = features.previous_country_of_residence_country3,
+            current_country_of_residence_country=features.current_country_of_residence_country,
+            current_country_of_residence_status=features.current_country_of_residence_status,
+            previous_country_of_residence_country2=features.previous_country_of_residence_country2,
+            previous_country_of_residence_country3=features.previous_country_of_residence_country3,
 
-            same_as_country_of_residence_indicator = features.same_as_country_of_residence_indicator,
-            country_where_applying_country = features.country_where_applying_country,
-            country_where_applying_status = features.country_where_applying_status,
+            same_as_country_of_residence_indicator=features.same_as_country_of_residence_indicator,
+            country_where_applying_country=features.country_where_applying_country,
+            country_where_applying_status=features.country_where_applying_status,
 
-            previous_marriage_indicator = features.previous_marriage_indicator,
+            previous_marriage_indicator=features.previous_marriage_indicator,
 
-            purpose_of_visit = features.purpose_of_visit,
-            funds = features.funds,
-            contact_relation_to_me = features.contact_relation_to_me,
-            contact_relation_to_me2 = features.contact_relation_to_me2,
+            purpose_of_visit=features.purpose_of_visit,
+            funds=features.funds,
+            contact_relation_to_me=features.contact_relation_to_me,
+            contact_relation_to_me2=features.contact_relation_to_me2,
 
-            education_indicator = features.education_indicator,
-            education_field_of_study = features.education_field_of_study,
-            education_country = features.education_country,
+            education_indicator=features.education_indicator,
+            education_field_of_study=features.education_field_of_study,
+            education_country=features.education_country,
 
-            occupation_title1 = features.occupation_title1,
-            occupation_country1 = features.occupation_country1,
-            occupation_title2 = features.occupation_title2,
-            occupation_country2 = features.occupation_country2,
-            occupation_title3 = features.occupation_title3,
-            occupation_country3 = features.occupation_country3,
+            occupation_title1=features.occupation_title1,
+            occupation_country1=features.occupation_country1,
+            occupation_title2=features.occupation_title2,
+            occupation_country2=features.occupation_country2,
+            occupation_title3=features.occupation_title3,
+            occupation_country3=features.occupation_country3,
 
-            no_authorized_stay = features.no_authorized_stay,
-            refused_entry_or_deport = features.refused_entry_or_deport,
-            previous_apply = features.previous_apply,
+            no_authorized_stay=features.no_authorized_stay,
+            refused_entry_or_deport=features.refused_entry_or_deport,
+            previous_apply=features.previous_apply,
 
-            date_of_birth = features.date_of_birth,
+            date_of_birth=features.date_of_birth,
 
-            previous_country_of_residency_period2 = features.previous_country_of_residency_period2,
-            previous_country_of_residency_period3 = features.previous_country_of_residency_period3,
+            previous_country_of_residency_period2=features.previous_country_of_residency_period2,
+            previous_country_of_residency_period3=features.previous_country_of_residency_period3,
 
-            country_where_applying_period = features.country_where_applying_period,  # days
+            country_where_applying_period=features.country_where_applying_period,  # days
 
-            marriage_period = features.marriage_period,
-            previous_marriage_period = features.previous_marriage_period,
+            marriage_period=features.marriage_period,
+            previous_marriage_period=features.previous_marriage_period,
 
-            passport_expiry_date_remaining = features.passport_expiry_date_remaining,  # years?
-            how_long_stay_period = features.how_long_stay_period,  # days
+            passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years?
+            how_long_stay_period=features.how_long_stay_period,  # days
 
-            education_period = features.education_period,
+            education_period=features.education_period,
 
-            occupation_period = features.occupation_period,
-            occupation_period2 = features.occupation_period2,
-            occupation_period3 = features.occupation_period3,
+            occupation_period=features.occupation_period,
+            occupation_period2=features.occupation_period2,
+            occupation_period3=features.occupation_period3,
 
-            applicant_marital_status = features.applicant_marital_status,
-            mother_marital_status = features.mother_marital_status,
-            father_marital_status = features.father_marital_status,
+            applicant_marital_status=features.applicant_marital_status,
+            mother_marital_status=features.mother_marital_status,
+            father_marital_status=features.father_marital_status,
 
-            child_marital_status0 = features.child_marital_status0,
-            child_relation0 = features.child_relation0,
-            child_marital_status1 = features.child_marital_status1,
-            child_relation1 = features.child_relation1,
-            child_marital_status2 = features.child_marital_status2,
-            child_relation2 = features.child_relation2,
-            child_marital_status3 = features.child_marital_status3,
-            child_relation3 = features.child_relation3,
+            child_marital_status0=features.child_marital_status0,
+            child_relation0=features.child_relation0,
+            child_marital_status1=features.child_marital_status1,
+            child_relation1=features.child_relation1,
+            child_marital_status2=features.child_marital_status2,
+            child_relation2=features.child_relation2,
+            child_marital_status3=features.child_marital_status3,
+            child_relation3=features.child_relation3,
 
-            sibling_marital_status0 = features.sibling_marital_status0,
-            sibling_relation0 = features.sibling_relation0,
-            sibling_marital_status1 = features.sibling_marital_status1,
-            sibling_relation1 = features.sibling_relation1,
-            sibling_marital_status2 = features.sibling_marital_status2,
-            sibling_relation2 = features.sibling_relation2,
-            sibling_marital_status3 = features.sibling_marital_status3,
-            sibling_relation3 = features.sibling_relation3,
-            sibling_marital_status4 = features.sibling_marital_status4,
-            sibling_relation4 = features.sibling_relation4,
-            sibling_marital_status5 = features.sibling_marital_status5,
-            sibling_relation5 = features.sibling_relation5,
-            sibling_marital_status6 = features.sibling_marital_status6,
-            sibling_relation6 = features.sibling_relation6,
+            sibling_marital_status0=features.sibling_marital_status0,
+            sibling_relation0=features.sibling_relation0,
+            sibling_marital_status1=features.sibling_marital_status1,
+            sibling_relation1=features.sibling_relation1,
+            sibling_marital_status2=features.sibling_marital_status2,
+            sibling_relation2=features.sibling_relation2,
+            sibling_marital_status3=features.sibling_marital_status3,
+            sibling_relation3=features.sibling_relation3,
+            sibling_marital_status4=features.sibling_marital_status4,
+            sibling_relation4=features.sibling_relation4,
+            sibling_marital_status5=features.sibling_marital_status5,
+            sibling_relation5=features.sibling_relation5,
+            sibling_marital_status6=features.sibling_marital_status6,
+            sibling_relation6=features.sibling_relation6,
 
-            spouse_date_of_birth = features.spouse_date_of_birth,
-            mother_date_of_birth = features.mother_date_of_birth,
-            father_date_of_birth = features.father_date_of_birth,
+            spouse_date_of_birth=features.spouse_date_of_birth,
+            mother_date_of_birth=features.mother_date_of_birth,
+            father_date_of_birth=features.father_date_of_birth,
 
-            child_date_of_birth0 = features.child_date_of_birth0,
-            child_date_of_birth1 = features.child_date_of_birth1,
-            child_date_of_birth2 = features.child_date_of_birth2,
-            child_date_of_birth3 = features.child_date_of_birth3,
+            child_date_of_birth0=features.child_date_of_birth0,
+            child_date_of_birth1=features.child_date_of_birth1,
+            child_date_of_birth2=features.child_date_of_birth2,
+            child_date_of_birth3=features.child_date_of_birth3,
 
-            sibling_date_of_birth0 = features.sibling_date_of_birth0,
-            sibling_date_of_birth1 = features.sibling_date_of_birth1,
-            sibling_date_of_birth2 = features.sibling_date_of_birth2,
-            sibling_date_of_birth3 = features.sibling_date_of_birth3,
-            sibling_date_of_birth4 = features.sibling_date_of_birth4,
-            sibling_date_of_birth5 = features.sibling_date_of_birth5,
-            sibling_date_of_birth6 = features.sibling_date_of_birth6,
+            sibling_date_of_birth0=features.sibling_date_of_birth0,
+            sibling_date_of_birth1=features.sibling_date_of_birth1,
+            sibling_date_of_birth2=features.sibling_date_of_birth2,
+            sibling_date_of_birth3=features.sibling_date_of_birth3,
+            sibling_date_of_birth4=features.sibling_date_of_birth4,
+            sibling_date_of_birth5=features.sibling_date_of_birth5,
+            sibling_date_of_birth6=features.sibling_date_of_birth6,
 
-            previous_country_of_residence_count = features.previous_country_of_residence_count,
+            previous_country_of_residence_count=features.previous_country_of_residence_count,
 
-            sibling_foreigner_count = features.sibling_foreigner_count,
-            child_mother_father_spouse_foreigner_count = features.child_mother_father_spouse_foreigner_count,
+            sibling_foreigner_count=features.sibling_foreigner_count,
+            child_mother_father_spouse_foreigner_count=features.child_mother_father_spouse_foreigner_count,
 
-            child_accompany = features.child_accompany,
-            parent_accompany = features.parent_accompany,
-            spouse_accompany = features.spouse_accompany,
-            sibling_accompany = features.sibling_accompany,
+            child_accompany=features.child_accompany,
+            parent_accompany=features.parent_accompany,
+            spouse_accompany=features.spouse_accompany,
+            sibling_accompany=features.sibling_accompany,
 
-            child_count = features.child_count,
-            sibling_count = features.sibling_count,
+            child_count=features.child_count,
+            sibling_count=features.sibling_count,
 
-            long_distance_child_sibling_count = features.long_distance_child_sibling_count,
-            foreign_living_child_sibling_count = features.foreign_living_child_sibling_count,
+            long_distance_child_sibling_count=features.long_distance_child_sibling_count,
+            foreign_living_child_sibling_count=features.foreign_living_child_sibling_count,
         )
 
         logger.info('Inference finished')
@@ -872,119 +791,119 @@ async def flag(
 
     try:
         result = _predict(
-            alias_name_indicator = features.alias_name_indicator,
-            sex = features.sex,
+            alias_name_indicator=features.alias_name_indicator,
+            sex=features.sex,
 
-            current_country_of_residence_country = features.current_country_of_residence_country,
-            current_country_of_residence_status = features.current_country_of_residence_status,
-            previous_country_of_residence_country2 = features.previous_country_of_residence_country2,
-            previous_country_of_residence_country3 = features.previous_country_of_residence_country3,
+            current_country_of_residence_country=features.current_country_of_residence_country,
+            current_country_of_residence_status=features.current_country_of_residence_status,
+            previous_country_of_residence_country2=features.previous_country_of_residence_country2,
+            previous_country_of_residence_country3=features.previous_country_of_residence_country3,
 
-            same_as_country_of_residence_indicator = features.same_as_country_of_residence_indicator,
-            country_where_applying_country = features.country_where_applying_country,
-            country_where_applying_status = features.country_where_applying_status,
+            same_as_country_of_residence_indicator=features.same_as_country_of_residence_indicator,
+            country_where_applying_country=features.country_where_applying_country,
+            country_where_applying_status=features.country_where_applying_status,
 
-            previous_marriage_indicator = features.previous_marriage_indicator,
+            previous_marriage_indicator=features.previous_marriage_indicator,
 
-            purpose_of_visit = features.purpose_of_visit,
-            funds = features.funds,
-            contact_relation_to_me = features.contact_relation_to_me,
-            contact_relation_to_me2 = features.contact_relation_to_me2,
+            purpose_of_visit=features.purpose_of_visit,
+            funds=features.funds,
+            contact_relation_to_me=features.contact_relation_to_me,
+            contact_relation_to_me2=features.contact_relation_to_me2,
 
-            education_indicator = features.education_indicator,
-            education_field_of_study = features.education_field_of_study,
-            education_country = features.education_country,
+            education_indicator=features.education_indicator,
+            education_field_of_study=features.education_field_of_study,
+            education_country=features.education_country,
 
-            occupation_title1 = features.occupation_title1,
-            occupation_country1 = features.occupation_country1,
-            occupation_title2 = features.occupation_title2,
-            occupation_country2 = features.occupation_country2,
-            occupation_title3 = features.occupation_title3,
-            occupation_country3 = features.occupation_country3,
+            occupation_title1=features.occupation_title1,
+            occupation_country1=features.occupation_country1,
+            occupation_title2=features.occupation_title2,
+            occupation_country2=features.occupation_country2,
+            occupation_title3=features.occupation_title3,
+            occupation_country3=features.occupation_country3,
 
-            no_authorized_stay = features.no_authorized_stay,
-            refused_entry_or_deport = features.refused_entry_or_deport,
-            previous_apply = features.previous_apply,
+            no_authorized_stay=features.no_authorized_stay,
+            refused_entry_or_deport=features.refused_entry_or_deport,
+            previous_apply=features.previous_apply,
 
-            date_of_birth = features.date_of_birth,
+            date_of_birth=features.date_of_birth,
 
-            previous_country_of_residency_period2 = features.previous_country_of_residency_period2,
-            previous_country_of_residency_period3 = features.previous_country_of_residency_period3,
+            previous_country_of_residency_period2=features.previous_country_of_residency_period2,
+            previous_country_of_residency_period3=features.previous_country_of_residency_period3,
 
-            country_where_applying_period = features.country_where_applying_period,  # days
+            country_where_applying_period=features.country_where_applying_period,  # days
 
-            marriage_period = features.marriage_period,
-            previous_marriage_period = features.previous_marriage_period,
+            marriage_period=features.marriage_period,
+            previous_marriage_period=features.previous_marriage_period,
 
-            passport_expiry_date_remaining = features.passport_expiry_date_remaining,  # years?
-            how_long_stay_period = features.how_long_stay_period,  # days
+            passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years?
+            how_long_stay_period=features.how_long_stay_period,  # days
 
-            education_period = features.education_period,
+            education_period=features.education_period,
 
-            occupation_period = features.occupation_period,
-            occupation_period2 = features.occupation_period2,
-            occupation_period3 = features.occupation_period3,
+            occupation_period=features.occupation_period,
+            occupation_period2=features.occupation_period2,
+            occupation_period3=features.occupation_period3,
 
-            applicant_marital_status = features.applicant_marital_status,
-            mother_marital_status = features.mother_marital_status,
-            father_marital_status = features.father_marital_status,
+            applicant_marital_status=features.applicant_marital_status,
+            mother_marital_status=features.mother_marital_status,
+            father_marital_status=features.father_marital_status,
 
-            child_marital_status0 = features.child_marital_status0,
-            child_relation0 = features.child_relation0,
-            child_marital_status1 = features.child_marital_status1,
-            child_relation1 = features.child_relation1,
-            child_marital_status2 = features.child_marital_status2,
-            child_relation2 = features.child_relation2,
-            child_marital_status3 = features.child_marital_status3,
-            child_relation3 = features.child_relation3,
+            child_marital_status0=features.child_marital_status0,
+            child_relation0=features.child_relation0,
+            child_marital_status1=features.child_marital_status1,
+            child_relation1=features.child_relation1,
+            child_marital_status2=features.child_marital_status2,
+            child_relation2=features.child_relation2,
+            child_marital_status3=features.child_marital_status3,
+            child_relation3=features.child_relation3,
 
-            sibling_marital_status0 = features.sibling_marital_status0,
-            sibling_relation0 = features.sibling_relation0,
-            sibling_marital_status1 = features.sibling_marital_status1,
-            sibling_relation1 = features.sibling_relation1,
-            sibling_marital_status2 = features.sibling_marital_status2,
-            sibling_relation2 = features.sibling_relation2,
-            sibling_marital_status3 = features.sibling_marital_status3,
-            sibling_relation3 = features.sibling_relation3,
-            sibling_marital_status4 = features.sibling_marital_status4,
-            sibling_relation4 = features.sibling_relation4,
-            sibling_marital_status5 = features.sibling_marital_status5,
-            sibling_relation5 = features.sibling_relation5,
-            sibling_marital_status6 = features.sibling_marital_status6,
-            sibling_relation6 = features.sibling_relation6,
+            sibling_marital_status0=features.sibling_marital_status0,
+            sibling_relation0=features.sibling_relation0,
+            sibling_marital_status1=features.sibling_marital_status1,
+            sibling_relation1=features.sibling_relation1,
+            sibling_marital_status2=features.sibling_marital_status2,
+            sibling_relation2=features.sibling_relation2,
+            sibling_marital_status3=features.sibling_marital_status3,
+            sibling_relation3=features.sibling_relation3,
+            sibling_marital_status4=features.sibling_marital_status4,
+            sibling_relation4=features.sibling_relation4,
+            sibling_marital_status5=features.sibling_marital_status5,
+            sibling_relation5=features.sibling_relation5,
+            sibling_marital_status6=features.sibling_marital_status6,
+            sibling_relation6=features.sibling_relation6,
 
-            spouse_date_of_birth = features.spouse_date_of_birth,
-            mother_date_of_birth = features.mother_date_of_birth,
-            father_date_of_birth = features.father_date_of_birth,
+            spouse_date_of_birth=features.spouse_date_of_birth,
+            mother_date_of_birth=features.mother_date_of_birth,
+            father_date_of_birth=features.father_date_of_birth,
 
-            child_date_of_birth0 = features.child_date_of_birth0,
-            child_date_of_birth1 = features.child_date_of_birth1,
-            child_date_of_birth2 = features.child_date_of_birth2,
-            child_date_of_birth3 = features.child_date_of_birth3,
+            child_date_of_birth0=features.child_date_of_birth0,
+            child_date_of_birth1=features.child_date_of_birth1,
+            child_date_of_birth2=features.child_date_of_birth2,
+            child_date_of_birth3=features.child_date_of_birth3,
 
-            sibling_date_of_birth0 = features.sibling_date_of_birth0,
-            sibling_date_of_birth1 = features.sibling_date_of_birth1,
-            sibling_date_of_birth2 = features.sibling_date_of_birth2,
-            sibling_date_of_birth3 = features.sibling_date_of_birth3,
-            sibling_date_of_birth4 = features.sibling_date_of_birth4,
-            sibling_date_of_birth5 = features.sibling_date_of_birth5,
-            sibling_date_of_birth6 = features.sibling_date_of_birth6,
+            sibling_date_of_birth0=features.sibling_date_of_birth0,
+            sibling_date_of_birth1=features.sibling_date_of_birth1,
+            sibling_date_of_birth2=features.sibling_date_of_birth2,
+            sibling_date_of_birth3=features.sibling_date_of_birth3,
+            sibling_date_of_birth4=features.sibling_date_of_birth4,
+            sibling_date_of_birth5=features.sibling_date_of_birth5,
+            sibling_date_of_birth6=features.sibling_date_of_birth6,
 
-            previous_country_of_residence_count = features.previous_country_of_residence_count,
+            previous_country_of_residence_count=features.previous_country_of_residence_count,
 
-            sibling_foreigner_count = features.sibling_foreigner_count,
-            child_mother_father_spouse_foreigner_count = features.child_mother_father_spouse_foreigner_count,
+            sibling_foreigner_count=features.sibling_foreigner_count,
+            child_mother_father_spouse_foreigner_count=features.child_mother_father_spouse_foreigner_count,
 
-            child_accompany = features.child_accompany,
-            parent_accompany = features.parent_accompany,
-            spouse_accompany = features.spouse_accompany,
-            sibling_accompany = features.sibling_accompany,
+            child_accompany=features.child_accompany,
+            parent_accompany=features.parent_accompany,
+            spouse_accompany=features.spouse_accompany,
+            sibling_accompany=features.sibling_accompany,
 
-            child_count = features.child_count,
-            sibling_count = features.sibling_count,
+            child_count=features.child_count,
+            sibling_count=features.sibling_count,
 
-            long_distance_child_sibling_count = features.long_distance_child_sibling_count,
-            foreign_living_child_sibling_count = features.foreign_living_child_sibling_count,
+            long_distance_child_sibling_count=features.long_distance_child_sibling_count,
+            foreign_living_child_sibling_count=features.foreign_living_child_sibling_count,
         )
 
         # if need to be flagged, save as artifact
@@ -999,6 +918,125 @@ async def flag(
         logger.exception(error)
         e = sys.exc_info()[1]
         raise fastapi.HTTPException(status_code=500, detail=str(e))
+
+
+@app.get(
+    '/const/country_names',
+    response_model=api_models.CountryNamesResponse)
+async def get_country_names():
+    """Returns a list of names of countries
+
+    Note:
+        See :class:`vizard.api.models.CountryNamesResponse` for more info.
+    """
+    return {
+        'country_names': list(eco_country_score_preprocessor.country_name_to_numeric_dict)
+    }
+
+
+@app.get(
+    '/const/canada_marriage_status',
+    response_model=api_models.CanadaMarriageStatusResponse)
+async def get_canada_marriage_status():
+    """Returns a list of names of marital statuses in Canada
+
+    Note:
+        See :class:`vizard.api.models.CanadaMarriageStatusResponse` for more info.
+    """
+
+    return {
+        'marriage_status_types': CanadaMarriageStatus.get_member_names()
+    }
+
+
+@app.get(
+    '/const/sibling_relation_types',
+    response_model=api_models.SiblingRelationResponse)
+async def get_sibling_relation_types():
+    """Returns a list of names of sibling relation types
+
+    Note:
+        See :class:`vizard.api.models.SiblingRelationResponse` for more info.
+    """
+
+    return {
+        'sibling_relation_types': SiblingRelation.get_member_names()
+    }
+
+
+@app.get(
+    '/const/child_relation_types',
+    response_model=api_models.ChildRelationResponse)
+async def get_child_relation_types():
+    """Returns a list of names of child relation types
+
+    Note:
+        See :class:`vizard.api.models.ChildRelationResponse` for more info.
+    """
+
+    return {
+        'child_relation_types': ChildRelation.get_member_names()
+    }
+
+
+@app.get(
+    '/const/canada_contact_relation_types',
+    response_model=api_models.CanadaContactRelationResponse)
+async def get_canada_contact_relation_types():
+    """Returns a list of names of contact relation types in Canada (dataset wise)
+
+    Note:
+        See :class:`vizard.api.models.CanadaContactRelationResponse` for more info.
+    """
+
+    return {
+        'canada_contact_relation_types': CanadaContactRelation.get_member_names()
+    }
+
+
+@app.get(
+    '/const/canada_residency_status_types',
+    response_model=api_models.CanadaResidencyStatusResponse)
+async def get_canada_residency_status_types():
+    """Returns a list of names of residency status types in Canada (dataset wise)
+
+    Note:
+        See :class:`vizard.api.models.CanadaResidencyStatusResponse` for more info.
+    """
+
+    return {
+        'canada_residency_status_types': CanadaResidencyStatus.get_member_names()
+    }
+
+
+@app.get(
+    '/const/education_field_of_study_types',
+    response_model=api_models.EducationFieldOfStudyResponse)
+async def get_education_field_of_study_types():
+    """Returns a list of names of education field of study types
+
+    Note:
+        See :class:`vizard.api.models.EducationFieldOfStudyResponse`
+    """
+
+    return {
+        'education_field_of_study_types': EducationFieldOfStudy.get_member_names()
+    }
+
+
+@app.get(
+    '/const/occupation_title_types',
+    response_model=api_models.OccupationTitleResponse)
+async def get_occupation_title_types():
+    """Returns a list of names of education field of study types
+
+    Note:
+        See :class:`vizard.api.models.OccupationTitleResponse`
+    """
+
+    return {
+        'occupation_title_types': OccupationTitle.get_member_names()
+    }
 
 
 if __name__ == '__main__':
