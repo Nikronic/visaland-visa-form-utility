@@ -119,6 +119,7 @@ https://conda.anaconda.org/conda-forge/noarch/fsspec-2022.7.1-pyhd8ed1ab_0.tar.b
 https://conda.anaconda.org/conda-forge/noarch/funcy-1.17-pyhd8ed1ab_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/idna-3.3-pyhd8ed1ab_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/iniconfig-1.1.1-pyh9f0ad1d_0.tar.bz2
+https://conda.anaconda.org/conda-forge/noarch/jupyter-server-mathjax-0.2.6-pyhc268e32_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/jupyterlab_widgets-3.0.3-pyhd8ed1ab_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/libmamba-0.25.0-hd8a31e3_1.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/mailchecker-4.1.19-pyhd8ed1ab_0.tar.bz2
@@ -241,7 +242,6 @@ https://conda.anaconda.org/conda-forge/linux-64/fonttools-4.34.4-py38h0a891b7_0.
 https://conda.anaconda.org/conda-forge/noarch/gitpython-3.1.27-pyhd8ed1ab_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/grandalf-0.6-py_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/grpcio-1.48.0-py38h5436ba1_0.tar.bz2
-https://conda.anaconda.org/conda-forge/noarch/jinja2-3.1.2-pyhd8ed1ab_1.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/joblib-1.1.0-pyhd8ed1ab_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/jsonschema-4.9.0-pyhd8ed1ab_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/jupyter_client-7.3.4-pyhd8ed1ab_0.tar.bz2
@@ -276,7 +276,6 @@ https://conda.anaconda.org/conda-forge/noarch/aiohttp-retry-2.5.3-pyhd8ed1ab_0.t
 https://conda.anaconda.org/conda-forge/noarch/asyncssh-2.11.0-pyhd8ed1ab_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/ftfy-6.1.1-pyhd8ed1ab_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/lightgbm-3.3.2-py38h709712a_0.tar.bz2
-https://conda.anaconda.org/conda-forge/noarch/nbclient-0.6.6-pyhd8ed1ab_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/prompt-toolkit-3.0.29-pyha770c72_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/py-xgboost-1.3.3-py38h578d9bd_2.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/seaborn-base-0.11.2-pyhd8ed1ab_0.tar.bz2
@@ -285,7 +284,6 @@ https://conda.anaconda.org/conda-forge/linux-64/statsmodels-0.13.2-py38h71d37f0_
 https://conda.anaconda.org/conda-forge/noarch/urllib3-1.26.11-pyhd8ed1ab_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/dulwich-0.20.45-py38h0a891b7_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/ipython-8.4.0-py38h578d9bd_0.tar.bz2
-https://conda.anaconda.org/conda-forge/noarch/nbconvert-core-6.5.0-pyhd8ed1ab_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/requests-2.28.1-pyhd8ed1ab_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/seaborn-0.11.2-hd8ed1ab_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/xgboost-1.3.3-py38h578d9bd_2.tar.bz2
@@ -293,16 +291,14 @@ https://conda.anaconda.org/conda-forge/linux-64/conda-4.12.0-py38h578d9bd_0.tar.
 https://conda.anaconda.org/conda-forge/noarch/flaml-1.0.12-pyhd8ed1ab_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/google-auth-2.9.1-pyh6c4a22f_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/ipykernel-6.15.0-pyh210e3f2_0.tar.bz2
-https://conda.anaconda.org/conda-forge/noarch/jupyter_server-1.18.1-pyhd8ed1ab_0.tar.bz2
+https://conda.anaconda.org/conda-forge/noarch/nbdime-3.1.1-pyhd8ed1ab_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/python-fsutil-0.6.1-pyhd8ed1ab_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/requests-oauthlib-1.3.1-pyhd8ed1ab_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/scmrepo-0.0.19-pyhd8ed1ab_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/google-auth-oauthlib-0.4.6-pyhd8ed1ab_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/ipywidgets-8.0.2-pyhd8ed1ab_1.tar.bz2
-https://conda.anaconda.org/conda-forge/noarch/jupyter-server-mathjax-0.2.6-pyhc268e32_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/mamba-0.25.0-py38h1abaa86_1.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/nbval-0.9.6-pyh9f0ad1d_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/python-benedict-0.25.2-pyhd8ed1ab_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/dvc-2.10.2-py38h578d9bd_0.tar.bz2
-https://conda.anaconda.org/conda-forge/noarch/nbdime-3.1.1-pyhd8ed1ab_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/tensorboard-2.9.0-pyhd8ed1ab_0.tar.bz2

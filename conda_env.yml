@@ -95,14 +95,12 @@ dependencies:
   - ipython=8.4.0=py38h578d9bd_0
   - ipywidgets=8.0.2=pyhd8ed1ab_1
   - jedi=0.18.1=py38h578d9bd_1
-  - jinja2=3.1.2=pyhd8ed1ab_1
   - joblib=1.1.0=pyhd8ed1ab_0
   - jpeg=9e=h166bdaf_2
   - jsonschema=4.9.0=pyhd8ed1ab_0
   - jupyter-server-mathjax=0.2.6=pyhc268e32_0
   - jupyter_client=7.3.4=pyhd8ed1ab_0
   - jupyter_core=4.10.0=py38h578d9bd_0
-  - jupyter_server=1.18.1=pyhd8ed1ab_0
   - jupyterlab_pygments=0.2.2=pyhd8ed1ab_0
   - jupyterlab_widgets=3.0.3=pyhd8ed1ab_0
   - kernel-headers_linux-64=2.6.32=he073ed8_15
@@ -167,8 +165,6 @@ dependencies:
   - mypy=0.961=py38h0a891b7_0
   - mypy_extensions=0.4.3=py38h578d9bd_5
   - nanotime=0.5.2=py_0
-  - nbclient=0.6.6=pyhd8ed1ab_0
-  - nbconvert-core=6.5.0=pyhd8ed1ab_0
   - nbdime=3.1.1=pyhd8ed1ab_0
   - nbformat=5.4.0=pyhd8ed1ab_0
   - nbval=0.9.6=pyh9f0ad1d_0
@@ -307,17 +303,26 @@ dependencies:
     - alabaster==0.7.12
     - alembic==1.8.0
     - analytics-python==1.4.0
+    - ansiwrap==0.8.4
     - auto-sklearn==0.14.7
     - babel==2.10.3
     - backoff==1.10.0
     - bcrypt==3.2.2
     - blessed==1.19.1
     - catboost==1.0.6
+    - category-encoders==2.5.1.post0
     - click==8.0.4
     - cloudpickle==2.1.0
     - colour==0.1.5
     - configspace==0.4.21
     - cython==0.29.30
+    - dash==2.6.2
+    - dash-bootstrap-components==1.2.1
+    - dash-core-components==2.0.0
+    - dash-daq==0.5.0
+    - dash-html-components==2.0.0
+    - dash-renderer==1.8.3
+    - dash-table==5.0.0
     - dask==2022.6.0
     - databricks-cli==0.16.6
     - distlib==0.3.5
@@ -332,6 +337,7 @@ dependencies:
     - filelock==3.7.1
     - flaky==3.7.0
     - flask==2.1.2
+    - flask-compress==1.13
     - gradio==3.1.1
     - greenlet==1.1.2
     - grpcio==1.43.0
@@ -343,7 +349,10 @@ dependencies:
     - imageio==2.19.3
     - imagesize==1.4.1
     - imgaug==0.4.0
+    - ipython-genutils==0.2.0
     - itsdangerous==2.1.2
+    - jinja2==3.0.3
+    - jupyter-server==1.15.6
     - liac-arff==2.5.0
     - linkify-it-py==1.0.3
     - locket==1.0.0
@@ -357,12 +366,19 @@ dependencies:
     - monotonic==1.6
     - mplcyberpunk==0.5.1
     - msgpack==1.0.4
+    - nbclassic==0.4.5
+    - nbclient==0.5.13
+    - nbconvert==6.0.7
+    - notebook==6.5.1
+    - notebook-shim==0.2.0
     - nvidia-ml-py==11.495.46
     - nvitop==0.6.2
     - opencv-python==4.6.0.66
     - orjson==3.7.10
+    - papermill==2.4.0
     - paramiko==2.11.0
     - partd==1.2.0
+    - phik==0.12.2
     - pikepdf==5.1.5
     - platformdirs==2.5.2
     - plotly==5.8.2
@@ -384,6 +400,7 @@ dependencies:
     - ray==1.13.0
     - rfc3986==1.5.0
     - scikit-image==0.19.3
+    - shapash==2.1.1
     - shapely==1.8.2
     - smac==1.2
     - snowballstemmer==2.2.0
@@ -405,6 +422,8 @@ dependencies:
     - tenacity==8.0.1
     - tensorboardx==2.5.1
     - termcolor==1.1.0
+    - testpath==0.6.0
+    - textwrap3==0.9.2
     - tifffile==2022.5.4
     - toolz==0.11.2
     - torch==1.10.1+cu111
