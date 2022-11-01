@@ -13,6 +13,8 @@ Subpackages
    vizard.models
    vizard.snorkel
    vizard.utils
+   vizard.xai
+   
 
 Submodules
 ----------
