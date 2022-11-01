@@ -1,7 +1,7 @@
 # core
 import numpy as np
 import shap
-import flaml
+from flaml import AutoML
 # ours
 from vizard.xai.core import get_top_k
 # helpers
@@ -18,9 +18,9 @@ class FlamlTreeExplainer:
     """
     def __init__(
         self,
-        flaml_model: flaml.AutoML,
+        flaml_model: AutoML,
         feature_names: List[str],
-        data: Optional[np.ndarray]
+        data: Optional[np.ndarray] = None
     ) -> None:
         """Initialize :class:`shap.TreeExplainer` for :class:`flaml.AutoML` tree based models
 
@@ -29,7 +29,7 @@ class FlamlTreeExplainer:
             feature_names (List[str]): List of feature names that are preprocessed (features
                 used directly to train ``flaml_model``.)
             data (Optional[np.ndarray]): Optionally to provide for other type of output
-                that :class:`shap.TreeExplainer` provides.
+                that :class:`shap.TreeExplainer` provides. Defaults to None.
         """
 
         self.flaml_model = flaml_model
@@ -96,7 +96,8 @@ class FlamlTreeExplainer:
         # compute shap
         # TODO: what the hell is the type of this?
         shap_output = self.explainer(sample)
-        return np.sum(shap_output.values) - shap_output.base_values
+        score: np.ndarray = np.sum(shap_output.values) - shap_output.base_values
+        return score.item()
 
     def top_k_score(self, sample: np.ndarray, k: int = 5) -> dict:
         """Returns scores and names of top-k impactful features
