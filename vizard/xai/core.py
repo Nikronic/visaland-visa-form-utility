@@ -1,0 +1,60 @@
+# core
+import numpy as np
+# helpers
+from typing import Tuple
+
+
+def get_top_k_idx(sample: np.ndarray, k: int) -> np.ndarray:
+    """Extracted top-k indices of an array
+
+    Args:
+        sample (np.ndarray): A single instance :class:`numpy.ndarray`
+        k (int): Number of items to return
+
+    Return:
+        np.ndarray: List of top=k indices
+    """
+    top_k_idx: np.ndarray = np.argpartition(sample, -k)[-k:]
+    top_k_idx = top_k_idx[np.argsort(sample[top_k_idx])][::-1]
+    return top_k_idx
+
+
+def get_top_k(sample: np.ndarray, k: int, absolute: bool = True) -> Tuple[np.ndarray, np.ndarray]:
+    """Extracts top-k items in an numpy array conditioned on sign of values
+
+    Args:
+        sample (np.ndarray): A :class:`numpy.ndarray` array
+        k (int): Number of items to return
+        absolute (bool, optional): Wether or not to consider
+            the sign of values in computing top-k. If ``True``, 
+            then absolute values used and vice versa. Defaults to True.
+
+    Raises:
+        NotImplementedError: If ``sample`` contains multiple samples (rows).
+
+    Returns:
+        Tuple[np.ndarray, np.ndarray]:
+            Top-k values of array ``sample`` and their indices in a tuple.
+    """
+    # if single instance is given
+    if (sample.ndim == 1) or ((sample.ndim == 2) and (sample.shape[0] == 1)):
+        sample = sample.flatten()
+
+        # if absolute top k should be chosen
+        top_k_idx: np.ndarray
+        if absolute:
+            # absolute top k
+            sample_abs: np.ndarray = np.abs(sample)
+            top_k_idx = get_top_k_idx(sample=sample_abs, k=k)
+        else:
+            # signed top k
+            top_k_idx = get_top_k_idx(sample=sample, k=k)
+
+        # top k values with their signs
+        top_k: np.ndarray = sample[top_k_idx]
+        return (top_k, top_k_idx)
+    else:
+        raise NotImplementedError(
+            'This method is only available for'
+            ' single-instance numpy arrays. (yet)'
+        )
