@@ -2,7 +2,7 @@ __all__ = [
     'PredictionResponse', 'Payload',
     'CountryNamesResponse', 'CanadaMarriageStatusResponse', 'SiblingRelationResponse',
     'ChildRelationResponse', 'CanadaContactRelationResponse', 'CanadaResidencyStatusResponse',
-    'EducationFieldOfStudyResponse'
+    'EducationFieldOfStudyResponse', 'XaiResponse'
 ]
 
 # core
@@ -20,7 +20,7 @@ from vizard.data.constant import (
     EducationFieldOfStudy
 )
 # helpers
-from typing import Any, List
+from typing import Any, Dict, List
 
 
 class BaseModel(pydantic.BaseModel):
@@ -506,3 +506,15 @@ class OccupationTitleResponse(BaseModel):
     """
 
     occupation_title_types: List[str]
+
+
+class XaiResponse(BaseModel):
+    """XAI values for trained model
+
+    Note:
+        For more info about XAI and available methods, see :mod:`vizard.xai.shap`. 
+    
+    """
+
+    xai_overall_score: float
+    xai_top_k: Dict[str, float]
