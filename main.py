@@ -20,6 +20,8 @@ from vizard.snorkel import slice_dataframe
 from vizard.models import preprocessors
 from vizard.models import trainers
 from vizard.models.trainers.aml_flaml import EvalMode
+# ours: explainers
+from vizard.xai import FlamlTreeExplainer
 # ours: helpers
 from vizard.version import VERSION as VIZARD_VERSION
 from vizard.utils.dtreeviz import FLAMLDTreeViz
@@ -84,7 +86,7 @@ if __name__ == '__main__':
         VERSION = 'v1.2.5-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
-        MLFLOW_EXPERIMENT_NAME = f'fix46 - {VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'fix58 - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         mlflow.start_run()
 
@@ -469,6 +471,13 @@ if __name__ == '__main__':
             class_names=list(y_ct.classes_),
             explanation_type='plain_english'
         )
+
+        flaml_tree_explainer = FlamlTreeExplainer(
+            flaml_model=flaml_automl,
+            feature_names=feature_names,
+            data=None
+        )
+        flaml_tree_explainer.top_k_score(sample=xt_train[0], k=5)
 
     except Exception as e:
         logger.error(e)
