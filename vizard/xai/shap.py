@@ -94,8 +94,7 @@ class FlamlTreeExplainer:
         sample = self.__validate_sample_shape(sample)
 
         # compute shap
-        # TODO: what the hell is the type of this?
-        shap_output = self.explainer(sample)
+        shap_output: shap.Explanation = self.explainer(sample)
         score: np.ndarray = np.sum(shap_output.values) - shap_output.base_values
         return score.item()
 
@@ -119,9 +118,7 @@ class FlamlTreeExplainer:
         sample = self.__validate_sample_shape(sample)
 
         # compute shap
-        # TODO: what the hell is the type of this?
-        shap_output = self.explainer(sample)
-
+        shap_output: shap.Explanation = self.explainer(sample)
         # original shap values
         shap_values: np.ndarray = shap_output.values.flatten()
         # top k shap values with their signs
