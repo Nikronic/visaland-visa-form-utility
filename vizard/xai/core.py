@@ -5,14 +5,14 @@ from typing import Tuple
 
 
 def get_top_k_idx(sample: np.ndarray, k: int) -> np.ndarray:
-    """Extracted top-k indices of an array
+    """Extracts top-k indices of an array
 
     Args:
-        sample (np.ndarray): A single instance :class:`numpy.ndarray`
+        sample (:class:`numpy.ndarray`): A single instance :class:`numpy.ndarray`
         k (int): Number of items to return
 
     Return:
-        np.ndarray: List of top=k indices
+        :class:`numpy.ndarray`: List of top-k indices
     """
     top_k_idx: np.ndarray = np.argpartition(sample, -k)[-k:]
     top_k_idx = top_k_idx[np.argsort(sample[top_k_idx])][::-1]
@@ -23,7 +23,7 @@ def get_top_k(sample: np.ndarray, k: int, absolute: bool = True) -> Tuple[np.nda
     """Extracts top-k items in an numpy array conditioned on sign of values
 
     Args:
-        sample (np.ndarray): A :class:`numpy.ndarray` array
+        sample (:class:`numpy.ndarray`): A :class:`numpy.ndarray` array
         k (int): Number of items to return
         absolute (bool, optional): Wether or not to consider
             the sign of values in computing top-k. If ``True``, 
@@ -33,7 +33,7 @@ def get_top_k(sample: np.ndarray, k: int, absolute: bool = True) -> Tuple[np.nda
         NotImplementedError: If ``sample`` contains multiple samples (rows).
 
     Returns:
-        Tuple[np.ndarray, np.ndarray]:
+        Tuple[:class:`numpy.ndarray`, :class:`numpy.ndarray`]:
             Top-k values of array ``sample`` and their indices in a tuple.
     """
     # if single instance is given

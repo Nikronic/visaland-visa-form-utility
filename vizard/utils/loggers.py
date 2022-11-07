@@ -86,7 +86,7 @@ class Logger(logging.Logger):
         """Converts a string of path to :class:`pathlib.Path`
 
         Args:
-            string (Union[str, Path]): path string or object to convert
+            string (Union[str, `pathlib.Path`]): path string or object to convert
 
         Returns:
             :class:`pathlib.Path`: ``Path`` instance of given path string 
@@ -107,7 +107,7 @@ class Logger(logging.Logger):
             - model weights or objects: ``models``
             - ``MLflow`` flavor-specific tracked model: ``MLmodel`` 
 
-        Notes:
+        Note:
             If you are using this class for just flagging the data,
             you can simply send numerical values (``1/*``, ``2/*``)
 
@@ -138,8 +138,8 @@ class Logger(logging.Logger):
     def _remove_previous_handlers(self) -> None:
         """This is used to remove file related handlers on each new run of :meth:`create_artifact_instance`
 
-        Notes:
-            Do not forget to remove file handler from all libs, here, :attr:`libs_logger`
+        Note:
+            Do not forget to remove file handler from all libs, here, :attr:`libs_logger`.
         """
         if self.__prev_handler is not None:
             self.removeHandler(self.__prev_handler)

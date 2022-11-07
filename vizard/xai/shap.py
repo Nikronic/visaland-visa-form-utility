@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class FlamlTreeExplainer:
-    """An interface between ``shap`` and ``flaml`` for explaining tree-based models via SHAP values
+    """An interface between ``shap`` and ``flaml`` for explaining tree-based models via **SHAP** values
     """
     def __init__(
         self,
@@ -25,10 +25,10 @@ class FlamlTreeExplainer:
         """Initialize :class:`shap.TreeExplainer` for :class:`flaml.AutoML` tree based models
 
         Args:
-            flaml_model (flaml.AutoML): Fitted tree-based ``flaml`` model
+            flaml_model (:class:`flaml.AutoML`): Fitted tree-based ``flaml`` model
             feature_names (List[str]): List of feature names that are preprocessed (features
                 used directly to train ``flaml_model``.)
-            data (Optional[np.ndarray]): Optionally to provide for other type of output
+            data (Optional[:class:`numpy.ndarray`]): Optionally to provide for other type of output
                 that :class:`shap.TreeExplainer` provides. Defaults to None.
         """
 
@@ -52,10 +52,10 @@ class FlamlTreeExplainer:
             of features.
 
         Args:
-            sample (np.ndarray): A :class:`numpy.ndarray`
+            sample (:class:`numpy.ndarray`): A :class:`numpy.ndarray`
 
         Returns:
-            np.ndarray:
+            :class:`numpy.ndarray`:
                 A :class:`numpy.ndarray` in shape of ``(n, m)``
                 where ``n`` are number of samples and ``m`` number of features.
         """
@@ -74,21 +74,26 @@ class FlamlTreeExplainer:
 
         If the output value is positive, then ``sample`` is from the positive class and vice versa.
         The absolute of the output value determines the intensity of assignment
-        to positive (negative) class
+        to positive (negative) class.
 
         Note: 
-            `shap_value` (i.e. `explainer(X[i,:].reshape(1, -1))`), is the sum of difference of the output of the model from the expected value of the model. I.e.:
+            ``shap_value`` (i.e. ``explainer(X[i,:].reshape(1, -1))`` ),
+            is the sum of difference of the output of the model from the expected value of the model. I.e.:
 
-            $$
-            \text{shap} = E[f_{\theta}(x^c_i)] - \sum^C_{c=0} f_{\theta}(x^c_i)
-            $$
+            .. math::
+                \\text{shap} = E[f_{\\theta}(x^c_i)] - \sum^C_{c=0} f_{\\theta}(x^c_i)
+            
 
-            Where $E[f_{\theta}(x^c_i)]$ is the expected value of model, constant, for the entire dataset, $C$ the number of features (columns), $f_{\theta}$ the fitted model, and $i=0$ is a sample in the dataset.
-            To use these values for the front team and of course the final user, the expected value $E[f_{\theta}(x^c_i)]$ means nothing. So, to simplify these values, the equation can be simplified into:
+            Where :math:`E[f_{\\theta}(x^c_i)]` is the expected value of model, constant,
+            for the entire dataset, :math:`C` the number of features (columns),
+            :math:`f_{\\theta}` the fitted model, and :math:`i=0` is a sample in
+            the dataset. To use these values for the final user, the expected
+            value :math:`E[f_{\\theta}(x^c_i)]` means nothing.
+            So, to simplify these values, the equation can be simplified into:
 
-            $$
-            \text{shap}_\text{sim} = (E[f_{\theta}(x^c_i)] - \sum^C_{c=0} f_{\theta}(x^c_i)) - E[f_{\theta}(x^c_i)] = \text{shap} - E[f_{\theta}(x^c_i)]
-            $$
+            .. math::
+                \\text{shap}_\\text{sim} = (E[f_{\\theta}(x^c_i)] - \sum^C_{c=0} f_{\\theta}(x^c_i)) - E[f_{\\theta}(x^c_i)] = \\text{shap} - E[f_{\\theta}(x^c_i)]
+            
         """
 
         sample = self.__validate_sample_shape(sample)
@@ -107,13 +112,13 @@ class FlamlTreeExplainer:
             shap values.
 
         Args:
-            sample (np.ndarray): A :class:`numpy.ndarray`
+            sample (:class:`numpy.ndarray`): A :class:`numpy.ndarray`
             k (int, optional): Number of features to include. Defaults to 5.
 
         Returns:
             dict:
                 A dictionary where keys are names of features and values
-                are ``shap`` values for the corresponding features.
+                are **shap** values for the corresponding features.
         """
         sample = self.__validate_sample_shape(sample)
 

@@ -571,9 +571,9 @@ class ColumnTransformerConfig:
             path: path to the JSON file containing the configs
 
         Returns:
-            dict: A dictionary of
-            `str`: ``(:class:`vizard.models.preprocessors.core.ColumnSelector`, `bool`)
-            which will be passed to :meth:`generate_pipeline`
+            dict: A dictionary where keys are string names, values are tuple of 
+            :class:`vizard.models.preprocessors.core.ColumnSelector` instance and a boolean control
+            variable which will be passed to :meth:`generate_pipeline`.
         """
 
         # convert str path to Path
