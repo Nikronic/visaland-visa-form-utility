@@ -104,6 +104,8 @@ intersphinx_mapping = {
     'snorkel': ('https://snorkel.readthedocs.io/en/latest/', None),
     'matplotlib': ('https://matplotlib.org/', None),
     'pandas': ('https://pandas.pydata.org/pandas-docs/stable/', None),
+    'shap': ('https://shap.readthedocs.io/en/latest/', None),
+    'lightgbm': ('https://lightgbm.readthedocs.io/en/latest/', None),
 }
 
 # This value contains a list of modules to be mocked up
@@ -117,4 +119,7 @@ autodoc_mock_imports = [
     "scipy",
     "flaml",
     "dtreeviz",
+    "shap",
+    "lightgbm",
+    "catboost",
     ]
