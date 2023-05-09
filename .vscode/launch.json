@@ -24,6 +24,26 @@
         },
 
         {
+            "name": "Python: Inference",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/",
+            "program": "${workspaceFolder}/api/main.py",
+            "console": "integratedTerminal",
+            "python": "/home/nik/anaconda3/envs/vizard-inference-cpu/bin/python",
+            "args": [
+                "--experiment_name", "fix85",
+                "--run_id", "cd28a1700e0f4bdf9de6d736e06ca395",
+                "--bind", "0.0.0.0",
+                "--gunicorn_port", "8000",
+                "--mlflow_port", "5000",
+                "--verbose", "debug",
+                "--workers", "1"
+            ],
+            "justMyCode": false
+        },
+
+        {
             "name": "Python: nb2py",
             "type": "python",
             "request": "launch",
