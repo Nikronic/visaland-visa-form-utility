@@ -1,0 +1,830 @@
+[__main__: 10-01 10:41:25] {76} INFO - 		↓↓↓ Starting setting up configs: dirs, mlflow, dvc, etc ↓↓↓
+[__main__: 10-01 10:41:26] {91} INFO - MLflow experiment name: fix46 - 0.9.4-alpha
+[__main__: 10-01 10:41:26] {92} INFO - MLflow experiment id: a820234814354b81973c5a4c667e1472
+[__main__: 10-01 10:41:26] {93} INFO - DVC data version: v1.2.5-dev
+[__main__: 10-01 10:41:26] {94} INFO - DVC repo (root): /home/nik/visaland-visa-form-utility
+[__main__: 10-01 10:41:26] {95} INFO - DVC data source path: raw-dataset/all-dev.pkl
+[__main__: 10-01 10:41:26] {96} INFO - 		↑↑↑ Finished setting up configs: dirs, mlflow, and dvc. ↑↑↑
+[__main__: 10-01 10:41:26] {98} INFO - 		↓↓↓ Starting loading preprocessed (EDA) data from DVC ↓↓↓
+[__main__: 10-01 10:41:27] {108} INFO - preprocessed data in raw PATH=raw-dataset/all-dev.pkl with VERSION=v1.2.5-dev,
+loaded from DVC storage at /home/nik/visaland-visa-form-utility/dataset/dvc-storage/37/cc877a11b1063361635b0c53dd2a2b.
+[__main__: 10-01 10:41:27] {111} INFO - 		↑↑↑ Finished loading preprocessed (EDA) data from DVC ↑↑↑
+[__main__: 10-01 10:41:27] {114} INFO - 		↓↓↓ Starting labeling data with snorkel ↓↓↓
+[__main__: 10-01 10:41:27] {115} INFO - prepare data by separating already labeled (`acc` and `rej`) from weak and unlabeled data (`w-acc`, `w-rej` and `no idea`)
+[__main__: 10-01 10:41:27] {124} INFO - shape of unlabeled data: (86, 89)
+[__main__: 10-01 10:41:27] {125} INFO - shape of labeled unlabeled data: (212, 89)
+[__main__: 10-01 10:41:27] {131} INFO - 	↓↓↓ Starting extracting label matrices (L) by applying `LabelFunction`s ↓↓↓
+[vizard.snorkel.labeling.ComposeLFLabeling: 10-01 10:41:27] {165} INFO - Following labeling functions are being used:
+[vizard.snorkel.labeling.ComposeLFLabeling: 10-01 10:41:27] {167} INFO - * LabelingFunction "WeakAccept" is being used on column "VisaResult"
+[vizard.snorkel.labeling.ComposeLFLabeling: 10-01 10:41:27] {167} INFO - * LabelingFunction "WeakReject" is being used on column "VisaResult"
+[vizard.snorkel.labeling.ComposeLFLabeling: 10-01 10:41:27] {167} INFO - * LabelingFunction "NoIdea" is being used on column "VisaResult"
+[__main__: 10-01 10:41:28] {150} INFO -                        j Polarity  ...  Overlaps  Conflicts
+WeakAccept_VisaResult  0      [1]  ...       0.0        0.0
+WeakReject_VisaResult  1      [0]  ...       0.0        0.0
+NoIdea_VisaResult      2      [0]  ...       0.0        0.0
+
+[3 rows x 5 columns]
+[__main__: 10-01 10:41:28] {151} INFO - 	↑↑↑ Finishing extracting label matrices (L) by applying `LabelFunction`s ↑↑↑
+[__main__: 10-01 10:41:28] {153} INFO - 	↓↓↓ Starting training `LabelModel` ↓↓↓
+[__main__: 10-01 10:41:28] {162} INFO - Training using device="cuda"
+[snorkel.labeling.model.label_model.LabelModel: 10-01 10:41:38] {906} INFO - Computing O...
+[snorkel.labeling.model.label_model.LabelModel: 10-01 10:41:38] {912} INFO - Estimating \mu...
+[snorkel.labeling.model.label_model.LabelModel: 10-01 10:41:38] {920} INFO - Using GPU...
+[snorkel.labeling.model.label_model.LabelModel: 10-01 10:41:38] {80} INFO - [0 epochs]: TRAIN:[loss=0.269]
+[snorkel.labeling.model.label_model.LabelModel: 10-01 10:41:39] {80} INFO - [100 epochs]: TRAIN:[loss=0.255]
+[snorkel.labeling.model.label_model.LabelModel: 10-01 10:41:39] {80} INFO - [200 epochs]: TRAIN:[loss=0.242]
+[snorkel.labeling.model.label_model.LabelModel: 10-01 10:41:39] {80} INFO - [300 epochs]: TRAIN:[loss=0.229]
+[snorkel.labeling.model.label_model.LabelModel: 10-01 10:41:40] {80} INFO - [400 epochs]: TRAIN:[loss=0.218]
+[snorkel.labeling.model.label_model.LabelModel: 10-01 10:41:40] {80} INFO - [500 epochs]: TRAIN:[loss=0.207]
+[snorkel.labeling.model.label_model.LabelModel: 10-01 10:41:40] {80} INFO - [600 epochs]: TRAIN:[loss=0.197]
+[snorkel.labeling.model.label_model.LabelModel: 10-01 10:41:41] {80} INFO - [700 epochs]: TRAIN:[loss=0.187]
+[snorkel.labeling.model.label_model.LabelModel: 10-01 10:41:41] {80} INFO - [800 epochs]: TRAIN:[loss=0.178]
+[snorkel.labeling.model.label_model.LabelModel: 10-01 10:41:41] {80} INFO - [900 epochs]: TRAIN:[loss=0.170]
+[snorkel.labeling.model.label_model.LabelModel: 10-01 10:41:42] {80} INFO - [1000 epochs]: TRAIN:[loss=0.163]
+[snorkel.labeling.model.label_model.LabelModel: 10-01 10:41:42] {80} INFO - [1100 epochs]: TRAIN:[loss=0.155]
+[snorkel.labeling.model.label_model.LabelModel: 10-01 10:41:42] {80} INFO - [1200 epochs]: TRAIN:[loss=0.149]
+[snorkel.labeling.model.label_model.LabelModel: 10-01 10:41:43] {80} INFO - [1300 epochs]: TRAIN:[loss=0.142]
+[snorkel.labeling.model.label_model.LabelModel: 10-01 10:41:43] {80} INFO - [1400 epochs]: TRAIN:[loss=0.136]
+[snorkel.labeling.model.label_model.LabelModel: 10-01 10:41:43] {80} INFO - [1500 epochs]: TRAIN:[loss=0.131]
+[snorkel.labeling.model.label_model.LabelModel: 10-01 10:41:44] {80} INFO - [1600 epochs]: TRAIN:[loss=0.125]
+[snorkel.labeling.model.label_model.LabelModel: 10-01 10:41:44] {80} INFO - [1700 epochs]: TRAIN:[loss=0.120]
+[snorkel.labeling.model.label_model.LabelModel: 10-01 10:41:44] {80} INFO - [1800 epochs]: TRAIN:[loss=0.114]
+[snorkel.labeling.model.label_model.LabelModel: 10-01 10:41:45] {80} INFO - [1900 epochs]: TRAIN:[loss=0.110]
+[snorkel.labeling.model.label_model.LabelModel: 10-01 10:41:45] {978} INFO - Finished Training
+[__main__: 10-01 10:41:45] {174} INFO - 	↑↑↑ Finished training LabelModel ↑↑↑
+[__main__: 10-01 10:41:45] {176} INFO - 	↓↓↓ Starting inference on LabelModel ↓↓↓
+[__main__: 10-01 10:41:45] {182} INFO - ModelLabel prediction is saved in "AL" column.
+[snorkel.labeling.model.base_labeler: 10-01 10:41:45] {104} WARNING - Metrics calculated over data points with non-abstain labels only
+[vizard.snorkel.modeling: 10-01 10:41:45] {51} INFO - Label Model training stats: 
+[vizard.snorkel.modeling: 10-01 10:41:45] {53} INFO - Label Model training accuracy: 100.0%
+[vizard.snorkel.modeling: 10-01 10:41:45] {53} INFO - Label Model training coverage: 100.0%
+[vizard.snorkel.modeling: 10-01 10:41:45] {53} INFO - Label Model training precision: 100.0%
+[vizard.snorkel.modeling: 10-01 10:41:45] {53} INFO - Label Model training recall: 100.0%
+[vizard.snorkel.modeling: 10-01 10:41:45] {53} INFO - Label Model training f1: 100.0%
+[snorkel.labeling.model.base_labeler: 10-01 10:41:45] {104} WARNING - Metrics calculated over data points with non-abstain labels only
+[vizard.snorkel.modeling: 10-01 10:41:45] {51} INFO - Label Model testing stats: 
+[vizard.snorkel.modeling: 10-01 10:41:45] {53} INFO - Label Model testing accuracy: 100.0%
+[vizard.snorkel.modeling: 10-01 10:41:45] {53} INFO - Label Model testing coverage: 100.0%
+[vizard.snorkel.modeling: 10-01 10:41:45] {53} INFO - Label Model testing precision: 100.0%
+[vizard.snorkel.modeling: 10-01 10:41:45] {53} INFO - Label Model testing recall: 100.0%
+[vizard.snorkel.modeling: 10-01 10:41:45] {53} INFO - Label Model testing f1: 100.0%
+[__main__: 10-01 10:41:46] {210} INFO - 	↑↑↑ Finishing inference on LabelModel ↑↑↑
+[__main__: 10-01 10:41:46] {217} INFO - 		↑↑↑ Finished labeling data with snorkel ↑↑↑
+[__main__: 10-01 10:41:46] {240} INFO - 		↓↓↓ Starting augmentation via snorkel (TFs) ↓↓↓
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {436} INFO - Following transformation functions are being used:
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {438} INFO - * TransformationFunction "AddNormalNoiseDOBYear" is being used on column "P1.PD.DOBYear.Period"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {438} INFO - * TransformationFunction "AddNormalNoiseChildDOBX" is being used on column "p1.SecB.Chd.[0].ChdDOB.Period"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {438} INFO - * TransformationFunction "AddNormalNoiseChildDOBX" is being used on column "p1.SecB.Chd.[1].ChdDOB.Period"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {438} INFO - * TransformationFunction "AddNormalNoiseChildDOBX" is being used on column "p1.SecB.Chd.[2].ChdDOB.Period"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {438} INFO - * TransformationFunction "AddNormalNoiseChildDOBX" is being used on column "p1.SecB.Chd.[3].ChdDOB.Period"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {438} INFO - * TransformationFunction "AddNormalNoiseDateOfMarr" is being used on column "P1.MS.SecA.DateOfMarr.Period"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {438} INFO - * TransformationFunction "AddNormalNoiseOccRowXPeriod" is being used on column "P3.Occ.OccRow1.Period"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {438} INFO - * TransformationFunction "AddNormalNoiseOccRowXPeriod" is being used on column "P3.Occ.OccRow2.Period"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {438} INFO - * TransformationFunction "AddNormalNoiseOccRowXPeriod" is being used on column "P3.Occ.OccRow3.Period"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {438} INFO - * TransformationFunction "AddNormalNoiseHLS" is being used on column "P3.DOV.PrpsRow1.HLS.Period"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {438} INFO - * TransformationFunction "AddCategoricalNoiseChildRelX" is being used on column "p1.SecB.Chd.[0].ChdRel"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {438} INFO - * TransformationFunction "AddCategoricalNoiseChildRelX" is being used on column "p1.SecB.Chd.[1].ChdRel"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {438} INFO - * TransformationFunction "AddCategoricalNoiseChildRelX" is being used on column "p1.SecB.Chd.[2].ChdRel"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {438} INFO - * TransformationFunction "AddCategoricalNoiseChildRelX" is being used on column "p1.SecB.Chd.[3].ChdRel"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {438} INFO - * TransformationFunction "AddCategoricalNoiseSiblingRelX" is being used on column "p1.SecC.Chd.[0].ChdRel"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {438} INFO - * TransformationFunction "AddCategoricalNoiseSiblingRelX" is being used on column "p1.SecC.Chd.[1].ChdRel"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {438} INFO - * TransformationFunction "AddCategoricalNoiseSiblingRelX" is being used on column "p1.SecC.Chd.[2].ChdRel"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {438} INFO - * TransformationFunction "AddCategoricalNoiseSiblingRelX" is being used on column "p1.SecC.Chd.[3].ChdRel"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {438} INFO - * TransformationFunction "AddCategoricalNoiseSiblingRelX" is being used on column "p1.SecC.Chd.[4].ChdRel"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {438} INFO - * TransformationFunction "AddCategoricalNoiseSiblingRelX" is being used on column "p1.SecC.Chd.[5].ChdRel"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {438} INFO - * TransformationFunction "AddCategoricalNoiseSiblingRelX" is being used on column "p1.SecC.Chd.[6].ChdRel"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {438} INFO - * TransformationFunction "AddCategoricalNoiseSex" is being used on column "P1.PD.Sex.Sex"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {438} INFO - * TransformationFunction "AddOrderedNoiseChdAccomp" is being used on column "p1.SecB.Chd.X.ChdAccomp.Count"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-01 10:41:46] {438} INFO - * TransformationFunction "AddOrderedNoiseChdAccomp" is being used on column "p1.SecC.Chd.X.ChdAccomp.Count"
+[__main__: 10-01 10:41:52] {279} INFO - Original dataset size: 298
+[__main__: 10-01 10:41:52] {280} INFO - Augmented dataset size: 596
+[snorkel.augmentation.utils: 10-01 10:41:52] {31} INFO - Showing TF effects for "2" samples        
+	using policy="ApplyEachPolicy" for following transformation functions:            
+	AddNormalNoiseDOBYear_P1.PD.DOBYear.Period
+	AddNormalNoiseChildDOBX_p1.SecB.Chd.[0].ChdDOB.Period
+	AddNormalNoiseChildDOBX_p1.SecB.Chd.[1].ChdDOB.Period
+	AddNormalNoiseChildDOBX_p1.SecB.Chd.[2].ChdDOB.Period
+	AddNormalNoiseChildDOBX_p1.SecB.Chd.[3].ChdDOB.Period
+	AddNormalNoiseDateOfMarr_P1.MS.SecA.DateOfMarr.Period
+	AddNormalNoiseOccRowXPeriod_P3.Occ.OccRow1.Period
+	AddNormalNoiseOccRowXPeriod_P3.Occ.OccRow2.Period
+	AddNormalNoiseOccRowXPeriod_P3.Occ.OccRow3.Period
+	AddNormalNoiseHLS_P3.DOV.PrpsRow1.HLS.Period
+	AddCategoricalNoiseChildRelX_p1.SecB.Chd.[0].ChdRel
+	AddCategoricalNoiseChildRelX_p1.SecB.Chd.[1].ChdRel
+	AddCategoricalNoiseChildRelX_p1.SecB.Chd.[2].ChdRel
+	AddCategoricalNoiseChildRelX_p1.SecB.Chd.[3].ChdRel
+	AddCategoricalNoiseSiblingRelX_p1.SecC.Chd.[0].ChdRel
+	AddCategoricalNoiseSiblingRelX_p1.SecC.Chd.[1].ChdRel
+	AddCategoricalNoiseSiblingRelX_p1.SecC.Chd.[2].ChdRel
+	AddCategoricalNoiseSiblingRelX_p1.SecC.Chd.[3].ChdRel
+	AddCategoricalNoiseSiblingRelX_p1.SecC.Chd.[4].ChdRel
+	AddCategoricalNoiseSiblingRelX_p1.SecC.Chd.[5].ChdRel
+	AddCategoricalNoiseSiblingRelX_p1.SecC.Chd.[6].ChdRel
+	AddCategoricalNoiseSex_P1.PD.Sex.Sex
+	AddOrderedNoiseChdAccomp_p1.SecB.Chd.X.ChdAccomp.Count
+	AddOrderedNoiseChdAccomp_p1.SecC.Chd.X.ChdAccomp.Count
+[__main__: 10-01 10:41:52] {284} INFO -                                                      Original Transformed
+sample_0_AddNormalNoiseDOBYear_P1.PD.DOBYear.Pe...  60.561646   59.752267
+sample_0_AddNormalNoiseChildDOBX_p1.SecB.Chd.[0...  35.498631   33.190328
+sample_0_AddNormalNoiseChildDOBX_p1.SecB.Chd.[1...  34.482193   34.498444
+sample_0_AddNormalNoiseChildDOBX_p1.SecB.Chd.[2...   7.350685    8.001225
+sample_0_AddNormalNoiseChildDOBX_p1.SecB.Chd.[3...        0.0         0.0
+sample_0_AddNormalNoiseDateOfMarr_P1.MS.SecA.Da...  36.643837   26.577256
+sample_0_AddNormalNoiseOccRowXPeriod_P3.Occ.Occ...  36.024658    35.51783
+sample_0_AddNormalNoiseOccRowXPeriod_P3.Occ.Occ...        0.0         0.0
+sample_0_AddNormalNoiseOccRowXPeriod_P3.Occ.Occ...        0.0         0.0
+sample_0_AddNormalNoiseHLS_P3.DOV.PrpsRow1.HLS....       31.0          36
+sample_0_AddCategoricalNoiseChildRelX_p1.SecB.C...   daughter         son
+sample_0_AddCategoricalNoiseChildRelX_p1.SecB.C...        son    daughter
+sample_0_AddCategoricalNoiseChildRelX_p1.SecB.C...        son    daughter
+sample_0_AddCategoricalNoiseChildRelX_p1.SecB.C...      other       other
+sample_0_AddCategoricalNoiseSiblingRelX_p1.SecC...     sister     brother
+sample_0_AddCategoricalNoiseSiblingRelX_p1.SecC...    brother      sister
+sample_0_AddCategoricalNoiseSiblingRelX_p1.SecC...     sister     brother
+sample_0_AddCategoricalNoiseSiblingRelX_p1.SecC...    brother      sister
+sample_0_AddCategoricalNoiseSiblingRelX_p1.SecC...     sister     brother
+sample_0_AddCategoricalNoiseSiblingRelX_p1.SecC...    brother      sister
+sample_0_AddCategoricalNoiseSiblingRelX_p1.SecC...      other       other
+sample_0_AddCategoricalNoiseSex_P1.PD.Sex.Sex            Male      Female
+sample_0_AddOrderedNoiseChdAccomp_p1.SecB.Chd.X...          1           2
+sample_0_AddOrderedNoiseChdAccomp_p1.SecC.Chd.X...          0           0
+sample_1_AddNormalNoiseDOBYear_P1.PD.DOBYear.Pe...  46.975342   46.393355
+sample_1_AddNormalNoiseChildDOBX_p1.SecB.Chd.[0...  21.506849   22.344943
+sample_1_AddNormalNoiseChildDOBX_p1.SecB.Chd.[1...  28.405479   27.931573
+sample_1_AddNormalNoiseChildDOBX_p1.SecB.Chd.[2...        0.0         0.0
+sample_1_AddNormalNoiseChildDOBX_p1.SecB.Chd.[3...        0.0         0.0
+sample_1_AddNormalNoiseDateOfMarr_P1.MS.SecA.Da...  29.624657   22.588172
+sample_1_AddNormalNoiseOccRowXPeriod_P3.Occ.Occ...  12.953424   14.306958
+sample_1_AddNormalNoiseOccRowXPeriod_P3.Occ.Occ...        0.0         0.0
+sample_1_AddNormalNoiseOccRowXPeriod_P3.Occ.Occ...        0.0         0.0
+sample_1_AddNormalNoiseHLS_P3.DOV.PrpsRow1.HLS....       13.0          18
+sample_1_AddCategoricalNoiseChildRelX_p1.SecB.C...   daughter         son
+sample_1_AddCategoricalNoiseChildRelX_p1.SecB.C...   daughter         son
+sample_1_AddCategoricalNoiseChildRelX_p1.SecB.C...      other       other
+sample_1_AddCategoricalNoiseChildRelX_p1.SecB.C...      other       other
+sample_1_AddCategoricalNoiseSiblingRelX_p1.SecC...    brother      sister
+sample_1_AddCategoricalNoiseSiblingRelX_p1.SecC...     sister     brother
+sample_1_AddCategoricalNoiseSiblingRelX_p1.SecC...     sister     brother
+sample_1_AddCategoricalNoiseSiblingRelX_p1.SecC...    brother      sister
+sample_1_AddCategoricalNoiseSiblingRelX_p1.SecC...      other       other
+sample_1_AddCategoricalNoiseSiblingRelX_p1.SecC...      other       other
+sample_1_AddCategoricalNoiseSiblingRelX_p1.SecC...      other       other
+sample_1_AddCategoricalNoiseSex_P1.PD.Sex.Sex          Female        Male
+sample_1_AddOrderedNoiseChdAccomp_p1.SecB.Chd.X...          1           1
+sample_1_AddOrderedNoiseChdAccomp_p1.SecC.Chd.X...          0           0
+[__main__: 10-01 10:41:52] {285} INFO - 		↑↑↑ Finishing augmentation via snorkel (TFs) ↑↑↑
+[__main__: 10-01 10:41:52] {287} INFO - 		↓↓↓ Starting slicing by snorkel (SFs) ↓↓↓
+[vizard.snorkel.slicing.ComposeSFSlicing: 10-01 10:41:52] {158} INFO - Following slicing functions are being used:
+[vizard.snorkel.slicing.ComposeSFSlicing: 10-01 10:41:52] {160} INFO - * SlicingFunction "SinglePerson" is being used on column "p1.SecA.App.ChdMStatus"
+[__main__: 10-01 10:41:53] {294} INFO -      P1.PD.AliasName.AliasNameIndicator.AliasNameIndicator  ... p1.SecX.ForeignAddr
+103                                              False      ...                   0
+203                                              False      ...                   0
+205                                              False      ...                   0
+294                                              False      ...                   0
+143                                              False      ...                   0
+
+[5 rows x 89 columns]
+[__main__: 10-01 10:41:54] {301} INFO - 		↑↑↑ Finishing slicing by snorkel (SFs) ↑↑↑
+[__main__: 10-01 10:41:54] {303} INFO - 		↓↓↓ Starting preprocessing on directly DVC `vX.X.X-dev` data ↓↓↓
+[vizard.models.preprocessors.coreColumnTransformerConfig: 10-01 10:41:54] {589} INFO - Config file "/home/nik/visaland-visa-form-utility/vizard/models/preprocessors/data/canada_column_transformer_config_x.json" is being used
+[vizard.models.preprocessors.coreColumnTransformerConfig: 10-01 10:41:54] {589} INFO - Config file "/home/nik/visaland-visa-form-utility/vizard/models/preprocessors/data/canada_column_transformer_config_x.json" is being used
+[vizard.models.preprocessors.helpers.func: 10-01 10:41:57] {142} DEBUG - preview_column_transformer() -> 
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {140} INFO - For "ChdMStatus_categorical_OneHotEncoder" transformer: 
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {141} INFO - 14 columns are affected. 
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {142} INFO - On selected columns, 63 unique values exist. It is expected to have 49 new columns and 84 columns are newly produced.
+
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {140} INFO - For "binary_categorical_OneHotEncoder" transformer: 
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {141} INFO - 8 columns are affected. 
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {142} INFO - On selected columns, 16 unique values exist. It is expected to have 8 new columns and 8 columns are newly produced.
+
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {140} INFO - For "CORStatus_categorical_OneHotEncoder" transformer: 
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {141} INFO - 1 columns are affected. 
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {142} INFO - On selected columns, 3 unique values exist. It is expected to have 2 new columns and 2 columns are newly produced.
+
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {140} INFO - For "CWAStatus_categorical_OneHotEncoder" transformer: 
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {141} INFO - 1 columns are affected. 
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {142} INFO - On selected columns, 3 unique values exist. It is expected to have 2 new columns and 2 columns are newly produced.
+
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {140} INFO - For "Country_categorical_OneHotEncoder" transformer: 
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {141} INFO - 1 columns are affected. 
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {142} INFO - On selected columns, 5 unique values exist. It is expected to have 4 new columns and 4 columns are newly produced.
+
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {140} INFO - For "Prps_categorical_OneHotEncoder" transformer: 
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {141} INFO - 1 columns are affected. 
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {142} INFO - On selected columns, 5 unique values exist. It is expected to have 4 new columns and 4 columns are newly produced.
+
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {140} INFO - For "Relationship_categorical_OneHotEncoder" transformer: 
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {141} INFO - 2 columns are affected. 
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {142} INFO - On selected columns, 11 unique values exist. It is expected to have 9 new columns and 9 columns are newly produced.
+
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {140} INFO - For "Study_categorical_OneHotEncoder" transformer: 
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {141} INFO - 1 columns are affected. 
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {142} INFO - On selected columns, 6 unique values exist. It is expected to have 5 new columns and 5 columns are newly produced.
+
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {140} INFO - For "SecBChdRel_categorical_OneHotEncoder" transformer: 
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {141} INFO - 4 columns are affected. 
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {142} INFO - On selected columns, 12 unique values exist. It is expected to have 8 new columns and 8 columns are newly produced.
+
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {140} INFO - For "SecCChdRel_categorical_OneHotEncoder" transformer: 
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {141} INFO - 7 columns are affected. 
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {142} INFO - On selected columns, 21 unique values exist. It is expected to have 14 new columns and 14 columns are newly produced.
+
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {140} INFO - For "Occ_categorical_OneHotEncoder" transformer: 
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {141} INFO - 3 columns are affected. 
+[vizard.models.preprocessors.helpers: 10-01 10:41:57] {142} INFO - On selected columns, 18 unique values exist. It is expected to have 15 new columns and 18 columns are newly produced.
+
+[__main__: 10-01 10:41:57] {385} INFO - [                                         0
+P1.PD.CurrCOR.Row2.Country_og     1.107154
+P1.PD.CurrCOR.Row2.Country_tf    -0.058026
+P1.PD.PrevCOR.Row2.Country_og     1.429856
+P1.PD.PrevCOR.Row2.Country_tf    -0.060086
+P1.PD.PrevCOR.Row3.Country_og     1.429856
+...                                    ...
+p1.SecC.Chd.[4].ChdDOB.Period_tf -0.578793
+p1.SecC.Chd.[5].ChdDOB.Period_og  0.000000
+p1.SecC.Chd.[5].ChdDOB.Period_tf -0.402263
+p1.SecC.Chd.[6].ChdDOB.Period_og  0.000000
+p1.SecC.Chd.[6].ChdDOB.Period_tf -0.311163
+
+[68 rows x 1 columns]]
+[__main__: 10-01 10:41:57] {386} INFO - 		↑↑↑ Finished preprocessing on directly DVC `vX.X.X-dev` data ↑↑↑
+[__main__: 10-01 10:41:57] {388} INFO - 		↓↓↓ Starting defining estimators models ↓↓↓
+[__main__: 10-01 10:41:57] {390} INFO - 		↑↑↑ Finished defining estimators models ↑↑↑
+[__main__: 10-01 10:41:57] {392} INFO - 		↓↓↓ Starting loading training config and training estimators ↓↓↓
+[flaml.automl: 10-01 10:41:57] {2600} INFO - task = classification
+[flaml.automl: 10-01 10:41:57] {2602} INFO - Data split method: stratified
+[flaml.automl: 10-01 10:41:57] {2605} INFO - Evaluation method: cv
+[flaml.automl: 10-01 10:41:57] {2727} INFO - Minimizing error metric: log_loss
+[flaml.automl: 10-01 10:41:57] {2869} INFO - List of ML learners in AutoML Run: ['lgbm', 'rf', 'catboost', 'xgboost', 'extra_tree', 'xgb_limitdepth', 'lrl1']
+[flaml.automl: 10-01 10:41:57] {3174} INFO - iteration 0, current learner lgbm
+[flaml.tune.tune: 10-01 10:41:57] {513} INFO - trial 1 config: {'n_estimators': 4, 'num_leaves': 4, 'min_child_samples': 20, 'learning_rate': 0.09999999999999995, 'log_max_bin': 8, 'colsample_bytree': 1.0, 'reg_alpha': 0.0009765625, 'reg_lambda': 1.0}
+[flaml.automl: 10-01 10:41:58] {3307} INFO - Estimated sufficient time budget=8598s. Estimated necessary time budget=211s.
+[flaml.automl: 10-01 10:41:58] {3354} INFO -  at 0.9s,	estimator lgbm's best error=0.5199,	best estimator lgbm's best error=0.5199
+[flaml.automl: 10-01 10:41:58] {3174} INFO - iteration 1, current learner lgbm
+[flaml.tune.tune: 10-01 10:41:58] {513} INFO - trial 1 config: {'n_estimators': 4, 'num_leaves': 5, 'min_child_samples': 23, 'learning_rate': 0.04090133312716447, 'log_max_bin': 9, 'colsample_bytree': 0.9049476394314453, 'reg_alpha': 0.0009765625, 'reg_lambda': 7.234663956270828}
+[flaml.automl: 10-01 10:41:59] {3354} INFO -  at 2.1s,	estimator lgbm's best error=0.5199,	best estimator lgbm's best error=0.5199
+[flaml.automl: 10-01 10:41:59] {3174} INFO - iteration 2, current learner lgbm
+[flaml.tune.tune: 10-01 10:41:59] {513} INFO - trial 1 config: {'n_estimators': 8, 'num_leaves': 4, 'min_child_samples': 17, 'learning_rate': 0.24449080837804102, 'log_max_bin': 8, 'colsample_bytree': 1.0, 'reg_alpha': 0.003877889357535574, 'reg_lambda': 0.13822342074827465}
+[flaml.automl: 10-01 10:42:00] {3354} INFO -  at 2.9s,	estimator lgbm's best error=0.3870,	best estimator lgbm's best error=0.3870
+[flaml.automl: 10-01 10:42:00] {3174} INFO - iteration 3, current learner xgboost
+[flaml.tune.tune: 10-01 10:42:00] {513} INFO - trial 1 config: {'n_estimators': 4, 'max_leaves': 4, 'min_child_weight': 0.9999999999999993, 'learning_rate': 0.09999999999999995, 'subsample': 1.0, 'colsample_bylevel': 1.0, 'colsample_bytree': 1.0, 'reg_alpha': 0.0009765625, 'reg_lambda': 1.0}
+[flaml.automl: 10-01 10:42:01] {3354} INFO -  at 4.2s,	estimator xgboost's best error=0.5555,	best estimator lgbm's best error=0.3870
+[flaml.automl: 10-01 10:42:01] {3174} INFO - iteration 4, current learner lgbm
+[flaml.tune.tune: 10-01 10:42:01] {513} INFO - trial 1 config: {'n_estimators': 5, 'num_leaves': 4, 'min_child_samples': 14, 'learning_rate': 0.18851563460285517, 'log_max_bin': 8, 'colsample_bytree': 0.9041546041688525, 'reg_alpha': 0.002406913716941263, 'reg_lambda': 0.058443314603953175}
+[flaml.automl: 10-01 10:42:02] {3354} INFO -  at 4.9s,	estimator lgbm's best error=0.3870,	best estimator lgbm's best error=0.3870
+[flaml.automl: 10-01 10:42:02] {3174} INFO - iteration 5, current learner lgbm
+[flaml.tune.tune: 10-01 10:42:02] {513} INFO - trial 1 config: {'n_estimators': 14, 'num_leaves': 12, 'min_child_samples': 21, 'learning_rate': 0.31708646079820985, 'log_max_bin': 8, 'colsample_bytree': 1.0, 'reg_alpha': 0.006247845846505115, 'reg_lambda': 0.3269101722382837}
+[flaml.automl: 10-01 10:42:03] {3354} INFO -  at 5.7s,	estimator lgbm's best error=0.1823,	best estimator lgbm's best error=0.1823
+[flaml.automl: 10-01 10:42:03] {3174} INFO - iteration 6, current learner lgbm
+[flaml.tune.tune: 10-01 10:42:03] {513} INFO - trial 1 config: {'n_estimators': 10, 'num_leaves': 21, 'min_child_samples': 22, 'learning_rate': 0.29746036065257914, 'log_max_bin': 7, 'colsample_bytree': 1.0, 'reg_alpha': 0.0009765625, 'reg_lambda': 0.30019204468137667}
+[flaml.automl: 10-01 10:42:04] {3354} INFO -  at 6.9s,	estimator lgbm's best error=0.1823,	best estimator lgbm's best error=0.1823
+[flaml.automl: 10-01 10:42:04] {3174} INFO - iteration 7, current learner lgbm
+[flaml.tune.tune: 10-01 10:42:04] {513} INFO - trial 1 config: {'n_estimators': 19, 'num_leaves': 7, 'min_child_samples': 20, 'learning_rate': 0.3380074689647994, 'log_max_bin': 9, 'colsample_bytree': 0.8656679135922174, 'reg_alpha': 0.09601027393977701, 'reg_lambda': 0.35600630531797156}
+[flaml.automl: 10-01 10:42:05] {3354} INFO -  at 7.7s,	estimator lgbm's best error=0.1823,	best estimator lgbm's best error=0.1823
+[flaml.automl: 10-01 10:42:05] {3174} INFO - iteration 8, current learner lgbm
+[flaml.tune.tune: 10-01 10:42:05] {513} INFO - trial 1 config: {'n_estimators': 33, 'num_leaves': 8, 'min_child_samples': 20, 'learning_rate': 0.4376299740923299, 'log_max_bin': 10, 'colsample_bytree': 0.9245146867805999, 'reg_alpha': 0.007185373616527645, 'reg_lambda': 0.9159215092860544}
+[flaml.automl: 10-01 10:42:06] {3354} INFO -  at 8.6s,	estimator lgbm's best error=0.1459,	best estimator lgbm's best error=0.1459
+[flaml.automl: 10-01 10:42:06] {3174} INFO - iteration 9, current learner lgbm
+[flaml.tune.tune: 10-01 10:42:06] {513} INFO - trial 1 config: {'n_estimators': 15, 'num_leaves': 13, 'min_child_samples': 23, 'learning_rate': 0.46821331680416567, 'log_max_bin': 8, 'colsample_bytree': 0.8623609512706999, 'reg_alpha': 0.03105793867608602, 'reg_lambda': 2.436298845908151}
+[flaml.automl: 10-01 10:42:07] {3354} INFO -  at 9.8s,	estimator lgbm's best error=0.1459,	best estimator lgbm's best error=0.1459
+[flaml.automl: 10-01 10:42:07] {3174} INFO - iteration 10, current learner xgboost
+[flaml.tune.tune: 10-01 10:42:07] {513} INFO - trial 1 config: {'n_estimators': 4, 'max_leaves': 5, 'min_child_weight': 1.4952317042235694, 'learning_rate': 0.04052580820147284, 'subsample': 1.0, 'colsample_bylevel': 0.9039669660532299, 'colsample_bytree': 0.9005043427192151, 'reg_alpha': 0.007210828893539485, 'reg_lambda': 0.28193756824170324}
+[flaml.automl: 10-01 10:42:08] {3354} INFO -  at 10.6s,	estimator xgboost's best error=0.5555,	best estimator lgbm's best error=0.1459
+[flaml.automl: 10-01 10:42:08] {3174} INFO - iteration 11, current learner extra_tree
+[flaml.tune.tune: 10-01 10:42:08] {513} INFO - trial 1 config: {'n_estimators': 4, 'max_features': 0.06375767130633382, 'max_leaves': 4, 'criterion': 'entropy'}
+[flaml.automl: 10-01 10:42:09] {3354} INFO -  at 11.8s,	estimator extra_tree's best error=0.4862,	best estimator lgbm's best error=0.1459
+[flaml.automl: 10-01 10:42:09] {3174} INFO - iteration 12, current learner xgboost
+[flaml.tune.tune: 10-01 10:42:09] {513} INFO - trial 1 config: {'n_estimators': 8, 'max_leaves': 4, 'min_child_weight': 0.6687926675011664, 'learning_rate': 0.24675633735138086, 'subsample': 0.9536899102627593, 'colsample_bylevel': 1.0, 'colsample_bytree': 1.0, 'reg_alpha': 0.0009765625, 'reg_lambda': 3.5468845327583534}
+[flaml.automl: 10-01 10:42:10] {3354} INFO -  at 12.6s,	estimator xgboost's best error=0.4029,	best estimator lgbm's best error=0.1459
+[flaml.automl: 10-01 10:42:10] {3174} INFO - iteration 13, current learner xgboost
+[flaml.tune.tune: 10-01 10:42:10] {513} INFO - trial 1 config: {'n_estimators': 4, 'max_leaves': 4, 'min_child_weight': 0.41606457589420376, 'learning_rate': 0.23487720074724674, 'subsample': 0.8599347511202097, 'colsample_bylevel': 0.9633507329454843, 'colsample_bytree': 0.9338536785980791, 'reg_alpha': 0.0009765625, 'reg_lambda': 13.51977329962597}
+[flaml.automl: 10-01 10:42:11] {3354} INFO -  at 13.4s,	estimator xgboost's best error=0.4029,	best estimator lgbm's best error=0.1459
+[flaml.automl: 10-01 10:42:11] {3174} INFO - iteration 14, current learner extra_tree
+[flaml.tune.tune: 10-01 10:42:11] {513} INFO - trial 1 config: {'n_estimators': 4, 'max_features': 0.0724824680014999, 'max_leaves': 5, 'criterion': 'gini'}
+[flaml.automl: 10-01 10:42:12] {3354} INFO -  at 14.6s,	estimator extra_tree's best error=0.4842,	best estimator lgbm's best error=0.1459
+[flaml.automl: 10-01 10:42:12] {3174} INFO - iteration 15, current learner rf
+[flaml.tune.tune: 10-01 10:42:12] {513} INFO - trial 1 config: {'n_estimators': 4, 'max_features': 0.06375767130633382, 'max_leaves': 4, 'criterion': 'entropy'}
+[flaml.automl: 10-01 10:42:13] {3354} INFO -  at 15.8s,	estimator rf's best error=0.4877,	best estimator lgbm's best error=0.1459
+[flaml.automl: 10-01 10:42:13] {3174} INFO - iteration 16, current learner lgbm
+[flaml.tune.tune: 10-01 10:42:13] {513} INFO - trial 1 config: {'n_estimators': 74, 'num_leaves': 5, 'min_child_samples': 18, 'learning_rate': 0.40904431239011135, 'log_max_bin': 10, 'colsample_bytree': 0.9866684222904998, 'reg_alpha': 0.0016623638338511277, 'reg_lambda': 0.3443387959493665}
+[flaml.automl: 10-01 10:42:14] {3354} INFO -  at 16.8s,	estimator lgbm's best error=0.1459,	best estimator lgbm's best error=0.1459
+[flaml.automl: 10-01 10:42:14] {3174} INFO - iteration 17, current learner rf
+[flaml.tune.tune: 10-01 10:42:14] {513} INFO - trial 1 config: {'n_estimators': 4, 'max_features': 0.0724824680014999, 'max_leaves': 5, 'criterion': 'gini'}
+[flaml.automl: 10-01 10:42:15] {3354} INFO -  at 18.1s,	estimator rf's best error=0.4668,	best estimator lgbm's best error=0.1459
+[flaml.automl: 10-01 10:42:15] {3174} INFO - iteration 18, current learner lgbm
+[flaml.tune.tune: 10-01 10:42:15] {513} INFO - trial 1 config: {'n_estimators': 21, 'num_leaves': 15, 'min_child_samples': 13, 'learning_rate': 0.2568893619202796, 'log_max_bin': 10, 'colsample_bytree': 0.7971316501015576, 'reg_alpha': 0.004946979882386848, 'reg_lambda': 2.472289194509778}
+[flaml.automl: 10-01 10:42:16] {3354} INFO -  at 18.9s,	estimator lgbm's best error=0.1459,	best estimator lgbm's best error=0.1459
+[flaml.automl: 10-01 10:42:16] {3174} INFO - iteration 19, current learner lgbm
+[flaml.tune.tune: 10-01 10:42:16] {513} INFO - trial 1 config: {'n_estimators': 52, 'num_leaves': 4, 'min_child_samples': 32, 'learning_rate': 0.7455349368787317, 'log_max_bin': 9, 'colsample_bytree': 1.0, 'reg_alpha': 0.010436588633180576, 'reg_lambda': 0.3393260841150057}
+[flaml.automl: 10-01 10:42:17] {3354} INFO -  at 19.8s,	estimator lgbm's best error=0.1390,	best estimator lgbm's best error=0.1390
+[flaml.automl: 10-01 10:42:17] {3174} INFO - iteration 20, current learner lgbm
+[flaml.tune.tune: 10-01 10:42:17] {513} INFO - trial 1 config: {'n_estimators': 86, 'num_leaves': 8, 'min_child_samples': 26, 'learning_rate': 0.21593153241890858, 'log_max_bin': 9, 'colsample_bytree': 1.0, 'reg_alpha': 0.007578931172094924, 'reg_lambda': 1.1148891674773762}
+[flaml.automl: 10-01 10:42:19] {3354} INFO -  at 21.3s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:42:19] {3174} INFO - iteration 21, current learner lgbm
+[flaml.tune.tune: 10-01 10:42:19] {513} INFO - trial 1 config: {'n_estimators': 52, 'num_leaves': 4, 'min_child_samples': 32, 'learning_rate': 0.7455349368787323, 'log_max_bin': 9, 'colsample_bytree': 0.9214335607251198, 'reg_alpha': 0.010436588633180576, 'reg_lambda': 0.3393260841150057}
+[flaml.automl: 10-01 10:42:20] {3354} INFO -  at 22.6s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:42:20] {3174} INFO - iteration 22, current learner lgbm
+[flaml.tune.tune: 10-01 10:42:20] {513} INFO - trial 1 config: {'n_estimators': 144, 'num_leaves': 9, 'min_child_samples': 32, 'learning_rate': 0.1518410808918206, 'log_max_bin': 10, 'colsample_bytree': 0.8680015709324147, 'reg_alpha': 0.13333851899820356, 'reg_lambda': 1.3306419388709387}
+[flaml.automl: 10-01 10:42:21] {3354} INFO -  at 24.2s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:42:21] {3174} INFO - iteration 23, current learner lgbm
+[flaml.tune.tune: 10-01 10:42:21] {513} INFO - trial 1 config: {'n_estimators': 51, 'num_leaves': 7, 'min_child_samples': 21, 'learning_rate': 0.3070738591883262, 'log_max_bin': 8, 'colsample_bytree': 1.0, 'reg_alpha': 0.0009765625, 'reg_lambda': 0.9341189537533104}
+[flaml.automl: 10-01 10:42:25] {3354} INFO -  at 27.7s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:42:25] {3174} INFO - iteration 24, current learner xgboost
+[flaml.tune.tune: 10-01 10:42:25] {513} INFO - trial 1 config: {'n_estimators': 26, 'max_leaves': 5, 'min_child_weight': 1.0750341606036184, 'learning_rate': 0.25923627252604775, 'subsample': 1.0, 'colsample_bylevel': 1.0, 'colsample_bytree': 1.0, 'reg_alpha': 0.0020378065580387668, 'reg_lambda': 0.9305178134213601}
+[flaml.automl: 10-01 10:42:27] {3354} INFO -  at 29.7s,	estimator xgboost's best error=0.2476,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:42:27] {3174} INFO - iteration 25, current learner xgboost
+[flaml.tune.tune: 10-01 10:42:27] {513} INFO - trial 1 config: {'n_estimators': 28, 'max_leaves': 5, 'min_child_weight': 0.54082553556538, 'learning_rate': 0.5529329928049416, 'subsample': 0.8571391187402296, 'colsample_bylevel': 0.9950959910192901, 'colsample_bytree': 1.0, 'reg_alpha': 0.0009765625, 'reg_lambda': 0.8425360467603051}
+[flaml.automl: 10-01 10:42:28] {3354} INFO -  at 31.3s,	estimator xgboost's best error=0.1657,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:42:28] {3174} INFO - iteration 26, current learner xgboost
+[flaml.tune.tune: 10-01 10:42:28] {513} INFO - trial 1 config: {'n_estimators': 26, 'max_leaves': 5, 'min_child_weight': 1.0750341606036184, 'learning_rate': 0.2592362725260479, 'subsample': 1.0, 'colsample_bylevel': 1.0, 'colsample_bytree': 0.8002758658273889, 'reg_alpha': 0.003489698068269874, 'reg_lambda': 0.9305178134213601}
+[flaml.automl: 10-01 10:42:29] {3354} INFO -  at 32.4s,	estimator xgboost's best error=0.1657,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:42:29] {3174} INFO - iteration 27, current learner xgboost
+[flaml.tune.tune: 10-01 10:42:29] {513} INFO - trial 1 config: {'n_estimators': 35, 'max_leaves': 11, 'min_child_weight': 0.23904607240199677, 'learning_rate': 0.5892722506669729, 'subsample': 0.9180402707612114, 'colsample_bylevel': 0.804388646793182, 'colsample_bytree': 1.0, 'reg_alpha': 0.0016469991740555498, 'reg_lambda': 0.988826446648512}
+[flaml.automl: 10-01 10:42:32] {3354} INFO -  at 34.9s,	estimator xgboost's best error=0.1217,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:42:32] {3174} INFO - iteration 28, current learner xgboost
+[flaml.tune.tune: 10-01 10:42:32] {513} INFO - trial 1 config: {'n_estimators': 28, 'max_leaves': 5, 'min_child_weight': 0.54082553556538, 'learning_rate': 0.552932992804942, 'subsample': 0.8571391187402296, 'colsample_bylevel': 0.9950959910192901, 'colsample_bytree': 0.8808474099172214, 'reg_alpha': 0.0009765625, 'reg_lambda': 0.8425360467603051}
+[flaml.automl: 10-01 10:42:33] {3354} INFO -  at 36.3s,	estimator xgboost's best error=0.1217,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:42:33] {3174} INFO - iteration 29, current learner xgboost
+[flaml.tune.tune: 10-01 10:42:33] {513} INFO - trial 1 config: {'n_estimators': 14, 'max_leaves': 7, 'min_child_weight': 1.0888841041541888, 'learning_rate': 1.0, 'subsample': 0.8610232092325529, 'colsample_bylevel': 0.8915302293369723, 'colsample_bytree': 0.9239813872725541, 'reg_alpha': 0.0009765625, 'reg_lambda': 3.0764803000138747}
+[flaml.automl: 10-01 10:42:34] {3354} INFO -  at 37.3s,	estimator xgboost's best error=0.1217,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:42:34] {3174} INFO - iteration 30, current learner lgbm
+[flaml.tune.tune: 10-01 10:42:34] {513} INFO - trial 1 config: {'n_estimators': 126, 'num_leaves': 4, 'min_child_samples': 14, 'learning_rate': 0.12060924334620791, 'log_max_bin': 10, 'colsample_bytree': 0.9378271524277849, 'reg_alpha': 0.022932374154286242, 'reg_lambda': 0.8285331892129971}
+[flaml.automl: 10-01 10:42:36] {3354} INFO -  at 38.6s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:42:36] {3174} INFO - iteration 31, current learner lgbm
+[flaml.tune.tune: 10-01 10:42:36] {513} INFO - trial 1 config: {'n_estimators': 59, 'num_leaves': 14, 'min_child_samples': 47, 'learning_rate': 0.38659082338272666, 'log_max_bin': 8, 'colsample_bytree': 1.0, 'reg_alpha': 0.0025047645448701217, 'reg_lambda': 1.5002149243279816}
+[flaml.automl: 10-01 10:42:37] {3354} INFO -  at 39.7s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:42:37] {3174} INFO - iteration 32, current learner lgbm
+[flaml.tune.tune: 10-01 10:42:37] {513} INFO - trial 1 config: {'n_estimators': 80, 'num_leaves': 17, 'min_child_samples': 33, 'learning_rate': 0.10864733901297816, 'log_max_bin': 10, 'colsample_bytree': 1.0, 'reg_alpha': 0.012291423319919791, 'reg_lambda': 0.6445848058937242}
+[flaml.automl: 10-01 10:42:38] {3354} INFO -  at 41.0s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:42:38] {3174} INFO - iteration 33, current learner xgboost
+[flaml.tune.tune: 10-01 10:42:38] {513} INFO - trial 1 config: {'n_estimators': 87, 'max_leaves': 16, 'min_child_weight': 0.052478518616274165, 'learning_rate': 0.32427589983504795, 'subsample': 0.9750573322898699, 'colsample_bylevel': 0.7172470642493916, 'colsample_bytree': 1.0, 'reg_alpha': 0.003422787968263652, 'reg_lambda': 0.3178235016122527}
+[flaml.automl: 10-01 10:42:41] {3354} INFO -  at 43.4s,	estimator xgboost's best error=0.1217,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:42:41] {3174} INFO - iteration 34, current learner lgbm
+[flaml.tune.tune: 10-01 10:42:41] {513} INFO - trial 1 config: {'n_estimators': 92, 'num_leaves': 4, 'min_child_samples': 21, 'learning_rate': 0.4291538763522643, 'log_max_bin': 8, 'colsample_bytree': 0.8653487075680237, 'reg_alpha': 0.004673193349240776, 'reg_lambda': 1.9283387451787568}
+[flaml.automl: 10-01 10:42:42] {3354} INFO -  at 44.5s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:42:42] {3174} INFO - iteration 35, current learner xgboost
+[flaml.tune.tune: 10-01 10:42:42] {513} INFO - trial 1 config: {'n_estimators': 20, 'max_leaves': 10, 'min_child_weight': 0.49873625150358675, 'learning_rate': 1.0, 'subsample': 1.0, 'colsample_bylevel': 0.7530493417689094, 'colsample_bytree': 0.822023835807275, 'reg_alpha': 0.0018338464071465694, 'reg_lambda': 2.9894940206736558}
+[flaml.automl: 10-01 10:42:43] {3354} INFO -  at 45.6s,	estimator xgboost's best error=0.1217,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:42:43] {3174} INFO - iteration 36, current learner xgboost
+[flaml.tune.tune: 10-01 10:42:43] {513} INFO - trial 1 config: {'n_estimators': 61, 'max_leaves': 12, 'min_child_weight': 0.11457563904477806, 'learning_rate': 0.29094645930272106, 'subsample': 0.7872691134833126, 'colsample_bylevel': 0.8557279518174545, 'colsample_bytree': 1.0, 'reg_alpha': 0.0014791894614339198, 'reg_lambda': 0.3270713153562987}
+[flaml.automl: 10-01 10:42:44] {3354} INFO -  at 47.4s,	estimator xgboost's best error=0.1217,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:42:45] {3174} INFO - iteration 37, current learner lgbm
+[flaml.tune.tune: 10-01 10:42:45] {513} INFO - trial 1 config: {'n_estimators': 138, 'num_leaves': 9, 'min_child_samples': 27, 'learning_rate': 0.10207467368027391, 'log_max_bin': 10, 'colsample_bytree': 0.7961413991344988, 'reg_alpha': 0.024301145603753408, 'reg_lambda': 0.41272766067292643}
+[flaml.automl: 10-01 10:42:46] {3354} INFO -  at 48.9s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:42:46] {3174} INFO - iteration 38, current learner lgbm
+[flaml.tune.tune: 10-01 10:42:46] {513} INFO - trial 1 config: {'n_estimators': 54, 'num_leaves': 7, 'min_child_samples': 25, 'learning_rate': 0.45678741857970584, 'log_max_bin': 8, 'colsample_bytree': 1.0, 'reg_alpha': 0.0023636827105994658, 'reg_lambda': 3.011617524572498}
+[flaml.automl: 10-01 10:42:47] {3354} INFO -  at 49.9s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:42:47] {3174} INFO - iteration 39, current learner catboost
+[flaml.tune.tune: 10-01 10:42:47] {513} INFO - trial 1 config: {'early_stopping_rounds': 10, 'learning_rate': 0.09999999999999996, 'n_estimators': 8192}
+[flaml.automl: 10-01 10:42:49] {3354} INFO -  at 52.1s,	estimator catboost's best error=0.2410,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:42:49] {3174} INFO - iteration 40, current learner catboost
+[flaml.tune.tune: 10-01 10:42:49] {513} INFO - trial 1 config: {'early_stopping_rounds': 10, 'learning_rate': 0.1181494426598381, 'n_estimators': 8192}
+[flaml.automl: 10-01 10:42:52] {3354} INFO -  at 54.5s,	estimator catboost's best error=0.1837,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:42:52] {3174} INFO - iteration 41, current learner catboost
+[flaml.tune.tune: 10-01 10:42:52] {513} INFO - trial 1 config: {'early_stopping_rounds': 14, 'learning_rate': 0.09999999999999996, 'n_estimators': 8192}
+[flaml.automl: 10-01 10:42:54] {3354} INFO -  at 56.7s,	estimator catboost's best error=0.1837,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:42:54] {3174} INFO - iteration 42, current learner catboost
+[flaml.tune.tune: 10-01 10:42:54] {513} INFO - trial 1 config: {'early_stopping_rounds': 11, 'learning_rate': 0.07133315112872012, 'n_estimators': 8192}
+[flaml.automl: 10-01 10:42:57] {3354} INFO -  at 59.8s,	estimator catboost's best error=0.1669,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:42:57] {3174} INFO - iteration 43, current learner lgbm
+[flaml.tune.tune: 10-01 10:42:57] {513} INFO - trial 1 config: {'n_estimators': 59, 'num_leaves': 5, 'min_child_samples': 13, 'learning_rate': 0.27082939923331084, 'log_max_bin': 7, 'colsample_bytree': 1.0, 'reg_alpha': 0.037061602555034344, 'reg_lambda': 2.5788942783786433}
+[flaml.automl: 10-01 10:43:05] {3354} INFO -  at 67.7s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:05] {3174} INFO - iteration 44, current learner catboost
+[flaml.tune.tune: 10-01 10:43:05] {513} INFO - trial 1 config: {'early_stopping_rounds': 13, 'learning_rate': 0.04499268181394217, 'n_estimators': 8192}
+[flaml.automl: 10-01 10:43:09] {3354} INFO -  at 72.2s,	estimator catboost's best error=0.1634,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:09] {3174} INFO - iteration 45, current learner extra_tree
+[flaml.tune.tune: 10-01 10:43:09] {513} INFO - trial 1 config: {'n_estimators': 8, 'max_features': 0.06375767130633382, 'max_leaves': 4, 'criterion': 'gini'}
+[flaml.automl: 10-01 10:43:11] {3354} INFO -  at 73.7s,	estimator extra_tree's best error=0.4842,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:11] {3174} INFO - iteration 46, current learner rf
+[flaml.tune.tune: 10-01 10:43:11] {513} INFO - trial 1 config: {'n_estimators': 8, 'max_features': 0.06375767130633382, 'max_leaves': 4, 'criterion': 'gini'}
+[flaml.automl: 10-01 10:43:12] {3354} INFO -  at 75.2s,	estimator rf's best error=0.4523,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:12] {3174} INFO - iteration 47, current learner lgbm
+[flaml.tune.tune: 10-01 10:43:12] {513} INFO - trial 1 config: {'n_estimators': 124, 'num_leaves': 12, 'min_child_samples': 50, 'learning_rate': 0.1721616147463038, 'log_max_bin': 10, 'colsample_bytree': 0.9745769711024225, 'reg_alpha': 0.0015498573658831061, 'reg_lambda': 0.48198092732202225}
+[flaml.automl: 10-01 10:43:14] {3354} INFO -  at 76.5s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:14] {3174} INFO - iteration 48, current learner rf
+[flaml.tune.tune: 10-01 10:43:14] {513} INFO - trial 1 config: {'n_estimators': 10, 'max_features': 0.06375767130633382, 'max_leaves': 4, 'criterion': 'gini'}
+[flaml.automl: 10-01 10:43:15] {3354} INFO -  at 78.1s,	estimator rf's best error=0.4523,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:15] {3174} INFO - iteration 49, current learner lgbm
+[flaml.tune.tune: 10-01 10:43:15] {513} INFO - trial 1 config: {'n_estimators': 242, 'num_leaves': 10, 'min_child_samples': 36, 'learning_rate': 0.20294082523430926, 'log_max_bin': 8, 'colsample_bytree': 1.0, 'reg_alpha': 0.010520447965691154, 'reg_lambda': 8.090166945198}
+[flaml.automl: 10-01 10:43:17] {3354} INFO -  at 80.0s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:17] {3174} INFO - iteration 50, current learner lgbm
+[flaml.tune.tune: 10-01 10:43:17] {513} INFO - trial 1 config: {'n_estimators': 31, 'num_leaves': 7, 'min_child_samples': 19, 'learning_rate': 0.22975380453363548, 'log_max_bin': 10, 'colsample_bytree': 0.9672616236877669, 'reg_alpha': 0.005459862346040179, 'reg_lambda': 0.15364056936997808}
+[flaml.automl: 10-01 10:43:18] {3354} INFO -  at 80.9s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:18] {3174} INFO - iteration 51, current learner catboost
+[flaml.tune.tune: 10-01 10:43:18] {513} INFO - trial 1 config: {'early_stopping_rounds': 10, 'learning_rate': 0.06902799400609225, 'n_estimators': 8192}
+[flaml.automl: 10-01 10:43:21] {3354} INFO -  at 83.5s,	estimator catboost's best error=0.1634,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:21] {3174} INFO - iteration 52, current learner lgbm
+[flaml.tune.tune: 10-01 10:43:21] {513} INFO - trial 1 config: {'n_estimators': 95, 'num_leaves': 11, 'min_child_samples': 21, 'learning_rate': 0.23643879752590843, 'log_max_bin': 8, 'colsample_bytree': 0.7927124951030378, 'reg_alpha': 0.001427672758625479, 'reg_lambda': 1.5663991595377456}
+[flaml.automl: 10-01 10:43:22] {3354} INFO -  at 84.8s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:22] {3174} INFO - iteration 53, current learner lgbm
+[flaml.tune.tune: 10-01 10:43:22] {513} INFO - trial 1 config: {'n_estimators': 78, 'num_leaves': 6, 'min_child_samples': 32, 'learning_rate': 0.1972029429208586, 'log_max_bin': 10, 'colsample_bytree': 1.0, 'reg_alpha': 0.04023344801133131, 'reg_lambda': 0.7935256145854979}
+[flaml.automl: 10-01 10:43:23] {3354} INFO -  at 85.8s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:23] {3174} INFO - iteration 54, current learner lgbm
+[flaml.tune.tune: 10-01 10:43:23] {513} INFO - trial 1 config: {'n_estimators': 156, 'num_leaves': 8, 'min_child_samples': 20, 'learning_rate': 0.31644614183736225, 'log_max_bin': 10, 'colsample_bytree': 1.0, 'reg_alpha': 0.018111299445437608, 'reg_lambda': 0.1652973581318865}
+[flaml.automl: 10-01 10:43:24] {3354} INFO -  at 87.3s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:24] {3174} INFO - iteration 55, current learner lgbm
+[flaml.tune.tune: 10-01 10:43:24] {513} INFO - trial 1 config: {'n_estimators': 47, 'num_leaves': 8, 'min_child_samples': 34, 'learning_rate': 0.1473439569275642, 'log_max_bin': 7, 'colsample_bytree': 0.9612200247753715, 'reg_alpha': 0.0031715116789050616, 'reg_lambda': 7.519647439051365}
+[flaml.automl: 10-01 10:43:25] {3354} INFO -  at 88.2s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:25] {3174} INFO - iteration 56, current learner lgbm
+[flaml.tune.tune: 10-01 10:43:25] {513} INFO - trial 1 config: {'n_estimators': 83, 'num_leaves': 9, 'min_child_samples': 38, 'learning_rate': 0.4882791066664754, 'log_max_bin': 9, 'colsample_bytree': 1.0, 'reg_alpha': 0.0027800702527338915, 'reg_lambda': 0.05868330765064471}
+[flaml.automl: 10-01 10:43:26] {3354} INFO -  at 89.4s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:26] {3174} INFO - iteration 57, current learner lgbm
+[flaml.tune.tune: 10-01 10:43:26] {513} INFO - trial 1 config: {'n_estimators': 89, 'num_leaves': 8, 'min_child_samples': 18, 'learning_rate': 0.09549134103054481, 'log_max_bin': 9, 'colsample_bytree': 0.9169619428695169, 'reg_alpha': 0.02066141949285852, 'reg_lambda': 21.181114451798308}
+[flaml.automl: 10-01 10:43:28] {3354} INFO -  at 90.5s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:28] {3174} INFO - iteration 58, current learner lgbm
+[flaml.tune.tune: 10-01 10:43:28] {513} INFO - trial 1 config: {'n_estimators': 74, 'num_leaves': 4, 'min_child_samples': 25, 'learning_rate': 0.5421647978547558, 'log_max_bin': 8, 'colsample_bytree': 0.9471537434302202, 'reg_alpha': 0.004674723012290122, 'reg_lambda': 2.4121905757340136}
+[flaml.automl: 10-01 10:43:29] {3354} INFO -  at 91.5s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:29] {3174} INFO - iteration 59, current learner lgbm
+[flaml.tune.tune: 10-01 10:43:29] {513} INFO - trial 1 config: {'n_estimators': 101, 'num_leaves': 22, 'min_child_samples': 27, 'learning_rate': 0.0860004686347586, 'log_max_bin': 10, 'colsample_bytree': 1.0, 'reg_alpha': 0.012287401319893922, 'reg_lambda': 0.5152900721288022}
+[flaml.automl: 10-01 10:43:30] {3354} INFO -  at 92.8s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:30] {3174} INFO - iteration 60, current learner lgbm
+[flaml.tune.tune: 10-01 10:43:30] {513} INFO - trial 1 config: {'n_estimators': 124, 'num_leaves': 10, 'min_child_samples': 52, 'learning_rate': 0.4609294223331935, 'log_max_bin': 9, 'colsample_bytree': 0.9620437862228581, 'reg_alpha': 0.009006581791161514, 'reg_lambda': 0.10698788249766787}
+[flaml.automl: 10-01 10:43:31] {3354} INFO -  at 94.0s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:31] {3174} INFO - iteration 61, current learner lgbm
+[flaml.tune.tune: 10-01 10:43:31] {513} INFO - trial 1 config: {'n_estimators': 60, 'num_leaves': 6, 'min_child_samples': 13, 'learning_rate': 0.10115741029669652, 'log_max_bin': 9, 'colsample_bytree': 1.0, 'reg_alpha': 0.006377580201150261, 'reg_lambda': 11.617931178191991}
+[flaml.automl: 10-01 10:43:32] {3354} INFO -  at 95.1s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:32] {3174} INFO - iteration 62, current learner lgbm
+[flaml.tune.tune: 10-01 10:43:32] {513} INFO - trial 1 config: {'n_estimators': 143, 'num_leaves': 4, 'min_child_samples': 16, 'learning_rate': 0.45544662725415425, 'log_max_bin': 8, 'colsample_bytree': 1.0, 'reg_alpha': 0.016820130563078583, 'reg_lambda': 0.4497965504123238}
+[flaml.automl: 10-01 10:43:33] {3354} INFO -  at 96.4s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:33] {3174} INFO - iteration 63, current learner lgbm
+[flaml.tune.tune: 10-01 10:43:34] {513} INFO - trial 1 config: {'n_estimators': 52, 'num_leaves': 16, 'min_child_samples': 41, 'learning_rate': 0.10237517176026661, 'log_max_bin': 10, 'colsample_bytree': 0.9263050517247603, 'reg_alpha': 0.0034149674103860746, 'reg_lambda': 2.7634223842289853}
+[flaml.automl: 10-01 10:43:34] {3354} INFO -  at 97.4s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:34] {3174} INFO - iteration 64, current learner rf
+[flaml.tune.tune: 10-01 10:43:34] {513} INFO - trial 1 config: {'n_estimators': 6, 'max_features': 0.08249626913374537, 'max_leaves': 6, 'criterion': 'entropy'}
+[flaml.automl: 10-01 10:43:36] {3354} INFO -  at 98.8s,	estimator rf's best error=0.4408,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:36] {3174} INFO - iteration 65, current learner lgbm
+[flaml.tune.tune: 10-01 10:43:36] {513} INFO - trial 1 config: {'n_estimators': 45, 'num_leaves': 4, 'min_child_samples': 26, 'learning_rate': 0.18820058240297233, 'log_max_bin': 10, 'colsample_bytree': 1.0, 'reg_alpha': 0.004999076122031421, 'reg_lambda': 2.3163095367506696}
+[flaml.automl: 10-01 10:43:37] {3354} INFO -  at 99.8s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:37] {3174} INFO - iteration 66, current learner lgbm
+[flaml.tune.tune: 10-01 10:43:37] {513} INFO - trial 1 config: {'n_estimators': 163, 'num_leaves': 19, 'min_child_samples': 26, 'learning_rate': 0.24774857812576978, 'log_max_bin': 7, 'colsample_bytree': 0.9577582950859205, 'reg_alpha': 0.011490162643894844, 'reg_lambda': 0.5366199275344051}
+[flaml.automl: 10-01 10:43:38] {3354} INFO -  at 101.4s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:38] {3174} INFO - iteration 67, current learner rf
+[flaml.tune.tune: 10-01 10:43:38] {513} INFO - trial 1 config: {'n_estimators': 4, 'max_features': 0.06375767130633382, 'max_leaves': 5, 'criterion': 'gini'}
+[flaml.automl: 10-01 10:43:40] {3354} INFO -  at 102.6s,	estimator rf's best error=0.4408,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:40] {3174} INFO - iteration 68, current learner lgbm
+[flaml.tune.tune: 10-01 10:43:40] {513} INFO - trial 1 config: {'n_estimators': 103, 'num_leaves': 5, 'min_child_samples': 48, 'learning_rate': 0.1113512440079544, 'log_max_bin': 10, 'colsample_bytree': 0.9669582151825135, 'reg_alpha': 0.03265607090211384, 'reg_lambda': 0.49556793313056247}
+[flaml.automl: 10-01 10:43:41] {3354} INFO -  at 103.7s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:41] {3174} INFO - iteration 69, current learner lgbm
+[flaml.tune.tune: 10-01 10:43:41] {513} INFO - trial 1 config: {'n_estimators': 72, 'num_leaves': 13, 'min_child_samples': 14, 'learning_rate': 0.4187328763875094, 'log_max_bin': 8, 'colsample_bytree': 1.0, 'reg_alpha': 0.0017589439306255922, 'reg_lambda': 2.508188630984165}
+[flaml.automl: 10-01 10:43:42] {3354} INFO -  at 104.9s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:42] {3174} INFO - iteration 70, current learner lgbm
+[flaml.tune.tune: 10-01 10:43:42] {513} INFO - trial 1 config: {'n_estimators': 181, 'num_leaves': 7, 'min_child_samples': 20, 'learning_rate': 0.08910180423955717, 'log_max_bin': 10, 'colsample_bytree': 1.0, 'reg_alpha': 0.007503495968072715, 'reg_lambda': 1.725655270350945}
+[flaml.automl: 10-01 10:43:44] {3354} INFO -  at 106.4s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:44] {3174} INFO - iteration 71, current learner lgbm
+[flaml.tune.tune: 10-01 10:43:44] {513} INFO - trial 1 config: {'n_estimators': 41, 'num_leaves': 9, 'min_child_samples': 33, 'learning_rate': 0.5232938557273136, 'log_max_bin': 8, 'colsample_bytree': 0.8409105114105973, 'reg_alpha': 0.007655124751950223, 'reg_lambda': 0.7202932573581823}
+[flaml.automl: 10-01 10:43:44] {3354} INFO -  at 107.4s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:44] {3174} INFO - iteration 72, current learner lgbm
+[flaml.tune.tune: 10-01 10:43:44] {513} INFO - trial 1 config: {'n_estimators': 63, 'num_leaves': 14, 'min_child_samples': 14, 'learning_rate': 0.2906375907344624, 'log_max_bin': 10, 'colsample_bytree': 1.0, 'reg_alpha': 0.003940239773810258, 'reg_lambda': 0.8808093207878235}
+[flaml.automl: 10-01 10:43:46] {3354} INFO -  at 108.5s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:46] {3174} INFO - iteration 73, current learner catboost
+[flaml.tune.tune: 10-01 10:43:46] {513} INFO - trial 1 config: {'early_stopping_rounds': 16, 'learning_rate': 0.029326383389208423, 'n_estimators': 8192}
+[flaml.automl: 10-01 10:43:52] {3354} INFO -  at 115.3s,	estimator catboost's best error=0.1612,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:52] {3174} INFO - iteration 74, current learner lgbm
+[flaml.tune.tune: 10-01 10:43:52] {513} INFO - trial 1 config: {'n_estimators': 117, 'num_leaves': 5, 'min_child_samples': 49, 'learning_rate': 0.16042806635903423, 'log_max_bin': 7, 'colsample_bytree': 0.9856028548423142, 'reg_alpha': 0.014577843230034398, 'reg_lambda': 1.4111770009956734}
+[flaml.automl: 10-01 10:43:54] {3354} INFO -  at 116.6s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:43:54] {3174} INFO - iteration 75, current learner catboost
+[flaml.tune.tune: 10-01 10:43:54] {513} INFO - trial 1 config: {'early_stopping_rounds': 13, 'learning_rate': 0.018430587484819096, 'n_estimators': 8192}
+[flaml.automl: 10-01 10:44:01] {3354} INFO -  at 124.1s,	estimator catboost's best error=0.1612,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:44:01] {3174} INFO - iteration 76, current learner lgbm
+[flaml.tune.tune: 10-01 10:44:01] {513} INFO - trial 1 config: {'n_estimators': 95, 'num_leaves': 9, 'min_child_samples': 26, 'learning_rate': 0.27137061541494817, 'log_max_bin': 8, 'colsample_bytree': 0.7947202060362827, 'reg_alpha': 0.019727985232753573, 'reg_lambda': 5.973787435401911}
+[flaml.automl: 10-01 10:44:05] {3354} INFO -  at 127.9s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:44:05] {3174} INFO - iteration 77, current learner lgbm
+[flaml.tune.tune: 10-01 10:44:05] {513} INFO - trial 1 config: {'n_estimators': 78, 'num_leaves': 7, 'min_child_samples': 26, 'learning_rate': 0.17181825903103948, 'log_max_bin': 10, 'colsample_bytree': 1.0, 'reg_alpha': 0.0029116099304447216, 'reg_lambda': 0.20807199271809548}
+[flaml.automl: 10-01 10:44:06] {3354} INFO -  at 129.1s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:44:06] {3174} INFO - iteration 78, current learner rf
+[flaml.tune.tune: 10-01 10:44:06] {513} INFO - trial 1 config: {'n_estimators': 9, 'max_features': 0.13261790846260443, 'max_leaves': 7, 'criterion': 'entropy'}
+[flaml.automl: 10-01 10:44:08] {3354} INFO -  at 130.6s,	estimator rf's best error=0.4117,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:44:08] {3174} INFO - iteration 79, current learner lgbm
+[flaml.tune.tune: 10-01 10:44:08] {513} INFO - trial 1 config: {'n_estimators': 77, 'num_leaves': 4, 'min_child_samples': 15, 'learning_rate': 0.1470713452292739, 'log_max_bin': 10, 'colsample_bytree': 1.0, 'reg_alpha': 0.00241238473895862, 'reg_lambda': 0.09651058366750914}
+[flaml.automl: 10-01 10:44:09] {3354} INFO -  at 131.7s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:44:09] {3174} INFO - iteration 80, current learner lgbm
+[flaml.tune.tune: 10-01 10:44:09] {513} INFO - trial 1 config: {'n_estimators': 96, 'num_leaves': 16, 'min_child_samples': 45, 'learning_rate': 0.3170327069497518, 'log_max_bin': 9, 'colsample_bytree': 0.9821027102374646, 'reg_alpha': 0.023810545964632474, 'reg_lambda': 12.87918701269707}
+[flaml.automl: 10-01 10:44:10] {3354} INFO -  at 132.9s,	estimator lgbm's best error=0.1139,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:44:10] {3174} INFO - iteration 81, current learner xgb_limitdepth
+[flaml.tune.tune: 10-01 10:44:10] {513} INFO - trial 1 config: {'n_estimators': 10, 'max_depth': 6, 'min_child_weight': 0.9999999999999993, 'learning_rate': 0.29999999999999993, 'subsample': 1.0, 'colsample_bylevel': 1.0, 'colsample_bytree': 1.0, 'reg_alpha': 0.0009765625, 'reg_lambda': 1.0}
+[flaml.automl: 10-01 10:44:11] {3354} INFO -  at 133.7s,	estimator xgb_limitdepth's best error=0.2041,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:44:11] {3174} INFO - iteration 82, current learner xgb_limitdepth
+[flaml.tune.tune: 10-01 10:44:11] {513} INFO - trial 1 config: {'n_estimators': 5, 'max_depth': 6, 'min_child_weight': 1.4952317042235694, 'learning_rate': 0.12157742460441856, 'subsample': 1.0, 'colsample_bylevel': 0.9039669660532299, 'colsample_bytree': 0.9005043427192151, 'reg_alpha': 0.007210828893539485, 'reg_lambda': 0.28193756824170324}
+[flaml.automl: 10-01 10:44:12] {3354} INFO -  at 134.5s,	estimator xgb_limitdepth's best error=0.2041,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:44:12] {3174} INFO - iteration 83, current learner xgb_limitdepth
+[flaml.tune.tune: 10-01 10:44:12] {513} INFO - trial 1 config: {'n_estimators': 20, 'max_depth': 6, 'min_child_weight': 0.6687926675011664, 'learning_rate': 0.7402690120541427, 'subsample': 0.9536899102627593, 'colsample_bylevel': 1.0, 'colsample_bytree': 1.0, 'reg_alpha': 0.0009765625, 'reg_lambda': 3.5468845327583534}
+[flaml.automl: 10-01 10:44:13] {3354} INFO -  at 135.5s,	estimator xgb_limitdepth's best error=0.1151,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:44:13] {3174} INFO - iteration 84, current learner xgb_limitdepth
+[flaml.tune.tune: 10-01 10:44:13] {513} INFO - trial 1 config: {'n_estimators': 6, 'max_depth': 6, 'min_child_weight': 0.41606457589420376, 'learning_rate': 0.7046316022417404, 'subsample': 0.8599347511202097, 'colsample_bylevel': 0.9633507329454843, 'colsample_bytree': 0.9338536785980791, 'reg_alpha': 0.0009765625, 'reg_lambda': 13.51977329962597}
+[flaml.automl: 10-01 10:44:13] {3354} INFO -  at 136.4s,	estimator xgb_limitdepth's best error=0.1151,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:44:13] {3174} INFO - iteration 85, current learner xgb_limitdepth
+[flaml.tune.tune: 10-01 10:44:13] {513} INFO - trial 1 config: {'n_estimators': 66, 'max_depth': 6, 'min_child_weight': 1.0750341606036184, 'learning_rate': 0.7777088175781434, 'subsample': 1.0, 'colsample_bylevel': 1.0, 'colsample_bytree': 1.0, 'reg_alpha': 0.0020378065580387668, 'reg_lambda': 0.9305178134213601}
+[flaml.automl: 10-01 10:44:15] {3354} INFO -  at 137.8s,	estimator xgb_limitdepth's best error=0.1151,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:44:15] {3174} INFO - iteration 86, current learner xgb_limitdepth
+[flaml.tune.tune: 10-01 10:44:15] {513} INFO - trial 1 config: {'n_estimators': 21, 'max_depth': 6, 'min_child_weight': 0.3364545665976115, 'learning_rate': 1.0, 'subsample': 0.8108290290029889, 'colsample_bylevel': 0.9950959910192901, 'colsample_bytree': 1.0, 'reg_alpha': 0.0009765625, 'reg_lambda': 3.211521616719752}
+[flaml.automl: 10-01 10:44:16] {3354} INFO -  at 138.9s,	estimator xgb_limitdepth's best error=0.1151,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:44:16] {3174} INFO - iteration 87, current learner xgb_limitdepth
+[flaml.tune.tune: 10-01 10:44:16] {513} INFO - trial 1 config: {'n_estimators': 19, 'max_depth': 6, 'min_child_weight': 1.3294027678877136, 'learning_rate': 0.347066609966525, 'subsample': 1.0, 'colsample_bylevel': 1.0, 'colsample_bytree': 0.8002758658273889, 'reg_alpha': 0.003489698068269874, 'reg_lambda': 3.917267697413182}
+[flaml.automl: 10-01 10:44:17] {3354} INFO -  at 139.8s,	estimator xgb_limitdepth's best error=0.1151,	best estimator lgbm's best error=0.1139
+[flaml.automl: 10-01 10:44:17] {3174} INFO - iteration 88, current learner xgb_limitdepth
+[flaml.tune.tune: 10-01 10:44:17] {513} INFO - trial 1 config: {'n_estimators': 25, 'max_depth': 7, 'min_child_weight': 0.2956078252671217, 'learning_rate': 0.7889201630369095, 'subsample': 1.0, 'colsample_bylevel': 0.8092926557738918, 'colsample_bytree': 1.0, 'reg_alpha': 0.0016469991740555498, 'reg_lambda': 4.162733740219185}
+[flaml.automl: 10-01 10:44:18] {3354} INFO -  at 140.9s,	estimator xgb_limitdepth's best error=0.1102,	best estimator xgb_limitdepth's best error=0.1102
+[flaml.automl: 10-01 10:44:18] {3174} INFO - iteration 89, current learner xgb_limitdepth
+[flaml.tune.tune: 10-01 10:44:18] {513} INFO - trial 1 config: {'n_estimators': 20, 'max_depth': 6, 'min_child_weight': 0.6687926675011664, 'learning_rate': 0.7402690120541422, 'subsample': 0.9390988479790182, 'colsample_bylevel': 1.0, 'colsample_bytree': 0.8808474099172214, 'reg_alpha': 0.0009765625, 'reg_lambda': 3.5468845327583534}
+[flaml.automl: 10-01 10:44:19] {3354} INFO -  at 142.1s,	estimator xgb_limitdepth's best error=0.1102,	best estimator xgb_limitdepth's best error=0.1102
+[flaml.automl: 10-01 10:44:19] {3174} INFO - iteration 90, current learner xgb_limitdepth
+[flaml.tune.tune: 10-01 10:44:19] {513} INFO - trial 1 config: {'n_estimators': 10, 'max_depth': 6, 'min_child_weight': 1.346529808093467, 'learning_rate': 1.0, 'subsample': 0.9429829384713415, 'colsample_bylevel': 0.8964342383176822, 'colsample_bytree': 0.9239813872725541, 'reg_alpha': 0.0009765625, 'reg_lambda': 12.951280165891047}
+[flaml.automl: 10-01 10:44:20] {3354} INFO -  at 143.1s,	estimator xgb_limitdepth's best error=0.1102,	best estimator xgb_limitdepth's best error=0.1102
+[flaml.automl: 10-01 10:44:20] {3174} INFO - iteration 91, current learner xgb_limitdepth
+[flaml.tune.tune: 10-01 10:44:20] {513} INFO - trial 1 config: {'n_estimators': 62, 'max_depth': 8, 'min_child_weight': 0.06489569397864488, 'learning_rate': 0.4341419360528949, 'subsample': 1.0, 'colsample_bylevel': 0.7221510732301014, 'colsample_bytree': 1.0, 'reg_alpha': 0.003422787968263652, 'reg_lambda': 1.3379644305429952}
+[flaml.automl: 10-01 10:44:22] {3354} INFO -  at 144.6s,	estimator xgb_limitdepth's best error=0.1102,	best estimator xgb_limitdepth's best error=0.1102
+[flaml.automl: 10-01 10:44:22] {3174} INFO - iteration 92, current learner xgb_limitdepth
+[flaml.tune.tune: 10-01 10:44:22] {513} INFO - trial 1 config: {'n_estimators': 14, 'max_depth': 7, 'min_child_weight': 0.616744451006592, 'learning_rate': 1.0, 'subsample': 1.0, 'colsample_bylevel': 0.7579533507496192, 'colsample_bytree': 0.822023835807275, 'reg_alpha': 0.0018338464071465694, 'reg_lambda': 12.585087775737094}
+[flaml.automl: 10-01 10:44:23] {3354} INFO -  at 145.5s,	estimator xgb_limitdepth's best error=0.1102,	best estimator xgb_limitdepth's best error=0.1102
+[flaml.automl: 10-01 10:44:23] {3174} INFO - iteration 93, current learner xgb_limitdepth
+[flaml.tune.tune: 10-01 10:44:23] {513} INFO - trial 1 config: {'n_estimators': 44, 'max_depth': 7, 'min_child_weight': 0.14168588986335778, 'learning_rate': 0.38952034114675277, 'subsample': 0.8692288427221013, 'colsample_bylevel': 0.8606319607981644, 'colsample_bytree': 1.0, 'reg_alpha': 0.0014791894614339198, 'reg_lambda': 1.376895616522174}
+[flaml.automl: 10-01 10:44:24] {3354} INFO -  at 146.9s,	estimator xgb_limitdepth's best error=0.1102,	best estimator xgb_limitdepth's best error=0.1102
+[flaml.automl: 10-01 10:44:24] {3174} INFO - iteration 94, current learner xgb_limitdepth
+[flaml.tune.tune: 10-01 10:44:24] {513} INFO - trial 1 config: {'n_estimators': 22, 'max_depth': 8, 'min_child_weight': 0.9991241868854032, 'learning_rate': 0.9352126608562792, 'subsample': 1.0, 'colsample_bylevel': 0.7589408937465922, 'colsample_bytree': 1.0, 'reg_alpha': 0.0009765625, 'reg_lambda': 73.48137311694641}
+[flaml.automl: 10-01 10:44:25] {3354} INFO -  at 148.0s,	estimator xgb_limitdepth's best error=0.1102,	best estimator xgb_limitdepth's best error=0.1102
+[flaml.automl: 10-01 10:44:25] {3174} INFO - iteration 95, current learner xgb_limitdepth
+[flaml.tune.tune: 10-01 10:44:25] {513} INFO - trial 1 config: {'n_estimators': 28, 'max_depth': 6, 'min_child_weight': 0.08746058548693683, 'learning_rate': 0.6655117597278025, 'subsample': 0.9581120608061745, 'colsample_bylevel': 0.8596444178011914, 'colsample_bytree': 0.9436587025872073, 'reg_alpha': 0.010480108029358429, 'reg_lambda': 0.23581965683168354}
+[flaml.automl: 10-01 10:44:27] {3354} INFO -  at 149.1s,	estimator xgb_limitdepth's best error=0.1030,	best estimator xgb_limitdepth's best error=0.1030
+[flaml.automl: 10-01 10:44:27] {3174} INFO - iteration 96, current learner rf
+[flaml.tune.tune: 10-01 10:44:27] {513} INFO - trial 1 config: {'n_estimators': 9, 'max_features': 0.08512959676666497, 'max_leaves': 5, 'criterion': 'gini'}
+[flaml.automl: 10-01 10:44:28] {3354} INFO -  at 151.0s,	estimator rf's best error=0.4117,	best estimator xgb_limitdepth's best error=0.1030
+[flaml.automl: 10-01 10:44:28] {3174} INFO - iteration 97, current learner xgb_limitdepth
+[flaml.tune.tune: 10-01 10:44:28] {513} INFO - trial 1 config: {'n_estimators': 30, 'max_depth': 7, 'min_child_weight': 0.02021792704609932, 'learning_rate': 0.2360759867699333, 'subsample': 0.8779714458834175, 'colsample_bylevel': 1.0, 'colsample_bytree': 0.8777700010180233, 'reg_alpha': 0.033880125166270265, 'reg_lambda': 0.1721682290616643}
+[flaml.automl: 10-01 10:44:29] {3354} INFO -  at 152.2s,	estimator xgb_limitdepth's best error=0.1030,	best estimator xgb_limitdepth's best error=0.1030
+[flaml.automl: 10-01 10:44:29] {3174} INFO - iteration 98, current learner xgb_limitdepth
+[flaml.tune.tune: 10-01 10:44:29] {513} INFO - trial 1 config: {'n_estimators': 26, 'max_depth': 5, 'min_child_weight': 0.3783451189766554, 'learning_rate': 1.0, 'subsample': 1.0, 'colsample_bylevel': 0.7016287782083355, 'colsample_bytree': 1.0, 'reg_alpha': 0.003241802200198722, 'reg_lambda': 0.3230033255920593}
+[flaml.automl: 10-01 10:44:31] {3354} INFO -  at 153.5s,	estimator xgb_limitdepth's best error=0.1030,	best estimator xgb_limitdepth's best error=0.1030
+[flaml.automl: 10-01 10:44:31] {3174} INFO - iteration 99, current learner xgb_limitdepth
+[flaml.tune.tune: 10-01 10:44:31] {513} INFO - trial 1 config: {'n_estimators': 26, 'max_depth': 7, 'min_child_weight': 0.17277517098936448, 'learning_rate': 0.33099237843090384, 'subsample': 1.0, 'colsample_bylevel': 0.9965711133421479, 'colsample_bytree': 0.9787727066137308, 'reg_alpha': 0.006003342278552007, 'reg_lambda': 0.7692050772984981}
+[flaml.automl: 10-01 10:44:32] {3354} INFO -  at 154.6s,	estimator xgb_limitdepth's best error=0.1030,	best estimator xgb_limitdepth's best error=0.1030
+[flaml.automl: 10-01 10:44:32] {3618} INFO - retrain xgb_limitdepth for 0.1s
+[flaml.automl: 10-01 10:44:32] {3625} INFO - retrained model: XGBClassifier(base_score=0.5, booster='gbtree',
+              colsample_bylevel=0.8596444178011914, colsample_bynode=1,
+              colsample_bytree=0.9436587025872073, gamma=0, gpu_id=-1,
+              importance_type='gain', interaction_constraints='',
+              learning_rate=0.6655117597278025, max_delta_step=0, max_depth=6,
+              min_child_weight=0.08746058548693683, missing=nan,
+              monotone_constraints='()', n_estimators=28, n_jobs=-1,
+              num_parallel_tree=1, random_state=0,
+              reg_alpha=0.010480108029358429, reg_lambda=0.23581965683168354,
+              scale_pos_weight=1, subsample=0.9581120608061745,
+              tree_method='exact', use_label_encoder=False,
+              validate_parameters=1, verbosity=0)
+[flaml.automl: 10-01 10:44:32] {2900} INFO - fit succeeded
+[flaml.automl: 10-01 10:44:32] {2901} INFO - Time taken to find the best model: 149.1490716934204
+[__main__: 10-01 10:44:32] {417} INFO - P1.PD.CurrCOR.Row2.Country: 0.00
+P1.PD.PrevCOR.Row2.Country: 0.02
+P1.PD.PrevCOR.Row3.Country: 0.00
+P3.DOV.PrpsRow1.Funds.Funds: 0.00
+P3.Edu.Edu_Row1.Country.Country: 0.04
+P3.Occ.OccRow1.Country.Country: 0.00
+P3.Occ.OccRow2.Country.Country: 0.00
+P3.Occ.OccRow3.Country.Country: 0.00
+P1.PD.DOBYear.Period: 0.09
+P1.PD.PrevCOR.Row2.Period: 0.00
+P1.PD.PrevCOR.Row3.Period: 0.00
+P1.PD.CWA.Row2.Period: 0.02
+P1.MS.SecA.DateOfMarr.Period: 0.02
+P2.MS.SecA.Period: 0.04
+P2.MS.SecA.Psprt.ExpiryDate.Remaining: 0.02
+P3.DOV.PrpsRow1.HLS.Period: 0.02
+P3.Edu.Edu_Row1.Period: 0.02
+P3.Occ.OccRow1.Period: 0.01
+P3.Occ.OccRow2.Period: 0.00
+P3.Occ.OccRow3.Period: 0.00
+p1.SecA.Sps.SpsDOB.Period: 0.01
+p1.SecA.Mo.MoDOB.Period: 0.02
+p1.SecA.Fa.FaDOB.Period: 0.01
+p1.SecB.Chd.[0].ChdDOB.Period: 0.01
+p1.SecB.Chd.[1].ChdDOB.Period: 0.01
+p1.SecB.Chd.[2].ChdDOB.Period: 0.00
+p1.SecB.Chd.[3].ChdDOB.Period: 0.00
+p1.SecC.Chd.[0].ChdDOB.Period: 0.01
+p1.SecC.Chd.[1].ChdDOB.Period: 0.02
+p1.SecC.Chd.[2].ChdDOB.Period: 0.02
+p1.SecC.Chd.[3].ChdDOB.Period: 0.00
+p1.SecC.Chd.[4].ChdDOB.Period: 0.00
+p1.SecC.Chd.[5].ChdDOB.Period: 0.00
+p1.SecC.Chd.[6].ChdDOB.Period: 0.00
+p1.SecA.App.ChdMStatus_1: 0.00
+p1.SecA.App.ChdMStatus_3: 0.00
+p1.SecA.App.ChdMStatus_5: 0.00
+p1.SecA.App.ChdMStatus_6: 0.00
+p1.SecA.App.ChdMStatus_7: 0.01
+p1.SecA.App.ChdMStatus_8: 0.00
+p1.SecA.App.ChdMStatus_9: 0.00
+p1.SecA.Mo.ChdMStatus_1: 0.00
+p1.SecA.Mo.ChdMStatus_3: 0.00
+p1.SecA.Mo.ChdMStatus_5: 0.00
+p1.SecA.Mo.ChdMStatus_6: 0.00
+p1.SecA.Mo.ChdMStatus_7: 0.00
+p1.SecA.Mo.ChdMStatus_8: 0.00
+p1.SecA.Mo.ChdMStatus_9: 0.00
+p1.SecA.Fa.ChdMStatus_1: 0.00
+p1.SecA.Fa.ChdMStatus_3: 0.00
+p1.SecA.Fa.ChdMStatus_5: 0.00
+p1.SecA.Fa.ChdMStatus_6: 0.00
+p1.SecA.Fa.ChdMStatus_7: 0.00
+p1.SecA.Fa.ChdMStatus_8: 0.00
+p1.SecA.Fa.ChdMStatus_9: 0.00
+p1.SecB.Chd.[0].ChdMStatus_1: 0.00
+p1.SecB.Chd.[0].ChdMStatus_3: 0.00
+p1.SecB.Chd.[0].ChdMStatus_5: 0.00
+p1.SecB.Chd.[0].ChdMStatus_6: 0.01
+p1.SecB.Chd.[0].ChdMStatus_7: 0.00
+p1.SecB.Chd.[0].ChdMStatus_8: 0.00
+p1.SecB.Chd.[0].ChdMStatus_9: 0.00
+p1.SecB.Chd.[1].ChdMStatus_1: 0.00
+p1.SecB.Chd.[1].ChdMStatus_3: 0.00
+p1.SecB.Chd.[1].ChdMStatus_5: 0.00
+p1.SecB.Chd.[1].ChdMStatus_6: 0.00
+p1.SecB.Chd.[1].ChdMStatus_7: 0.00
+p1.SecB.Chd.[1].ChdMStatus_8: 0.00
+p1.SecB.Chd.[1].ChdMStatus_9: 0.00
+p1.SecB.Chd.[2].ChdMStatus_1: 0.00
+p1.SecB.Chd.[2].ChdMStatus_3: 0.00
+p1.SecB.Chd.[2].ChdMStatus_5: 0.00
+p1.SecB.Chd.[2].ChdMStatus_6: 0.00
+p1.SecB.Chd.[2].ChdMStatus_7: 0.00
+p1.SecB.Chd.[2].ChdMStatus_8: 0.00
+p1.SecB.Chd.[2].ChdMStatus_9: 0.00
+p1.SecB.Chd.[3].ChdMStatus_1: 0.00
+p1.SecB.Chd.[3].ChdMStatus_3: 0.00
+p1.SecB.Chd.[3].ChdMStatus_5: 0.00
+p1.SecB.Chd.[3].ChdMStatus_6: 0.00
+p1.SecB.Chd.[3].ChdMStatus_7: 0.00
+p1.SecB.Chd.[3].ChdMStatus_8: 0.00
+p1.SecB.Chd.[3].ChdMStatus_9: 0.00
+p1.SecC.Chd.[0].ChdMStatus_1: 0.00
+p1.SecC.Chd.[0].ChdMStatus_3: 0.00
+p1.SecC.Chd.[0].ChdMStatus_5: 0.00
+p1.SecC.Chd.[0].ChdMStatus_6: 0.00
+p1.SecC.Chd.[0].ChdMStatus_7: 0.00
+p1.SecC.Chd.[0].ChdMStatus_8: 0.00
+p1.SecC.Chd.[0].ChdMStatus_9: 0.04
+p1.SecC.Chd.[1].ChdMStatus_1: 0.00
+p1.SecC.Chd.[1].ChdMStatus_3: 0.00
+p1.SecC.Chd.[1].ChdMStatus_5: 0.00
+p1.SecC.Chd.[1].ChdMStatus_6: 0.00
+p1.SecC.Chd.[1].ChdMStatus_7: 0.00
+p1.SecC.Chd.[1].ChdMStatus_8: 0.00
+p1.SecC.Chd.[1].ChdMStatus_9: 0.00
+p1.SecC.Chd.[2].ChdMStatus_1: 0.00
+p1.SecC.Chd.[2].ChdMStatus_3: 0.00
+p1.SecC.Chd.[2].ChdMStatus_5: 0.01
+p1.SecC.Chd.[2].ChdMStatus_6: 0.00
+p1.SecC.Chd.[2].ChdMStatus_7: 0.00
+p1.SecC.Chd.[2].ChdMStatus_8: 0.00
+p1.SecC.Chd.[2].ChdMStatus_9: 0.00
+p1.SecC.Chd.[3].ChdMStatus_1: 0.00
+p1.SecC.Chd.[3].ChdMStatus_3: 0.00
+p1.SecC.Chd.[3].ChdMStatus_5: 0.00
+p1.SecC.Chd.[3].ChdMStatus_6: 0.00
+p1.SecC.Chd.[3].ChdMStatus_7: 0.00
+p1.SecC.Chd.[3].ChdMStatus_8: 0.00
+p1.SecC.Chd.[3].ChdMStatus_9: 0.00
+p1.SecC.Chd.[4].ChdMStatus_1: 0.00
+p1.SecC.Chd.[4].ChdMStatus_3: 0.00
+p1.SecC.Chd.[4].ChdMStatus_5: 0.00
+p1.SecC.Chd.[4].ChdMStatus_6: 0.00
+p1.SecC.Chd.[4].ChdMStatus_7: 0.00
+p1.SecC.Chd.[4].ChdMStatus_8: 0.00
+p1.SecC.Chd.[4].ChdMStatus_9: 0.00
+p1.SecC.Chd.[5].ChdMStatus_1: 0.00
+p1.SecC.Chd.[5].ChdMStatus_3: 0.00
+p1.SecC.Chd.[5].ChdMStatus_5: 0.00
+p1.SecC.Chd.[5].ChdMStatus_6: 0.00
+p1.SecC.Chd.[5].ChdMStatus_7: 0.00
+p1.SecC.Chd.[5].ChdMStatus_8: 0.00
+p1.SecC.Chd.[5].ChdMStatus_9: 0.00
+p1.SecC.Chd.[6].ChdMStatus_1: 0.00
+p1.SecC.Chd.[6].ChdMStatus_3: 0.00
+p1.SecC.Chd.[6].ChdMStatus_5: 0.06
+p1.SecC.Chd.[6].ChdMStatus_6: 0.00
+p1.SecC.Chd.[6].ChdMStatus_7: 0.00
+p1.SecC.Chd.[6].ChdMStatus_8: 0.00
+p1.SecC.Chd.[6].ChdMStatus_9: 0.12
+P1.PD.AliasName.AliasNameIndicator.AliasNameIndicator_False: 0.00
+P1.PD.AliasName.AliasNameIndicator.AliasNameIndicator_True: 0.00
+P1.PD.Sex.Sex_Female: 0.00
+P1.PD.Sex.Sex_Male: 0.00
+P1.PD.SameAsCORIndicator_False: 0.00
+P1.PD.SameAsCORIndicator_True: 0.00
+P2.MS.SecA.PrevMarrIndicator_False: 0.00
+P2.MS.SecA.PrevMarrIndicator_True: 0.00
+P3.Edu.EduIndicator_False: 0.00
+P3.Edu.EduIndicator_True: 0.00
+P3.noAuthStay_False: 0.00
+P3.noAuthStay_True: 0.00
+P3.refuseDeport_False: 0.03
+P3.refuseDeport_True: 0.03
+P3.BGI2.PrevApply_False: 0.04
+P3.BGI2.PrevApply_True: 0.00
+P1.PD.CurrCOR.Row2.Status_1: 0.00
+P1.PD.CurrCOR.Row2.Status_2: 0.00
+P1.PD.CurrCOR.Row2.Status_3: 0.00
+P1.PD.CWA.Row2.Status_6: 0.00
+P1.PD.CWA.Row2.Status_3: 0.00
+P1.PD.CWA.Row2.Status_1: 0.00
+P1.PD.CWA.Row2.Country_TURKEY: 0.00
+P1.PD.CWA.Row2.Country_OTHER: 0.00
+P1.PD.CWA.Row2.Country_Georgia: 0.00
+P1.PD.CWA.Row2.Country_UAE: 0.00
+P1.PD.CWA.Row2.Country_Armenia: 0.05
+P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit_family visit: 0.04
+P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit_tourism: 0.00
+P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit_visit: 0.00
+P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit_other: 0.00
+P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit_business: 0.00
+P3.DOV.cntcts_Row1.RelationshipToMe.RelationshipToMe_f1: 0.00
+P3.DOV.cntcts_Row1.RelationshipToMe.RelationshipToMe_f2: 0.00
+P3.DOV.cntcts_Row1.RelationshipToMe.RelationshipToMe_friend: 0.00
+P3.DOV.cntcts_Row1.RelationshipToMe.RelationshipToMe_hotel: 0.00
+P3.DOV.cntcts_Row1.RelationshipToMe.RelationshipToMe_ukn: 0.00
+P3.DOV.cntcts_Row1.RelationshipToMe.RelationshipToMe_work: 0.00
+P3.cntcts_Row2.Relationship.RelationshipToMe_f1: 0.00
+P3.cntcts_Row2.Relationship.RelationshipToMe_f2: 0.00
+P3.cntcts_Row2.Relationship.RelationshipToMe_friend: 0.00
+P3.cntcts_Row2.Relationship.RelationshipToMe_hotel: 0.00
+P3.cntcts_Row2.Relationship.RelationshipToMe_ukn: 0.00
+P3.Edu.Edu_Row1.FieldOfStudy_unedu: 0.00
+P3.Edu.Edu_Row1.FieldOfStudy_master: 0.00
+P3.Edu.Edu_Row1.FieldOfStudy_bachelor: 0.00
+P3.Edu.Edu_Row1.FieldOfStudy_phd: 0.00
+P3.Edu.Edu_Row1.FieldOfStudy_apprentice: 0.00
+P3.Edu.Edu_Row1.FieldOfStudy_diploma: 0.00
+p1.SecB.Chd.[0].ChdRel_daughter: 0.00
+p1.SecB.Chd.[0].ChdRel_other: 0.00
+p1.SecB.Chd.[0].ChdRel_son: 0.00
+p1.SecB.Chd.[1].ChdRel_daughter: 0.00
+p1.SecB.Chd.[1].ChdRel_other: 0.00
+p1.SecB.Chd.[1].ChdRel_son: 0.00
+p1.SecB.Chd.[2].ChdRel_daughter: 0.00
+p1.SecB.Chd.[2].ChdRel_other: 0.00
+p1.SecB.Chd.[2].ChdRel_son: 0.00
+p1.SecB.Chd.[3].ChdRel_daughter: 0.00
+p1.SecB.Chd.[3].ChdRel_other: 0.00
+p1.SecB.Chd.[3].ChdRel_son: 0.00
+p1.SecC.Chd.[0].ChdRel_brother: 0.00
+p1.SecC.Chd.[0].ChdRel_sister: 0.00
+p1.SecC.Chd.[0].ChdRel_other: 0.00
+p1.SecC.Chd.[1].ChdRel_brother: 0.00
+p1.SecC.Chd.[1].ChdRel_sister: 0.00
+p1.SecC.Chd.[1].ChdRel_other: 0.00
+p1.SecC.Chd.[2].ChdRel_brother: 0.00
+p1.SecC.Chd.[2].ChdRel_sister: 0.00
+p1.SecC.Chd.[2].ChdRel_other: 0.00
+p1.SecC.Chd.[3].ChdRel_brother: 0.00
+p1.SecC.Chd.[3].ChdRel_sister: 0.00
+p1.SecC.Chd.[3].ChdRel_other: 0.00
+p1.SecC.Chd.[4].ChdRel_brother: 0.00
+p1.SecC.Chd.[4].ChdRel_sister: 0.00
+p1.SecC.Chd.[4].ChdRel_other: 0.00
+p1.SecC.Chd.[5].ChdRel_brother: 0.01
+p1.SecC.Chd.[5].ChdRel_sister: 0.00
+p1.SecC.Chd.[5].ChdRel_other: 0.00
+p1.SecC.Chd.[6].ChdRel_brother: 0.00
+p1.SecC.Chd.[6].ChdRel_sister: 0.00
+p1.SecC.Chd.[6].ChdRel_other: 0.00
+P3.Occ.OccRow1.Occ.Occ_student: 0.00
+P3.Occ.OccRow1.Occ.Occ_specialist: 0.00
+P3.Occ.OccRow1.Occ.Occ_retired: 0.00
+P3.Occ.OccRow1.Occ.Occ_employee: 0.00
+P3.Occ.OccRow1.Occ.Occ_manager: 0.00
+P3.Occ.OccRow1.Occ.Occ_OTHER: 0.00
+P3.Occ.OccRow1.Occ.Occ_housewife: 0.00
+P3.Occ.OccRow2.Occ.Occ_student: 0.00
+P3.Occ.OccRow2.Occ.Occ_specialist: 0.00
+P3.Occ.OccRow2.Occ.Occ_retired: 0.00
+P3.Occ.OccRow2.Occ.Occ_employee: 0.02
+P3.Occ.OccRow2.Occ.Occ_manager: 0.00
+P3.Occ.OccRow2.Occ.Occ_OTHER: 0.00
+P3.Occ.OccRow2.Occ.Occ_housewife: 0.00
+P3.Occ.OccRow3.Occ.Occ_student: 0.00
+P3.Occ.OccRow3.Occ.Occ_specialist: 0.01
+P3.Occ.OccRow3.Occ.Occ_retired: 0.00
+P3.Occ.OccRow3.Occ.Occ_employee: 0.00
+P3.Occ.OccRow3.Occ.Occ_manager: 0.00
+P3.Occ.OccRow3.Occ.Occ_OTHER: 0.00
+P3.Occ.OccRow3.Occ.Occ_housewife: 0.00
+P1.PD.PrevCOR.Row.Count: 0.00
+p1.SecC.Chd.X.ChdCOB.ForeignerCount: 0.00
+p1.SecB.ChdMoFaSps.X.ChdCOB.ForeignerCount: 0.02
+p1.SecB.Chd.X.ChdAccomp.Count: 0.00
+p1.SecA.ParAccomp.Count: 0.01
+p1.SecA.Sps.SpsAccomp.Count: 0.00
+p1.SecC.Chd.X.ChdAccomp.Count: 0.00
+p1.SecB.Chd.X.ChdRel.ChdCount: 0.00
+p1.SecC.Chd.X.ChdRel.ChdCount: 0.00
+p1.SecX.LongDistAddr: 0.00
+p1.SecX.ForeignAddr: 0.01
+
+[vizard.models.trainers.aml_flaml: 10-01 10:44:45] {303} INFO - model of type "XGBClassifier" is tracked via MLflow.
+[__main__: 10-01 10:45:06] {449} INFO - 		↑↑↑ Finished loading training config and training estimators ↑↑↑
+[__main__: 10-01 10:45:06] {451} INFO - 		↓↓↓ Starting loading evaluation config and evaluating estimators ↓↓↓
+[__main__: 10-01 10:45:06] {453} INFO - 		↑↑↑ Finished loading evaluation config and evaluating estimators ↑↑↑
+[__main__: 10-01 10:45:06] {455} INFO - 		↓↓↓ Starting saving good weights ↓↓↓
+[__main__: 10-01 10:45:06] {457} INFO - 		↑↑↑ Finished saving good weights ↑↑↑
+[__main__: 10-01 10:45:06] {459} INFO - 		↓↓↓ Starting logging preview of results and other stuff ↓↓↓
+[__main__: 10-01 10:45:06] {461} INFO - 		↑↑↑ Finished logging preview of results and other stuff ↑↑↑
