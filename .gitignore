@@ -77,8 +77,6 @@ notebooks/mlruns
 mlflow-runs
 artifacts
 mlflow.db
-mlruns-inference
-mlflow-inference.db
 
 # gradio
 gradio_queue.db
