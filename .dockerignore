@@ -1,0 +1,13 @@
+.mypy_cache
+.pytest_cache
+build
+dist
+docs
+gradio
+mlflow-runs
+mlruns
+notebooks
+vizard.egg-info
+gradio_queue.db
+gradio_queue.db-journal
+mlflow.db
