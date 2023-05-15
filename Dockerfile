@@ -54,6 +54,7 @@ RUN mamba install -c conda-forge dvclive=0.12.1 -y
 # Again some clueless broken dependencies
 RUN mamba install -c conda-forge fsspec=2022.10.0 -y
 RUN mamba install -c conda-forge funcy=1.17 -y
+RUN mamba install -c conda-forge scikit-learn=1.1.1 -y
 # Install ray distributed training
 RUN pip install ray==1.13.0
 

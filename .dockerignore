@@ -11,3 +11,4 @@ vizard.egg-info
 gradio_queue.db
 gradio_queue.db-journal
 mlflow.db
+Dockerfile
