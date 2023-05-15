@@ -107,6 +107,7 @@ Note that for inference we can actually ignore this, but given that we might hav
 
 >1. `mamba install -c conda-forge fsspec=2022.10.0 -y`
 >2. `mamba install -c conda-forge funcy=1.17 -y`
+>3. `mamba install -c conda-forge scikit-learn=1.1.1 -y`
 
 ### 1.16 Install `ray` distributed training
 
