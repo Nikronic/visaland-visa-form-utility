@@ -30,9 +30,9 @@
             "cwd": "${workspaceFolder}/",
             "program": "${workspaceFolder}/api/main.py",
             "console": "integratedTerminal",
-            "python": "/home/nik/anaconda3/envs/viz-inf-cpu/bin/python",
+            "python": "/home/nik/anaconda3/envs/viz-inf/bin/python",
             "args": [
-                "--experiment_name", "fix85",
+                "--experiment_name", "docker-optim",
                 "--run_id", "cd28a1700e0f4bdf9de6d736e06ca395",
                 "--bind", "0.0.0.0",
                 "--gunicorn_port", "8000",

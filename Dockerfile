@@ -17,21 +17,14 @@ RUN pip install --upgrade pip
 # Pin the Python version
 RUN echo "python 3.8.0" >> $CONDA_PREFIX/conda-meta/pinned
 
-# if you move this to end, all updated to code wont rebuild of the image
-COPY . /visaland-visa-form-utility/
-
 # install mlflow
 RUN pip install mlflow==1.28.0
-# install vizard
-RUN pip install -e .
 # Install data extraction dependencies
 RUN mamba install -c conda-forge xmltodict=0.13.0 -y
 RUN pip install pikepdf==5.1.5
 RUN pip install pypdf2==2.2.1
 # Install PyTorch
 RUN mamba install pytorch==1.10.1 cpuonly -c pytorch -y
-# Install custom fork of Snorkel
-RUN pip install snorkel-0.9.8/
 # Install enlighten for beauty
 RUN pip install enlighten==1.10.2
 # Install ML libs
@@ -54,9 +47,19 @@ RUN mamba install -c conda-forge dvclive=0.12.1 -y
 # Again some clueless broken dependencies
 RUN mamba install -c conda-forge fsspec=2022.10.0 -y
 RUN mamba install -c conda-forge funcy=1.17 -y
-RUN mamba install -c conda-forge scikit-learn=1.1.1 -y
 # Install ray distributed training
 RUN pip install ray==1.13.0
+
+# if you move this to end, all updated to code wont rebuild the image
+COPY . /visaland-visa-form-utility/
+# install vizard
+RUN pip install -e .
+# Install custom fork of Snorkel
+RUN pip install snorkel-0.9.8/
+# snorkel breaks the deps, fix em
+RUN mamba install -c conda-forge scikit-learn=1.1.1 -y
+RUN pip uninstall numpy -y && mamba install -c conda-forge numpy=1.23.4 -y
+RUN pip install pandas==1.4.4 && pip install numpy==1.23.4
 
 ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "viz-inf-cpu", \
  "mlflow", "server", "--host", "0.0.0.0", "--port", "5000", \
