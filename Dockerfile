@@ -47,7 +47,6 @@ RUN mamba install -c conda-forge dvclive=0.12.1 -y
 # Again some clueless broken dependencies
 RUN mamba install -c conda-forge fsspec=2022.10.0 -y
 RUN mamba install -c conda-forge funcy=1.17 -y
-RUN mamba install -c conda-forge scikit-learn=1.1.1 -y
 # Install ray distributed training
 RUN pip install ray==1.13.0
 
@@ -59,7 +58,6 @@ RUN pip install -e .
 RUN pip install snorkel-0.9.8/
 # snorkel breaks the deps, fix em
 RUN mamba install -c conda-forge scikit-learn=1.1.1 -y
-RUN pip uninstall numpy -y && mamba install -c conda-forge numpy=1.23.4 -y
 RUN pip uninstall numpy -y && mamba install -c conda-forge numpy=1.23.4 -y
 RUN pip install pandas==1.4.4 && pip install numpy==1.23.4
 

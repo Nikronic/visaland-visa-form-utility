@@ -91,7 +91,6 @@ Note that for inference we can actually ignore this, but given that we might hav
 
 >1. `mamba install -c conda-forge fsspec=2022.10.0 -y`
 >2. `mamba install -c conda-forge funcy=1.17 -y`
->3. `mamba install -c conda-forge scikit-learn=1.1.1 -y`
 
 ### 1.14 Install `ray` distributed training
 
@@ -117,9 +116,8 @@ The custom fork is already included in the directory of the project and can be i
 
 ### 1.17 Fix dependencies that Snorkel broke
 
-1. `mamba install -c conda-forge scikit-learn=1.1.1 -y`
+1. `RUN mamba install -c conda-forge scikit-learn=1.1.1 -y`
 2. `pip uninstall numpy -y && mamba install -c conda-forge numpy=1.23.4 -y`
-3. `pip uninstall numpy -y && mamba install -c conda-forge numpy=1.23.4 -y`
-4. `pip install pandas==1.4.4 && pip install numpy==1.23.4`
+3. `pip install pandas==1.4.4 && pip install numpy==1.23.4`
 
 I know, we uninstall `numpy` via `pip` *twice*. This is because we have installed `numpy=1.19.*` and `numpy=1.23.*` via `pip` because of different dependencies. So, we must use `numpy <= 1.23.*`.
