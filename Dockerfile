@@ -1,6 +1,6 @@
 # syntax=docker/dockerfile:1
 
-FROM continuumio/miniconda3
+FROM continuumio/miniconda3 AS build
 
 RUN conda install -y mamba -c conda-forge
 
@@ -49,17 +49,24 @@ RUN mamba install -c conda-forge fsspec=2022.10.0 -y
 RUN mamba install -c conda-forge funcy=1.17 -y
 # Install ray distributed training
 RUN pip install ray==1.13.0
-
-# if you move this to end, all updated to code wont rebuild the image
-COPY . /visaland-visa-form-utility/
-# install vizard
-RUN pip install -e .
 # Install custom fork of Snorkel
+COPY snorkel-0.9.8/ /visaland-visa-form-utility/snorkel-0.9.8/
 RUN pip install snorkel-0.9.8/
 # snorkel breaks the deps, fix em
 RUN mamba install -c conda-forge scikit-learn=1.1.1 -y
 RUN pip uninstall numpy -y && mamba install -c conda-forge numpy=1.23.4 -y
 RUN pip install pandas==1.4.4 && pip install numpy==1.23.4
+
+# run/update stage (only update in snorkel will rebuild this stage)
+FROM continuumio/miniconda3
+COPY --from=build /opt/conda /opt/conda
+ENV PATH=/opt/conda/bin:/opt/conda/condabin:/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+SHELL ["conda", "run", "-n", "viz-inf-cpu", "/bin/bash", "-c"]
+# if you move this to end, all updated to code wont rebuild the image
+COPY . /visaland-visa-form-utility/
+WORKDIR /visaland-visa-form-utility
+# install vizard
+RUN pip install -e .
 
 ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "viz-inf-cpu", \
  "mlflow", "server", "--host", "0.0.0.0", "--port", "5000", \
