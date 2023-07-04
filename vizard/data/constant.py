@@ -385,3 +385,124 @@ class Sex(CustomNamingEnum):
         _name: str = _name.lower().capitalize()
         self._name_ = _name
         return self._name_
+
+
+# data used for aggregating SHAP values into categories based on features
+class FeatureCategories(CustomNamingEnum):
+    """Categories of features based on their meaning
+
+    These values have been provided by the domain expert, and one
+    should create their own. Note that, the features for each group
+    also has been provided which can be found in 
+    :dict:`FEATURE_CATEGORY_TO_FEATURE_NAME_MAP` dictionary.
+    """
+
+    PURPOSE = auto()
+    EMOTIONAL = auto()
+    CAREER = auto()
+    FINANCIAL = auto()
+
+
+FEATURE_CATEGORY_TO_FEATURE_NAME_MAP = {
+    FeatureCategories.PURPOSE: [
+        'P1.PD.CurrCOR.Row2.Country', 'P1.PD.CurrCOR.Row2.Status', 
+        'P1.PD.PrevCOR.Row2.Country', 'P1.PD.PrevCOR.Row3.Country',
+        'P1.PD.SameAsCORIndicator', 'P1.PD.CWA.Row2.Country', 
+        'P1.PD.CWA.Row2.Status', 'P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit',
+        'P3.DOV.cntcts_Row1.RelationshipToMe.RelationshipToMe', 
+        'P3.cntcts_Row2.Relationship.RelationshipToMe', 'P3.noAuthStay',
+        'P3.refuseDeport', 'P3.BGI2.PrevApply', 'P3.DOV.PrpsRow1.HLS.Period',
+        'P2.MS.SecA.Psprt.ExpiryDate.Remaining',
+
+        # doubted
+        'P1.PD.PrevCOR.Row2.Period', 'P1.PD.PrevCOR.Row3.Period',
+        'P1.PD.PrevCOR.Row.Count',
+    ],
+    FeatureCategories.EMOTIONAL: [
+        'P1.PD.AliasName.AliasNameIndicator.AliasNameIndicator', 'P1.PD.Sex.Sex',
+        'P2.MS.SecA.PrevMarrIndicator', 'P1.MS.SecA.DateOfMarr.Period',
+        'P2.MS.SecA.Period', 'p1.SecA.App.ChdMStatus', 'p1.SecA.Mo.ChdMStatus', 
+        'p1.SecA.Fa.ChdMStatus', 'p1.SecB.Chd.[0].ChdMStatus', 'p1.SecB.Chd.[0].ChdRel',
+        'p1.SecB.Chd.[1].ChdMStatus', 'p1.SecB.Chd.[1].ChdRel', 'p1.SecB.Chd.[2].ChdMStatus',
+        'p1.SecB.Chd.[2].ChdRel', 'p1.SecB.Chd.[3].ChdMStatus', 'p1.SecB.Chd.[3].ChdRel',
+        'p1.SecC.Chd.[0].ChdMStatus', 'p1.SecC.Chd.[0].ChdRel', 'p1.SecC.Chd.[1].ChdMStatus',
+        'p1.SecC.Chd.[1].ChdRel', 'p1.SecC.Chd.[2].ChdMStatus', 'p1.SecC.Chd.[2].ChdRel',
+        'p1.SecC.Chd.[3].ChdMStatus', 'p1.SecC.Chd.[3].ChdRel', 'p1.SecC.Chd.[4].ChdMStatus',
+        'p1.SecC.Chd.[4].ChdRel', 'p1.SecC.Chd.[5].ChdMStatus', 'p1.SecC.Chd.[5].ChdRel',
+        'p1.SecC.Chd.[6].ChdMStatus', 'p1.SecC.Chd.[6].ChdRel', 'p1.SecA.Sps.SpsDOB.Period',
+        'p1.SecA.Mo.MoDOB.Period', 'p1.SecA.Fa.FaDOB.Period', 
+        'p1.SecB.Chd.[0].ChdDOB.Period', 'p1.SecB.Chd.[1].ChdDOB.Period', 
+        'p1.SecB.Chd.[2].ChdDOB.Period', 'p1.SecB.Chd.[3].ChdDOB.Period',
+        'p1.SecC.Chd.[0].ChdDOB.Period', 'p1.SecC.Chd.[1].ChdDOB.Period',
+        'p1.SecC.Chd.[2].ChdDOB.Period', 'p1.SecC.Chd.[3].ChdDOB.Period',
+        'p1.SecC.Chd.[4].ChdDOB.Period', 'p1.SecC.Chd.[5].ChdDOB.Period',
+        'p1.SecC.Chd.[6].ChdDOB.Period',
+        'p1.SecB.Chd.X.ChdAccomp.Count', 'p1.SecA.ParAccomp.Count', 
+        'p1.SecA.Sps.SpsAccomp.Count', 'p1.SecC.Chd.X.ChdAccomp.Count',
+        'p1.SecB.Chd.X.ChdRel.ChdCount', 'p1.SecC.Chd.X.ChdRel.ChdCount',
+        'p1.SecX.LongDistAddr',
+
+        # doubted
+        'P1.PD.DOBYear.Period', 'p1.SecC.Chd.X.ChdCOB.ForeignerCount',
+        'p1.SecB.ChdMoFaSps.X.ChdCOB.ForeignerCount', 'p1.SecX.ForeignAddr',
+
+    ],
+    FeatureCategories.CAREER: [
+        'P3.Edu.EduIndicator', 'P3.Edu.Edu_Row1.FieldOfStudy', 
+        'P3.Occ.OccRow1.Occ.Occ', 'P3.Occ.OccRow2.Occ.Occ', 'P3.Occ.OccRow3.Occ.Occ',
+        'P3.Edu.Edu_Row1.Period', 'P3.Occ.OccRow1.Period', 'P3.Occ.OccRow2.Period',
+        'P3.Occ.OccRow3.Period', 
+        
+        # doubted
+        'P3.Occ.OccRow1.Country.Country', 'P3.Edu.Edu_Row1.Country.Country',
+        'P3.Occ.OccRow2.Country.Country', 'P3.Occ.OccRow3.Country.Country',
+
+
+    ],
+    FeatureCategories.FINANCIAL: [
+        'P3.DOV.PrpsRow1.Funds.Funds',
+
+        # doubted
+        'P1.PD.CWA.Row2.Period', 
+        
+    ]
+}
+"""Dictionary of features belonging to each category
+
+For each group, we have list of names of features that are keys.
+Then, we can use these values for instance, for aggregating
+these values based on the features for each group.
+
+See Also:
+    - :class:`FeatureCategories`
+    
+Note:
+    Some features are not explicitly associated to a single group,
+    since they came from EDA process or other heuristics.
+
+    So we have two questions:
+        2. how should they be shared?
+        1. how to normalize SHAP values after sharing?
+
+    At the moment, each feature that was in question, 
+    has been assigned to the *most likely* group, demonstrated
+    in parentheses. The list of features in doubt are:
+
+        1. 16  P3.Edu.Edu_Row1.Country.Country: 1 2 (3)
+        2. 18  P3.Occ.OccRow1.Country.Country: 1 2 (3)
+        3. 20  P3.Occ.OccRow2.Country.Country: 1 2 (3)
+        4. 22  P3.Occ.OccRow3.Country.Country: 1 2 (3)
+        5. 26  P1.PD.DOBYear.Period: 1 (2)
+        6. 27  P1.PD.PrevCOR.Row2.Period: (1) 2
+        7. 28  P1.PD.PrevCOR.Row3.Period: (1) 2
+        8. 29  P1.PD.CWA.Row2.Period: 1 (4)
+        9. 78  P1.PD.PrevCOR.Row.Count: (1) 2
+        10. 79  p1.SecC.Chd.X.ChdCOB.ForeignerCount: 1 (2)
+        11. 80  p1.SecB.ChdMoFaSps.X.ChdCOB.ForeignerCount: 1 (2)
+        12. 88  p1.SecX.ForeignAddr: 1 (2)
+    
+    First value represents the feature index in database, second value
+    represents the name of the feature, and anything after ``:`` demos
+    the possible groups that this feature could belong too (the currently 
+    assigned group is indicated via parenthesis e.g. ``(x)``).
+ """
