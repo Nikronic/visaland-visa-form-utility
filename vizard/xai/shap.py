@@ -4,6 +4,10 @@ import shap
 from flaml import AutoML
 # ours
 from vizard.xai.core import get_top_k
+from vizard.data.constant import (
+    FeatureCategories,
+    FEATURE_CATEGORY_TO_FEATURE_NAME_MAP
+)
 # helpers
 from typing import Dict, List, Optional
 import logging
@@ -137,3 +141,41 @@ class FlamlTreeExplainer:
             top_k[_feature_name] = _value
 
         return top_k
+
+    def aggregate_shap_values(
+            self,
+            sample: np.ndarray,
+            feature_category_to_feature_name: Dict[FeatureCategories, List[str]],
+            ) -> Dict[FeatureCategories, float]:
+        """Aggregates SHAP values into multiple categories
+
+        This method is used to aggregate SHAP values of features, into different
+        groups that represent a topic. Then, by let's say summing all the SHAP values 
+        of a specific group, we have score for that group. Note that defining features of
+        each group is decided by stakeholders and hence,
+        a manual list of features for each group should be provided. Argument
+        ``feature_category_to_feature_name`` will contain this value.
+
+        Args:
+            sample (:class:`numpy.ndarray`): A :class:`numpy.ndarray` representing a sample
+            feature_category_to_feature_name (Dict[FeatureCategories, List[str]]): A dictionary
+                where keys are category names and values are lists of feature names that
+                belong to the category.
+
+        Returns:
+            Dict[FeatureCategories, float]:
+                A dictionary where keys are category names and values are aggregations 
+                of shap values for the corresponding features.
+        """
+        sample = self.__validate_sample_shape(sample)
+
+        # compute shap
+        shap_output: shap.Explanation = self.explainer(sample)
+        
+        # aggregate shap values via summation
+        aggregated_shap_values: Dict[FeatureCategories, float] = {}
+        for _category, _features in feature_category_to_feature_name.items():
+            aggregated_shap_values[_category] = np.sum(
+                shap_output.values[:, _features])
+
+        return aggregated_shap_values
