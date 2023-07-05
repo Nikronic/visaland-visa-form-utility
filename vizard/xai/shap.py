@@ -72,6 +72,24 @@ class FlamlTreeExplainer:
                 f'Given sample is "{sample.ndim}", which must be 2D.')
 
         return sample
+    
+    def _get_indices(self, sublist: List[str], superlist: List[str]) -> List[int]:
+        """Finds the index of strings of B in A where strings in B have similar initial chars as strings in A
+
+        Note:
+            This is used for finding the indices of features that are related to a specific topic.
+
+        Args:
+            sublist (List[str]): List of strings as subset of ``superlist``
+            superlist (List[str]): List of strings where are shortened versions of strings in 
+                ``sublist``.
+
+        Returns:
+            List[int]: List of indices of strings of ``sublist`` in ``superlist``
+        """
+
+        return [i for item in sublist for i, s_item in enumerate(superlist) if s_item.startswith(item)]
+
 
     def overall_score(self, sample: np.ndarray) -> float:
         """Explains the goodness of an sample aggregated over all features
@@ -175,7 +193,12 @@ class FlamlTreeExplainer:
         # aggregate shap values via summation
         aggregated_shap_values: Dict[FeatureCategories, float] = {}
         for _category, _features in feature_category_to_feature_name.items():
-            aggregated_shap_values[_category] = np.sum(
-                shap_output.values[:, _features])
+            # get indices of group features in all features names
+            features_idx = self._get_indices(
+                sublist=_features,
+                superlist=self.feature_names
+            )
+            # aggregate shap values of group features
+            aggregated_shap_values[_category] = np.sum(shap_output.values[:, features_idx])
 
         return aggregated_shap_values
