@@ -174,6 +174,11 @@ class FlamlTreeExplainer:
         a manual list of features for each group should be provided. Argument
         ``feature_category_to_feature_name`` will contain this value.
 
+        Todo (TODO:):
+            `FEATURE_CATEGORY_TO_FEATURE_NAME_MAP` can be indexed once
+            and retrieved every time, hence no longer needed to call
+            :meth:`_get_indices` when `FEATURE_CATEGORY_TO_FEATURE_NAME_MAP` is FIXED.
+
         Args:
             sample (:class:`numpy.ndarray`): A :class:`numpy.ndarray` representing a sample
             feature_category_to_feature_name (Dict[FeatureCategories, List[str]]): A dictionary
