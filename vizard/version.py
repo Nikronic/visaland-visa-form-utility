@@ -4,7 +4,7 @@ __all__ = [
 
 _MAJOR = '0'
 _MINOR = '13'
-_REVISION = '1-alpha'
+_REVISION = '2-alpha'
 
 VERSION_SHORT = f'{_MAJOR}.{_MINOR}'
 """Version of the package as ``major.minor``
