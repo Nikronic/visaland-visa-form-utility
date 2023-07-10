@@ -2,7 +2,7 @@ __all__ = [
     'PredictionResponse', 'Payload',
     'CountryNamesResponse', 'CanadaMarriageStatusResponse', 'SiblingRelationResponse',
     'ChildRelationResponse', 'CanadaContactRelationResponse', 'CanadaResidencyStatusResponse',
-    'EducationFieldOfStudyResponse', 'XaiResponse'
+    'EducationFieldOfStudyResponse', 'XaiResponse', 'XaiAggregatedGroupResponse'
 ]
 
 # core
@@ -518,3 +518,31 @@ class XaiResponse(BaseModel):
 
     xai_overall_score: float
     xai_top_k: Dict[str, float]
+
+
+class XaiFeatureCategoriesResponse(BaseModel):
+    """Title of XAI categories
+    
+    Note:
+        For example :dict:`vizard.data.constant.FEATURE_CATEGORY_TO_FEATURE_NAME_MAP`
+        contains the feature names for each category.
+    """
+
+    xai_feature_categories_types: List[str]
+
+
+class XaiAggregatedGroupResponse(BaseModel):
+    """XAI values grouped and aggregated into categories
+
+    Note:
+        This class :class:`vizard.data.constant.FeatureCategories` contains the categories. 
+        We use the names of the Enum items.
+        For example, :dict:`vizard.data.constant.FEATURE_CATEGORY_TO_FEATURE_NAME_MAP`
+        contains the feature names for each categories.
+
+    See Also:
+        - XAI and available methods :mod:`vizard.xai.shap`
+        - XAI aggregation method :method:`vizard.xai.shap.aggregate_shap_values`
+    """
+
+    aggregated_shap_values: Dict[str, float]

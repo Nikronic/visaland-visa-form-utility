@@ -4,6 +4,10 @@ import shap
 from flaml import AutoML
 # ours
 from vizard.xai.core import get_top_k
+from vizard.data.constant import (
+    FeatureCategories,
+    FEATURE_CATEGORY_TO_FEATURE_NAME_MAP
+)
 # helpers
 from typing import Dict, List, Optional
 import logging
@@ -68,6 +72,24 @@ class FlamlTreeExplainer:
                 f'Given sample is "{sample.ndim}", which must be 2D.')
 
         return sample
+    
+    def _get_indices(self, sublist: List[str], superlist: List[str]) -> List[int]:
+        """Finds the index of strings of B in A where strings in B have similar initial chars as strings in A
+
+        Note:
+            This is used for finding the indices of features that are related to a specific topic.
+
+        Args:
+            sublist (List[str]): List of strings as subset of ``superlist``
+            superlist (List[str]): List of strings where are shortened versions of strings in 
+                ``sublist``.
+
+        Returns:
+            List[int]: List of indices of strings of ``sublist`` in ``superlist``
+        """
+
+        return [i for item in sublist for i, s_item in enumerate(superlist) if s_item.startswith(item)]
+
 
     def overall_score(self, sample: np.ndarray) -> float:
         """Explains the goodness of an sample aggregated over all features
@@ -137,3 +159,51 @@ class FlamlTreeExplainer:
             top_k[_feature_name] = _value
 
         return top_k
+
+    def aggregate_shap_values(
+            self,
+            sample: np.ndarray,
+            feature_category_to_feature_name: Dict[FeatureCategories, List[str]],
+            ) -> Dict[FeatureCategories, float]:
+        """Aggregates SHAP values into multiple categories
+
+        This method is used to aggregate SHAP values of features, into different
+        groups that represent a topic. Then, by let's say summing all the SHAP values 
+        of a specific group, we have score for that group. Note that defining features of
+        each group is decided by stakeholders and hence,
+        a manual list of features for each group should be provided. Argument
+        ``feature_category_to_feature_name`` will contain this value.
+
+        Todo (TODO:):
+            `FEATURE_CATEGORY_TO_FEATURE_NAME_MAP` can be indexed once
+            and retrieved every time, hence no longer needed to call
+            :meth:`_get_indices` when `FEATURE_CATEGORY_TO_FEATURE_NAME_MAP` is FIXED.
+
+        Args:
+            sample (:class:`numpy.ndarray`): A :class:`numpy.ndarray` representing a sample
+            feature_category_to_feature_name (Dict[FeatureCategories, List[str]]): A dictionary
+                where keys are category names and values are lists of feature names that
+                belong to the category.
+
+        Returns:
+            Dict[FeatureCategories, float]:
+                A dictionary where keys are category names and values are aggregations 
+                of shap values for the corresponding features.
+        """
+        sample = self.__validate_sample_shape(sample)
+
+        # compute shap
+        shap_output: shap.Explanation = self.explainer(sample)
+        
+        # aggregate shap values via summation
+        aggregated_shap_values: Dict[FeatureCategories, float] = {}
+        for _category, _features in feature_category_to_feature_name.items():
+            # get indices of group features in all features names
+            features_idx = self._get_indices(
+                sublist=_features,
+                superlist=self.feature_names
+            )
+            # aggregate shap values of group features
+            aggregated_shap_values[_category] = np.sum(shap_output.values[:, features_idx])
+
+        return aggregated_shap_values

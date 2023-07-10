@@ -41,6 +41,7 @@
         "subindicator",
         "subkey",
         "subvalue",
+        "superlist",
         "thres",
         "Tikhonov",
         "typehints",
