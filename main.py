@@ -85,10 +85,10 @@ if __name__ == '__main__':
         # data versioning config
         PATH = DST_DIR[:-1] + '-dev.pkl'  # path to source data, e.g. data.pkl file
         REPO = '/home/nik/visaland-visa-form-utility'
-        VERSION = 'v1.2.5-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
+        VERSION = 'v2.0.1-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
-        MLFLOW_EXPERIMENT_NAME = f'xai-to-instruct - {VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'data-v2-minimal-fe - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         mlflow.start_run()
 
@@ -120,11 +120,13 @@ if __name__ == '__main__':
                     ' from weak and unlabeled data (`w-acc`, `w-rej` and `no idea`)')
         output_name = 'VisaResult'
         # for training the snorkel label model
-        data_unlabeled = data[(data[output_name] != 'acc') &
-                        (data[output_name] != 'rej')].copy()
+        data_unlabeled = data[
+            (data[output_name] != 'acc') &
+            (data[output_name] != 'rej')].copy()
         # for testing the snorkel label model
-        data_labeled = data[(data[output_name] == 'acc') |
-                        (data[output_name] == 'rej')].copy()
+        data_labeled = data[
+            (data[output_name] == 'acc') |
+            (data[output_name] == 'rej')].copy()
         logger.info(f'shape of unlabeled data: {data_unlabeled.shape}')
         logger.info(f'shape of labeled unlabeled data: {data_labeled.shape}')
         # convert strong to weak temporary to `lf_weak_*` so `LabelFunction`s'
@@ -141,9 +143,11 @@ if __name__ == '__main__':
         ]
         lfs = labeling.ComposeLFLabeling(labelers=lf_compose)()
         applier = PandasLFApplier(lfs)
-        # apply LFs to the unlabeled (for `LabelModel` training) and labeled (for `LabelModel` test)
+        # apply LFs to the unlabeled (for `LabelModel` training) and
+        #   labeled (for `LabelModel` test)
         label_matrix_train = applier.apply(data_unlabeled)
-        # Remark: only should be used for evaluation of trained `LabelModel` and no where else
+        # Remark: only should be used for evaluation of trained `LabelModel`
+        #   and no where else
         label_matrix_test = applier.apply(data_labeled)
 
         y_test = data_labeled[output_name].apply(
@@ -245,26 +249,11 @@ if __name__ == '__main__':
         # transformation functions
         tf_compose = [
             augmentation.AddNormalNoiseDOBYear(dataframe=data),
-            augmentation.AddNormalNoiseChildDOBX(dataframe=data, row=0),
-            augmentation.AddNormalNoiseChildDOBX(dataframe=data, row=1),
-            augmentation.AddNormalNoiseChildDOBX(dataframe=data, row=2),
-            augmentation.AddNormalNoiseChildDOBX(dataframe=data, row=3),
             augmentation.AddNormalNoiseDateOfMarr(dataframe=data),
             augmentation.AddNormalNoiseOccRowXPeriod(dataframe=data, row=1),
             augmentation.AddNormalNoiseOccRowXPeriod(dataframe=data, row=2),
             augmentation.AddNormalNoiseOccRowXPeriod(dataframe=data, row=3),
             augmentation.AddNormalNoiseHLS(dataframe=data),
-            augmentation.AddCategoricalNoiseChildRelX(dataframe=data, row=0),
-            augmentation.AddCategoricalNoiseChildRelX(dataframe=data, row=1),
-            augmentation.AddCategoricalNoiseChildRelX(dataframe=data, row=2),
-            augmentation.AddCategoricalNoiseChildRelX(dataframe=data, row=3),
-            augmentation.AddCategoricalNoiseSiblingRelX(dataframe=data, row=0),
-            augmentation.AddCategoricalNoiseSiblingRelX(dataframe=data, row=1),
-            augmentation.AddCategoricalNoiseSiblingRelX(dataframe=data, row=2),
-            augmentation.AddCategoricalNoiseSiblingRelX(dataframe=data, row=3),
-            augmentation.AddCategoricalNoiseSiblingRelX(dataframe=data, row=4),
-            augmentation.AddCategoricalNoiseSiblingRelX(dataframe=data, row=5),
-            augmentation.AddCategoricalNoiseSiblingRelX(dataframe=data, row=6),
             augmentation.AddCategoricalNoiseSex(dataframe=data),
             augmentation.AddOrderedNoiseChdAccomp(dataframe=data, sec='B'),
             augmentation.AddOrderedNoiseChdAccomp(dataframe=data, sec='C')
@@ -305,8 +294,6 @@ if __name__ == '__main__':
         logger.info('\t\t↑↑↑ Finishing slicing by snorkel (SFs) ↑↑↑')
 
         logger.info('\t\t↓↓↓ Starting preprocessing on directly DVC `vX.X.X-dev` data ↓↓↓')
-        # TODO: add preprocessing steps here
-
         # change dtype of augmented data to be as original data
         data_augmented = data_augmented.astype(data.dtypes)
         # use augmented data from now on
@@ -390,11 +377,6 @@ if __name__ == '__main__':
         logger.info('\t\t↑↑↑ Finished preprocessing on directly DVC `vX.X.X-dev` data ↑↑↑')
 
         logger.info('\t\t↓↓↓ Starting defining estimators models ↓↓↓')
-        # TODO: add estimators definition here
-        logger.info('\t\t↑↑↑ Finished defining estimators models ↑↑↑')
-
-        logger.info('\t\t↓↓↓ Starting loading training config and training estimators ↓↓↓')
-        # TODO: add training steps here
         flaml_automl = trainers.AutoML()
         flaml_automl_args = config_handler.parse(
             filename=trainers.FLAML_AUTOML_CONFIGS,
@@ -403,6 +385,9 @@ if __name__ == '__main__':
         config_handler.as_mlflow_artifact(
             logger.MLFLOW_ARTIFACTS_CONFIGS_PATH
         )
+        logger.info('\t\t↑↑↑ Finished defining estimators models ↑↑↑')
+
+        logger.info('\t\t↓↓↓ Starting loading training config and training estimators ↓↓↓')
         flaml_automl.fit(
             X_train=xt_train,
             y_train=yt_train,
@@ -499,8 +484,6 @@ if __name__ == '__main__':
         logger.info('\t\t↓↓↓ Starting logging hyperparams and params with MLFlow ↓↓↓')
         logger.info('Log global params')
         mlflow.log_param('device', DEVICE)
-        # TODO: log preprocessor configs
-        # TODO: log estimator params
         # TODO: log trainer config
         # TODO: log evaluator config
         # TODO: log weights

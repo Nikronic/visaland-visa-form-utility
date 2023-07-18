@@ -104,6 +104,17 @@ class Logics:
             columns={aggregator.__name__: agg_column_name})
         # return updated dataframe to be used outside of this class
         return self.df
+    
+    def average_age_group(self, series: pd.Series) -> float:
+        """Calculates the average age of a specific group
+
+        Args:
+            series (pd.Series): Pandas Series to be processed
+
+        Returns:
+            float: Result of averaging
+        """
+        raise NotImplementedError
 
     def count_previous_residency_country(self, series: pd.Series) -> int:
         """Counts the number of previous country of resident
@@ -193,6 +204,25 @@ class CanadaLogics(Logics):
 
     def __init__(self, dataframe: pd.DataFrame = None) -> None:
         super().__init__(dataframe)
+
+    def average_age_group(self, series: pd.Series) -> float:
+        """Calculates the average age of a specific group (e.g., children)
+
+        This is used when we have many instances in a group that each instance
+        by themselves don't provide much info; particularly when they are
+        highly correlated with a main factor such as the age of the applicant 
+        him/herself. In this case, we rather have the aggregated mode (average).
+
+        Args:
+            series (:class:`pandas.Series`): Pandas Series to be processed
+                containing age (floats)
+
+        Returns:
+            float: Result of averaging
+        """
+
+        def sum(x, y): return np.sum([x, y])
+        return reduce(lambda x, y: sum(x, y), series, 0.) / len(series)
 
     def count_previous_residency_country(self, series: pd.Series) -> int:
         """Counts the number of previous residency by counting non-zero periods of residency
