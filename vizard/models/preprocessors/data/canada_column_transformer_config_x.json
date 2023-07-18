@@ -29,16 +29,6 @@
         "use_global": "True"
     },
 
-    "CORStatus_categorical_OneHotEncoder": {
-        "columns_type": "'numeric'",
-        "dtype_include": "'category'",
-        "pattern_include": "'.*(COR).*(Status).*'",
-        "pattern_exclude": "'.*(Chd).*'",
-        "dtype_exclude": "None",
-        "group": "False",
-        "use_global": "True"
-    },
-
     "CWAStatus_categorical_OneHotEncoder": {
         "columns_type": "'numeric'",
         "dtype_include": "'category'",
@@ -86,26 +76,6 @@
         "pattern_exclude": "'.*(Chd).*'",
         "dtype_exclude": "None",
         "group": "False",
-        "use_global": "True"
-    },
-
-    "SecBChdRel_categorical_OneHotEncoder": {
-        "columns_type": "'numeric'",
-        "dtype_include": "'category'",
-        "pattern_include": "'.*(SecB).*(ChdRel).*'",
-        "pattern_exclude": "None",
-        "dtype_exclude": "None",
-        "group": "True",
-        "use_global": "True"
-    },
-
-    "SecCChdRel_categorical_OneHotEncoder": {
-        "columns_type": "'numeric'",
-        "dtype_include": "'category'",
-        "pattern_include": "'.*(SecC).*(ChdRel).*'",
-        "pattern_exclude": "None",
-        "dtype_exclude": "None",
-        "group": "True",
         "use_global": "True"
     },
 
