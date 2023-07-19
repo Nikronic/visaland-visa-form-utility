@@ -556,7 +556,7 @@ async def flag(
             marriage_period=features.marriage_period,
             previous_marriage_period=features.previous_marriage_period,
 
-            passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years?
+            passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years
             how_long_stay_period=features.how_long_stay_period,  # days
 
             education_period=features.education_period,
@@ -632,7 +632,7 @@ async def xai(features: api_models.Payload, k: int = 5):
         marriage_period=features.marriage_period,
         previous_marriage_period=features.previous_marriage_period,
 
-        passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years?
+        passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years
         how_long_stay_period=features.how_long_stay_period,  # days
 
         education_period=features.education_period,
@@ -710,7 +710,7 @@ async def grouped_xai(features: api_models.Payload):
         marriage_period=features.marriage_period,
         previous_marriage_period=features.previous_marriage_period,
 
-        passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years?
+        passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years
         how_long_stay_period=features.how_long_stay_period,  # days
 
         education_period=features.education_period,
