@@ -60,7 +60,8 @@ class Payload(BaseModel):
     @validator('sex')
     def _sex(cls, value):
         if value not in Sex.get_member_names():
-            raise ValueError(f'"{value}" is not valid')
+            raise ValueError(f'"{value}" is not valid.'
+                             f' Only "{Sex.get_member_names()}" are available.')
         return value
 
     current_country_of_residence_country: str = 'iran'
