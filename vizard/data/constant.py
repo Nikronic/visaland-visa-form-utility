@@ -4,7 +4,7 @@ __all__ = [
     'CANADA_CUTOFF_TERMS', 'CANADA_FILLNA', 'DATEUTIL_DEFAULT_DATETIME',
 
     # Data Enums shared all over the place
-    'CustomNamingEnum', 'CanadaMarriageStatus', 'SiblingRelation', 'ChildRelation',
+    'CustomNamingEnum', 'CanadaMarriageStatus',
     'CanadaContactRelation', 'CanadaResidencyStatus', 'Sex', 'EducationFieldOfStudy'
 ]
 
@@ -91,7 +91,6 @@ CANADA_5257E_VALUE_ABBREVIATION = {
     '045': 'TURKEY',
 }
 """Dict of abbreviation used to shortening length of VALUES in XML to CSV conversion
-
 """
 
 # LIST
@@ -290,24 +289,6 @@ class CanadaMarriageStatus(CustomNamingEnum):
     SINGLE = 7
     WIDOWED = 8
     UNKNOWN = 9
-
-
-class SiblingRelation(CustomNamingEnum):
-    """Sibling relation types in general
-    """
-
-    SISTER = auto()
-    BROTHER = auto()
-    OTHER = auto()
-
-
-class ChildRelation(CustomNamingEnum):
-    """Child relation types in general
-    """
-
-    SON = auto()
-    DAUGHTER = auto()
-    OTHER = auto()
 
 
 class CanadaContactRelation(CustomNamingEnum):

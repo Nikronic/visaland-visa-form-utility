@@ -1,6 +1,6 @@
 __all__ = [
     'PredictionResponse', 'Payload',
-    'CountryNamesResponse', 'CanadaMarriageStatusResponse', 'SiblingRelationResponse',
+    'CanadaMarriageStatusResponse',
     'ChildRelationResponse', 'CanadaContactRelationResponse', 'CanadaResidencyStatusResponse',
     'EducationFieldOfStudyResponse', 'XaiResponse', 'XaiAggregatedGroupResponse'
 ]
@@ -12,8 +12,6 @@ import json
 # ours
 from vizard.data.constant import (
     CanadaMarriageStatus,
-    SiblingRelation,
-    ChildRelation,
     CanadaContactRelation,
     CanadaResidencyStatus,
     Sex,
@@ -53,27 +51,20 @@ class PredictionResponse(BaseModel):
 
 
 class Payload(BaseModel):
-    alias_name_indicator: bool = False
 
     sex: str
 
     @validator('sex')
     def _sex(cls, value):
         if value not in Sex.get_member_names():
-            raise ValueError(f'"{value}" is not valid')
+            raise ValueError(f'"{value}" is not valid.'
+                             f' Only "{Sex.get_member_names()}" are available.')
         return value
 
-    current_country_of_residence_country: str = 'iran'
-    current_country_of_residence_status: str = 'citizen'
-    previous_country_of_residence_country2: str = 'iran'
-    previous_country_of_residence_country3: str = 'iran'
-
-    same_as_country_of_residence_indicator: bool = False
     country_where_applying_country: str = 'TURKEY'
     country_where_applying_status: str = 'OTHER'
 
     @validator(
-        'current_country_of_residence_status',
         'country_where_applying_status'
     )
     def _residence_status(cls, value):
@@ -106,7 +97,6 @@ class Payload(BaseModel):
             raise ValueError(f'"{value}" is not valid')
         return value
 
-    education_indicator: bool = False
 
     education_field_of_study: str = 'unedu'
 
@@ -117,14 +107,10 @@ class Payload(BaseModel):
             raise ValueError(f'"{value}" is not valid')
         return value
 
-    education_country: str = 'Unknown'
 
     occupation_title1: str = 'OTHER'
-    occupation_country1: str = 'iran'
     occupation_title2: str = 'OTHER'
-    occupation_country2: str = 'iran'
     occupation_title3: str = 'OTHER'
-    occupation_country3: str = 'iran'
 
     no_authorized_stay: bool = False
     refused_entry_or_deport: bool = False
@@ -136,18 +122,6 @@ class Payload(BaseModel):
     def _date_of_birth(cls, value):
         if value < 18:
             raise ValueError('This service only accepts adults')
-        return value
-
-    previous_country_of_residency_period2: float = 0  # years
-    previous_country_of_residency_period3: float = 0  # years
-
-    @validator(
-        'previous_country_of_residency_period2',
-        'previous_country_of_residency_period3'
-    )
-    def _previous_country_of_residency_period(cls, value):
-        if value < 0:
-            raise ValueError('Value cannot be negative')
         return value
 
     country_where_applying_period: float = 30.  # days
@@ -194,7 +168,7 @@ class Payload(BaseModel):
             raise ValueError('Value cannot be negative')
         return value
 
-    occupation_period: float
+    occupation_period: float = 0.   # years
     occupation_period2: float = 0.  # years
     occupation_period3: float = 0.  # years
 
@@ -209,120 +183,15 @@ class Payload(BaseModel):
         return value
 
     applicant_marital_status: str = 'single'
-    mother_marital_status: str = 'married'
-    father_marital_status: str = 'married'
 
-    child_marital_status0: str = 'unknown'
-    child_relation0: str = 'other'
-    child_marital_status1: str = 'unknown'
-    child_relation1: str = 'other'
-    child_marital_status2: str = 'unknown'
-    child_relation2: str = 'other'
-    child_marital_status3: str = 'unknown'
-    child_relation3: str = 'other'
-
-    @validator(
-        'child_relation0',
-        'child_relation1',
-        'child_relation2',
-        'child_relation3',
-    )
-    def _child_relation(cls, value):
-        value = value.lower().strip()
-        if value not in ChildRelation.get_member_names():
-            raise ValueError(f'"{value}" is not valid')
-        return value
-
-    sibling_marital_status0: str = 'unknown'
-    sibling_relation0: str = 'other'
-    sibling_marital_status1: str = 'unknown'
-    sibling_relation1: str = 'other'
-    sibling_marital_status2: str = 'unknown'
-    sibling_relation2: str = 'other'
-    sibling_marital_status3: str = 'unknown'
-    sibling_relation3: str = 'other'
-    sibling_marital_status4: str = 'unknown'
-    sibling_relation4: str = 'other'
-    sibling_marital_status5: str = 'unknown'
-    sibling_relation5: str = 'other'
-    sibling_marital_status6: str = 'unknown'
-    sibling_relation6: str = 'other'
-
-    @validator(
-        'sibling_relation0',
-        'sibling_relation1',
-        'sibling_relation2',
-        'sibling_relation3',
-        'sibling_relation4',
-        'sibling_relation5',
-        'sibling_relation6',
-    )
-    def _sibling_relation(cls, value):
-        value = value.lower().strip()
-        if value not in SiblingRelation.get_member_names():
-            raise ValueError(f'"{value}" is not valid')
-        return value
-
+    
     @validator(
         'applicant_marital_status',
-        'mother_marital_status',
-        'father_marital_status',
-        'child_marital_status0',
-        'child_marital_status1',
-        'child_marital_status2',
-        'child_marital_status3',
-        'sibling_marital_status0',
-        'sibling_marital_status1',
-        'sibling_marital_status2',
-        'sibling_marital_status3',
-        'sibling_marital_status4',
-        'sibling_marital_status5',
-        'sibling_marital_status6',
     )
     def _marital_status(cls, value):
         value = value.lower().strip()
         if value not in CanadaMarriageStatus.get_member_names():
             raise ValueError(f'"{value}" is not valid')
-        return value
-
-    spouse_date_of_birth: float = 0.  # years
-    mother_date_of_birth: float
-    father_date_of_birth: float
-
-    child_date_of_birth0: float = 0.  # years
-    child_date_of_birth1: float = 0.  # years
-    child_date_of_birth2: float = 0.  # years
-    child_date_of_birth3: float = 0.  # years
-
-    sibling_date_of_birth0: float = 0.  # years
-    sibling_date_of_birth1: float = 0.  # years
-    sibling_date_of_birth2: float = 0.  # years
-    sibling_date_of_birth3: float = 0.  # years
-    sibling_date_of_birth4: float = 0.  # years
-    sibling_date_of_birth5: float = 0.  # years
-    sibling_date_of_birth6: float = 0.  # years
-
-    @validator(
-        'spouse_date_of_birth',
-        'mother_date_of_birth',
-        'father_date_of_birth',
-
-        'child_date_of_birth0',
-        'child_date_of_birth1',
-        'child_date_of_birth2',
-        'child_date_of_birth3',
-
-        'sibling_date_of_birth0',
-        'sibling_date_of_birth1',
-        'sibling_date_of_birth2',
-        'sibling_date_of_birth3',
-        'sibling_date_of_birth4',
-        'sibling_date_of_birth5',
-        'sibling_date_of_birth6',
-    )
-    def _kin_date_of_birth(cls, value):
-        if value < 0:
-            raise ValueError(f'Value cannot be negative')
         return value
 
     previous_country_of_residence_count: int = 0
@@ -383,6 +252,8 @@ class Payload(BaseModel):
             raise ValueError('Value cannot be negative or > 7')
         return value
 
+    child_average_age: float = 0.  # years
+
     child_count: int = 0
 
     @validator('child_count')
@@ -390,6 +261,8 @@ class Payload(BaseModel):
         if (value < 0) and (value > 4):
             raise ValueError('Value cannot be negative or > 4')
         return value
+    
+    sibling_average_age: int = 0.
 
     sibling_count: int = 0
 
@@ -397,6 +270,15 @@ class Payload(BaseModel):
     def _sibling_count(cls, value):
         if (value < 0) and (value > 7):
             raise ValueError('Value cannot be negative or > 7')
+        return value
+    
+    @validator(
+        'child_average_age',
+        'sibling_average_age',
+    )
+    def _child_sibling_average_period(cls, value):
+        if value < 0:
+            raise ValueError('Value cannot be negative')
         return value
 
     long_distance_child_sibling_count: int = 0
@@ -419,18 +301,6 @@ class Payload(BaseModel):
         orm_mode = True
 
 
-class CountryNamesResponse(BaseModel):
-    """Country names used in our application
-
-    Note:
-        Country names are extracted from :class:`vizard.data.preprocessor.WorldBankXMLProcessor`
-        which are country names used in WorldBank dataset.
-
-    """
-
-    country_names: List[str]
-
-
 class CanadaMarriageStatusResponse(BaseModel):
     """Canada marriage status states in string format
 
@@ -440,17 +310,6 @@ class CanadaMarriageStatusResponse(BaseModel):
     """
 
     marriage_status_types: List[str]
-
-
-class SiblingRelationResponse(BaseModel):
-    """Sibling relation types names
-
-    Note:
-        See :class:`vizard.data.constant.SiblingRelation` for more info
-        for possible values.
-    """
-
-    sibling_relation_types: List[str]
 
 
 class ChildRelationResponse(BaseModel):

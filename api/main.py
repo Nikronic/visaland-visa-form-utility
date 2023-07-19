@@ -9,10 +9,8 @@ from vizard.data.constant import (
     CanadaContactRelation,
     CanadaResidencyStatus,
     CanadaMarriageStatus,
-    ChildRelation,
     EducationFieldOfStudy,
     OccupationTitle,
-    SiblingRelation,
     FeatureCategories,
     FEATURE_CATEGORY_TO_FEATURE_NAME_MAP
 )
@@ -86,7 +84,7 @@ mlflow.set_tracking_uri(f'http://{args.bind}:{args.mlflow_port}')
 # data versioning config
 PATH = 'raw-dataset/all-dev.pkl'  # path to source data, e.g. data.pkl file
 REPO = '/home/nik/visaland-visa-form-utility'
-VERSION = 'v1.2.5-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
+VERSION = 'v2.0.1-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 # get url data from DVC data storage
 data_url = dvc.api.get_url(path=PATH, repo=REPO, rev=VERSION)
 data = pd.read_pickle(data_url).drop(columns=['VisaResult'], inplace=False)
@@ -250,46 +248,10 @@ app.add_middleware(
 def _preprocess(**kwargs):
     features: List = []
 
-    # 0 P1.PD.AliasName.AliasNameIndicator.AliasNameIndicator
-    alias_name_indicator = kwargs['alias_name_indicator']
-    features.append(alias_name_indicator)
-
     # 1 P1.PD.Sex.Sex
     sex = kwargs['sex']
     sex = sex.lower().title()  # female -> Female, ...
     features.append(sex)
-
-    # 2 P1.PD.CurrCOR.Row2.Country
-    current_country_of_residence_country = kwargs['current_country_of_residence_country']
-    current_country_of_residence_country = eco_country_score_preprocessor.convert_country_name_to_numeric(
-        current_country_of_residence_country
-    )
-    features.append(current_country_of_residence_country)
-
-    # 3 P1.PD.CurrCOR.Row2.Status
-    current_country_of_residence_status = kwargs['current_country_of_residence_status']
-    current_country_of_residence_status = residency_status_code(
-        current_country_of_residence_status
-    )
-    features.append(current_country_of_residence_status)
-
-    # 4 P1.PD.PrevCOR.Row2.Country
-    previous_country_of_residence_country2 = kwargs['previous_country_of_residence_country2']
-    previous_country_of_residence_country2 = eco_country_score_preprocessor.convert_country_name_to_numeric(
-        previous_country_of_residence_country2
-    )
-    features.append(previous_country_of_residence_country2)
-
-    # 5 P1.PD.PrevCOR.Row3.Country
-    previous_country_of_residence_country3 = kwargs['previous_country_of_residence_country3']
-    previous_country_of_residence_country3 = eco_country_score_preprocessor.convert_country_name_to_numeric(
-        previous_country_of_residence_country3
-    )
-    features.append(previous_country_of_residence_country3)
-
-    # 6 P1.PD.SameAsCORIndicator
-    same_as_country_of_residence_indicator = kwargs['same_as_country_of_residence_indicator']
-    features.append(same_as_country_of_residence_indicator)
 
     # 7 P1.PD.CWA.Row2.Country
     country_where_applying_country = kwargs['country_where_applying_country']
@@ -322,53 +284,21 @@ def _preprocess(**kwargs):
     contact_relation_to_me2 = kwargs['contact_relation_to_me2']
     features.append(contact_relation_to_me2)
 
-    # 14 P3.Edu.EduIndicator
-    education_indicator = kwargs['education_indicator']
-    features.append(education_indicator)
-
     # 15 P3.Edu.Edu_Row1.FieldOfStudy
     education_field_of_study = kwargs['education_field_of_study']
     features.append(education_field_of_study)
-
-    # 16 P3.Edu.Edu_Row1.Country.Country
-    education_country = kwargs['education_country']
-    education_country = edu_country_score_preprocessor.convert_country_name_to_numeric(
-        education_country
-    )
-    features.append(education_country)
 
     # 17 P3.Occ.OccRow1.Occ.Occ
     occupation_title1 = kwargs['occupation_title1']
     features.append(occupation_title1)
 
-    # 18 P3.Occ.OccRow1.Country.Country
-    occupation_country1 = kwargs['occupation_country1']
-    occupation_country1 = eco_country_score_preprocessor.convert_country_name_to_numeric(
-        occupation_country1
-    )
-    features.append(occupation_country1)
-
     # 19 P3.Occ.OccRow2.Occ.Occ
     occupation_title2 = kwargs['occupation_title2']
     features.append(occupation_title2)
 
-    # 20 P3.Occ.OccRow2.Country.Country
-    occupation_country2 = kwargs['occupation_country2']
-    occupation_country2 = eco_country_score_preprocessor.convert_country_name_to_numeric(
-        occupation_country2
-    )
-    features.append(occupation_country2)
-
     # 21 P3.Occ.OccRow3.Occ.Occ
     occupation_title3 = kwargs['occupation_title3']
     features.append(occupation_title3)
-
-    # 22 P3.Occ.OccRow3.Country.Country
-    occupation_country3 = kwargs['occupation_country3']
-    occupation_country3 = eco_country_score_preprocessor.convert_country_name_to_numeric(
-        occupation_country3
-    )
-    features.append(occupation_country3)
 
     # 23 P3.noAuthStay
     no_authorized_stay = kwargs['no_authorized_stay']
@@ -385,14 +315,6 @@ def _preprocess(**kwargs):
     # 26 P1.PD.DOBYear.Period
     date_of_birth = kwargs['date_of_birth']
     features.append(date_of_birth)
-
-    # 27 P1.PD.PrevCOR.Row2.Period
-    previous_country_of_residency_period2 = kwargs['previous_country_of_residency_period2']
-    features.append(previous_country_of_residency_period2)
-
-    # 28 P1.PD.PrevCOR.Row3.Period
-    previous_country_of_residency_period3 = kwargs['previous_country_of_residency_period3']
-    features.append(previous_country_of_residency_period3)
 
     # 29 P1.PD.CWA.Row2.Period
     country_where_applying_period = kwargs['country_where_applying_period']
@@ -435,171 +357,6 @@ def _preprocess(**kwargs):
     applicant_marital_status = marital_status_code(applicant_marital_status)
     features.append(applicant_marital_status)
 
-    # 39 p1.SecA.Mo.ChdMStatus
-    mother_marital_status = kwargs['mother_marital_status']
-    mother_marital_status = marital_status_code(mother_marital_status)
-    features.append(mother_marital_status)
-
-    # 40 p1.SecA.Fa.ChdMStatus
-    father_marital_status = kwargs['father_marital_status']
-    father_marital_status = marital_status_code(father_marital_status)
-    features.append(father_marital_status)
-
-    # 41 p1.SecB.Chd.[0].ChdMStatus
-    child_marital_status0 = kwargs['child_marital_status0']
-    child_marital_status0 = marital_status_code(child_marital_status0)
-    features.append(child_marital_status0)
-
-    # 42 p1.SecB.Chd.[0].ChdRel
-    child_relation0 = kwargs['child_relation0']
-    features.append(child_relation0)
-
-    # 43 p1.SecB.Chd.[1].ChdMStatus
-    child_marital_status1 = kwargs['child_marital_status1']
-    child_marital_status1 = marital_status_code(child_marital_status1)
-    features.append(child_marital_status1)
-
-    # 44 p1.SecB.Chd.[1].ChdRel
-    child_relation1 = kwargs['child_relation1']
-    features.append(child_relation1)
-
-    # 45 p1.SecB.Chd.[2].ChdMStatus
-    child_marital_status2 = kwargs['child_marital_status2']
-    child_marital_status2 = marital_status_code(child_marital_status2)
-    features.append(child_marital_status2)
-
-    # 46 p1.SecB.Chd.[2].ChdRel
-    child_relation2 = kwargs['child_relation2']
-    features.append(child_relation2)
-
-    # 47 p1.SecB.Chd.[3].ChdMStatus
-    child_marital_status3 = kwargs['child_marital_status3']
-    child_marital_status3 = marital_status_code(child_marital_status3)
-    features.append(child_marital_status3)
-
-    # 48 p1.SecB.Chd.[3].ChdRel
-    child_relation3 = kwargs['child_relation3']
-    features.append(child_relation3)
-
-    # 49 p1.SecC.Chd.[0].ChdMStatus
-    sibling_marital_status0 = kwargs['sibling_marital_status0']
-    sibling_marital_status0 = marital_status_code(sibling_marital_status0)
-    features.append(sibling_marital_status0)
-
-    # 50 p1.SecC.Chd.[0].ChdRel
-    sibling_relation0 = kwargs['sibling_relation0']
-    features.append(sibling_relation0)
-
-    # 51 p1.SecC.Chd.[1].ChdMStatus
-    sibling_marital_status1 = kwargs['sibling_marital_status1']
-    sibling_marital_status1 = marital_status_code(sibling_marital_status1)
-    features.append(sibling_marital_status1)
-
-    # 52 p1.SecC.Chd.[1].ChdRel
-    sibling_relation1 = kwargs['sibling_relation1']
-    features.append(sibling_relation1)
-
-    # 53 p1.SecC.Chd.[2].ChdMStatus
-    sibling_marital_status2 = kwargs['sibling_marital_status2']
-    sibling_marital_status2 = marital_status_code(sibling_marital_status2)
-    features.append(sibling_marital_status2)
-
-    # 54 p1.SecC.Chd.[2].ChdRel
-    sibling_relation2 = kwargs['sibling_relation2']
-    features.append(sibling_relation2)
-
-    # 55 p1.SecC.Chd.[3].ChdMStatus
-    sibling_marital_status3 = kwargs['sibling_marital_status3']
-    sibling_marital_status3 = marital_status_code(sibling_marital_status3)
-    features.append(sibling_marital_status3)
-
-    # 56 p1.SecC.Chd.[3].ChdRel
-    sibling_relation3 = kwargs['sibling_relation3']
-    features.append(sibling_relation3)
-
-    # 57 p1.SecC.Chd.[4].ChdMStatus
-    sibling_marital_status4 = kwargs['sibling_marital_status4']
-    sibling_marital_status4 = marital_status_code(sibling_marital_status4)
-    features.append(sibling_marital_status4)
-
-    # 58 p1.SecC.Chd.[4].ChdRel
-    sibling_relation4 = kwargs['sibling_relation4']
-    features.append(sibling_relation4)
-
-    # 59 p1.SecC.Chd.[5].ChdMStatus
-    sibling_marital_status5 = kwargs['sibling_marital_status5']
-    sibling_marital_status5 = marital_status_code(sibling_marital_status5)
-    features.append(sibling_marital_status5)
-
-    # 60 p1.SecC.Chd.[5].ChdRel
-    sibling_relation5 = kwargs['sibling_relation5']
-    features.append(sibling_relation5)
-
-    # 61 p1.SecC.Chd.[6].ChdMStatus
-    sibling_marital_status6 = kwargs['sibling_marital_status6']
-    sibling_marital_status6 = marital_status_code(sibling_marital_status6)
-    features.append(sibling_marital_status6)
-
-    # 62 p1.SecC.Chd.[6].ChdRel
-    sibling_relation6 = kwargs['sibling_relation6']
-    features.append(sibling_relation6)
-
-    # 63 p1.SecA.Sps.SpsDOB.Period
-    spouse_date_of_birth = kwargs['spouse_date_of_birth']
-    features.append(spouse_date_of_birth)
-
-    # 64 p1.SecA.Mo.MoDOB.Period
-    mother_date_of_birth = kwargs['mother_date_of_birth']
-    features.append(mother_date_of_birth)
-
-    # 65 p1.SecA.Fa.FaDOB.Period
-    father_date_of_birth = kwargs['father_date_of_birth']
-    features.append(father_date_of_birth)
-
-    # 66 p1.SecB.Chd.[0].ChdDOB.Period
-    child_date_of_birth0 = kwargs['child_date_of_birth0']
-    features.append(child_date_of_birth0)
-
-    # 67 p1.SecB.Chd.[1].ChdDOB.Period
-    child_date_of_birth1 = kwargs['child_date_of_birth1']
-    features.append(child_date_of_birth1)
-
-    # 68 p1.SecB.Chd.[2].ChdDOB.Period
-    child_date_of_birth2 = kwargs['child_date_of_birth2']
-    features.append(child_date_of_birth2)
-
-    # 69 p1.SecB.Chd.[3].ChdDOB.Period
-    child_date_of_birth3 = kwargs['child_date_of_birth3']
-    features.append(child_date_of_birth3)
-
-    # 70 p1.SecC.Chd.[0].ChdDOB.Period
-    sibling_date_of_birth0 = kwargs['sibling_date_of_birth0']
-    features.append(sibling_date_of_birth0)
-
-    # 71 p1.SecC.Chd.[1].ChdDOB.Period
-    sibling_date_of_birth1 = kwargs['sibling_date_of_birth1']
-    features.append(sibling_date_of_birth1)
-
-    # 72 p1.SecC.Chd.[2].ChdDOB.Period
-    sibling_date_of_birth2 = kwargs['sibling_date_of_birth2']
-    features.append(sibling_date_of_birth2)
-
-    # 73 p1.SecC.Chd.[3].ChdDOB.Period
-    sibling_date_of_birth3 = kwargs['sibling_date_of_birth3']
-    features.append(sibling_date_of_birth3)
-
-    # 74 p1.SecC.Chd.[4].ChdDOB.Period
-    sibling_date_of_birth4 = kwargs['sibling_date_of_birth4']
-    features.append(sibling_date_of_birth4)
-
-    # 75 p1.SecC.Chd.[5].ChdDOB.Period
-    sibling_date_of_birth5 = kwargs['sibling_date_of_birth5']
-    features.append(sibling_date_of_birth5)
-
-    # 76 p1.SecC.Chd.[6].ChdDOB.Period
-    sibling_date_of_birth6 = kwargs['sibling_date_of_birth6']
-    features.append(sibling_date_of_birth6)
-
     # 77 VisaResult -> the label -> dropped
 
     # 78 P1.PD.PrevCOR.Row.Count
@@ -630,9 +387,17 @@ def _preprocess(**kwargs):
     sibling_accompany = kwargs['sibling_accompany']
     features.append(sibling_accompany)
 
+    # minimal-fe
+    child_average_age = kwargs['child_average_age']
+    features.append(child_average_age)
+
     # 85 p1.SecB.Chd.X.ChdRel.ChdCount
     child_count = kwargs['child_count']
     features.append(child_count)
+
+    # minimal-fe
+    sibling_average_age = kwargs['sibling_average_age']
+    features.append(sibling_average_age)
 
     # 86 p1.SecC.Chd.X.ChdRel.ChdCount
     sibling_count = kwargs['sibling_count']
@@ -684,15 +449,8 @@ async def predict(
 ):
     try:
         result = _predict(
-            alias_name_indicator=features.alias_name_indicator,
             sex=features.sex,
 
-            current_country_of_residence_country=features.current_country_of_residence_country,
-            current_country_of_residence_status=features.current_country_of_residence_status,
-            previous_country_of_residence_country2=features.previous_country_of_residence_country2,
-            previous_country_of_residence_country3=features.previous_country_of_residence_country3,
-
-            same_as_country_of_residence_indicator=features.same_as_country_of_residence_indicator,
             country_where_applying_country=features.country_where_applying_country,
             country_where_applying_status=features.country_where_applying_status,
 
@@ -703,16 +461,11 @@ async def predict(
             contact_relation_to_me=features.contact_relation_to_me,
             contact_relation_to_me2=features.contact_relation_to_me2,
 
-            education_indicator=features.education_indicator,
-            education_field_of_study=features.education_field_of_study,
-            education_country=features.education_country,
+            education_field_of_study=features.education_field_of_study,            
 
             occupation_title1=features.occupation_title1,
-            occupation_country1=features.occupation_country1,
-            occupation_title2=features.occupation_title2,
-            occupation_country2=features.occupation_country2,
+            occupation_title2=features.occupation_title2,            
             occupation_title3=features.occupation_title3,
-            occupation_country3=features.occupation_country3,
 
             no_authorized_stay=features.no_authorized_stay,
             refused_entry_or_deport=features.refused_entry_or_deport,
@@ -720,15 +473,12 @@ async def predict(
 
             date_of_birth=features.date_of_birth,
 
-            previous_country_of_residency_period2=features.previous_country_of_residency_period2,
-            previous_country_of_residency_period3=features.previous_country_of_residency_period3,
-
             country_where_applying_period=features.country_where_applying_period,  # days
 
             marriage_period=features.marriage_period,
             previous_marriage_period=features.previous_marriage_period,
 
-            passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years?
+            passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years
             how_long_stay_period=features.how_long_stay_period,  # days
 
             education_period=features.education_period,
@@ -738,50 +488,6 @@ async def predict(
             occupation_period3=features.occupation_period3,
 
             applicant_marital_status=features.applicant_marital_status,
-            mother_marital_status=features.mother_marital_status,
-            father_marital_status=features.father_marital_status,
-
-            child_marital_status0=features.child_marital_status0,
-            child_relation0=features.child_relation0,
-            child_marital_status1=features.child_marital_status1,
-            child_relation1=features.child_relation1,
-            child_marital_status2=features.child_marital_status2,
-            child_relation2=features.child_relation2,
-            child_marital_status3=features.child_marital_status3,
-            child_relation3=features.child_relation3,
-
-            sibling_marital_status0=features.sibling_marital_status0,
-            sibling_relation0=features.sibling_relation0,
-            sibling_marital_status1=features.sibling_marital_status1,
-            sibling_relation1=features.sibling_relation1,
-            sibling_marital_status2=features.sibling_marital_status2,
-            sibling_relation2=features.sibling_relation2,
-            sibling_marital_status3=features.sibling_marital_status3,
-            sibling_relation3=features.sibling_relation3,
-            sibling_marital_status4=features.sibling_marital_status4,
-            sibling_relation4=features.sibling_relation4,
-            sibling_marital_status5=features.sibling_marital_status5,
-            sibling_relation5=features.sibling_relation5,
-            sibling_marital_status6=features.sibling_marital_status6,
-            sibling_relation6=features.sibling_relation6,
-
-            spouse_date_of_birth=features.spouse_date_of_birth,
-            mother_date_of_birth=features.mother_date_of_birth,
-            father_date_of_birth=features.father_date_of_birth,
-
-            child_date_of_birth0=features.child_date_of_birth0,
-            child_date_of_birth1=features.child_date_of_birth1,
-            child_date_of_birth2=features.child_date_of_birth2,
-            child_date_of_birth3=features.child_date_of_birth3,
-
-            sibling_date_of_birth0=features.sibling_date_of_birth0,
-            sibling_date_of_birth1=features.sibling_date_of_birth1,
-            sibling_date_of_birth2=features.sibling_date_of_birth2,
-            sibling_date_of_birth3=features.sibling_date_of_birth3,
-            sibling_date_of_birth4=features.sibling_date_of_birth4,
-            sibling_date_of_birth5=features.sibling_date_of_birth5,
-            sibling_date_of_birth6=features.sibling_date_of_birth6,
-
             previous_country_of_residence_count=features.previous_country_of_residence_count,
 
             sibling_foreigner_count=features.sibling_foreigner_count,
@@ -792,7 +498,9 @@ async def predict(
             spouse_accompany=features.spouse_accompany,
             sibling_accompany=features.sibling_accompany,
 
+            child_average_age=features.child_average_age,
             child_count=features.child_count,
+            sibling_average_age=features.sibling_average_age,
             sibling_count=features.sibling_count,
 
             long_distance_child_sibling_count=features.long_distance_child_sibling_count,
@@ -819,15 +527,8 @@ async def flag(
 
     try:
         result = _predict(
-            alias_name_indicator=features.alias_name_indicator,
             sex=features.sex,
 
-            current_country_of_residence_country=features.current_country_of_residence_country,
-            current_country_of_residence_status=features.current_country_of_residence_status,
-            previous_country_of_residence_country2=features.previous_country_of_residence_country2,
-            previous_country_of_residence_country3=features.previous_country_of_residence_country3,
-
-            same_as_country_of_residence_indicator=features.same_as_country_of_residence_indicator,
             country_where_applying_country=features.country_where_applying_country,
             country_where_applying_status=features.country_where_applying_status,
 
@@ -838,16 +539,11 @@ async def flag(
             contact_relation_to_me=features.contact_relation_to_me,
             contact_relation_to_me2=features.contact_relation_to_me2,
 
-            education_indicator=features.education_indicator,
-            education_field_of_study=features.education_field_of_study,
-            education_country=features.education_country,
+            education_field_of_study=features.education_field_of_study,            
 
             occupation_title1=features.occupation_title1,
-            occupation_country1=features.occupation_country1,
-            occupation_title2=features.occupation_title2,
-            occupation_country2=features.occupation_country2,
+            occupation_title2=features.occupation_title2,            
             occupation_title3=features.occupation_title3,
-            occupation_country3=features.occupation_country3,
 
             no_authorized_stay=features.no_authorized_stay,
             refused_entry_or_deport=features.refused_entry_or_deport,
@@ -855,15 +551,12 @@ async def flag(
 
             date_of_birth=features.date_of_birth,
 
-            previous_country_of_residency_period2=features.previous_country_of_residency_period2,
-            previous_country_of_residency_period3=features.previous_country_of_residency_period3,
-
             country_where_applying_period=features.country_where_applying_period,  # days
 
             marriage_period=features.marriage_period,
             previous_marriage_period=features.previous_marriage_period,
 
-            passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years?
+            passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years
             how_long_stay_period=features.how_long_stay_period,  # days
 
             education_period=features.education_period,
@@ -873,50 +566,6 @@ async def flag(
             occupation_period3=features.occupation_period3,
 
             applicant_marital_status=features.applicant_marital_status,
-            mother_marital_status=features.mother_marital_status,
-            father_marital_status=features.father_marital_status,
-
-            child_marital_status0=features.child_marital_status0,
-            child_relation0=features.child_relation0,
-            child_marital_status1=features.child_marital_status1,
-            child_relation1=features.child_relation1,
-            child_marital_status2=features.child_marital_status2,
-            child_relation2=features.child_relation2,
-            child_marital_status3=features.child_marital_status3,
-            child_relation3=features.child_relation3,
-
-            sibling_marital_status0=features.sibling_marital_status0,
-            sibling_relation0=features.sibling_relation0,
-            sibling_marital_status1=features.sibling_marital_status1,
-            sibling_relation1=features.sibling_relation1,
-            sibling_marital_status2=features.sibling_marital_status2,
-            sibling_relation2=features.sibling_relation2,
-            sibling_marital_status3=features.sibling_marital_status3,
-            sibling_relation3=features.sibling_relation3,
-            sibling_marital_status4=features.sibling_marital_status4,
-            sibling_relation4=features.sibling_relation4,
-            sibling_marital_status5=features.sibling_marital_status5,
-            sibling_relation5=features.sibling_relation5,
-            sibling_marital_status6=features.sibling_marital_status6,
-            sibling_relation6=features.sibling_relation6,
-
-            spouse_date_of_birth=features.spouse_date_of_birth,
-            mother_date_of_birth=features.mother_date_of_birth,
-            father_date_of_birth=features.father_date_of_birth,
-
-            child_date_of_birth0=features.child_date_of_birth0,
-            child_date_of_birth1=features.child_date_of_birth1,
-            child_date_of_birth2=features.child_date_of_birth2,
-            child_date_of_birth3=features.child_date_of_birth3,
-
-            sibling_date_of_birth0=features.sibling_date_of_birth0,
-            sibling_date_of_birth1=features.sibling_date_of_birth1,
-            sibling_date_of_birth2=features.sibling_date_of_birth2,
-            sibling_date_of_birth3=features.sibling_date_of_birth3,
-            sibling_date_of_birth4=features.sibling_date_of_birth4,
-            sibling_date_of_birth5=features.sibling_date_of_birth5,
-            sibling_date_of_birth6=features.sibling_date_of_birth6,
-
             previous_country_of_residence_count=features.previous_country_of_residence_count,
 
             sibling_foreigner_count=features.sibling_foreigner_count,
@@ -927,7 +576,9 @@ async def flag(
             spouse_accompany=features.spouse_accompany,
             sibling_accompany=features.sibling_accompany,
 
+            child_average_age=features.child_average_age,
             child_count=features.child_count,
+            sibling_average_age=features.sibling_average_age,
             sibling_count=features.sibling_count,
 
             long_distance_child_sibling_count=features.long_distance_child_sibling_count,
@@ -952,15 +603,8 @@ async def flag(
 async def xai(features: api_models.Payload, k: int = 5):
     # validate sample
     sample = _xai(
-        alias_name_indicator=features.alias_name_indicator,
         sex=features.sex,
 
-        current_country_of_residence_country=features.current_country_of_residence_country,
-        current_country_of_residence_status=features.current_country_of_residence_status,
-        previous_country_of_residence_country2=features.previous_country_of_residence_country2,
-        previous_country_of_residence_country3=features.previous_country_of_residence_country3,
-
-        same_as_country_of_residence_indicator=features.same_as_country_of_residence_indicator,
         country_where_applying_country=features.country_where_applying_country,
         country_where_applying_status=features.country_where_applying_status,
 
@@ -971,16 +615,11 @@ async def xai(features: api_models.Payload, k: int = 5):
         contact_relation_to_me=features.contact_relation_to_me,
         contact_relation_to_me2=features.contact_relation_to_me2,
 
-        education_indicator=features.education_indicator,
         education_field_of_study=features.education_field_of_study,
-        education_country=features.education_country,
 
         occupation_title1=features.occupation_title1,
-        occupation_country1=features.occupation_country1,
         occupation_title2=features.occupation_title2,
-        occupation_country2=features.occupation_country2,
         occupation_title3=features.occupation_title3,
-        occupation_country3=features.occupation_country3,
 
         no_authorized_stay=features.no_authorized_stay,
         refused_entry_or_deport=features.refused_entry_or_deport,
@@ -988,15 +627,12 @@ async def xai(features: api_models.Payload, k: int = 5):
 
         date_of_birth=features.date_of_birth,
 
-        previous_country_of_residency_period2=features.previous_country_of_residency_period2,
-        previous_country_of_residency_period3=features.previous_country_of_residency_period3,
-
         country_where_applying_period=features.country_where_applying_period,  # days
 
         marriage_period=features.marriage_period,
         previous_marriage_period=features.previous_marriage_period,
 
-        passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years?
+        passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years
         how_long_stay_period=features.how_long_stay_period,  # days
 
         education_period=features.education_period,
@@ -1006,49 +642,6 @@ async def xai(features: api_models.Payload, k: int = 5):
         occupation_period3=features.occupation_period3,
 
         applicant_marital_status=features.applicant_marital_status,
-        mother_marital_status=features.mother_marital_status,
-        father_marital_status=features.father_marital_status,
-
-        child_marital_status0=features.child_marital_status0,
-        child_relation0=features.child_relation0,
-        child_marital_status1=features.child_marital_status1,
-        child_relation1=features.child_relation1,
-        child_marital_status2=features.child_marital_status2,
-        child_relation2=features.child_relation2,
-        child_marital_status3=features.child_marital_status3,
-        child_relation3=features.child_relation3,
-
-        sibling_marital_status0=features.sibling_marital_status0,
-        sibling_relation0=features.sibling_relation0,
-        sibling_marital_status1=features.sibling_marital_status1,
-        sibling_relation1=features.sibling_relation1,
-        sibling_marital_status2=features.sibling_marital_status2,
-        sibling_relation2=features.sibling_relation2,
-        sibling_marital_status3=features.sibling_marital_status3,
-        sibling_relation3=features.sibling_relation3,
-        sibling_marital_status4=features.sibling_marital_status4,
-        sibling_relation4=features.sibling_relation4,
-        sibling_marital_status5=features.sibling_marital_status5,
-        sibling_relation5=features.sibling_relation5,
-        sibling_marital_status6=features.sibling_marital_status6,
-        sibling_relation6=features.sibling_relation6,
-
-        spouse_date_of_birth=features.spouse_date_of_birth,
-        mother_date_of_birth=features.mother_date_of_birth,
-        father_date_of_birth=features.father_date_of_birth,
-
-        child_date_of_birth0=features.child_date_of_birth0,
-        child_date_of_birth1=features.child_date_of_birth1,
-        child_date_of_birth2=features.child_date_of_birth2,
-        child_date_of_birth3=features.child_date_of_birth3,
-
-        sibling_date_of_birth0=features.sibling_date_of_birth0,
-        sibling_date_of_birth1=features.sibling_date_of_birth1,
-        sibling_date_of_birth2=features.sibling_date_of_birth2,
-        sibling_date_of_birth3=features.sibling_date_of_birth3,
-        sibling_date_of_birth4=features.sibling_date_of_birth4,
-        sibling_date_of_birth5=features.sibling_date_of_birth5,
-        sibling_date_of_birth6=features.sibling_date_of_birth6,
 
         previous_country_of_residence_count=features.previous_country_of_residence_count,
 
@@ -1060,7 +653,9 @@ async def xai(features: api_models.Payload, k: int = 5):
         spouse_accompany=features.spouse_accompany,
         sibling_accompany=features.sibling_accompany,
 
+        child_average_age=features.child_average_age,
         child_count=features.child_count,
+        sibling_average_age=features.sibling_average_age,
         sibling_count=features.sibling_count,
 
         long_distance_child_sibling_count=features.long_distance_child_sibling_count,
@@ -1086,15 +681,8 @@ async def grouped_xai(features: api_models.Payload):
 
     # validate sample
     sample = _xai(
-        alias_name_indicator=features.alias_name_indicator,
         sex=features.sex,
 
-        current_country_of_residence_country=features.current_country_of_residence_country,
-        current_country_of_residence_status=features.current_country_of_residence_status,
-        previous_country_of_residence_country2=features.previous_country_of_residence_country2,
-        previous_country_of_residence_country3=features.previous_country_of_residence_country3,
-
-        same_as_country_of_residence_indicator=features.same_as_country_of_residence_indicator,
         country_where_applying_country=features.country_where_applying_country,
         country_where_applying_status=features.country_where_applying_status,
 
@@ -1105,16 +693,11 @@ async def grouped_xai(features: api_models.Payload):
         contact_relation_to_me=features.contact_relation_to_me,
         contact_relation_to_me2=features.contact_relation_to_me2,
 
-        education_indicator=features.education_indicator,
         education_field_of_study=features.education_field_of_study,
-        education_country=features.education_country,
 
         occupation_title1=features.occupation_title1,
-        occupation_country1=features.occupation_country1,
         occupation_title2=features.occupation_title2,
-        occupation_country2=features.occupation_country2,
         occupation_title3=features.occupation_title3,
-        occupation_country3=features.occupation_country3,
 
         no_authorized_stay=features.no_authorized_stay,
         refused_entry_or_deport=features.refused_entry_or_deport,
@@ -1122,15 +705,12 @@ async def grouped_xai(features: api_models.Payload):
 
         date_of_birth=features.date_of_birth,
 
-        previous_country_of_residency_period2=features.previous_country_of_residency_period2,
-        previous_country_of_residency_period3=features.previous_country_of_residency_period3,
-
         country_where_applying_period=features.country_where_applying_period,  # days
 
         marriage_period=features.marriage_period,
         previous_marriage_period=features.previous_marriage_period,
 
-        passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years?
+        passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years
         how_long_stay_period=features.how_long_stay_period,  # days
 
         education_period=features.education_period,
@@ -1140,49 +720,6 @@ async def grouped_xai(features: api_models.Payload):
         occupation_period3=features.occupation_period3,
 
         applicant_marital_status=features.applicant_marital_status,
-        mother_marital_status=features.mother_marital_status,
-        father_marital_status=features.father_marital_status,
-
-        child_marital_status0=features.child_marital_status0,
-        child_relation0=features.child_relation0,
-        child_marital_status1=features.child_marital_status1,
-        child_relation1=features.child_relation1,
-        child_marital_status2=features.child_marital_status2,
-        child_relation2=features.child_relation2,
-        child_marital_status3=features.child_marital_status3,
-        child_relation3=features.child_relation3,
-
-        sibling_marital_status0=features.sibling_marital_status0,
-        sibling_relation0=features.sibling_relation0,
-        sibling_marital_status1=features.sibling_marital_status1,
-        sibling_relation1=features.sibling_relation1,
-        sibling_marital_status2=features.sibling_marital_status2,
-        sibling_relation2=features.sibling_relation2,
-        sibling_marital_status3=features.sibling_marital_status3,
-        sibling_relation3=features.sibling_relation3,
-        sibling_marital_status4=features.sibling_marital_status4,
-        sibling_relation4=features.sibling_relation4,
-        sibling_marital_status5=features.sibling_marital_status5,
-        sibling_relation5=features.sibling_relation5,
-        sibling_marital_status6=features.sibling_marital_status6,
-        sibling_relation6=features.sibling_relation6,
-
-        spouse_date_of_birth=features.spouse_date_of_birth,
-        mother_date_of_birth=features.mother_date_of_birth,
-        father_date_of_birth=features.father_date_of_birth,
-
-        child_date_of_birth0=features.child_date_of_birth0,
-        child_date_of_birth1=features.child_date_of_birth1,
-        child_date_of_birth2=features.child_date_of_birth2,
-        child_date_of_birth3=features.child_date_of_birth3,
-
-        sibling_date_of_birth0=features.sibling_date_of_birth0,
-        sibling_date_of_birth1=features.sibling_date_of_birth1,
-        sibling_date_of_birth2=features.sibling_date_of_birth2,
-        sibling_date_of_birth3=features.sibling_date_of_birth3,
-        sibling_date_of_birth4=features.sibling_date_of_birth4,
-        sibling_date_of_birth5=features.sibling_date_of_birth5,
-        sibling_date_of_birth6=features.sibling_date_of_birth6,
 
         previous_country_of_residence_count=features.previous_country_of_residence_count,
 
@@ -1194,7 +731,9 @@ async def grouped_xai(features: api_models.Payload):
         spouse_accompany=features.spouse_accompany,
         sibling_accompany=features.sibling_accompany,
 
+        child_average_age=features.child_average_age,
         child_count=features.child_count,
+        sibling_average_age=features.sibling_average_age,
         sibling_count=features.sibling_count,
 
         long_distance_child_sibling_count=features.long_distance_child_sibling_count,
@@ -1231,20 +770,6 @@ async def get_xai_feature_categories_types():
 
 
 @app.get(
-    '/const/country_names',
-    response_model=api_models.CountryNamesResponse)
-async def get_country_names():
-    """Returns a list of names of countries
-
-    Note:
-        See :class:`vizard.api.models.CountryNamesResponse` for more info.
-    """
-    return {
-        'country_names': list(eco_country_score_preprocessor.country_name_to_numeric_dict)
-    }
-
-
-@app.get(
     '/const/canada_marriage_status',
     response_model=api_models.CanadaMarriageStatusResponse)
 async def get_canada_marriage_status():
@@ -1258,35 +783,6 @@ async def get_canada_marriage_status():
         'marriage_status_types': CanadaMarriageStatus.get_member_names()
     }
 
-
-@app.get(
-    '/const/sibling_relation_types',
-    response_model=api_models.SiblingRelationResponse)
-async def get_sibling_relation_types():
-    """Returns a list of names of sibling relation types
-
-    Note:
-        See :class:`vizard.api.models.SiblingRelationResponse` for more info.
-    """
-
-    return {
-        'sibling_relation_types': SiblingRelation.get_member_names()
-    }
-
-
-@app.get(
-    '/const/child_relation_types',
-    response_model=api_models.ChildRelationResponse)
-async def get_child_relation_types():
-    """Returns a list of names of child relation types
-
-    Note:
-        See :class:`vizard.api.models.ChildRelationResponse` for more info.
-    """
-
-    return {
-        'child_relation_types': ChildRelation.get_member_names()
-    }
 
 
 @app.get(
