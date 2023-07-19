@@ -168,7 +168,7 @@ class Payload(BaseModel):
             raise ValueError('Value cannot be negative')
         return value
 
-    occupation_period: float
+    occupation_period: float = 0.   # years
     occupation_period2: float = 0.  # years
     occupation_period3: float = 0.  # years
 
