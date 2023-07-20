@@ -18,7 +18,7 @@ from vizard.data.constant import (
     EducationFieldOfStudy
 )
 # helpers
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Tuple
 
 
 class BaseModel(pydantic.BaseModel):
@@ -377,6 +377,7 @@ class XaiResponse(BaseModel):
 
     xai_overall_score: float
     xai_top_k: Dict[str, float]
+    xai_txt_top_k: Dict[str, Tuple[float, str]]
 
 
 class XaiFeatureCategoriesResponse(BaseModel):
