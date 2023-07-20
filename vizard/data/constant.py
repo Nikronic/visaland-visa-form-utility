@@ -1,7 +1,7 @@
 __all__ = [
     'CANADA_5257E_KEY_ABBREVIATION', 'CANADA_5645E_KEY_ABBREVIATION', 'CANADA_5257E_VALUE_ABBREVIATION',
     'CANADA_5257E_DROP_COLUMNS', 'CANADA_5645E_DROP_COLUMNS', 'FINANCIAL_RATIOS', 'DOC_TYPES',
-    'CANADA_CUTOFF_TERMS', 'CANADA_FILLNA', 'DATEUTIL_DEFAULT_DATETIME',
+    'CANADA_CUTOFF_TERMS', 'CANADA_FILLNA', 'DATEUTIL_DEFAULT_DATETIME', 'FEATURE_NAME_TO_TEXT_MAP',
 
     # Data Enums shared all over the place
     'CustomNamingEnum', 'CanadaMarriageStatus',
@@ -487,3 +487,109 @@ Note:
     the possible groups that this feature could belong too (the currently 
     assigned group is indicated via parenthesis e.g. ``(x)``).
  """
+
+
+FEATURE_NAME_TO_TEXT_MAP = {
+    'P3.DOV.PrpsRow1.Funds.Funds': 'شرایط تمکن مالی',
+    'P1.PD.DOBYear.Period': 'شرایط سنی',
+    'P1.PD.CWA.Row2.Period': 'مدت زمان اقامت شما در کشور انگشت نگاری',
+    'P1.MS.SecA.DateOfMarr.Period': 'مدت زمان نعهل فعلی',
+    'P2.MS.SecA.Period': 'مدت زمان مزدوج بودن در ازدواج قبلی',
+    'P2.MS.SecA.Psprt.ExpiryDate.Remaining': 'مدت زمان باقی مانده از اعتبار پاسپورت',
+    'P3.DOV.PrpsRow1.HLS.Period': 'مدت زمان اقامت',
+    'P3.Edu.Edu_Row1.Period': 'مدت تحصیلات و آموزش حرفه ای',
+    'P3.Occ.OccRow1.Period': 'مدت اشتغال به آخرین شغل',
+    'P3.Occ.OccRow2.Period': 'مدت اشتغال به شغل قبلی',
+    'P3.Occ.OccRow3.Period': 'مدت اشتغال به شغل قبلی',
+    'p1.SecA.App.ChdMStatus': 'وضعیت تعهل',
+    'p1.SecB.Chd.X.ChdDOB.Period.Average': 'متوسط سن فرزندان',
+    'p1.SecC.Chd.X.ChdDOB.Period.Average': 'متوسط سن برادران و خواهران',
+    'P1.PD.Sex.Sex_Female': 'جنسیت زن',
+    'P1.PD.Sex.Sex_Male': 'جنسیت مرد',
+    'P2.MS.SecA.PrevMarrIndicator_False': 'عدم سابقه ازدواج قبلی',
+    'P2.MS.SecA.PrevMarrIndicator_True': 'سابقه ازدواج قبلی',
+    'P3.noAuthStay_False': 'عدم سابقه حضور بیش از مدت قانونی',
+    'P3.noAuthStay_True': 'سابقه حضور بیش از مدت قانونی',
+    'P3.refuseDeport_False': 'عدم سابقه رد یا دیپورتی ویزا',
+    'P3.refuseDeport_True': 'سابقه رد یا دیپورتی ویزا',
+    'P3.BGI2.PrevApply_False': 'نداشتن سابقه اقدام قبلی برای ویزا',
+    'P3.BGI2.PrevApply_True': 'انجام اقدام قبلی برای ویزا',
+    'x2_6': 'وضعیت تعهل مزدوج',
+    'x2_3': 'وضعیت تعهل مجرد',
+    'P1.PD.CWA.Row2.Status_1': 'وضعیت توریستی در کشور انگشت نگاری',
+    'P1.PD.CWA.Row2.Country_TURKEY': 'ترکیه به عنوان  کشور انگشت نگاری',
+    'P1.PD.CWA.Row2.Country_OTHER': 'سایر کشورها به عنوان  کشور انگشت نگاری',
+    'P1.PD.CWA.Row2.Country_Georgia': 'گرجستان به عنوان  کشور انگشت نگاری',
+    'P1.PD.CWA.Row2.Country_UAE': 'امارات به عنوان  کشور انگشت نگاری',
+    'P1.PD.CWA.Row2.Country_Armenia': 'ارمنستان به عنوان  کشور انگشت نگاری',
+    'P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit_family visit':  'هدف شما از سفر برای ملاقات خانواده',
+    'P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit_tourism': 'هدف شما از سفر توریسم',
+    'P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit_visit': 'هدف شما از ملاقات دوستان و اوقام دور',
+    'P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit_other': 'هدف سایر شما از سفر',
+    'P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit_business': 'هدف تجاری شما از سفر',
+    'P3.DOV.cntcts_Row1.RelationshipToMe.RelationshipToMe_f1': 'ملاقات اقوام درجه اول به عنوان ارتباط شما در هدف از سفر',
+    'P3.DOV.cntcts_Row1.RelationshipToMe.RelationshipToMe_f2': 'ملاقات اقوام درجه دوم به عنوان ارتباط شما در هدف از سفر',
+    'P3.DOV.cntcts_Row1.RelationshipToMe.RelationshipToMe_friend': 'ملاقات دوستانتان به عنوان ارتباط شما در هدف سفر',
+    'P3.DOV.cntcts_Row1.RelationshipToMe.RelationshipToMe_hotel': 'رفتن به هتل به عنوان ارتباط شما در هدف از سفر',
+    'P3.DOV.cntcts_Row1.RelationshipToMe.RelationshipToMe_ukn': 'مقصد نامتعارف به عنوان ارتباط شما در هدف از سفر',
+    'P3.DOV.cntcts_Row1.RelationshipToMe.RelationshipToMe_work': 'مقصد کاری شما در هدف از سفر',
+    'P3.cntcts_Row2.Relationship.RelationshipToMe_f1': 'ملاقات اقوام درجه اول به عنوان ارتباط شما در هدف  دوم از سفر',
+    'P3.cntcts_Row2.Relationship.RelationshipToMe_f2': 'ملاقات اقوام درجه دوم به عنوان ارتباط شما در هدف دوم از سفر',
+    'P3.cntcts_Row2.Relationship.RelationshipToMe_friend': 'ملاقات دوستانتان به عنوان ارتباط شما در هدف دوم از سفر',
+    'P3.cntcts_Row2.Relationship.RelationshipToMe_hotel': 'رفتن به هتل به عنوان ارتباط شما در هدف دوم از سفر',
+    'P3.cntcts_Row2.Relationship.RelationshipToMe_ukn': 'مقصد نامتعارف به عنوان ارتباط شما در هدف دوم از سفر',
+    'P2.MS.SecA.Psprt.ExpiryDate.Remaining': 'مدت اعتبار پاسپورت',
+    'P3.Edu.Edu_Row1.FieldOfStudy_unedu': 'عدم داشتن تحصیلات',
+    'P3.Edu.Edu_Row1.FieldOfStudy_master': 'داشتن تحصیلات کارشناسی ارشد',
+    'P3.Edu.Edu_Row1.FieldOfStudy_bachelor': 'داشتن تحصیلات کارشناسی',
+    'P3.Edu.Edu_Row1.FieldOfStudy_phd': 'داشتن تحصیلات دکترا',
+    'P3.Edu.Edu_Row1.FieldOfStudy_apprentice': 'داشتن تحصیلات کاردانی، فنی و حرفه ای',
+    'P3.Edu.Edu_Row1.FieldOfStudy_diploma': 'داشتن دیپلم های تحصیلی و فنی',
+    'P3.Occ.OccRow1.Occ.Occ_employee': 'وضعیت شغلی به عنوان کارمند',
+    'P3.Occ.OccRow1.Occ.Occ_OTHER': 'وضعیت شغلی نا معلوم',
+    'P3.Occ.OccRow1.Occ.Occ_student': 'عدم اشتغال و دانش آموز بودن',
+    'P3.Occ.OccRow1.Occ.Occ_housewife': 'عدم اشتفال و خانه دار بودن',
+    'P3.Occ.OccRow1.Occ.Occ_manager': 'وضعیت شغلی به عنوان مدیر',
+    'P3.Occ.OccRow1.Occ.Occ_retired': 'وضعیت شغلی به عنوان بازنشسته',
+    'P3.Occ.OccRow1.Occ.Occ_specialist': 'وضعیت شغلی به عنوان متخصص حرفه ای',
+    'P3.Occ.OccRow2.Occ.Occ_employee': 'وضعیت شغلی اسبق به عنوان کارمند',
+    'P3.Occ.OccRow2.Occ.Occ_OTHER': 'وضعیت شغلی اسبق نا معلوم',
+    'P3.Occ.OccRow2.Occ.Occ_student': 'عدم اشتغال و دانش آموز بودن شما در گذشته',
+    'P3.Occ.OccRow2.Occ.Occ_housewife': 'عدم اشتفال و خانه دار بودن در گذشته',
+    'P3.Occ.OccRow2.Occ.Occ_manager': 'وضعیت اسبق شغلی به عنوان مدیر',
+    'P3.Occ.OccRow2.Occ.Occ_retired': 'وضعیت اسبق شغلی به عنوان بازنشسته',
+    'P3.Occ.OccRow2.Occ.Occ_specialist': 'وضعیت اسبق شغلی به عنوان متخصص حرفه ای',
+    'P3.Occ.OccRow3.Occ.Occ_employee': 'وضعیت شغلی سابق به عنوان کارمند',
+    'P3.Occ.OccRow3.Occ.Occ_OTHER': 'وضعیت شغلی سابق نا معلوم',
+    'P3.Occ.OccRow3.Occ.Occ_student': 'عدم اشتغال و دانش آموز بودن شما در گذشته',
+    'P3.Occ.OccRow3.Occ.Occ_housewife': 'عدم اشتفال و خانه دار بودن در گذشته',
+    'P3.Occ.OccRow3.Occ.Occ_manager': 'وضعیت سابق شغلی به عنوان مدیر',
+    'P3.Occ.OccRow3.Occ.Occ_retired': 'وضعیت سابق شغلی به عنوان بازنشسته',
+    'P3.Occ.OccRow3.Occ.Occ_specialist': 'وضعیت سابق شغلی به عنوان متخصص حرفه ای',
+    'P1.PD.PrevCOR.Row.Count': 'تعداد کشورهایی که در گذشته در آن اقامت داشته اید',
+    'p1.SecC.Chd.X.ChdCOB.ForeignerCount': 'تعداد خواهران/برادرانی کهدر خارج از کشور دارید',
+    'p1.SecB.ChdMoFaSps.X.ChdCOB.ForeignerCount': 'تعداد فرزندان، پدر و مادر که در خارج از کشور دارید',
+    'p1.SecB.Chd.X.ChdAccomp.Count': 'تعداد فرزندان شما که همراه شما هستند',
+    'p1.SecA.ParAccomp.Count': 'همراهی پدر و مادر شما',
+    'p1.SecA.Sps.SpsAccomp.Count': 'همراهی همسر شما',
+    'p1.SecC.Chd.X.ChdAccomp.Count': 'تعداد برادران و خواهرانی که همراه شما هستند',
+    'p1.SecB.Chd.X.ChdRel.ChdCount': 'تعداد فرزندان شما',
+    'p1.SecC.Chd.X.ChdRel.ChdCount': 'تعداد برادران و خواهران شما',
+    'p1.SecX.LongDistAddr': 'تعداد اعضای خانواده ای که در خارج از شهر شما سکونت دارند',
+    'p1.SecX.ForeignAddr': 'تعداد اعضای خانواده ای که در خارج از کشور سکونت دارند',
+}
+"""Dictionary of features names to their textual descriptions
+
+This dictionary is used for generating descriptions
+with respect to the XAI values so we can tell the users
+why such decision is made textual manner. 
+
+Note:
+    Given that generating "beautiful" textual description is a
+    open problem in NLP domain (LLMs are doing a great job),
+    we have decided to use this dictionary for now instead of relying
+    on such large models for this simple task. For now, we devise
+    keywords that describe each feature, and use XAI value for generate
+    adjective (e.g., negative XAI value -> bad, positive XAI value -> good)
+    that are concatenated to textual keywords here.
+"""
