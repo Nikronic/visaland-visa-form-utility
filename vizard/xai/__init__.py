@@ -1,5 +1,6 @@
 __all__ = [
-    'FlamlTreeExplainer'
+    'FlamlTreeExplainer',
+    'xai_to_text'
 ]
 
 """Explainable AI (XAI) enables humans to understand the decisions or predictions made by the AI.
@@ -22,6 +23,7 @@ Submodules:
 
 # ours
 from .shap import FlamlTreeExplainer
+from .core import xai_to_text
 
 # helpers
 import logging
