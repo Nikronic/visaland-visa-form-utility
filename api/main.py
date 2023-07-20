@@ -12,11 +12,15 @@ from vizard.data.constant import (
     EducationFieldOfStudy,
     OccupationTitle,
     FeatureCategories,
-    FEATURE_CATEGORY_TO_FEATURE_NAME_MAP
+    FEATURE_CATEGORY_TO_FEATURE_NAME_MAP,
+    FEATURE_NAME_TO_TEXT_MAP
 )
 from vizard.models import preprocessors
 from vizard.models import trainers
-from vizard.xai import FlamlTreeExplainer
+from vizard.xai import (
+    FlamlTreeExplainer,
+    xai_to_text,
+)
 from vizard.api import apps as api_apps
 from vizard.api import database as api_database
 from vizard.api import models as api_models
@@ -31,7 +35,7 @@ import uvicorn
 import mlflow
 import dvc.api
 # helpers
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from pathlib import Path
 import argparse
 import logging
@@ -666,10 +670,20 @@ async def xai(features: api_models.Payload, k: int = 5):
     xai_overall_score: float = flaml_tree_explainer.overall_score(sample=sample)
     xai_top_k: Dict[str, float] = flaml_tree_explainer.top_k_score(sample=sample, k=k)
 
+    # TODO: cannot retrieve value for transformed (let's say categorical)
+    # for i, (k, v) in enumerate(xai_top_k.items()):
+        # print(f'idx={i} => feat={k}, val={sample[0, i]}, xai={v}\n')
+
+    # dict of {feature_name, xai value, textual description}
+    xai_txt_top_k: Dict[str, Tuple[float, str]] = xai_to_text(
+        xai_feature_values=xai_top_k,
+        feature_to_keyword_mapping=FEATURE_NAME_TO_TEXT_MAP
+    )
 
     return {
         'xai_overall_score': xai_overall_score,
-        'xai_top_k': xai_top_k
+        'xai_top_k': xai_top_k,
+        'xai_txt_top_k': xai_txt_top_k
     }
 
 @app.post('/grouped_xai', response_model=api_models.XaiAggregatedGroupResponse)
