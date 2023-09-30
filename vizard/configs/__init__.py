@@ -26,6 +26,25 @@ Note:
     from https://en.wikipedia.org/wiki/List_of_cities_in_Iran_by_province
 """
 
+TOURISM_WORLD_REGIONS = DATA_DIR / 'visa_world_regions.json'
+"""Categorization of world countries based on visa hardship for tourism
+
+Please see :class:`vizard.constant.VisaWorldRegions` for the ranking of regions
+
+Note:
+    This categorization is based on personal opinion of domain expert
+    and data might not necessarily back this up. Hence, use this categorization
+    with caution or use your own.
+
+Note:
+    The data has been gathered from Wikipedia and our experts including:
+        * https://en.wikipedia.org/wiki/World_Tourism_rankings
+        * https://en.wikipedia.org/wiki/European_Union
+        * https://en.wikipedia.org/wiki/Southeast_Asia
+        * https://en.wikipedia.org/wiki/List_of_cities_by_international_visitors
+        
+"""
+
 COUNTRIES_NAMES_FA2ENG = DATA_DIR / 'countries_fa2eng.csv'
 """The name of the countries from Persian (Fa) to English (En)
 
