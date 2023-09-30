@@ -276,3 +276,29 @@ class VisalandImportUser:
             return bank_balance_raw
         bank_balance: float = self._bank_balance_normalizer(float(bank_balance_raw))
         return bank_balance
+
+    def get_invitation_status(self, raw: bool = False) -> Union[str, bool]:
+        """Obtains if the user has invitation letter or not by provided data
+
+        If ``raw`` is ``False``, conversion to boolean is being done.
+
+        Args:
+            raw (bool, optional): If ``True``, will provide the raw value
+                directly provided by the 3rd-party provider. Defaults to False.
+
+        Returns:
+            Union[str, bool]: The invitation binary status.
+        """
+        data = self.data
+        has_invitation_raw: str = \
+            data[InformationCategories.LITERAL_DATA] \
+                [InformationCategories.EXTENSIVE.key] \
+                [InformationCategories.LITERAL_FIELDS] \
+                [InformationCategories.EXTENSIVE.HAS_INVITATION] \
+                [InformationCategories.LITERAL_VALUE]
+        
+        if raw:
+            return has_invitation_raw
+        has_invitation: bool = True if has_invitation_raw == '1' else False
+
+        return has_invitation
