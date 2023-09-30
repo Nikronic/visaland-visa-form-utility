@@ -221,3 +221,58 @@ class VisalandImportUser:
         real_estate_count: int = int(real_estate_count_raw)
         return real_estate_count
     
+    
+    @staticmethod
+    def _bank_balance_normalizer(balance: float) -> float:
+        """``Vizard``'s custom normalization for IRR to CAD
+
+        Note:
+            This is no standard method! Use on your own!
+        
+        Args:
+            balance (float): Balance in IRR
+
+        Returns:
+            float: Normalized IRR to CAD
+        """
+
+        IRR_TO_CAD_RATIO: float = 1e-6
+        IRR_TO_CAD_NORMALIZER_FACTOR: float = 10. * IRR_TO_CAD_RATIO
+        bank_balance: float = balance * IRR_TO_CAD_NORMALIZER_FACTOR
+        return bank_balance
+
+    def get_bank_balance(self, raw: bool = False) -> Union[str, float]:
+        """Obtains the bank balance of user by provided data
+
+        If ``raw`` is ``False``, conversion to exchange rate, then a multiplicative
+        factor is added as a normalizer. 
+
+        Note:
+            If you plan to use any other normalization (including z-score and so on),
+            please use ``raw=True``.
+
+        Note:
+            You can override internal normalizer by overriding :func:`_bank_balance_normalizer`.
+        
+        Args:
+            raw (bool, optional): If ``True``, will provide the raw value
+                directly provided by the 3rd-party provider. Defaults to False.
+
+        Returns:
+            Union[str, float]: The (customized normalized) bank balance
+        """
+        data = self.data
+        bank_balance_raw: str = \
+            data[InformationCategories.LITERAL_DATA] \
+                [InformationCategories.DOCUMENTS.key] \
+                [InformationCategories.LITERAL_FIELDS] \
+                [InformationCategories.DOCUMENTS.FINANCIAL.key] \
+                [InformationCategories.LITERAL_FIELDS] \
+                [InformationCategories.LITERAL_UNRAVEL] \
+                [InformationCategories.DOCUMENTS.FINANCIAL.BANK_BALANCE] \
+                [InformationCategories.LITERAL_VALUE]
+        
+        if raw:
+            return bank_balance_raw
+        bank_balance: float = self._bank_balance_normalizer(float(bank_balance_raw))
+        return bank_balance
