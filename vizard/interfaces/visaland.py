@@ -193,4 +193,31 @@ class VisalandImportUser:
         """
         return functional.json_to_dict(path=path)
     
+    def get_real_estate_count(self, raw: bool = False) -> Union[str, int]:
+        """Obtains the number of real estates owned by provided data
+
+        If ``raw`` is ``False``, conversion to integer is being done.
+        
+        Args:
+            raw (bool, optional): If ``True``, will provide the raw value
+                directly provided by the 3rd-party provider. Defaults to False.
+
+        Returns:
+            Union[str, int]: 
+        """
+        data = self.data
+        real_estate_count_raw: str = \
+            data[InformationCategories.LITERAL_DATA] \
+                [InformationCategories.DOCUMENTS.key] \
+                [InformationCategories.LITERAL_FIELDS] \
+                [InformationCategories.DOCUMENTS.FINANCIAL.key] \
+                [InformationCategories.LITERAL_FIELDS] \
+                [InformationCategories.LITERAL_UNRAVEL] \
+                [InformationCategories.DOCUMENTS.FINANCIAL.REAL_ESTATE_COUNT] \
+                [InformationCategories.LITERAL_VALUE]
+
+        if raw:
+            return real_estate_count_raw
+        real_estate_count: int = int(real_estate_count_raw)
+        return real_estate_count
     
