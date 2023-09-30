@@ -206,7 +206,7 @@ class VisalandImportUser:
                 directly provided by the 3rd-party provider. Defaults to False.
 
         Returns:
-            Union[str, int]: 
+            Union[str, int]: The number of real estate owned
         """
         data = self.data
         real_estate_count_raw: str = \
