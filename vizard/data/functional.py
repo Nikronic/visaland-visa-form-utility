@@ -3,7 +3,7 @@ __all__ = [
     'aggregate_datetime', 'tag_to_regex_compatible', 'change_dtype',
     'unit_converter', 'flatten_dict', 'xml_to_flattened_dict',
     'create_directory_structure_tree', 'dump_directory_structure_csv',
-    'process_directory', 'search_dict', 'config_csv_to_dict'
+    'process_directory', 'search_dict', 'config_csv_to_dict', 'json_to_dict'
 ]
 
 """
@@ -19,6 +19,7 @@ import numpy as np
 import collections
 import xmltodict
 import datetime
+import json
 import csv
 import re
 # ours: data
@@ -27,9 +28,10 @@ from vizard.data.constant import *
 # ours: helper
 from vizard.utils.helpers import loggingdecorator
 # helpers
-from typing import Any, Callable, Iterable, List, Literal, Optional, Union, cast
+from typing import Any, Callable, Iterable, List, Literal, Optional, Union, cast, Dict
 from enlighten import Manager
 from fnmatch import fnmatch
+from pathlib import Path
 import enlighten
 import logging
 import sys
@@ -777,6 +779,25 @@ def config_csv_to_dict(path: str) -> dict:
 
     config_df = pd.read_csv(path)
     return dict(zip(config_df[config_df.columns[0]], config_df[config_df.columns[1]]))
+
+
+def json_to_dict(path: Union[str, Path]) -> Dict:
+    """Converts a JSON file into a dictionary via :mod:`json`
+
+    Args:
+        path (Union[str, Path]): String path or :class:`pathlib.Path` to the JSON file
+
+    Returns:
+        Dict: A (nested) dictionary representative of JSON file
+    """
+
+    # convert Path to str
+    if isinstance(path, Path):
+        path = path.as_posix()
+
+    with open(path, 'rb') as json_file:
+        json_data = json.load(json_file)
+    return json_data
 
 
 @loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=False, input=False)
