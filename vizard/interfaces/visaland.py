@@ -1,10 +1,11 @@
-# ours
+# ours: data
 from vizard.data import functional
+from vizard.data.constant import CanadaContactRelation
 
 # helpers
 from pathlib import Path
 from enum import Enum, auto
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Optional
 
 
 # data used for parsing other fields gathered manually including 
@@ -180,6 +181,8 @@ class VisalandImportUser:
         """
         self.path = path.as_posix() if isinstance(path, Path) else path
         self.data = self._json_to_dict(self.path)
+
+        self.has_invitation: Optional[bool] + None
     
     def _json_to_dict(self, path: Union[str, Path] = None) -> Dict:
         """A wrapper around :func:`vizard.data.functional.json_to_dict`
@@ -301,4 +304,96 @@ class VisalandImportUser:
             return has_invitation_raw
         has_invitation: bool = True if has_invitation_raw == '1' else False
 
+        # set in class level for `get_invitation_relation`
+        self.has_invitation = has_invitation
         return has_invitation
+
+    def get_invitation_relation(self, raw: bool = False) -> str:
+        """Obtain the relation of the inviter of the user by provided data
+
+        If ``raw`` is ``False``, the input string of relation is converted
+        to :class:`Enum` classes defined in ``vizard``, 
+        i.e., :class:`vizard.data.constant.CanadaContactRelation`.
+
+        Args:
+            raw (bool, optional): If ``True``, will provide the raw value
+                directly provided by the 3rd-party provider. Defaults to False.
+
+        Returns:
+            str: 
+                The relation, either raw string provided by user or processed
+                via :class:`vizard.data.constant.CanadaContactRelation`.
+        """
+
+        if not self.has_invitation:
+            raise ValueError(
+                f'User has no invitation letter. Make sure you already'
+                f' have called method `get_invitation_status` first!')
+        
+        data = self.data
+        invitation_relation_raw: str = \
+            data[InformationCategories.LITERAL_DATA] \
+                [InformationCategories.EXTENSIVE.key] \
+                [InformationCategories.LITERAL_FIELDS] \
+                [InformationCategories.EXTENSIVE.INVITER.key] \
+                [InformationCategories.LITERAL_FIELDS] \
+                [InformationCategories.LITERAL_UNRAVEL] \
+                [InformationCategories.EXTENSIVE.INVITER.RELATION] \
+                [InformationCategories.LITERAL_VALUE]
+        
+        if raw:
+            return invitation_relation_raw
+        
+        # TODO: move to outside as a constant
+        rel_cat = {
+            # order matters, put weaker on top, i.e. put 'law' above 'brother',
+            #  so 'brother in law' get handled by 'law' rule than 'bother' rule
+            'law': 'f2',
+            'nephew': 'f2',
+            'niece': 'f2',
+            'aunt': 'f2',
+            'uncle': 'f2',
+            'cousin': 'f2',
+            'relative': 'f2',
+            'grand': 'f2',
+            'parent': 'f1',
+            'mother': 'f1',
+            'father': 'f1',
+            'child': 'f1',
+            'daughter': 'f1',
+            'brother': 'f1',
+            'sister': 'f1',
+            'wife': 'f1',
+            'husband': 'f1',
+            'step': 'f1',
+            'son': 'f1',
+            'partner': 'f1',
+            'fiance': 'f1',
+            'fiancee': 'f1',
+            'other': 'ukn',
+            'friend': 'friend',
+            'league': 'work',
+            'symposium': 'work',
+            'hote': 'hotel',
+            'hotel': 'hotel',
+        }
+
+        # TODO: make it general (in functional) or class function.
+        def fix_rel(
+                string: str,
+                dic: dict,
+                if_nan: str = 'ukn'):
+            string = string.lower()
+            for k, v in dic.items():
+                if k in string:
+                    string = string.replace(string, v)
+                    return string
+            return if_nan
+
+        invitation_relation: CanadaContactRelation = fix_rel(
+            string=invitation_relation_raw.lower(),
+            dic=rel_cat,
+            if_nan='ukn'
+        )
+
+        return invitation_relation
