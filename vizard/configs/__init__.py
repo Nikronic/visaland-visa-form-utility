@@ -25,3 +25,12 @@ Note:
     The list of cities and their corresponding province have been extracted
     from https://en.wikipedia.org/wiki/List_of_cities_in_Iran_by_province
 """
+
+COUNTRIES_NAMES_FA2ENG = DATA_DIR / 'countries_fa2eng.csv'
+"""The name of the countries from Persian (Fa) to English (En)
+
+Note:
+    The list of countries have been obtained from Wikipedia at 
+    https://en.wikipedia.org/wiki/List_of_countries_and_dependencies_by_area
+    and modified slightly (ignored territories of mainland countries)
+"""
