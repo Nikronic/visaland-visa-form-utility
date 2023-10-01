@@ -368,6 +368,37 @@ class Sex(CustomNamingEnum):
         return self._name_
 
 
+class VisaWorldRegions:
+    """Regions of the world score (rank) based on hardship of getting a tourism visa
+
+    This include:
+
+        * Toughest (30): USA/Japan/UK/Australia/Canada
+        * Tough    (10): EU (European Union)
+        * Mediocre  (5): SEA (South East Asia), SA (South America)
+        * Easy      (2): Not dominant regions but famous touristic, e.g. Turkey
+        * Other     (1): All other countries (sorry if yours not in explicitly mentioned!)
+
+    Note:
+        This categorization, ranking and score all are based on personal opinion
+        of domain expert and data might not necessarily back this up.
+        Hence, use this categorization with caution or use your own.
+    
+    See Also:
+        This is being currently used in getting the travel history score. For
+        example, please see method ``get_travel_history`` of
+        :class:`vizard.interface.VisalandImportUser`.
+    """
+
+    TOUGHEST: int = 50
+    TOUGH: int = 20
+    MEDIOCRE: int = 8
+    EASY: int = 3
+    OTHER: int = 1
+
+    LITERAL_OTHER: str = 'OTHER'
+
+
 # data used for aggregating SHAP values into categories based on features
 class FeatureCategories(CustomNamingEnum):
     """Categories of features based on their meaning

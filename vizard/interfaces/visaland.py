@@ -1,10 +1,18 @@
+# ours: config
+from vizard.configs import (
+    CANADA_COUNTRY_CODE_TO_NAME,
+    TOURISM_WORLD_REGIONS,
+    COUNTRIES_NAMES_FA2ENG
+)
 # ours: data
 from vizard.data import functional
-from vizard.data.constant import CanadaContactRelation
+from vizard.data.constant import (
+    CanadaContactRelation,
+    VisaWorldRegions
+)
 
 # helpers
 from pathlib import Path
-from enum import Enum, auto
 from typing import List, Dict, Union, Optional
 
 
@@ -397,3 +405,119 @@ class VisalandImportUser:
         )
 
         return invitation_relation
+
+    def get_travel_history(
+            self,
+            raw: bool = False,
+            lang: str = 'en'
+        ) -> Union[Union[Dict[VisaWorldRegions, int], float], List]:
+        """Obtain the countries visited as a travel history of the user by provided data
+
+        If ``raw`` is ``True``, a chronological list (including duplicates)
+        containing names of the countries will be returned. 
+        
+        If ``raw`` is ``False``,
+        then we first (create/)use our own world regions based on the hardship of getting
+        a visa as defined in :class:`VisaWorldRegions`. Then via some domain expert knowledge
+        that assigned (See :var:`vizard.interface.data.TOURISM_WORLD_REGIONS`) countries
+        to each of the regions defined in :class:`VisaWorldRegions`. Finally,
+        we count how many times the user have visited countries of each region.
+        In the end, we return a dictionary of regions of the count of visitation; along
+        side the total score i.e., weighted sum of regions (weights are defined in
+        :class:`VisaWorldRegions`)
+
+        Args:
+            raw (bool, optional): If ``True``, will provide the raw value
+                directly provided by the 3rd-party provider. Defaults to False.
+            lang (str, optional): The language used for countries names. The target
+                language will be English ``lang='en'``. Defaults to ``'en'``.
+
+        Returns:
+            List: A list of countries names chronologically
+        """
+        data = self.data
+
+        if lang not in ['en', 'fa']:
+            raise ValueError(f'"lang={lang}" is not recognized.'
+                             f'Please use `"en"` for `"fa"`.')
+
+        # visa world regions
+        tourism_world_regions: Dict[str, List[str]] = functional.json_to_dict(
+            TOURISM_WORLD_REGIONS
+        )
+
+        # converting countries name from Fa to English
+        countries_names_fa2eng: Dict[str, str] = functional.config_csv_to_dict(
+            COUNTRIES_NAMES_FA2ENG.as_posix()
+        )
+        
+        # we don't care for start date and end date of travel
+        #   which are recorded in `TravelHistory.START_DATE` and `TravelHistory.END_DATE`
+        travel_history_container: List = \
+            data[InformationCategories.LITERAL_DATA] \
+                [InformationCategories.EXTENSIVE.key] \
+                [InformationCategories.LITERAL_FIELDS] \
+                [InformationCategories.EXTENSIVE.TRAVEL_HISTORY.key] \
+                [InformationCategories.LITERAL_FIELDS]
+        # ordered list of countries names
+        travel_history_raw: List[str] = []
+        for travel in travel_history_container:
+            travel_history_raw.append(
+                travel[InformationCategories.EXTENSIVE.TRAVEL_HISTORY.COUNTRY] \
+                    [InformationCategories.LITERAL_VALUE]
+            )
+        # verify country name is correct
+        #   note that this step could be entirely ignored since we only care about those regions
+        #   but since people have many issues in "typing" the correct name, it is better to double check
+        country_names: List[str] = list(
+            functional.config_csv_to_dict(CANADA_COUNTRY_CODE_TO_NAME).values()
+        )
+
+        # list for translated names of countries
+        travel_history_raw_trans: List[str] = []
+
+        # extract country names
+        for travel in travel_history_container:
+            # get country name in source lang
+            travel_country: str = \
+                travel[InformationCategories.EXTENSIVE.TRAVEL_HISTORY.COUNTRY] \
+                    [InformationCategories.LITERAL_VALUE]
+            
+            # translate from Farsi to English
+            if lang == 'fa':
+                # change country name to English (from Persian)
+                travel_country = countries_names_fa2eng.get(travel_country, travel_country)
+                # check if country is valid (typo and stuff). Count as "other" in your scenario
+                if travel_country not in country_names:
+                    print(f'Country "{travel_country}" is not valid!')
+            travel_history_raw_trans.append(travel_country)
+        
+        travel_history_raw = travel_history_raw_trans
+        if raw:
+            return travel_history_raw
+        
+        # count based on region
+        travel_history_regions: Dict[VisaWorldRegions, int] = {}
+        for travel_country in travel_history_raw:
+            # return the region of the country (key of dict of region:country)
+            region = next(
+                (_region for _region, _countries in tourism_world_regions.items() \
+                if travel_country in _countries),
+                VisaWorldRegions.LITERAL_OTHER
+                )
+            
+            # count each region
+            if region in travel_history_regions:
+                travel_history_regions[region] += 1
+            else:
+                travel_history_regions[region] = 1
+        
+        # compute travel history score
+        travel_history_score: float = 0.
+        for region in travel_history_regions:
+            travel_history_score += travel_history_regions[region] * VisaWorldRegions[region]
+
+        return (
+            travel_history_regions,  # region:count
+            travel_history_score     # total score
+        )
