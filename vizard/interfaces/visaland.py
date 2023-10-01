@@ -448,7 +448,7 @@ class VisalandImportUser:
 
         # converting countries name from Fa to English
         countries_names_fa2eng: Dict[str, str] = functional.config_csv_to_dict(
-            COUNTRIES_NAMES_FA2ENG.as_posix()
+            COUNTRIES_NAMES_FA2ENG
         )
         
         # we don't care for start date and end date of travel
