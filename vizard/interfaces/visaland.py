@@ -12,6 +12,7 @@ from vizard.data.constant import (
 )
 
 # helpers
+from enum import Enum
 from pathlib import Path
 from typing import List, Dict, Union, Optional
 
@@ -37,7 +38,38 @@ class DatabaseConstants:
     LITERAL_DATA: str = 'data'
     LITERAL_FIELDS: str = 'fields'
     LITERAL_VALUE: str = 'value'
+    LITERAL_STATE: str = 'state'
     LITERAL_UNRAVEL: int = 0
+
+
+class DashboardProcedureState(Enum):
+    """The step of the procedure the user is currently in on 3rd party "other" data provider/
+
+    Class variable descriptions:
+        
+        * ``CONFIRMATION_CONTRACT``: TBD
+        * ``CONFIRMATION_ACCOUNTING``: TBD
+        * ``CONFIRMATION_BY_EXECUTIVE_EXPERT``: TBD
+        * ``CONFIRMATION_CHECKOUT_BY_COUNTER``: TBD
+        * ``CONFIRMATION_CHECKOUT_BY_ADMIN``: TBD
+        * ``SENDING_FINGERPRINT_DOCUMENT``: TBD
+        * ``VISA_ACCEPT``: User's visa has been accepted
+        * ``VISA_REJECT``: User's visa has been rejected
+    
+    Note:
+        This is not similar to other documents that have had official structure which then
+        we built interfaces on top of that. This only exist in our system and should be
+        customized for your own case.
+    """
+
+    CONFIRMATION_CONTRACT: int = 1
+    CONFIRMATION_ACCOUNTING: int = 2
+    CONFIRMATION_BY_EXECUTIVE_EXPERT: int = 3
+    CONFIRMATION_CHECKOUT_BY_COUNTER: int = 4
+    CONFIRMATION_CHECKOUT_BY_ADMIN: int = 5
+    SENDING_FINGERPRINT_DOCUMENT: int = 6
+    VISA_ACCEPT: int = 7
+    VISA_REJECT: int = 8
 
 
 class TravelHistory(DatabaseConstants):
@@ -521,3 +553,34 @@ class VisalandImportUser:
             travel_history_regions,  # region:count
             travel_history_score     # total score
         )
+
+    def get_visa_result(self, raw: bool = False) -> Union[str, DashboardProcedureState]:
+        """Obtain the visa result of the user by provided data
+
+        If ``raw`` is ``False``, the conversion to vizard's internal states (which is in fact
+        adopted from the 3rd party provider) will be done. Otherwise, it will be an integer
+        defined in the 3rd party provider.
+
+        Note:
+            This is the label (dependent variable) in an analytical system.
+
+        Args:
+            raw (bool, optional): If ``True``, will provide the raw value
+                directly provided by the 3rd-party provider. Defaults to False.
+
+        Returns:
+            Union[str, DashboardProcedureState]: The status of the user's visa
+        """
+
+        data = self.data
+
+        # getting the visa result
+        visa_result_raw: int = \
+            data[InformationCategories.LITERAL_DATA] \
+                [InformationCategories.LITERAL_STATE]
+        
+        if raw:
+            return visa_result_raw
+        
+        visa_result: DashboardProcedureState = DashboardProcedureState(visa_result_raw)
+        return visa_result
