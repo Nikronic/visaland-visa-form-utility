@@ -236,7 +236,12 @@ flaml_tree_explainer = FlamlTreeExplainer(
 
 
 # instantiate fast api app
-app = fastapi.FastAPI()
+app = fastapi.FastAPI(
+    title='Vizard',
+    summary='Visa chance AI assistant',
+    version=VIZARD_VERSION,
+    
+)
 
 # fastapi cross origin
 origins = ['*']
