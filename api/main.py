@@ -259,7 +259,6 @@ def _preprocess(**kwargs):
 
     # 1 P1.PD.Sex.Sex
     sex = kwargs['sex']
-    sex = sex.lower().title()  # female -> Female, ...
     features.append(sex)
 
     # 7 P1.PD.CWA.Row2.Country

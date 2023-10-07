@@ -132,12 +132,12 @@ See Also:
 class Payload(BaseModel):
 
     sex: str
-
     @validator('sex')
     def _sex(cls, value):
         if value not in Sex.get_member_names():
-            raise ValueError(f'"{value}" is not valid.'
-                             f' Only "{Sex.get_member_names()}" are available.')
+            raise ValueError(
+                f'"{value}" is not valid.'
+                f' Only "{Sex.get_member_names()}" are available.')
         return value
 
     country_where_applying_country: str = 'TURKEY'
@@ -376,6 +376,14 @@ class Payload(BaseModel):
             raise ValueError('Value cannot be negative or > 7 + 4')
         return value
 
+    def __init__(self, **data):
+        
+        # sex
+        data['sex'] = data['sex'].lower().capitalize()  # female -> Female, ...
+        # country_where_applying_country
+        super().__init__(**data)
+        
+        
     class Config:
         orm_mode = True
 
