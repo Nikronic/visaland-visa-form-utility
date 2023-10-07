@@ -5,7 +5,8 @@ __all__ = [
 
     # Data Enums shared all over the place
     'CustomNamingEnum', 'CanadaMarriageStatus',
-    'CanadaContactRelation', 'CanadaResidencyStatus', 'Sex', 'EducationFieldOfStudy'
+    'CanadaContactRelation', 'CanadaResidencyStatus', 'Sex', 'EducationFieldOfStudy',
+    'CountryWhereApplying'
 ]
 
 import datetime
@@ -364,6 +365,24 @@ class Sex(CustomNamingEnum):
         _name = super(CustomNamingEnum, self).name
         # convert foobar to Foobar (i.e. Female, Male)
         _name: str = _name.lower().capitalize()
+        self._name_ = _name
+        return self._name_
+
+
+class CountryWhereApplying(CustomNamingEnum):
+    """Countries that applicant can go for fingerprint (i.e., apply for visa from)
+    """
+
+    ARMENIA = auto()
+    GEORGIA = auto()
+    UAE     = auto()
+    TURKEY  = auto()
+    OTHER   = auto()
+
+    @DynamicClassAttribute
+    def name(self):
+        _name = super(CustomNamingEnum, self).name
+        _name: str = _name.upper()
         self._name_ = _name
         return self._name_
 

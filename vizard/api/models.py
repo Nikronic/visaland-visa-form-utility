@@ -16,7 +16,8 @@ from vizard.data.constant import (
     CanadaContactRelation,
     CanadaResidencyStatus,
     Sex,
-    EducationFieldOfStudy
+    EducationFieldOfStudy,
+    CountryWhereApplying
 )
 # helpers
 from typing import Any, Dict, List, Tuple, Type, Optional
@@ -141,6 +142,12 @@ class Payload(BaseModel):
         return value
 
     country_where_applying_country: str = 'TURKEY'
+    @validator('country_where_applying_country')
+    def _country_where_applying_country(cls, value):
+        if value.upper() not in CountryWhereApplying.get_member_names():
+            raise ValueError(
+                f'Country "{value}" is not valid in this system.')
+        return value
 
     country_where_applying_status: str = 'OTHER'
     @validator('country_where_applying_status')
@@ -381,6 +388,24 @@ class Payload(BaseModel):
         # sex
         data['sex'] = data['sex'].lower().capitalize()  # female -> Female, ...
         # country_where_applying_country
+        country_where_applying_country = data['country_where_applying_country']
+        def __country_where_applying_country(value: str) -> str:
+            value = value.upper()
+            if value not in CountryWhereApplying.get_member_names():
+                value = CountryWhereApplying.OTHER.name
+                return value
+            if value == CountryWhereApplying.ARMENIA.name:
+                value = 'Armenia'
+                return value
+            elif value == CountryWhereApplying.GEORGIA.name:
+                value = 'Georgia'
+                return value
+            else:
+                return value
+        data['country_where_applying_country'] = __country_where_applying_country(
+            value=country_where_applying_country
+        )
+
         super().__init__(**data)
         
         
