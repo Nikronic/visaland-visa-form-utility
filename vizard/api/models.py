@@ -141,15 +141,15 @@ class Payload(BaseModel):
         return value
 
     country_where_applying_country: str = 'TURKEY'
-    country_where_applying_status: str = 'OTHER'
 
-    @validator(
-        'country_where_applying_status'
-    )
+    country_where_applying_status: str = 'OTHER'
+    @validator('country_where_applying_status')
     def _residence_status(cls, value):
         value = value.lower().strip()
         if value not in CanadaResidencyStatus.get_member_names():
-            raise ValueError(f'"{value}" is not valid')
+            raise ValueError(
+                f'"{value}" is not valid'
+                f'Please use one of "{CanadaResidencyStatus.get_member_names()}"')
         return value
 
     previous_marriage_indicator: bool = False
