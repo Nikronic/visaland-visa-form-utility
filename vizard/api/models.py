@@ -160,6 +160,15 @@ class Payload(BaseModel):
         return value
 
     previous_marriage_indicator: bool = False
+    @validator('previous_marriage_indicator')
+    def _previous_marriage_indicator(cls, value):
+        transformed_value: bool = False
+        if isinstance(value, str):
+            transformed_value = True if value.lower() == 'true' else False
+        else:
+            transformed_value = value
+        return transformed_value
+
 
     purpose_of_visit: str = 'tourism'
     funds: float = 8000.
