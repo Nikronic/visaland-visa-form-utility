@@ -8,6 +8,7 @@ __all__ = [
 # core
 import pydantic
 from pydantic import validator
+from pydantic.fields import ModelField
 import json
 # ours
 from vizard.data.constant import (
@@ -18,7 +19,7 @@ from vizard.data.constant import (
     EducationFieldOfStudy
 )
 # helpers
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Type, Optional
 
 
 class BaseModel(pydantic.BaseModel):
@@ -48,6 +49,84 @@ class PredictionResponse(BaseModel):
         This is the final goal of the project from technical aspect
     """
     result: float
+
+    
+def validate_model_fields(
+        model: BaseModel,
+        fields2docs: Dict[str, str]
+    ) -> None:
+    """Checks if all fields of the pydantic model is covered by ``fields2docs``
+
+    In other words, ``model`` 's  fields must always be a subset of ``fields2docs``
+    since ``fields2docs`` contains the documentation for all the fields (i.e., the
+    entire features/columns/attributes)
+
+    Args:
+        model (BaseModel): Pydantic model representing the input or output of the API
+        fields2docs (Dict[str, str]): A dictionary of ``model`` 's fields to their 
+            documentation string.
+
+    Raises:
+        ValueError: If there is a field in ``model`` that is not available in ``fields2docs``
+    """
+
+    # get the model fields
+    model_fields: Dict[str, ModelField] = model.__fields__
+    # check subset
+    if not model_fields.keys() <= fields2docs.keys():
+        raise ValueError('Not all model fields are covered by ``fields2docs``.')
+
+
+payload_fields2docs: Dict[str, str] = {
+    'sex': 'The sex of the user. Input must be one of ["Female", "Male"]', 
+    'country_where_applying_country': 'The country the applicants goes for fingerprint. Input must be a string in UPPERCASE.', 
+    'country_where_applying_status': 'The residency status of the applicant in the country the they go for fingerprint. Input must be a string in ["citizen", "visitor", "OTHER"]', 
+    'previous_marriage_indicator': 'Whether or not the user has previous marriage. `true` or `false`.', 
+    'purpose_of_visit': 'The purpose of visit. Input must be one of ["family visit", "visit", "tourism", "other"]', 
+    'funds': 'How much money the user is bringing. Input must be a single float.', 
+    'contact_relation_to_me': 'When user is visiting, who the contact is. Input must be one of ["f1", "f2", "friend", "hotel", "ukn"]', 
+    'contact_relation_to_me2': 'When user is visiting, who the contact is. Input must be one of ["f1", "f2", "friend", "hotel", "ukn"]', 
+    'education_field_of_study': 'Study level of the user. Input must be one of ["phd", "master", "bachelor", "diploma", "apprentice", "unedu"]', 
+    'occupation_title1': 'Occupation of the user. Input must be one of ["manager", "specialist", "employee", "retired", "student", "OTHER"]', 
+    'occupation_title2': 'Occupation of the user. Input must be one of ["manager", "specialist", "employee", "retired", "student", "OTHER"]', 
+    'occupation_title3': 'Occupation of the user. Input must be one of ["manager", "specialist", "employee", "retired", "student", "OTHER"]', 
+    'no_authorized_stay': 'Has the user had stayed longer than they should? Input must be `true` or `false`.', 
+    'refused_entry_or_deport': 'Has the user denied entry or deported? Input must be `true` or `false`', 
+    'previous_apply': 'Has the user previously applied for the visa? Input must be `true` or `false`', 
+    'date_of_birth': 'The age of the person. Input must be a single float in years larger than 18.', 
+    'country_where_applying_period': 'How long the user stays in the country the applicants goes for fingerprint. Must be a single integer in days.', 
+    'applicant_marital_status': 'The marital status of the user. Input must be one of ["single", "married", "divorced", "widowed", "unknown"]', 
+    'marriage_period': 'How long the user has been married. Input must be a single float in years (zero if not married).', 
+    'previous_marriage_period': 'How long the user has been married previously (no longer in the same marriage). Input must be a single float in years.', 
+    'passport_expiry_date_remaining': 'How much longer the passport is valid. Input must be a single float in years between 1 and 5.', 
+    'how_long_stay_period': 'How long the user will be staying. Input must be a single integer in days.', 
+    'education_period': 'The study length of the user in the last degree. Input must be a single float in years.', 
+    'occupation_period': 'How long the user has been doing the `occupation_title1` job. Input must be a single float in years.', 
+    'occupation_period2': 'How long the user has been doing the `occupation_title2` job. Input must be a single float in years.', 
+    'occupation_period3': 'How long the user has been doing the `occupation_title3` job. Input must be a single float in years.', 
+    'previous_country_of_residence_count': 'How many other countries the user have resided previously. Input must be a single integer.', 
+    'sibling_foreigner_count': 'How many siblings of the user are residing in a foreign country. Input must be a single integer.', 
+    'child_mother_father_spouse_foreigner_count': 'How many of first-degree relatives are residing in a foreign country. Input must be a single integer.', 
+    'child_accompany': 'How many of the users children are accompanying the user. Input must be a single integer.', 
+    'parent_accompany': 'Are the parents of the user accompanying him/her? Input must be a single integer between 0 to 2. 0 means none, 2 means both father and mother.', 
+    'spouse_accompany': 'Is the spouse of the user accompanying him/her? Input must be either 0 or 1 (you can use `true` or `false`).', 
+    'sibling_accompany': 'How many of the siblings are accompanying the user. Input must be a integer (0 if none accompanying).', 
+    'child_average_age': 'The average age of children of the user is. Input must a float (0 if no children).', 
+    'child_count': 'How many children the user has. Input must be a integer (0 if no children).', 
+    'sibling_average_age': 'The average age of siblings of the user is. Input must a float (0 if no sibling).', 
+    'sibling_count': 'How many siblings the user has. Input must be a integer (0 if no siblings).', 
+    'long_distance_child_sibling_count': 'How many of the children or siblings are residing outside of the city the user is currently residing in. Input must be a integer (0 if none).', 
+    'foreign_living_child_sibling_count': 'How many of the children or siblings are residing in a foreign country. Input must be a integer (0 if none).',
+}
+"""A dictionary of input payload and their documentation for OpenAPI docs
+
+The keys are the fields of :class:`Payload` and values are the description (documentation)
+for each field. This dictionary is used to extend the `json_schema` generated by ``Pydantic``
+to include these documentations.
+
+See Also:
+    class `Config` inside :class:`Payload`.
+"""
 
 
 class Payload(BaseModel):
@@ -299,6 +378,20 @@ class Payload(BaseModel):
 
     class Config:
         orm_mode = True
+
+        @staticmethod
+        def schema_extra(schema: Dict[str, Any], model: Type['Payload']) -> None:
+            # get the json_schema from pydantic
+            properties: Dict[Dict[str, str]] = schema.get('properties', {})
+
+            # get all the Field of Payload (i.e., class variables)
+            fields: List[str] = Payload.__fields__
+            # check if model's fields are subset of documentation fields
+            validate_model_fields(model=Payload, fields2docs=payload_fields2docs)
+            # traverse through the original properties and add "'doc': documentation" to it
+            for field in fields:
+                properties[field]['doc'] = payload_fields2docs[field]
+        
 
 
 class CanadaMarriageStatusResponse(BaseModel):
