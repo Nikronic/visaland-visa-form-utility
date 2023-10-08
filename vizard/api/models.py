@@ -182,9 +182,11 @@ class Payload(BaseModel):
         return value
 
     funds: float = 8000.
-
     @validator('funds')
     def _funds(cls, value):
+        if isinstance(value, str):
+            if not value.isnumeric():
+                raise ValueError('funds must be a number.')
         if value <= 0.:
             raise ValueError('funds cannot be negative number.')
         return value
