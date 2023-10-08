@@ -400,11 +400,14 @@ class Payload(BaseModel):
         return value
 
     child_count: int = 0
-
     @validator('child_count')
     def _child_count(cls, value):
-        if (value < 0) and (value > 4):
-            raise ValueError('Value cannot be negative or > 4')
+        if value < 0:
+            raise ValueError('Value cannot be negative.')
+        if value > CanadaGeneralConstants.MAXIMUM_CHILD_COUNT:
+            raise ValueError(
+                f'Currently the value cannot be larger than '
+                f' "{CanadaGeneralConstants.MAXIMUM_CHILD_COUNT}"')
         return value
     
     sibling_average_age: int = 0.
