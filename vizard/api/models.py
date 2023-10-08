@@ -332,11 +332,17 @@ class Payload(BaseModel):
         return value
 
     child_mother_father_spouse_foreigner_count: int = 0
-
     @validator('child_mother_father_spouse_foreigner_count')
     def _child_mother_father_spouse_foreigner_count(cls, value):
-        if (value < 0) and (value > 4 + 2 + 1):
-            raise ValueError('Value cannot be negative or > 4 + 2 + 1')
+        if value < 0:
+            raise ValueError('Value cannot be negative.')
+        total_count: int = CanadaGeneralConstants.MAXIMUM_CHILD_COUNT + \
+                           CanadaGeneralConstants.MAXIMUM_PARENT_COUNT + \
+                           CanadaGeneralConstants.MAXIMUM_SPOUSE_COUNT
+        if value > total_count:
+            raise ValueError(
+                f'Total count of children, parent and spouse cannot be larger'
+                f' than 7 (4 child, 2 parent and 1 spouse).')
         return value
 
     child_accompany: int = 0

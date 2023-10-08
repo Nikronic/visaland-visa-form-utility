@@ -440,6 +440,18 @@ class CanadaGeneralConstants:
     """Maximum sibling foreigner count
     """
 
+    MAXIMUM_CHILD_COUNT: int = 4
+    """Maximum number of children
+    """
+
+    MAXIMUM_PARENT_COUNT: int = 2
+    """Obviously!
+    """
+
+    MAXIMUM_SPOUSE_COUNT: int = 1
+    """Canada isn't a muslim country!
+    """
+
 # data used for aggregating SHAP values into categories based on features
 class FeatureCategories(CustomNamingEnum):
     """Categories of features based on their meaning
