@@ -419,6 +419,15 @@ class CanadaGeneralConstants:
         much other uses cases other than being a placeholder for constant values.
     """
     MINIMUM_AGE: float = 18.
+    """Minimum age for ``date_of_birth``
+    """
+
+    MINIMUM_EXPIRY_PASSPORT: float = 0.5
+    """Minimum time required for `passport_expiry_date_remaining`
+    """
+    MAXIMUM_EXPIRY_PASSPORT: float = 10.
+    """Maximum time required for `passport_expiry_date_remaining`
+    """
 
 
 # data used for aggregating SHAP values into categories based on features

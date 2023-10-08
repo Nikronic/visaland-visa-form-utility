@@ -245,7 +245,6 @@ class Payload(BaseModel):
         return value
 
     country_where_applying_period: float = 30.  # days
-
     @validator('country_where_applying_period')
     def _country_where_applying_period(cls, value):
         if value < 0:
@@ -265,11 +264,12 @@ class Payload(BaseModel):
         return value
 
     passport_expiry_date_remaining: float = 3.  # years
-
     @validator('passport_expiry_date_remaining')
     def _passport_expiry_date_remaining(cls, value):
-        if (value < 0) and (value > 10):
-            raise ValueError('Value cannot be negative or > 10')
+        if (value < CanadaGeneralConstants.MINIMUM_EXPIRY_PASSPORT):
+            raise ValueError('The expiry date of your passport is too low.')
+        if (value > CanadaGeneralConstants.MAXIMUM_EXPIRY_PASSPORT):
+            raise ValueError('A passport cannot legally have such long expiry date.')
         return value
 
     how_long_stay_period: float = 30.  # days
