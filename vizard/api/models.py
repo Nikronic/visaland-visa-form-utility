@@ -314,11 +314,10 @@ class Payload(BaseModel):
         return value
 
     previous_country_of_residence_count: int = 0
-
     @validator('previous_country_of_residence_count')
     def _previous_country_of_residence_count(cls, value):
-        if (value < 0) and (value > 5):
-            raise ValueError('Value cannot be negative or > 5')
+        if value < 0:
+            raise ValueError('Value cannot be negative.')
         return value
 
     sibling_foreigner_count: int = 0
