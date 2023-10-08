@@ -383,8 +383,13 @@ class Payload(BaseModel):
 
     @validator('sibling_accompany')
     def _sibling_accompany(cls, value):
-        if (value < 0) and (value > 7):
-            raise ValueError('Value cannot be negative or > 7')
+        if value < 0:
+            raise ValueError('Value cannot be negative.')
+        if value > CanadaGeneralConstants.MAXIMUM_SIBLING_COUNT:
+            raise ValueError(
+                f'Number of siblings accompanying cannot be'
+                f' larger than maximum number of siblings'
+                f' (i.e., ={CanadaGeneralConstants.MAXIMUM_SIBLING_COUNT})')
         return value
 
     child_average_age: float = 0.  # years

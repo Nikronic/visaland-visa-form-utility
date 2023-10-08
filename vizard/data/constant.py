@@ -444,6 +444,10 @@ class CanadaGeneralConstants:
     """Maximum number of children
     """
 
+    MAXIMUM_SIBLING_COUNT: int = 7
+    """Maximum number of siblings
+    """
+
     MAXIMUM_PARENT_COUNT: int = 2
     """Obviously!
     """
