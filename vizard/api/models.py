@@ -424,15 +424,6 @@ class Payload(BaseModel):
         if (value < 0) and (value > 7):
             raise ValueError('Value cannot be negative or > 7')
         return value
-    
-    @validator(
-        'child_average_age',
-        'sibling_average_age',
-    )
-    def _child_sibling_average_period(cls, value):
-        if value < 0:
-            raise ValueError('Value cannot be negative')
-        return value
 
     long_distance_child_sibling_count: int = 0
 
