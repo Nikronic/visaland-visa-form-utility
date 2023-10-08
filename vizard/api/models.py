@@ -273,7 +273,6 @@ class Payload(BaseModel):
         return value
 
     how_long_stay_period: float = 30.  # days
-
     @validator('how_long_stay_period')
     def _how_long_stay_period(cls, value):
         if value < 0:
@@ -281,11 +280,12 @@ class Payload(BaseModel):
         return value
 
     education_period: float = 0.  # years
-
     @validator('education_period')
     def _education_period(cls, value):
-        if (value < 0) and (value > 10):
-            raise ValueError('Value cannot be negative')
+        if value < CanadaGeneralConstants.MINIMUM_EDUCATION_PERIOD:
+            raise ValueError('Short term studies cannot be considered.')
+        if value > CanadaGeneralConstants.MAXIMUM_EDUCATION_PERIOD:
+            raise ValueError('Please only report your LAST education, not the total.')
         return value
 
     occupation_period: float = 0.   # years
