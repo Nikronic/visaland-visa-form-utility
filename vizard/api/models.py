@@ -358,11 +358,15 @@ class Payload(BaseModel):
         return value
 
     parent_accompany: int = 0
-
     @validator('parent_accompany')
     def _parent_accompany(cls, value):
-        if (value < 0) and (value > 2):
-            raise ValueError('Value cannot be negative or > 2')
+        if value < 0:
+            raise ValueError('Value cannot be negative.')
+        if value > CanadaGeneralConstants.MAXIMUM_PARENT_COUNT:
+            raise ValueError(
+                f'Number of parents accompanying cannot be'
+                f' larger than maximum number of parents'
+                f' (i.e., ={CanadaGeneralConstants.MAXIMUM_PARENT_COUNT})')
         return value
 
     spouse_accompany: int = 0
