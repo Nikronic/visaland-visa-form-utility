@@ -304,15 +304,13 @@ class Payload(BaseModel):
         return value
 
     applicant_marital_status: str = 'single'
-
-    
-    @validator(
-        'applicant_marital_status',
-    )
+    @validator('applicant_marital_status')
     def _marital_status(cls, value):
         value = value.lower().strip()
         if value not in CanadaMarriageStatus.get_member_names():
-            raise ValueError(f'"{value}" is not valid')
+            raise ValueError(
+                f'"{value}" is not valid'
+                f' Please use one of "{CanadaMarriageStatus.get_member_names()}"')
         return value
 
     previous_country_of_residence_count: int = 0
