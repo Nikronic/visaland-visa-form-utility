@@ -193,7 +193,6 @@ class Payload(BaseModel):
 
     contact_relation_to_me: str = 'hotel'
     contact_relation_to_me2: str = 'ukn'
-
     @validator(
         'contact_relation_to_me',
         'contact_relation_to_me2'
@@ -201,7 +200,9 @@ class Payload(BaseModel):
     def _contact_relation_to_me(cls, value):
         value = value.lower().strip()
         if value not in CanadaContactRelation.get_member_names():
-            raise ValueError(f'"{value}" is not valid')
+            raise ValueError(
+                f'"{value}" is not valid'
+                f' Please use one of "{CanadaContactRelation.get_member_names()}"')
         return value
 
 
