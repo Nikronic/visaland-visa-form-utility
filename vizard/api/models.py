@@ -16,7 +16,11 @@ from vizard.data.constant import (
     CanadaContactRelation,
     CanadaResidencyStatus,
     Sex,
-    EducationFieldOfStudy
+    EducationFieldOfStudy,
+    CountryWhereApplying,
+    PurposeOfVisit,
+    OccupationTitle,
+    CanadaGeneralConstants
 )
 # helpers
 from typing import Any, Dict, List, Tuple, Type, Optional
@@ -132,40 +136,65 @@ See Also:
 class Payload(BaseModel):
 
     sex: str
-
     @validator('sex')
     def _sex(cls, value):
         if value not in Sex.get_member_names():
-            raise ValueError(f'"{value}" is not valid.'
-                             f' Only "{Sex.get_member_names()}" are available.')
+            raise ValueError(
+                f'"{value}" is not valid.'
+                f' Only "{Sex.get_member_names()}" are available.')
         return value
 
     country_where_applying_country: str = 'TURKEY'
-    country_where_applying_status: str = 'OTHER'
+    @validator('country_where_applying_country')
+    def _country_where_applying_country(cls, value):
+        if value.upper() not in CountryWhereApplying.get_member_names():
+            raise ValueError(
+                f'Country "{value}" is not valid in this system.')
+        return value
 
-    @validator(
-        'country_where_applying_status'
-    )
+    country_where_applying_status: str = 'OTHER'
+    @validator('country_where_applying_status')
     def _residence_status(cls, value):
         value = value.lower().strip()
         if value not in CanadaResidencyStatus.get_member_names():
-            raise ValueError(f'"{value}" is not valid')
+            raise ValueError(
+                f'"{value}" is not valid'
+                f'Please use one of "{CanadaResidencyStatus.get_member_names()}"')
         return value
 
     previous_marriage_indicator: bool = False
+    @validator('previous_marriage_indicator')
+    def _previous_marriage_indicator(cls, value):
+        transformed_value: bool = False
+        if isinstance(value, str):
+            transformed_value = True if value.lower() == 'true' else False
+        else:
+            transformed_value = value
+        return transformed_value
+
 
     purpose_of_visit: str = 'tourism'
-    funds: float = 8000.
+    @validator('purpose_of_visit')
+    def _purpose_of_visit(cls, value):
+        value = value.lower()
+        if value.lower() not in PurposeOfVisit.get_member_names():
+            raise ValueError(
+                f'"{value}" is not valid'
+                f' Please use one of "{PurposeOfVisit.get_member_names()}"')
+        return value
 
+    funds: float = 8000.
     @validator('funds')
     def _funds(cls, value):
+        if isinstance(value, str):
+            if not value.isnumeric():
+                raise ValueError('funds must be a number.')
         if value <= 0.:
             raise ValueError('funds cannot be negative number.')
         return value
 
     contact_relation_to_me: str = 'hotel'
     contact_relation_to_me2: str = 'ukn'
-
     @validator(
         'contact_relation_to_me',
         'contact_relation_to_me2'
@@ -173,38 +202,49 @@ class Payload(BaseModel):
     def _contact_relation_to_me(cls, value):
         value = value.lower().strip()
         if value not in CanadaContactRelation.get_member_names():
-            raise ValueError(f'"{value}" is not valid')
+            raise ValueError(
+                f'"{value}" is not valid'
+                f' Please use one of "{CanadaContactRelation.get_member_names()}"')
         return value
 
-
     education_field_of_study: str = 'unedu'
-
     @validator('education_field_of_study')
     def _education_field_of_study(cls, value):
         value = value.lower().strip()
         if value not in EducationFieldOfStudy.get_member_names():
-            raise ValueError(f'"{value}" is not valid')
+            raise ValueError(
+                f'"{value}" is not valid'
+                f' Please use one of "{EducationFieldOfStudy.get_member_names()}"')
         return value
-
 
     occupation_title1: str = 'OTHER'
     occupation_title2: str = 'OTHER'
     occupation_title3: str = 'OTHER'
+    @validator(
+        'occupation_title1',
+        'occupation_title2',
+        'occupation_title3'
+    )
+    def _occupation_title(cls, value):
+        if value not in OccupationTitle.get_member_names():
+            raise ValueError(
+                f'"{value}" is not valid'
+                f' Please use one of "{OccupationTitle.get_member_names()}"'
+            )
+        return value
 
     no_authorized_stay: bool = False
     refused_entry_or_deport: bool = False
     previous_apply: bool = False
 
     date_of_birth: float
-
     @validator('date_of_birth')
     def _date_of_birth(cls, value):
-        if value < 18:
+        if value < CanadaGeneralConstants.MINIMUM_AGE:
             raise ValueError('This service only accepts adults')
         return value
 
     country_where_applying_period: float = 30.  # days
-
     @validator('country_where_applying_period')
     def _country_where_applying_period(cls, value):
         if value < 0:
@@ -224,15 +264,15 @@ class Payload(BaseModel):
         return value
 
     passport_expiry_date_remaining: float = 3.  # years
-
     @validator('passport_expiry_date_remaining')
     def _passport_expiry_date_remaining(cls, value):
-        if (value < 0) and (value > 10):
-            raise ValueError('Value cannot be negative or > 10')
+        if (value < CanadaGeneralConstants.MINIMUM_EXPIRY_PASSPORT):
+            raise ValueError('The expiry date of your passport is too low.')
+        if (value > CanadaGeneralConstants.MAXIMUM_EXPIRY_PASSPORT):
+            raise ValueError('A passport cannot legally have such long expiry date.')
         return value
 
     how_long_stay_period: float = 30.  # days
-
     @validator('how_long_stay_period')
     def _how_long_stay_period(cls, value):
         if value < 0:
@@ -240,17 +280,19 @@ class Payload(BaseModel):
         return value
 
     education_period: float = 0.  # years
-
     @validator('education_period')
     def _education_period(cls, value):
-        if (value < 0) and (value > 10):
-            raise ValueError('Value cannot be negative')
+        if (value > 0) and (value < CanadaGeneralConstants.MINIMUM_EDUCATION_PERIOD):
+            raise ValueError(
+                f'Short term studies cannot be considered.'
+                f' Please only provide studies that are over a year.')
+        if value > CanadaGeneralConstants.MAXIMUM_EDUCATION_PERIOD:
+            raise ValueError('Please only report your LAST education, not the total.')
         return value
 
     occupation_period: float = 0.   # years
     occupation_period2: float = 0.  # years
     occupation_period3: float = 0.  # years
-
     @validator(
         'occupation_period',
         'occupation_period2',
@@ -262,120 +304,197 @@ class Payload(BaseModel):
         return value
 
     applicant_marital_status: str = 'single'
-
-    
-    @validator(
-        'applicant_marital_status',
-    )
+    @validator('applicant_marital_status')
     def _marital_status(cls, value):
         value = value.lower().strip()
         if value not in CanadaMarriageStatus.get_member_names():
-            raise ValueError(f'"{value}" is not valid')
+            raise ValueError(
+                f'"{value}" is not valid'
+                f' Please use one of "{CanadaMarriageStatus.get_member_names()}"')
         return value
 
     previous_country_of_residence_count: int = 0
-
     @validator('previous_country_of_residence_count')
     def _previous_country_of_residence_count(cls, value):
-        if (value < 0) and (value > 5):
-            raise ValueError('Value cannot be negative or > 5')
+        if value < 0:
+            raise ValueError('Value cannot be negative.')
         return value
 
     sibling_foreigner_count: int = 0
-
     @validator('sibling_foreigner_count')
     def _sibling_foreigner_count(cls, value):
-        if (value < 0) and (value > 7):
-            raise ValueError('Value cannot be negative or > 7')
+        if value < 0:
+            raise ValueError('Value cannot be negative.')
+        if value > CanadaGeneralConstants.MAXIMUM_SIBLING_FOREIGNER_COUNT:
+            raise ValueError(
+                f'Currently the value cannot be larger than '
+                f' "{CanadaGeneralConstants.MAXIMUM_SIBLING_FOREIGNER_COUNT}"')
         return value
 
     child_mother_father_spouse_foreigner_count: int = 0
-
     @validator('child_mother_father_spouse_foreigner_count')
     def _child_mother_father_spouse_foreigner_count(cls, value):
-        if (value < 0) and (value > 4 + 2 + 1):
-            raise ValueError('Value cannot be negative or > 4 + 2 + 1')
+        if value < 0:
+            raise ValueError('Value cannot be negative.')
+        total_count: int = CanadaGeneralConstants.MAXIMUM_CHILD_COUNT + \
+                           CanadaGeneralConstants.MAXIMUM_PARENT_COUNT + \
+                           CanadaGeneralConstants.MAXIMUM_SPOUSE_COUNT
+        if value > total_count:
+            raise ValueError(
+                f'Total count of children, parent and spouse cannot be larger'
+                f' than 7 (4 child, 2 parent and 1 spouse).')
         return value
 
     child_accompany: int = 0
-
     @validator('child_accompany')
     def _child_accompany(cls, value):
-        if (value < 0) and (value > 4):
-            raise ValueError('Value cannot be negative or > 4')
+        if value < 0:
+            raise ValueError('Value cannot be negative.')
+        if value > CanadaGeneralConstants.MAXIMUM_CHILD_COUNT:
+            raise ValueError(
+                f'Number of children accompanying cannot be'
+                f' larger than maximum number of children'
+                f' (i.e., ={CanadaGeneralConstants.MAXIMUM_CHILD_COUNT})')
         return value
 
     parent_accompany: int = 0
-
     @validator('parent_accompany')
     def _parent_accompany(cls, value):
-        if (value < 0) and (value > 2):
-            raise ValueError('Value cannot be negative or > 2')
+        if value < 0:
+            raise ValueError('Value cannot be negative.')
+        if value > CanadaGeneralConstants.MAXIMUM_PARENT_COUNT:
+            raise ValueError(
+                f'Number of parents accompanying cannot be'
+                f' larger than maximum number of parents'
+                f' (i.e., ={CanadaGeneralConstants.MAXIMUM_PARENT_COUNT})')
         return value
 
     spouse_accompany: int = 0
-
     @validator('spouse_accompany')
     def _spouse_accompany(cls, value):
-        if (value < 0) and (value > 1):
+        if value < 0:
             raise ValueError(
-                'Value cannot be negative no matter how much u hate your spouse'
-                ' Or bigger than one (having multiple spouse is a bad thing!)'
-            )
+                f'Value cannot be negative no matter how much you hate your spouse')
+        if value > CanadaGeneralConstants.MAXIMUM_SPOUSE_COUNT:
+            raise ValueError(
+                f'Value cannot be bigger than one (having multiple spouses is ... something!)')
         return value
     sibling_accompany: int = 0
 
     @validator('sibling_accompany')
     def _sibling_accompany(cls, value):
-        if (value < 0) and (value > 7):
-            raise ValueError('Value cannot be negative or > 7')
+        if value < 0:
+            raise ValueError('Value cannot be negative.')
+        if value > CanadaGeneralConstants.MAXIMUM_SIBLING_COUNT:
+            raise ValueError(
+                f'Number of siblings accompanying cannot be'
+                f' larger than maximum number of siblings'
+                f' (i.e., ={CanadaGeneralConstants.MAXIMUM_SIBLING_COUNT})')
         return value
 
     child_average_age: float = 0.  # years
+    @validator('child_average_age')
+    def _child_average_age(cls, value):
+        if value < 0:
+            raise ValueError('Value cannot be negative.')
+        return value
 
     child_count: int = 0
-
     @validator('child_count')
     def _child_count(cls, value):
-        if (value < 0) and (value > 4):
-            raise ValueError('Value cannot be negative or > 4')
+        if value < 0:
+            raise ValueError('Value cannot be negative.')
+        if value > CanadaGeneralConstants.MAXIMUM_CHILD_COUNT:
+            raise ValueError(
+                f'Currently the value cannot be larger than '
+                f' "{CanadaGeneralConstants.MAXIMUM_CHILD_COUNT}"')
         return value
     
     sibling_average_age: int = 0.
+    @validator('sibling_average_age')
+    def _sibling_average_age(cls, value):
+        if value < 0:
+            raise ValueError('Value cannot be negative.')
+        return value
 
     sibling_count: int = 0
-
     @validator('sibling_count')
     def _sibling_count(cls, value):
-        if (value < 0) and (value > 7):
-            raise ValueError('Value cannot be negative or > 7')
-        return value
-    
-    @validator(
-        'child_average_age',
-        'sibling_average_age',
-    )
-    def _child_sibling_average_period(cls, value):
         if value < 0:
-            raise ValueError('Value cannot be negative')
+            raise ValueError('Value cannot be negative.')
+        if value > CanadaGeneralConstants.MAXIMUM_SIBLING_COUNT:
+            raise ValueError(
+                f'Currently the value cannot be larger than '
+                f' "{CanadaGeneralConstants.MAXIMUM_SIBLING_COUNT}"')
         return value
 
     long_distance_child_sibling_count: int = 0
 
     @validator('long_distance_child_sibling_count')
     def _long_distance_child_sibling_count(cls, value):
-        if (value < 0) and (value > 7 + 4):
-            raise ValueError('Value cannot be negative or > 7 + 4')
+        if value < 0:
+            raise ValueError('Value cannot be negative.')
+        total_count: int = CanadaGeneralConstants.MAXIMUM_CHILD_COUNT + \
+                           CanadaGeneralConstants.MAXIMUM_SIBLING_COUNT
+        if value > total_count:
+            raise ValueError(
+                f'Total count of children and siblings cannot be larger'
+                f' than {total_count} '
+                f'({CanadaGeneralConstants.MAXIMUM_CHILD_COUNT} children and'
+                f' {CanadaGeneralConstants.MAXIMUM_SIBLING_COUNT} siblings).')
         return value
 
     foreign_living_child_sibling_count: int = 0
-
     @validator('foreign_living_child_sibling_count')
     def _foreign_living_child_sibling_count(cls, value):
-        if (value < 0) and (value > 7 + 4):
-            raise ValueError('Value cannot be negative or > 7 + 4')
+        if value < 0:
+            raise ValueError('Value cannot be negative.')
+        total_count: int = CanadaGeneralConstants.MAXIMUM_CHILD_COUNT + \
+                           CanadaGeneralConstants.MAXIMUM_SIBLING_COUNT
+        if value > total_count:
+            raise ValueError(
+                f'Total count of children and siblings cannot be larger'
+                f' than {total_count} '
+                f'({CanadaGeneralConstants.MAXIMUM_CHILD_COUNT} children and'
+                f' {CanadaGeneralConstants.MAXIMUM_SIBLING_COUNT} siblings).')
         return value
 
+    def __init__(self, **data):
+        
+        # sex
+        data['sex'] = data['sex'].lower().capitalize()  # female -> Female, ...
+        # country_where_applying_country
+        country_where_applying_country = data['country_where_applying_country']
+        def __country_where_applying_country(value: str) -> str:
+            value = value.upper()
+            if value not in CountryWhereApplying.get_member_names():
+                value = CountryWhereApplying.OTHER.name
+                return value
+            if value == CountryWhereApplying.ARMENIA.name:
+                value = 'Armenia'
+                return value
+            elif value == CountryWhereApplying.GEORGIA.name:
+                value = 'Georgia'
+                return value
+            else:
+                return value
+        data['country_where_applying_country'] = __country_where_applying_country(
+            value=country_where_applying_country
+        )
+        # occupation_title1, occupation_title2, occupation_title3
+        def __occupation_title_x(value: str) -> str:
+            value = value.lower()
+            if value == OccupationTitle.OTHER.name.lower():
+                value = OccupationTitle.OTHER.name
+            return value
+        data['occupation_title1'] = __occupation_title_x(value=data['occupation_title1'])
+        data['occupation_title2'] = __occupation_title_x(value=data['occupation_title2'])
+        data['occupation_title3'] = __occupation_title_x(value=data['occupation_title3'])
+
+
+        super().__init__(**data)
+        
+        
     class Config:
         orm_mode = True
 
@@ -499,3 +618,22 @@ class XaiAggregatedGroupResponse(BaseModel):
     """
 
     aggregated_shap_values: Dict[str, float]
+
+
+class CountryWhereApplyingResponse(BaseModel):
+    """Country where applying from response model
+
+    Note:
+        See :class:`vizard.data.constant.CountryWhereApplying` for more info
+    """
+
+    country_where_applying_names: List[str]
+
+class PurposeOfVisitResponse(BaseModel):
+    """Types of purposes of visit response model
+
+    Note:
+        See :class:`vizard.data.constant.PurposeOfVisit` for more info
+    """
+
+    purpose_of_visit_types: List[str]

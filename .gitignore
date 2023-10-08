@@ -83,3 +83,7 @@ gradio_queue.db
 gradio/flags
 gradio/models
 *.db-journal
+
+# ignore manually added temp files
+#  ignores anything that starts with ``temp_``
+temp_*

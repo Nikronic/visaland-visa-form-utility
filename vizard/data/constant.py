@@ -5,7 +5,11 @@ __all__ = [
 
     # Data Enums shared all over the place
     'CustomNamingEnum', 'CanadaMarriageStatus',
-    'CanadaContactRelation', 'CanadaResidencyStatus', 'Sex', 'EducationFieldOfStudy'
+    'CanadaContactRelation', 'CanadaResidencyStatus', 'Sex', 'EducationFieldOfStudy',
+    'CountryWhereApplying', 'PurposeOfVisit', 'OccupationTitle',
+
+    # Constants (similar to Enums but not inherited from Enum)
+    'CanadaGeneralConstants'
 ]
 
 import datetime
@@ -367,6 +371,90 @@ class Sex(CustomNamingEnum):
         self._name_ = _name
         return self._name_
 
+
+class CountryWhereApplying(CustomNamingEnum):
+    """Countries that applicant can go for fingerprint (i.e., apply for visa from)
+    """
+
+    ARMENIA = auto()
+    GEORGIA = auto()
+    UAE     = auto()
+    TURKEY  = auto()
+    OTHER   = auto()
+
+    @DynamicClassAttribute
+    def name(self):
+        _name = super(CustomNamingEnum, self).name
+        _name: str = _name.upper()
+        self._name_ = _name
+        return self._name_
+
+
+class PurposeOfVisit(CustomNamingEnum):
+    """The purpose of visit for requested visa
+    """
+
+    FAMILY_VISIT = auto()
+    VISIT        = auto()
+    TOURISM      = auto()
+    OTHER        = auto()
+
+    @DynamicClassAttribute
+    def name(self):
+        _name = super(CustomNamingEnum, self).name
+        _name: str = _name.lower()
+        if _name == 'family_visit':
+            return 'family visit'
+        self._name_ = _name
+        return self._name_
+
+
+class CanadaGeneralConstants:
+    """Constant values such as thresholds and defaults in general case
+
+    Note: 
+        Since members are not necessarily related to each other, 
+        the naming and the value suggests the use case. This is just to prevent
+        using hardcoded values and also creating too many types/classes without 
+        much other uses cases other than being a placeholder for constant values.
+    """
+    MINIMUM_AGE: float = 18.
+    """Minimum age for ``date_of_birth``
+    """
+
+    MINIMUM_EXPIRY_PASSPORT: float = 0.5
+    """Minimum time required for `passport_expiry_date_remaining`
+    """
+    MAXIMUM_EXPIRY_PASSPORT: float = 10.
+    """Maximum time required for `passport_expiry_date_remaining`
+    """
+
+    MINIMUM_EDUCATION_PERIOD: float = 1.0
+    """Minimum time required for `passport_expiry_date_remaining`
+    """
+    MAXIMUM_EDUCATION_PERIOD: float = 10.
+    """Maximum time required for `passport_expiry_date_remaining`
+    """
+
+    MAXIMUM_SIBLING_FOREIGNER_COUNT: int = 7
+    """Maximum sibling foreigner count
+    """
+
+    MAXIMUM_CHILD_COUNT: int = 4
+    """Maximum number of children
+    """
+
+    MAXIMUM_SIBLING_COUNT: int = 7
+    """Maximum number of siblings
+    """
+
+    MAXIMUM_PARENT_COUNT: int = 2
+    """Obviously!
+    """
+
+    MAXIMUM_SPOUSE_COUNT: int = 1
+    """Canada isn't a muslim country!
+    """
 
 # data used for aggregating SHAP values into categories based on features
 class FeatureCategories(CustomNamingEnum):
