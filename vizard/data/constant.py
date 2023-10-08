@@ -6,7 +6,7 @@ __all__ = [
     # Data Enums shared all over the place
     'CustomNamingEnum', 'CanadaMarriageStatus',
     'CanadaContactRelation', 'CanadaResidencyStatus', 'Sex', 'EducationFieldOfStudy',
-    'CountryWhereApplying'
+    'CountryWhereApplying', 'PurposeOfVisit'
 ]
 
 import datetime
@@ -383,6 +383,25 @@ class CountryWhereApplying(CustomNamingEnum):
     def name(self):
         _name = super(CustomNamingEnum, self).name
         _name: str = _name.upper()
+        self._name_ = _name
+        return self._name_
+
+
+class PurposeOfVisit(CustomNamingEnum):
+    """The purpose of visit for requested visa
+    """
+
+    FAMILY_VISIT = auto()
+    VISIT        = auto()
+    TOURISM      = auto()
+    OTHER        = auto()
+
+    @DynamicClassAttribute
+    def name(self):
+        _name = super(CustomNamingEnum, self).name
+        _name: str = _name.lower()
+        if _name == 'family_visit':
+            return 'family visit'
         self._name_ = _name
         return self._name_
 

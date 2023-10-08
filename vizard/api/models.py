@@ -17,7 +17,8 @@ from vizard.data.constant import (
     CanadaResidencyStatus,
     Sex,
     EducationFieldOfStudy,
-    CountryWhereApplying
+    CountryWhereApplying,
+    PurposeOfVisit
 )
 # helpers
 from typing import Any, Dict, List, Tuple, Type, Optional
@@ -171,6 +172,15 @@ class Payload(BaseModel):
 
 
     purpose_of_visit: str = 'tourism'
+    @validator('purpose_of_visit')
+    def _purpose_of_visit(cls, value):
+        value = value.lower()
+        if value.lower() not in PurposeOfVisit.get_member_names():
+            raise ValueError(
+                f'"{value}" is not valid'
+                f' Please use one of "{PurposeOfVisit.get_member_names()}"')
+        return value
+
     funds: float = 8000.
 
     @validator('funds')
