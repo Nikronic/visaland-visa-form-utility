@@ -412,7 +412,7 @@ class Payload(BaseModel):
     
     sibling_average_age: int = 0.
     @validator('sibling_average_age')
-    def sibling_average_age(cls, value):
+    def _sibling_average_age(cls, value):
         if value < 0:
             raise ValueError('Value cannot be negative.')
         return value
