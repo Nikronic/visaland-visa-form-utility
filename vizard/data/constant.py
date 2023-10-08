@@ -436,6 +436,9 @@ class CanadaGeneralConstants:
     """Maximum time required for `passport_expiry_date_remaining`
     """
 
+    MAXIMUM_SIBLING_FOREIGNER_COUNT: int = 7
+    """Maximum sibling foreigner count
+    """
 
 # data used for aggregating SHAP values into categories based on features
 class FeatureCategories(CustomNamingEnum):
