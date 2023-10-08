@@ -618,3 +618,22 @@ class XaiAggregatedGroupResponse(BaseModel):
     """
 
     aggregated_shap_values: Dict[str, float]
+
+
+class CountryWhereApplyingResponse(BaseModel):
+    """Country where applying from response model
+
+    Note:
+        See :class:`vizard.data.constant.CountryWhereApplying` for more info
+    """
+
+    country_where_applying_names: List[str]
+
+class PurposeOfVisitResponse(BaseModel):
+    """Types of purposes of visit response model
+
+    Note:
+        See :class:`vizard.data.constant.PurposeOfVisit` for more info
+    """
+
+    purpose_of_visit_types: List[str]

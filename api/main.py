@@ -12,6 +12,8 @@ from vizard.data.constant import (
     EducationFieldOfStudy,
     OccupationTitle,
     FeatureCategories,
+    CountryWhereApplying,
+    PurposeOfVisit,
     FEATURE_CATEGORY_TO_FEATURE_NAME_MAP,
     FEATURE_NAME_TO_TEXT_MAP
 )
@@ -860,6 +862,36 @@ async def get_occupation_title_types():
 
     return {
         'occupation_title_types': OccupationTitle.get_member_names()
+    }
+
+
+@app.get(
+    path='/const/country_where_applying_names',
+    response_model=api_models.CountryWhereApplyingResponse)
+async def get_country_where_applying_names():
+    """Returns a list of names of countries user can apply from
+
+    Note:
+        See :class:`vizard.api.models.CountryWhereApplyingResponse`
+    """
+
+    return {
+        'country_where_applying_names': CountryWhereApplying.get_member_names()
+    }
+
+
+@app.get(
+    path='/const/purpose_of_visit_types',
+    response_model=api_models.PurposeOfVisitResponse)
+async def get_country_where_applying_names():
+    """Returns a list of names of types of purposes of visit
+
+    Note:
+        See :class:`vizard.api.models.PurposeOfVisitResponse`
+    """
+
+    return {
+        'purpose_of_visit_types': PurposeOfVisit.get_member_names()
     }
 
 
