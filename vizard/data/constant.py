@@ -6,7 +6,7 @@ __all__ = [
     # Data Enums shared all over the place
     'CustomNamingEnum', 'CanadaMarriageStatus',
     'CanadaContactRelation', 'CanadaResidencyStatus', 'Sex', 'EducationFieldOfStudy',
-    'CountryWhereApplying', 'PurposeOfVisit'
+    'CountryWhereApplying', 'PurposeOfVisit', 'OccupationTitle'
 ]
 
 import datetime

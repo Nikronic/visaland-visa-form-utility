@@ -18,7 +18,8 @@ from vizard.data.constant import (
     Sex,
     EducationFieldOfStudy,
     CountryWhereApplying,
-    PurposeOfVisit
+    PurposeOfVisit,
+    OccupationTitle
 )
 # helpers
 from typing import Any, Dict, List, Tuple, Type, Optional
@@ -215,10 +216,21 @@ class Payload(BaseModel):
                 f' Please use one of "{EducationFieldOfStudy.get_member_names()}"')
         return value
 
-
     occupation_title1: str = 'OTHER'
     occupation_title2: str = 'OTHER'
     occupation_title3: str = 'OTHER'
+    @validator(
+        'occupation_title1',
+        'occupation_title2',
+        'occupation_title3'
+    )
+    def _occupation_title(cls, value):
+        if value not in OccupationTitle.get_member_names():
+            raise ValueError(
+                f'"{value}" is not valid'
+                f' Please use one of "{OccupationTitle.get_member_names()}"'
+            )
+        return value
 
     no_authorized_stay: bool = False
     refused_entry_or_deport: bool = False
@@ -427,6 +439,16 @@ class Payload(BaseModel):
         data['country_where_applying_country'] = __country_where_applying_country(
             value=country_where_applying_country
         )
+        # occupation_title1, occupation_title2, occupation_title3
+        def __occupation_title_x(value: str) -> str:
+            value = value.lower()
+            if value == OccupationTitle.OTHER.name.lower():
+                value = OccupationTitle.OTHER.name
+            return value
+        data['occupation_title1'] = __occupation_title_x(value=data['occupation_title1'])
+        data['occupation_title2'] = __occupation_title_x(value=data['occupation_title2'])
+        data['occupation_title3'] = __occupation_title_x(value=data['occupation_title3'])
+
 
         super().__init__(**data)
         
