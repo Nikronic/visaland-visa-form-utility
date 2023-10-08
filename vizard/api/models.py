@@ -393,6 +393,11 @@ class Payload(BaseModel):
         return value
 
     child_average_age: float = 0.  # years
+    @validator('child_average_age')
+    def _child_average_age(cls, value):
+        if value < 0:
+            raise ValueError('Value cannot be negative.')
+        return value
 
     child_count: int = 0
 
