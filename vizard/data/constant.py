@@ -6,7 +6,10 @@ __all__ = [
     # Data Enums shared all over the place
     'CustomNamingEnum', 'CanadaMarriageStatus',
     'CanadaContactRelation', 'CanadaResidencyStatus', 'Sex', 'EducationFieldOfStudy',
-    'CountryWhereApplying', 'PurposeOfVisit', 'OccupationTitle'
+    'CountryWhereApplying', 'PurposeOfVisit', 'OccupationTitle',
+
+    # Constants (similar to Enums but not inherited from Enum)
+    'CanadaGeneralConstants'
 ]
 
 import datetime
@@ -404,6 +407,18 @@ class PurposeOfVisit(CustomNamingEnum):
             return 'family visit'
         self._name_ = _name
         return self._name_
+
+
+class CanadaGeneralConstants:
+    """Constant values such as thresholds and defaults in general case
+
+    Note: 
+        Since members are not necessarily related to each other, 
+        the naming and the value suggests the use case. This is just to prevent
+        using hardcoded values and also creating too many types/classes without 
+        much other uses cases other than being a placeholder for constant values.
+    """
+    MINIMUM_AGE: float = 18.
 
 
 # data used for aggregating SHAP values into categories based on features

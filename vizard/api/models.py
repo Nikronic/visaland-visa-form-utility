@@ -19,7 +19,8 @@ from vizard.data.constant import (
     EducationFieldOfStudy,
     CountryWhereApplying,
     PurposeOfVisit,
-    OccupationTitle
+    OccupationTitle,
+    CanadaGeneralConstants
 )
 # helpers
 from typing import Any, Dict, List, Tuple, Type, Optional
@@ -237,10 +238,9 @@ class Payload(BaseModel):
     previous_apply: bool = False
 
     date_of_birth: float
-
     @validator('date_of_birth')
     def _date_of_birth(cls, value):
-        if value < 18:
+        if value < CanadaGeneralConstants.MINIMUM_AGE:
             raise ValueError('This service only accepts adults')
         return value
 
