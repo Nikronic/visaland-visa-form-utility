@@ -429,6 +429,13 @@ class CanadaGeneralConstants:
     """Maximum time required for `passport_expiry_date_remaining`
     """
 
+    MINIMUM_EDUCATION_PERIOD: float = 1.0
+    """Minimum time required for `passport_expiry_date_remaining`
+    """
+    MAXIMUM_EDUCATION_PERIOD: float = 10.
+    """Maximum time required for `passport_expiry_date_remaining`
+    """
+
 
 # data used for aggregating SHAP values into categories based on features
 class FeatureCategories(CustomNamingEnum):

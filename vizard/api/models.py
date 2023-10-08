@@ -282,8 +282,10 @@ class Payload(BaseModel):
     education_period: float = 0.  # years
     @validator('education_period')
     def _education_period(cls, value):
-        if value < CanadaGeneralConstants.MINIMUM_EDUCATION_PERIOD:
-            raise ValueError('Short term studies cannot be considered.')
+        if (value > 0) and (value < CanadaGeneralConstants.MINIMUM_EDUCATION_PERIOD):
+            raise ValueError(
+                f'Short term studies cannot be considered.'
+                f' Please only provide studies that are over a year.')
         if value > CanadaGeneralConstants.MAXIMUM_EDUCATION_PERIOD:
             raise ValueError('Please only report your LAST education, not the total.')
         return value
@@ -291,7 +293,6 @@ class Payload(BaseModel):
     occupation_period: float = 0.   # years
     occupation_period2: float = 0.  # years
     occupation_period3: float = 0.  # years
-
     @validator(
         'occupation_period',
         'occupation_period2',
