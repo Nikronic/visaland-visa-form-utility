@@ -205,14 +205,14 @@ class Payload(BaseModel):
                 f' Please use one of "{CanadaContactRelation.get_member_names()}"')
         return value
 
-
     education_field_of_study: str = 'unedu'
-
     @validator('education_field_of_study')
     def _education_field_of_study(cls, value):
         value = value.lower().strip()
         if value not in EducationFieldOfStudy.get_member_names():
-            raise ValueError(f'"{value}" is not valid')
+            raise ValueError(
+                f'"{value}" is not valid'
+                f' Please use one of "{EducationFieldOfStudy.get_member_names()}"')
         return value
 
 
