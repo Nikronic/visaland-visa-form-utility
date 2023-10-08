@@ -370,14 +370,14 @@ class Payload(BaseModel):
         return value
 
     spouse_accompany: int = 0
-
     @validator('spouse_accompany')
     def _spouse_accompany(cls, value):
-        if (value < 0) and (value > 1):
+        if value < 0:
             raise ValueError(
-                'Value cannot be negative no matter how much u hate your spouse'
-                ' Or bigger than one (having multiple spouse is a bad thing!)'
-            )
+                f'Value cannot be negative no matter how much you hate your spouse')
+        if value > CanadaGeneralConstants.MAXIMUM_SPOUSE_COUNT:
+            raise ValueError(
+                f'Value cannot be bigger than one (having multiple spouses is ... something!)')
         return value
     sibling_accompany: int = 0
 
