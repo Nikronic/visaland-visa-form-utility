@@ -432,8 +432,16 @@ class Payload(BaseModel):
 
     @validator('long_distance_child_sibling_count')
     def _long_distance_child_sibling_count(cls, value):
-        if (value < 0) and (value > 7 + 4):
-            raise ValueError('Value cannot be negative or > 7 + 4')
+        if value < 0:
+            raise ValueError('Value cannot be negative.')
+        total_count: int = CanadaGeneralConstants.MAXIMUM_CHILD_COUNT + \
+                           CanadaGeneralConstants.MAXIMUM_SIBLING_COUNT
+        if value > total_count:
+            raise ValueError(
+                f'Total count of children and siblings cannot be larger'
+                f' than {total_count} '
+                f'({CanadaGeneralConstants.MAXIMUM_CHILD_COUNT} children and'
+                f' {CanadaGeneralConstants.MAXIMUM_SIBLING_COUNT} siblings).')
         return value
 
     foreign_living_child_sibling_count: int = 0
