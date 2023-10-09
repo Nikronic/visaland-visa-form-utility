@@ -531,7 +531,7 @@ async def predict(
 async def flag(
     features: api_models.Payload,
 ):
-
+    is_flagged: bool = True
     # create new instance of mlflow artifact
     logger.create_artifact_instance()
 
@@ -596,7 +596,7 @@ async def flag(
         )
 
         # if need to be flagged, save as artifact
-        if flag:
+        if is_flagged:
             logger.info(f'artifacts saved in MLflow artifacts directory.')
             mlflow.log_artifacts(MLFLOW_ARTIFACTS_BASE_PATH)
 
