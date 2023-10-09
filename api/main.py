@@ -436,15 +436,30 @@ def _xai(**kwargs):
     return xt_test
 
 
-def _predict(**kwargs):
+def _predict(is_flagged=False, **kwargs):
+    # flag raw data from the user
+    if is_flagged:
+        logger.debug(f'Raw data from pydantic:')
+        logger.debug(f'{kwargs}\n\n')
+
     # convert api data to model data
     args = _preprocess(**kwargs)
     # convert to dataframe
     x_test = pd.DataFrame(data=[list(args)], columns=data.columns)
     x_test = x_test.astype(data.dtypes)
     x_test = x_test.to_numpy()
+    # flag pre transformed data
+    if is_flagged:
+        logger.debug(f'Preprocessed but not pretransformed data:')
+        logger.debug(f'{x_test}\n\n')
+    
     # preprocess test data
     xt_test = x_ct.transform(x_test)
+    # flag transformed data
+    if is_flagged:
+        logger.debug(f'Preprocessed and pretransformed data:')
+        logger.debug(f'{xt_test}\n\n')
+    
     # predict
     y_pred = flaml_automl.predict_proba(xt_test)
     label = np.argmax(y_pred)
@@ -531,7 +546,7 @@ async def predict(
 async def flag(
     features: api_models.Payload,
 ):
-
+    is_flagged: bool = True
     # create new instance of mlflow artifact
     logger.create_artifact_instance()
 
@@ -593,10 +608,16 @@ async def flag(
 
             long_distance_child_sibling_count=features.long_distance_child_sibling_count,
             foreign_living_child_sibling_count=features.foreign_living_child_sibling_count,
+
+            is_flagged=is_flagged
         )
 
         # if need to be flagged, save as artifact
-        if flag:
+        if is_flagged:
+            logger.debug(f'Features Pydantic type passed to the main endpoints:')
+            logger.debug(f'{features}\n\n')
+            logger.debug(f'Features dict type passed to the main endpoints:')
+            logger.debug(f'{features.__dict__}\n\n')
             logger.info(f'artifacts saved in MLflow artifacts directory.')
             mlflow.log_artifacts(MLFLOW_ARTIFACTS_BASE_PATH)
 
