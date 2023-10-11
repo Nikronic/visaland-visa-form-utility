@@ -1,15 +1,13 @@
 # syntax=docker/dockerfile:1
 
-FROM continuumio/miniconda3 AS build
-
-RUN conda install -y mamba -c conda-forge
+FROM condaforge/mambaforge AS build
 
 WORKDIR /visaland-visa-form-utility
 
 RUN mamba create --name viz-inf-cpu python=3.8.0 -y
 
 # Make all RUN commands use the conda env
-SHELL ["conda", "run", "-n", "viz-inf-cpu", "/bin/bash", "-c"]
+SHELL ["mamba", "run", "-n", "viz-inf-cpu", "/bin/bash", "-c"]
 
 # update pip
 RUN pip install --upgrade pip
@@ -36,7 +34,7 @@ RUN mamba install -c conda-forge shap=0.41.0 -y
 RUN pip install shapely==1.8.5.post1
 # Fix broken dependencies
 RUN mamba install -c conda-forge numba=0.56.3 -y
-RUN mamba install -c conda-forge numpy=1.23.4 -y
+RUN mamba install -c conda-forge numpy=1.24.4 -y
 # Install API libs
 RUN pip install pydantic==1.9.1
 RUN pip install fastapi==0.85.0
@@ -61,19 +59,19 @@ RUN pip install pandas==1.4.4 && pip install numpy==1.23.4
 FROM continuumio/miniconda3
 COPY --from=build /opt/conda /opt/conda
 ENV PATH=/opt/conda/bin:/opt/conda/condabin:/opt/conda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
-SHELL ["conda", "run", "-n", "viz-inf-cpu", "/bin/bash", "-c"]
+SHELL ["mamba", "run", "-n", "viz-inf-cpu", "/bin/bash", "-c"]
 # if you move this to end, all updated to code wont rebuild the image
 COPY . /visaland-visa-form-utility/
 WORKDIR /visaland-visa-form-utility
 # install vizard
 RUN pip install -e .
 
-ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", "viz-inf-cpu", \
+ENTRYPOINT ["mamba", "run", "--no-capture-output", "-n", "viz-inf-cpu", \
  "mlflow", "server", "--host", "0.0.0.0", "--port", "5000", \
  "--backend-store-uri", "sqlite:///mlflow-inference.db", \
   "--default-artifact-root", "./mlruns-inference/"]
-# ENTRYPOINT ["conda", "run", "--no-capture-output", "-n", \
+# ENTRYPOINT ["mamba", "run", "--no-capture-output", "-n", \
 # "viz-inf-cpu" , "python", "-m", "api.main", "--experiment_name", \
-# "\"docker-container\"" , "--run_id", "\"cd28a1700e0f4bdf9de6d736e06ca395\"", \
+# "\"docker-container\"" , "--run_id", "\"0b3700846d8d42f4bb5cf173ec6ee0c3\"", \
 # "--bind", "0.0.0.0" , "--gunicorn_port", "8000", "--mlflow_port", \
 # "5000", "--verbose", "debug", "--workers", "1"]
