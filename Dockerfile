@@ -54,6 +54,7 @@ RUN pip install snorkel-0.9.8/
 RUN mamba install -c conda-forge scikit-learn=1.1.1 -y
 RUN pip uninstall numpy -y && mamba install -c conda-forge numpy=1.23.4 -y
 RUN pip install pandas==1.4.4 && pip install numpy==1.23.4
+RUN mamba install -c conda-forge shap=0.41.0 -y
 
 # run/update stage (only update in snorkel will rebuild this stage)
 FROM continuumio/miniconda3
