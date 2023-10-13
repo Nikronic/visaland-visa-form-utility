@@ -2,7 +2,8 @@ __all__ = [
     'PredictionResponse', 'Payload',
     'CanadaMarriageStatusResponse',
     'ChildRelationResponse', 'CanadaContactRelationResponse', 'CanadaResidencyStatusResponse',
-    'EducationFieldOfStudyResponse', 'XaiResponse', 'XaiAggregatedGroupResponse'
+    'EducationFieldOfStudyResponse', 'XaiResponse', 'XaiAggregatedGroupResponse', 
+    'PotentialResponse'
 ]
 
 # core
@@ -637,3 +638,12 @@ class PurposeOfVisitResponse(BaseModel):
     """
 
     purpose_of_visit_types: List[str]
+
+
+class PotentialResponse(BaseModel):
+    """Response model for the potential (total XAI) of machine learning model
+
+    Note:
+        This is to tell the user how much the user is known to the model
+    """
+    result: float

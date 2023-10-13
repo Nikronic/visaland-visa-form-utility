@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np
 import pickle
+from itertools import islice
 # ours
 from vizard.data import functional
 from vizard.data import preprocessor
@@ -466,6 +467,145 @@ def _predict(is_flagged=False, **kwargs):
     y_pred = y_pred[0, label]
     y_pred = y_pred if label == 1 else 1. - y_pred
     return y_pred
+
+
+def _potential(**kwargs):
+    # 1. create a one-to-one mapping from payload variables to data columns
+    payload_variables: List = list(kwargs.keys())
+    column_names_to_payload: Dict[str, str] = {
+        column_name:payload_v for column_name, payload_v in \
+            zip(list(data.columns.values), payload_variables)
+    }
+
+    # 2. create a one-to-many mapping from data columns to transformed feature names
+    payload_to_transformed_feature_names: Dict[str, List[str]] = {}
+
+    def _get_indices(
+            sublist: List[str],
+            superlist: List[str]
+        ) -> List[int]:
+        """Finds the index of strings of B in A where strings in B have similar initial chars as strings in A
+
+        Note:
+            This is used for finding the indices of features that are related to a specific topic.
+
+        Args:
+            sublist (List[str]): List of strings as subset of ``superlist``
+            superlist (List[str]): List of strings where are shortened versions of strings in 
+                ``sublist``.
+
+        Returns:
+            List[int]: List of indices of strings of ``sublist`` in ``superlist``
+        """
+
+        return [i for item in sublist for i, s_item in enumerate(superlist) if s_item.startswith(item)]
+
+
+    for _og_feature in list(data.columns.values):
+        # get indices of transformed features resulted from original features
+        features_idx = _get_indices(
+            sublist=[_og_feature],
+            superlist=feature_names
+        )
+        payload_to_transformed_feature_names[column_names_to_payload[_og_feature]] = \
+            [feature_names[_feature_idx] for _feature_idx in features_idx]
+
+
+    # 3. get feature names' xai values
+    xai_input: np.ndarray = _xai(**kwargs)
+    # compute xai values for the sample
+    #xai_overall_score: float = flaml_tree_explainer.overall_score(sample=xai_input)
+    shap_values_count: int = len(flaml_tree_explainer.explainer(xai_input).values.flatten())
+    xai_top_k: Dict[str, float] = flaml_tree_explainer.top_k_score(
+        sample=xai_input,
+        k=shap_values_count)
+
+    # 4. provide a one-to-one mapping from payload variables to xai values
+    # assign the aggregated xai value of transformed features to payload variables
+    payload_to_xai: Dict[str, float] = {}
+    for _payload_v, _tf_names in payload_to_transformed_feature_names.items():
+        total_xai_for_tf_names: List[int] = [xai_top_k[_tf_name] for _tf_name in _tf_names]
+        payload_to_xai[_payload_v] = np.sum(np.absolute(total_xai_for_tf_names)).item()
+    
+    return payload_to_xai
+
+
+@app.post('/potential/', response_model=api_models.PotentialResponse)
+async def potential(features: api_models.Payload, q: int = 1):
+    try:
+        payload_to_xai = _potential(
+            sex=features.sex,
+
+            country_where_applying_country=features.country_where_applying_country,
+            country_where_applying_status=features.country_where_applying_status,
+
+            previous_marriage_indicator=features.previous_marriage_indicator,
+
+            purpose_of_visit=features.purpose_of_visit,
+            funds=features.funds,
+            contact_relation_to_me=features.contact_relation_to_me,
+            contact_relation_to_me2=features.contact_relation_to_me2,
+
+            education_field_of_study=features.education_field_of_study,            
+
+            occupation_title1=features.occupation_title1,
+            occupation_title2=features.occupation_title2,            
+            occupation_title3=features.occupation_title3,
+
+            no_authorized_stay=features.no_authorized_stay,
+            refused_entry_or_deport=features.refused_entry_or_deport,
+            previous_apply=features.previous_apply,
+
+            date_of_birth=features.date_of_birth,
+
+            country_where_applying_period=features.country_where_applying_period,  # days
+
+            marriage_period=features.marriage_period,
+            previous_marriage_period=features.previous_marriage_period,
+
+            passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years
+            how_long_stay_period=features.how_long_stay_period,  # days
+
+            education_period=features.education_period,
+
+            occupation_period=features.occupation_period,
+            occupation_period2=features.occupation_period2,
+            occupation_period3=features.occupation_period3,
+
+            applicant_marital_status=features.applicant_marital_status,
+            previous_country_of_residence_count=features.previous_country_of_residence_count,
+
+            sibling_foreigner_count=features.sibling_foreigner_count,
+            child_mother_father_spouse_foreigner_count=features.child_mother_father_spouse_foreigner_count,
+
+            child_accompany=features.child_accompany,
+            parent_accompany=features.parent_accompany,
+            spouse_accompany=features.spouse_accompany,
+            sibling_accompany=features.sibling_accompany,
+
+            child_average_age=features.child_average_age,
+            child_count=features.child_count,
+            sibling_average_age=features.sibling_average_age,
+            sibling_count=features.sibling_count,
+
+            long_distance_child_sibling_count=features.long_distance_child_sibling_count,
+            foreign_living_child_sibling_count=features.foreign_living_child_sibling_count,
+        )
+
+        # calculate the potential: some of abs xai values till question q (first =1)
+        potential_by_xai_raw: float = sum(islice(payload_to_xai.values(), q))
+        # normalize to 0-1 for percentage
+        potential_by_xai_normalized: float = potential_by_xai_raw / sum(list(payload_to_xai.values()))
+
+        return {
+            'result': potential_by_xai_normalized * 100
+        }
+
+    except Exception as error:
+        e = sys.exc_info()[1]
+        logger.exception(e)
+        raise fastapi.HTTPException(status_code=500, detail=str(e))
+
 
 
 @app.post('/predict/', response_model=api_models.PredictionResponse)
