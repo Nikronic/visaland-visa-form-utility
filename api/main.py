@@ -622,8 +622,10 @@ async def potential(features: api_models.Payload, q: int = 1):
         # normalize to 0-1 for percentage
         potential_by_xai_normalized: float = potential_by_xai_raw / sum(list(payload_to_xai.values()))
 
+        # TEMP: hardcoded small value to prevent 1.0 from happening just for fun
+        FUN_EPSILON: float = 1e-7
         return {
-            'result': potential_by_xai_normalized * 100
+            'result': potential_by_xai_normalized * 100 - FUN_EPSILON
         }
 
     except Exception as error:
