@@ -510,6 +510,31 @@ def _potential(**kwargs):
         payload_to_transformed_feature_names[column_names_to_payload[_og_feature]] = \
             [feature_names[_feature_idx] for _feature_idx in features_idx]
 
+    ####### TEMP: hardcode shit
+
+    # manipulate multiple instance variables into a single one
+    payload_to_transformed_feature_names['contact_relation_to_me'] = \
+        payload_to_transformed_feature_names['contact_relation_to_me'] + \
+        payload_to_transformed_feature_names['contact_relation_to_me2']
+    
+    payload_to_transformed_feature_names['occupation_title1'] = \
+        payload_to_transformed_feature_names['occupation_title1'] + \
+        payload_to_transformed_feature_names['occupation_title2'] + \
+        payload_to_transformed_feature_names['occupation_title3']
+
+    payload_to_transformed_feature_names['occupation_period'] = \
+        payload_to_transformed_feature_names['occupation_period'] + \
+        payload_to_transformed_feature_names['occupation_period2'] + \
+        payload_to_transformed_feature_names['occupation_period3']
+    
+    # delete merged variables
+    del payload_to_transformed_feature_names['contact_relation_to_me2']
+    del payload_to_transformed_feature_names['occupation_title2']
+    del payload_to_transformed_feature_names['occupation_title3']
+    del payload_to_transformed_feature_names['occupation_period2']
+    del payload_to_transformed_feature_names['occupation_period3']
+
+    ####### TEMP: hardcode shit
 
     # 3. get feature names' xai values
     xai_input: np.ndarray = _xai(**kwargs)
