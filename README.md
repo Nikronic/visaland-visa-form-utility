@@ -27,7 +27,7 @@ At the moment, even though the best model does not need pytorch, but we need to 
 ### 1.5 Install `mlflow`
 
 Install the tracking server. This will install a lot of dependencies.
->`mamba install mlflow==2.7.1 -c conda-forge`
+>`mamba install -c conda-forge mlflow==2.7.1 -y`
 
 Now, if you run `bash mlflow-server.sh`, you should see a output like this:
 
@@ -69,7 +69,7 @@ The custom fork is already included in the directory of the project and can be i
 >3. `mamba install -c conda-forge catboost==1.2.2`
 >4. `mamba install -c conda-forge flaml==2.1.1 -y`
 >5. `mamba install -c conda-forge shap==0.43.0 -y`
->6. `mamba install -c conda-forge shapely==2.0.2`
+>6. `mamba install -c conda-forge shapely==2.0.2 -y`
 
 ### 1.10 Data Version Control (DVC) tool
 
@@ -87,10 +87,10 @@ Note that for inference we can actually ignore this, but given that we might hav
 
 These libraries (the main one is FastAPI) are not for the ML part and only are here to provide the API and web services.
 
->1. `mamba install -c conda-forge fastapi==0.104.0`
->2. `mamba install -c conda-forge uvicorn==0.23.2`
+>1. `mamba install -c conda-forge fastapi==0.104.0 -y`
+>2. `mamba install -c conda-forge uvicorn==0.23.2 -y`
 
 ### 1.13 Install `enlighten` for beauty
 
 This is just a progress bar. It has to be optional but for now, just install it :D.
->`mamba install -c conda-forge enlighten==1.12.0`
+>`mamba install -c conda-forge enlighten==1.12.0 -y`
