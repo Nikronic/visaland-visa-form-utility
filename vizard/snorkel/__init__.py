@@ -4,7 +4,7 @@ from snorkel.augmentation import ApplyOnePolicy
 from snorkel.augmentation import MeanFieldPolicy
 from snorkel.augmentation import ApplyAllPolicy
 from snorkel.augmentation import RandomPolicy
-from snorkel.augmentation import preview_tfs
+# from snorkel.augmentation import preview_tfs
 # snorkel: labeling
 from snorkel.labeling.model import LabelModel
 from snorkel.labeling import PandasLFApplier
