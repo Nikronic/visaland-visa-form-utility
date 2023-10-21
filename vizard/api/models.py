@@ -43,8 +43,8 @@ class BaseModel(pydantic.BaseModel):
     @classmethod
     def _validate_from_json_string(cls, value):
         if isinstance(value, str):
-            return cls.validate(json.loads(value.encode()))
-        return cls.validate(value)
+            return cls.model_validate(json.loads(value.encode()))
+        return cls.model_validate(value)
 
 
 class PredictionResponse(BaseModel):
