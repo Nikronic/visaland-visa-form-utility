@@ -4,7 +4,7 @@ FROM condaforge/mambaforge AS build
 
 WORKDIR /visaland-visa-form-utility
 
-RUN mamba create --name viz-inf-cpu python=3.10.0 -y
+RUN mamba create --name viz-inf-cpu python=3.10 -y
 
 # Make all RUN commands use the conda env
 SHELL ["mamba", "run", "-n", "viz-inf-cpu", "/bin/bash", "-c"]
