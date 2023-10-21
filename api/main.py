@@ -90,7 +90,7 @@ mlflow.set_tracking_uri(f'http://{args.bind}:{args.mlflow_port}')
 
 # data versioning config
 PATH = 'raw-dataset/all-dev.pkl'  # path to source data, e.g. data.pkl file
-REPO = '/home/nik/visaland-visa-form-utility'
+REPO = '../visaland-visa-form-utility'
 VERSION = 'v2.0.1-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 # get url data from DVC data storage
 data_url = dvc.api.get_url(path=PATH, repo=REPO, rev=VERSION)
