@@ -1094,5 +1094,6 @@ if __name__ == '__main__':
         app=app,
         host=args.bind,
         port=args.gunicorn_port,
-        debug=True
+        log_level='debug',
+        use_colors=True
     )
