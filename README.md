@@ -50,8 +50,8 @@ After installation, note that dependencies are not installed. Now, we have to in
 
 ### 1.7 Install data extraction dependencies
 
->1. `mamba install -c conda-forge xmltodict=0.13.0 -y`
->2. `pip install pikepdf=8.5.1`
+>1. `mamba install -c conda-forge xmltodict==0.13.0 -y`
+>2. `pip install pikepdf==8.5.1`
 >3. `pip install pypdf2==3.0.1`
 
 ### 1.8 Install Snorkel weak supervised learner
@@ -66,7 +66,7 @@ The custom fork is already included in the directory of the project and can be i
 
 >1. `mamba install -c conda-forge xgboost==2.0.0 -y`
 >2. `mamba install -c conda-forge lightgbm==4.0.0 -y`
->3. `mamba install -c conda-forge catboost==1.2.2`
+>3. `mamba install -c conda-forge catboost==1.2.2 -y`
 >4. `mamba install -c conda-forge flaml==2.1.1 -y`
 >5. `mamba install -c conda-forge shap==0.43.0 -y`
 >6. `mamba install -c conda-forge shapely==2.0.2 -y`
