@@ -495,8 +495,8 @@ if __name__ == '__main__':
         mlflow.log_param('EDA_data_url', data_url)
         mlflow.log_param('EDA_data_version', VERSION)
         mlflow.log_param('EDA_input_shape', data.shape)
-        mlflow.log_param('EDA_input_columns', data.columns.values)
-        mlflow.log_param('EDA_input_dtypes', data.dtypes.values)
+        logger.info(f'EDA_input_columns:\n {data.columns.values}')
+        logger.info(f'EDA_input_dtypes:\n {data.dtypes.values}')
         # LabelModel params
         logger.info('Log Snorkel `LabelModel` params as MLflow params...')
         mlflow.log_param('LabelModel_fit_method', label_model_args['method_fit'])
