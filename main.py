@@ -84,7 +84,7 @@ if __name__ == '__main__':
 
         # data versioning config
         PATH = DST_DIR[:-1] + '-dev.pkl'  # path to source data, e.g. data.pkl file
-        REPO = '/home/nik/visaland-visa-form-utility'
+        REPO = '../visaland-visa-form-utility'
         VERSION = 'v2.0.1-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
