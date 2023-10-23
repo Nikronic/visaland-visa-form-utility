@@ -9,7 +9,7 @@ __all__ = [
 # core
 import pydantic
 from pydantic import validator
-from pydantic.fields import ModelField
+from pydantic.fields import FieldInfo
 import json
 # ours
 from vizard.data.constant import (
@@ -43,8 +43,8 @@ class BaseModel(pydantic.BaseModel):
     @classmethod
     def _validate_from_json_string(cls, value):
         if isinstance(value, str):
-            return cls.validate(json.loads(value.encode()))
-        return cls.validate(value)
+            return cls.model_validate(json.loads(value.encode()))
+        return cls.model_validate(value)
 
 
 class PredictionResponse(BaseModel):
@@ -76,7 +76,7 @@ def validate_model_fields(
     """
 
     # get the model fields
-    model_fields: Dict[str, ModelField] = model.__fields__
+    model_fields: Dict[str, FieldInfo] = model.model_fields
     # check subset
     if not model_fields.keys() <= fields2docs.keys():
         raise ValueError('Not all model fields are covered by ``fields2docs``.')
@@ -497,15 +497,15 @@ class Payload(BaseModel):
         
         
     class Config:
-        orm_mode = True
+        from_attributes = True
 
         @staticmethod
-        def schema_extra(schema: Dict[str, Any], model: Type['Payload']) -> None:
+        def json_schema_extra(schema: Dict[str, Any], model: Type['Payload']) -> None:
             # get the json_schema from pydantic
             properties: Dict[Dict[str, str]] = schema.get('properties', {})
 
             # get all the Field of Payload (i.e., class variables)
-            fields: List[str] = Payload.__fields__
+            fields: List[str] = list(Payload.model_fields.keys())
             # check if model's fields are subset of documentation fields
             validate_model_fields(model=Payload, fields2docs=payload_fields2docs)
             # traverse through the original properties and add "'doc': documentation" to it

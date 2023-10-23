@@ -14,7 +14,7 @@ from vizard.snorkel import LFAnalysis
 from vizard.snorkel import LabelModel
 from vizard.snorkel import ApplyAllPolicy
 from vizard.snorkel import Scorer
-from vizard.snorkel import preview_tfs
+# from vizard.snorkel import preview_tfs
 from vizard.snorkel import slice_dataframe
 # ours: models
 from vizard.models import preprocessors
@@ -26,7 +26,7 @@ from vizard.data import constant
 from vizard.xai import FlamlTreeExplainer
 # ours: helpers
 from vizard.version import VERSION as VIZARD_VERSION
-from vizard.utils.dtreeviz import FLAMLDTreeViz
+# from vizard.utils.dtreeviz import FLAMLDTreeViz
 from vizard.configs import JsonConfigHandler
 from vizard.utils import loggers
 # devops
@@ -84,11 +84,11 @@ if __name__ == '__main__':
 
         # data versioning config
         PATH = DST_DIR[:-1] + '-dev.pkl'  # path to source data, e.g. data.pkl file
-        REPO = '/home/nik/visaland-visa-form-utility'
+        REPO = '../visaland-visa-form-utility'
         VERSION = 'v2.0.1-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
         # log experiment configs
-        MLFLOW_EXPERIMENT_NAME = f'data-v2-minimal-fe - {VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'new-deps - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         mlflow.start_run()
 
@@ -274,7 +274,7 @@ if __name__ == '__main__':
         cond1 = (data['p1.SecB.Chd.X.ChdAccomp.Count'] > 0) & (data['p1.SecB.Chd.X.ChdRel.ChdCount'] > data['p1.SecB.Chd.X.ChdAccomp.Count'])
         cond2 = (data['p1.SecC.Chd.X.ChdAccomp.Count'] > 0) & (data['p1.SecC.Chd.X.ChdRel.ChdCount'] > data['p1.SecC.Chd.X.ChdAccomp.Count'])
         cond = cond1 | cond2
-        logger.info(preview_tfs(dataframe=data[cond], tfs=tfs, n_samples=2))
+        # logger.info(preview_tfs(dataframe=data[cond], tfs=tfs, n_samples=2))
         logger.info('\t\t↑↑↑ Finishing augmentation via snorkel (TFs) ↑↑↑')
 
         logger.info('\t\t↓↓↓ Starting slicing by snorkel (SFs) ↓↓↓')
@@ -449,15 +449,16 @@ if __name__ == '__main__':
         # TODO: add final checkpoint here (save weights)
         logger.info('\t\t↑↑↑ Finished logging preview of results and other stuff ↑↑↑')
 
-        dtreeviz_visualizer = FLAMLDTreeViz(
-            flaml_automl=flaml_automl,
-            x_data=xt_train,
-            y_data=yt_train.flatten(),
-            target_name='VisaResult',
-            feature_names=flaml_automl.feature_names_in_,
-            class_names=list(y_ct.classes_),
-            explanation_type='plain_english'
-        )
+        # TODO: fix dtreeviz dependencies (remove it breaks)
+        # dtreeviz_visualizer = FLAMLDTreeViz(
+        #     flaml_automl=flaml_automl,
+        #     x_data=xt_train,
+        #     y_data=yt_train.flatten(),
+        #     target_name='VisaResult',
+        #     feature_names=flaml_automl.feature_names_in_,
+        #     class_names=list(y_ct.classes_),
+        #     explanation_type='plain_english'
+        # )
 
         flaml_tree_explainer = FlamlTreeExplainer(
             flaml_model=flaml_automl,
@@ -494,8 +495,8 @@ if __name__ == '__main__':
         mlflow.log_param('EDA_data_url', data_url)
         mlflow.log_param('EDA_data_version', VERSION)
         mlflow.log_param('EDA_input_shape', data.shape)
-        mlflow.log_param('EDA_input_columns', data.columns.values)
-        mlflow.log_param('EDA_input_dtypes', data.dtypes.values)
+        logger.info(f'EDA_input_columns:\n {data.columns.values}')
+        logger.info(f'EDA_input_dtypes:\n {data.dtypes.values}')
         # LabelModel params
         logger.info('Log Snorkel `LabelModel` params as MLflow params...')
         mlflow.log_param('LabelModel_fit_method', label_model_args['method_fit'])
