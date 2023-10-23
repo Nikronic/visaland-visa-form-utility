@@ -122,6 +122,13 @@ class FlamlTreeExplainer:
 
         # compute shap
         shap_output: shap.Explanation = self.explainer(sample)
+        # TODO: some weird change in dimensions of shap values is happening without adding
+        #   any info. Have no idea about it.
+        # apparently, ExtraTree classifier causes change in the dimensions even though
+        #   ExtraTree has the same convention as other ensemble methods of sklearn
+        if shap_output.values.ndim == 3:
+            score: np.ndarray = np.sum(shap_output.values[:, :, 0]) - shap_output.base_values[:, 0]
+            return score.item()
         score: np.ndarray = np.sum(shap_output.values) - shap_output.base_values
         return score.item()
 
@@ -147,7 +154,14 @@ class FlamlTreeExplainer:
         # compute shap
         shap_output: shap.Explanation = self.explainer(sample)
         # original shap values
-        shap_values: np.ndarray = shap_output.values.flatten()
+        # TODO: some weird change in dimensions of shap values is happening without adding
+        #   any info. Have no idea about it.
+        # apparently, ExtraTree classifier causes change in the dimensions even though
+        #   ExtraTree has the same convention as other ensemble methods of sklearn
+        if shap_output.values.ndim == 3:
+            shap_values: np.ndarray = shap_output.values[:, :, 0].flatten()
+        else:
+            shap_values: np.ndarray = shap_output.values.flatten()
         # top k shap values with their signs
         top_k_values, top_k_idx = get_top_k(sample=shap_values, k=k)
         # top k feature names for vis purposes
@@ -204,6 +218,13 @@ class FlamlTreeExplainer:
                 superlist=self.feature_names
             )
             # aggregate shap values of group features
-            aggregated_shap_values[_category] = np.sum(shap_output.values[:, features_idx])
+            # TODO: some weird change in dimensions of shap values is happening without adding
+            #   any info. Have no idea about it.
+            # apparently, ExtraTree classifier causes change in the dimensions even though
+            #   ExtraTree has the same convention as other ensemble methods of sklearn
+            if shap_output.values.ndim == 3:
+                aggregated_shap_values[_category] = np.sum(shap_output.values[:, :, 0][:, features_idx])
+            else:
+                aggregated_shap_values[_category] = np.sum(shap_output.values[:, features_idx])
 
         return aggregated_shap_values
