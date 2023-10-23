@@ -1,7 +1,10 @@
 # core
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import (
+    RandomForestClassifier,
+    ExtraTreesClassifier
+)
 from sklearn.tree import (
     DecisionTreeClassifier,
     ExtraTreeClassifier
@@ -235,8 +238,10 @@ def find_estimator(flaml_automl: flaml.AutoML):
         pass  # sklearn
     elif isinstance(estimator, ExtraTreeClassifier):
         pass  # sklearn
+    elif isinstance(estimator, ExtraTreesClassifier):
+        pass  # sklearn
     else:
-        raise NotImplementedError(
+        logger.debug(
             f'estimator "{estimator.__class__.__name__}" not found'
         )
     return estimator
