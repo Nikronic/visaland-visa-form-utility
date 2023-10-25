@@ -508,6 +508,8 @@ class Payload(BaseModel):
         if 'occupation_title3' in data:
             data['occupation_title3'] = __occupation_title_x(value=data['occupation_title3'])
 
+        # enables adding private methods to Pydantic.BaseModel
+        #   see reference: https://github.com/pydantic/pydantic/issues/655
         object.__setattr__(self, 'provided_variables', list(data.keys()))
 
         super().__init__(**data)
