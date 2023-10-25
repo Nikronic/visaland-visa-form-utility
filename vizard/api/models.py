@@ -50,10 +50,18 @@ class BaseModel(pydantic.BaseModel):
 class PredictionResponse(BaseModel):
     """Response model for the prediction of machine learning model
 
+    Explanation of variables:
+
+        * ``result``: is the final prediction probability by the ML model
+        * ``next_variable``: is the name of the variable with highest effect on
+            the ``result``. This is the variable with highest XAI value 
+            as part of the request body.
+
     Note:
         This is the final goal of the project from technical aspect
     """
     result: float
+    next_variable: str
 
     
 def validate_model_fields(
@@ -135,6 +143,8 @@ See Also:
 
 
 class Payload(BaseModel):
+    # required for having dynamic request body for populating ``next_variable`` of `ResponseModel`
+    __slots__ = ('provided_variables',)
 
     sex: str
     @validator('sex')
@@ -497,6 +507,8 @@ class Payload(BaseModel):
             data['occupation_title2'] = __occupation_title_x(value=data['occupation_title2'])
         if 'occupation_title3' in data:
             data['occupation_title3'] = __occupation_title_x(value=data['occupation_title3'])
+
+        object.__setattr__(self, 'provided_variables', list(data.keys()))
 
         super().__init__(**data)
         
