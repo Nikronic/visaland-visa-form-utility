@@ -238,7 +238,7 @@ class Payload(BaseModel):
     refused_entry_or_deport: bool = False
     previous_apply: bool = False
 
-    date_of_birth: float
+    date_of_birth: float = 18.
     @validator('date_of_birth')
     def _date_of_birth(cls, value):
         if value < CanadaGeneralConstants.MINIMUM_AGE:
@@ -463,35 +463,40 @@ class Payload(BaseModel):
     def __init__(self, **data):
         
         # sex
-        data['sex'] = data['sex'].lower().capitalize()  # female -> Female, ...
+        if 'sex' in data:
+            data['sex'] = data['sex'].lower().capitalize()  # female -> Female, ...
         # country_where_applying_country
-        country_where_applying_country = data['country_where_applying_country']
-        def __country_where_applying_country(value: str) -> str:
-            value = value.upper()
-            if value not in CountryWhereApplying.get_member_names():
-                value = CountryWhereApplying.OTHER.name
-                return value
-            if value == CountryWhereApplying.ARMENIA.name:
-                value = 'Armenia'
-                return value
-            elif value == CountryWhereApplying.GEORGIA.name:
-                value = 'Georgia'
-                return value
-            else:
-                return value
-        data['country_where_applying_country'] = __country_where_applying_country(
-            value=country_where_applying_country
-        )
+        if 'country_where_applying_country' in data:
+            country_where_applying_country = data['country_where_applying_country']
+            def __country_where_applying_country(value: str) -> str:
+                value = value.upper()
+                if value not in CountryWhereApplying.get_member_names():
+                    value = CountryWhereApplying.OTHER.name
+                    return value
+                if value == CountryWhereApplying.ARMENIA.name:
+                    value = 'Armenia'
+                    return value
+                elif value == CountryWhereApplying.GEORGIA.name:
+                    value = 'Georgia'
+                    return value
+                else:
+                    return value
+            data['country_where_applying_country'] = __country_where_applying_country(
+                value=country_where_applying_country
+            )
+        
         # occupation_title1, occupation_title2, occupation_title3
         def __occupation_title_x(value: str) -> str:
             value = value.lower()
             if value == OccupationTitle.OTHER.name.lower():
                 value = OccupationTitle.OTHER.name
             return value
-        data['occupation_title1'] = __occupation_title_x(value=data['occupation_title1'])
-        data['occupation_title2'] = __occupation_title_x(value=data['occupation_title2'])
-        data['occupation_title3'] = __occupation_title_x(value=data['occupation_title3'])
-
+        if 'occupation_title1' in data:
+            data['occupation_title1'] = __occupation_title_x(value=data['occupation_title1'])
+        if 'occupation_title2' in data:
+            data['occupation_title2'] = __occupation_title_x(value=data['occupation_title2'])
+        if 'occupation_title3' in data:
+            data['occupation_title3'] = __occupation_title_x(value=data['occupation_title3'])
 
         super().__init__(**data)
         
