@@ -564,7 +564,7 @@ def _potential(**kwargs):
 
 
 @app.post('/potential/', response_model=api_models.PotentialResponse)
-async def potential(features: api_models.Payload, q: int = 1):
+async def potential(features: api_models.Payload):
     try:
         payload_to_xai = _potential(
             sex=features.sex,
@@ -625,22 +625,26 @@ async def potential(features: api_models.Payload, q: int = 1):
             foreign_living_child_sibling_count=features.foreign_living_child_sibling_count,
         )
 
-        # calculate the potential: some of abs xai values till question q (first =1)
-        potential_by_xai_raw: float = sum(islice(payload_to_xai.values(), q))
+        # calculate the potential: some of abs xai values for given variables
+        # compute dictionary of payloads provided and their xai values
+        provided_payload: Dict[str, float] = dict(
+            (k, payload_to_xai[k]) for k in features.provided_variables if k in payload_to_xai)
+        potential_by_xai_raw: float = np.sum(np.abs(list(provided_payload.values())))
+        # total XAI values as the denominator (normalizer)
+        total_xai: float = np.sum(np.abs(list(payload_to_xai.values())))
         # normalize to 0-1 for percentage
-        potential_by_xai_normalized: float = potential_by_xai_raw / sum(list(payload_to_xai.values()))
+        potential_by_xai_normalized: float = potential_by_xai_raw / total_xai
 
         # TEMP: hardcoded small value to prevent 1.0 from happening just for fun
         FUN_EPSILON: float = 1e-7
         return {
-            'result': potential_by_xai_normalized * 100 - FUN_EPSILON
+            'result': potential_by_xai_normalized - FUN_EPSILON
         }
 
     except Exception as error:
         e = sys.exc_info()[1]
         logger.exception(e)
         raise fastapi.HTTPException(status_code=500, detail=str(e))
-
 
 
 @app.post('/predict/', response_model=api_models.PredictionResponse)
