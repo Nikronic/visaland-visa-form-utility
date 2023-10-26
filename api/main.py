@@ -774,7 +774,12 @@ async def predict(
         for provided_variable_ in features.provided_variables:
             del payload_to_xai[provided_variable_]
 
-        next_variable: str = max(payload_to_xai, key=lambda xai_value: np.abs(payload_to_xai[xai_value]))        
+        next_variable: str = ''
+        if payload_to_xai:
+            next_variable = max(
+                payload_to_xai,
+                key=lambda xai_value: np.abs(payload_to_xai[xai_value])
+            )
         
         logger.info('Inference finished')
         return {
