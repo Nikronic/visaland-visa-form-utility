@@ -83,6 +83,7 @@ class JsonConfigHandler:
                 'task': method_fit_configs['FLAML_AUTOML_TASK'],
                 'metric': method_fit_configs['FLAML_AUTOML_METRIC'],
                 'max_iter': method_fit_configs['FLAML_AUTOML_MAX_ITER'],
+                'time_budget': method_fit_configs['FLAML_AUTOML_TIME_BUDGET'],
                 'split_ratio': method_fit_configs['FLAML_SPLIT_RATIO'],
                 'mem_thres': method_fit_configs['FLAML_AUTOML_MEM_THRES'],
                 'n_concurrent_trials': method_fit_configs['FLAML_AUTOML_N_CONCURRENT_TRIALS'],
@@ -90,6 +91,11 @@ class JsonConfigHandler:
                 'early_stop': method_fit_configs['FLAML_AUTOML_EARLY_STOP'],
                 'verbose': method_fit_configs['FLAML_AUTOML_VERBOSE'],
             }
+
+            # delete unset variables (indicated via empty string "")
+            for fit_arg_ in fit_args.copy():
+                if fit_args[fit_arg_] == '':
+                    del fit_args[fit_arg_]
 
             return {
                 'method_fit': fit_args,
