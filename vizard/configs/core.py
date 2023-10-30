@@ -92,6 +92,11 @@ class JsonConfigHandler:
                 'verbose': method_fit_configs['FLAML_AUTOML_VERBOSE'],
             }
 
+            # delete unset variables (indicated via empty string "")
+            for fit_arg_ in fit_args.copy():
+                if fit_args[fit_arg_] == '':
+                    del fit_args[fit_arg_]
+
             return {
                 'method_fit': fit_args,
             }

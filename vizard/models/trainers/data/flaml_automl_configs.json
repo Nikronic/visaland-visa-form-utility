@@ -2,7 +2,7 @@
     "method_fit": {
         "FLAML_AUTOML_METRIC": "log_loss",
         "FLAML_AUTOML_TASK": "classification",
-        "FLAML_AUTOML_MAX_ITER": 1000,
+        "FLAML_AUTOML_MAX_ITER": "",
         "FLAML_AUTOML_TIME_BUDGET": 10000,
         "FLAML_SPLIT_RATIO": 0.1,
         "FLAML_AUTOML_MEM_THRES": 19327352832,
