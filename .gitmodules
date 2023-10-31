@@ -1,3 +1,6 @@
 [submodule "snorkel"]
 	path = snorkel
 	url = https://github.com/Nikronic/snorkel.git
+[submodule "front-beta"]
+	path = front-beta
+	url = git@github.com:Vizlul/front-beta.git
