@@ -539,19 +539,9 @@ def _potential(**kwargs):
     # 3. get feature names' xai values
     xai_input: np.ndarray = _xai(**kwargs)
     # compute xai values for the sample
-    
-    # TODO: some weird change in dimensions of shap values is happening without adding
-    #   any info. Have no idea about it.
-    # apparently, ExtraTree classifier causes change in the dimensions even though
-    #   ExtraTree has the same convention as other ensemble methods of sklearn
-    shap_output = flaml_tree_explainer.explainer(xai_input)
-    if shap_output.values.ndim == 3:
-        shap_values_count: int = len(shap_output.values[:, :, 0].flatten())
-    else:
-        shap_values_count: int = len(shap_output.values.flatten())
     xai_top_k: Dict[str, float] = flaml_tree_explainer.top_k_score(
         sample=xai_input,
-        k=shap_values_count)
+        k=-1)
 
     # 4. provide a one-to-one mapping from payload variables to xai values
     # assign the aggregated xai value of transformed features to payload variables
