@@ -1040,6 +1040,11 @@ async def grouped_xai(features: api_models.Payload):
     # replace categories Enum items with their names
     for key in list(aggregated_shap_values.keys()):
         aggregated_shap_values[key.name] = aggregated_shap_values.pop(key)
+    
+    # convert shap values into normalized values in (-1, 1)
+    total_xai: float = np.sum(np.abs(list(aggregated_shap_values.values())))
+    for k, v in aggregated_shap_values.items():
+        aggregated_shap_values[k] = v / total_xai
 
     return {
         'aggregated_shap_values': aggregated_shap_values,
