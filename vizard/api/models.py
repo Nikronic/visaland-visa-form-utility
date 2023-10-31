@@ -21,7 +21,8 @@ from vizard.data.constant import (
     CountryWhereApplying,
     PurposeOfVisit,
     OccupationTitle,
-    CanadaGeneralConstants
+    CanadaGeneralConstants,
+    FeatureCategories
 )
 # helpers
 from typing import Any, Dict, List, Tuple, Type, Optional
@@ -638,6 +639,23 @@ class XaiAggregatedGroupResponse(BaseModel):
     """
 
     aggregated_shap_values: Dict[str, float]
+
+
+class XaiExpandedGroupResponse(BaseModel):
+    """XAI values grouped into categories along side features and their XAI values
+
+    Note:
+        This class :class:`vizard.data.constant.FeatureCategories` contains the categories. 
+        We use the names of the Enum items.
+        For example, :dict:`vizard.data.constant.FEATURE_CATEGORY_TO_FEATURE_NAME_MAP`
+        contains the feature names for each categories.
+
+    See Also:
+        - XAI and available methods :mod:`vizard.xai.shap`
+        - XAI sorted group method :method:`vizard.xai.shap.top_k_score`
+    """
+
+    grouped_xai_expanded: Dict[str, Dict[str, float]]
 
 
 class CountryWhereApplyingResponse(BaseModel):

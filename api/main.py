@@ -963,6 +963,137 @@ async def xai(features: api_models.Payload, k: int = 5):
         'xai_txt_top_k': xai_txt_top_k
     }
 
+
+@app.post('/grouped_xai_expanded', response_model=api_models.XaiExpandedGroupResponse)
+async def xai(features: api_models.Payload):
+    # validate sample
+    sample = _xai(
+        sex=features.sex,
+
+        country_where_applying_country=features.country_where_applying_country,
+        country_where_applying_status=features.country_where_applying_status,
+
+        previous_marriage_indicator=features.previous_marriage_indicator,
+
+        purpose_of_visit=features.purpose_of_visit,
+        funds=features.funds,
+        contact_relation_to_me=features.contact_relation_to_me,
+        contact_relation_to_me2=features.contact_relation_to_me2,
+
+        education_field_of_study=features.education_field_of_study,
+
+        occupation_title1=features.occupation_title1,
+        occupation_title2=features.occupation_title2,
+        occupation_title3=features.occupation_title3,
+
+        no_authorized_stay=features.no_authorized_stay,
+        refused_entry_or_deport=features.refused_entry_or_deport,
+        previous_apply=features.previous_apply,
+
+        date_of_birth=features.date_of_birth,
+
+        country_where_applying_period=features.country_where_applying_period,  # days
+
+        marriage_period=features.marriage_period,
+        previous_marriage_period=features.previous_marriage_period,
+
+        passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years
+        how_long_stay_period=features.how_long_stay_period,  # days
+
+        education_period=features.education_period,
+
+        occupation_period=features.occupation_period,
+        occupation_period2=features.occupation_period2,
+        occupation_period3=features.occupation_period3,
+
+        applicant_marital_status=features.applicant_marital_status,
+
+        previous_country_of_residence_count=features.previous_country_of_residence_count,
+
+        sibling_foreigner_count=features.sibling_foreigner_count,
+        child_mother_father_spouse_foreigner_count=features.child_mother_father_spouse_foreigner_count,
+
+        child_accompany=features.child_accompany,
+        parent_accompany=features.parent_accompany,
+        spouse_accompany=features.spouse_accompany,
+        sibling_accompany=features.sibling_accompany,
+
+        child_average_age=features.child_average_age,
+        child_count=features.child_count,
+        sibling_average_age=features.sibling_average_age,
+        sibling_count=features.sibling_count,
+
+        long_distance_child_sibling_count=features.long_distance_child_sibling_count,
+        foreign_living_child_sibling_count=features.foreign_living_child_sibling_count,
+    )
+
+    # compute xai values for the sample
+    xai_top_k: Dict[str, float] = flaml_tree_explainer.top_k_score(sample=sample, k=-1)
+
+    # grouped xai with all features included (X):
+    #   get all the features of that xai group: A
+    #   get all the xai values of that xai group: B
+    #   create a dict where keys are xai groups, and value are
+    #       list of C=Ai:Bi
+
+    grouped_xai_expanded: Dict[FeatureCategories, Dict[str, float]] = {}
+
+    # a one-to-many mapping from data columns to transformed feature names
+    og_feature_to_transformed_feature_names: Dict[str, List[str]] = {}
+
+    def _get_indices(
+            sublist: List[str],
+            superlist: List[str]
+        ) -> List[int]:
+        """Finds the index of strings of B in A where strings in B have similar initial chars as strings in A
+
+        Note:
+            This is used for finding the indices of features that are related to a specific topic.
+
+        Args:
+            sublist (List[str]): List of strings as subset of ``superlist``
+            superlist (List[str]): List of strings where are shortened versions of strings in 
+                ``sublist``.
+
+        Returns:
+            List[int]: List of indices of strings of ``sublist`` in ``superlist``
+        """
+
+        return [i for item in sublist for i, s_item in enumerate(superlist) if s_item.startswith(item)]
+
+    for _og_feature in list(data.columns.values):
+        # get indices of transformed features resulted from original features
+        features_idx = _get_indices(
+            sublist=[_og_feature],
+            superlist=feature_names
+        )
+        og_feature_to_transformed_feature_names[_og_feature] = \
+            [feature_names[_feature_idx] for _feature_idx in features_idx]
+    
+    for feature_cat_, feature_names_ in FEATURE_CATEGORY_TO_FEATURE_NAME_MAP.items():
+        feature_cat_name_xai: Dict[str, float] = {}
+        for feature_name_ in feature_names_:
+            tf_feature_names: List[str] = og_feature_to_transformed_feature_names.get(
+                feature_name_,
+                None)
+            if tf_feature_names:
+                feature_cat_name_xai.update(
+                    {
+                    tf_feature_name_:xai_top_k[tf_feature_name_] \
+                        for tf_feature_name_ in tf_feature_names
+                    }
+                )
+
+        grouped_xai_expanded[feature_cat_.name] = feature_cat_name_xai
+        # A: feature_names_
+        # B: xai_top_k[feature_name_]
+        # C: feature_cat_name_xai
+    # X: grouped_xai_expanded
+
+    return {
+        'grouped_xai_expanded': grouped_xai_expanded
+    }
+
 @app.post('/grouped_xai', response_model=api_models.XaiAggregatedGroupResponse)
 async def grouped_xai(features: api_models.Payload):
     # TODO: Some caching can be done here:
