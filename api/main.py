@@ -1074,6 +1074,12 @@ async def xai(features: api_models.Payload):
                     }
                 )
 
+        # normalize values in range of (-1, 1) for each category
+        total_xai_category: float = np.sum(np.abs(list(feature_cat_name_xai.values())))
+        feature_cat_name_xai = {
+            k: (v / total_xai_category) for k, v in feature_cat_name_xai.items()
+        }
+
         grouped_xai_expanded[feature_cat_.name] = feature_cat_name_xai
         # A: feature_names_
         # B: xai_top_k[feature_name_]
