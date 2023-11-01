@@ -1080,6 +1080,14 @@ async def xai(features: api_models.Payload):
             k: (v / total_xai_category) for k, v in feature_cat_name_xai.items()
         }
 
+        # sort by absolute value in descending order
+        feature_cat_name_xai = dict(
+            sorted(
+                feature_cat_name_xai.items(),
+                key=lambda item: np.abs(item[1]),
+                reverse=True)
+            )
+        
         grouped_xai_expanded[feature_cat_.name] = feature_cat_name_xai
         # A: feature_names_
         # B: xai_top_k[feature_name_]
