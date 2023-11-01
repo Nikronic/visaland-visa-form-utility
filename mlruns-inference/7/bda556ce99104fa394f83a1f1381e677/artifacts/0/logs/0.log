@@ -1,0 +1,256 @@
+[__main__: 10-30 10:21:34] {80} INFO - 		↓↓↓ Starting setting up configs: dirs, mlflow, dvc, etc ↓↓↓
+[__main__: 10-30 10:21:34] {95} INFO - MLflow experiment name: 0.21.0
+[__main__: 10-30 10:21:34] {96} INFO - MLflow experiment id: ef6d9606e8b64e7eb775ebe79a1b374c
+[__main__: 10-30 10:21:34] {97} INFO - DVC data version: v2.0.1-dev
+[__main__: 10-30 10:21:34] {98} INFO - DVC repo (root): ../visaland-visa-form-utility
+[__main__: 10-30 10:21:34] {99} INFO - DVC data source path: raw-dataset/all-dev.pkl
+[__main__: 10-30 10:21:34] {100} INFO - 		↑↑↑ Finished setting up configs: dirs, mlflow, and dvc. ↑↑↑
+[__main__: 10-30 10:21:34] {102} INFO - 		↓↓↓ Starting loading preprocessed (EDA) data from DVC ↓↓↓
+[__main__: 10-30 10:21:35] {112} INFO - preprocessed data in raw PATH=raw-dataset/all-dev.pkl with VERSION=v2.0.1-dev,
+loaded from DVC storage at /home/nik/visaland-visa-form-utility/dataset/dvc-storage/17/59f5800078d8974981c2d9d755b872.
+[__main__: 10-30 10:21:35] {115} INFO - 		↑↑↑ Finished loading preprocessed (EDA) data from DVC ↑↑↑
+[__main__: 10-30 10:21:35] {118} INFO - 		↓↓↓ Starting labeling data with snorkel ↓↓↓
+[__main__: 10-30 10:21:35] {119} INFO - prepare data by separating already labeled (`acc` and `rej`) from weak and unlabeled data (`w-acc`, `w-rej` and `no idea`)
+[__main__: 10-30 10:21:35] {130} INFO - shape of unlabeled data: (85, 40)
+[__main__: 10-30 10:21:35] {131} INFO - shape of labeled unlabeled data: (211, 40)
+[__main__: 10-30 10:21:35] {137} INFO - 	↓↓↓ Starting extracting label matrices (L) by applying `LabelFunction`s ↓↓↓
+[vizard.snorkel.labeling.ComposeLFLabeling: 10-30 10:21:35] {165} INFO - Following labeling functions are being used:
+[vizard.snorkel.labeling.ComposeLFLabeling: 10-30 10:21:35] {167} INFO - * LabelingFunction "WeakAccept" is being used on column "VisaResult"
+[vizard.snorkel.labeling.ComposeLFLabeling: 10-30 10:21:35] {167} INFO - * LabelingFunction "WeakReject" is being used on column "VisaResult"
+[vizard.snorkel.labeling.ComposeLFLabeling: 10-30 10:21:35] {167} INFO - * LabelingFunction "NoIdea" is being used on column "VisaResult"
+[__main__: 10-30 10:21:35] {158} INFO -                        j Polarity  Coverage  Overlaps  Conflicts
+WeakAccept_VisaResult  0      [1]  0.164706       0.0        0.0
+WeakReject_VisaResult  1      [0]  0.188235       0.0        0.0
+NoIdea_VisaResult      2      [0]  0.647059       0.0        0.0
+[__main__: 10-30 10:21:35] {159} INFO - 	↑↑↑ Finishing extracting label matrices (L) by applying `LabelFunction`s ↑↑↑
+[__main__: 10-30 10:21:35] {161} INFO - 	↓↓↓ Starting training `LabelModel` ↓↓↓
+[__main__: 10-30 10:21:35] {170} INFO - Training using device="cpu"
+[snorkel.labeling.model.label_model: 10-30 10:21:35] {906} INFO - Computing O...
+[snorkel.labeling.model.label_model: 10-30 10:21:35] {912} INFO - Estimating \mu...
+[snorkel.labeling.model.label_model: 10-30 10:21:35] {80} INFO - [0 epochs]: TRAIN:[loss=0.267]
+[snorkel.labeling.model.label_model: 10-30 10:21:35] {80} INFO - [100 epochs]: TRAIN:[loss=0.253]
+[snorkel.labeling.model.label_model: 10-30 10:21:35] {80} INFO - [200 epochs]: TRAIN:[loss=0.239]
+[snorkel.labeling.model.label_model: 10-30 10:21:35] {80} INFO - [300 epochs]: TRAIN:[loss=0.227]
+[snorkel.labeling.model.label_model: 10-30 10:21:35] {80} INFO - [400 epochs]: TRAIN:[loss=0.215]
+[snorkel.labeling.model.label_model: 10-30 10:21:35] {80} INFO - [500 epochs]: TRAIN:[loss=0.205]
+[snorkel.labeling.model.label_model: 10-30 10:21:35] {80} INFO - [600 epochs]: TRAIN:[loss=0.194]
+[snorkel.labeling.model.label_model: 10-30 10:21:35] {80} INFO - [700 epochs]: TRAIN:[loss=0.185]
+[snorkel.labeling.model.label_model: 10-30 10:21:35] {80} INFO - [800 epochs]: TRAIN:[loss=0.176]
+[snorkel.labeling.model.label_model: 10-30 10:21:36] {80} INFO - [900 epochs]: TRAIN:[loss=0.168]
+[snorkel.labeling.model.label_model: 10-30 10:21:36] {80} INFO - [1000 epochs]: TRAIN:[loss=0.161]
+[snorkel.labeling.model.label_model: 10-30 10:21:36] {80} INFO - [1100 epochs]: TRAIN:[loss=0.153]
+[snorkel.labeling.model.label_model: 10-30 10:21:36] {80} INFO - [1200 epochs]: TRAIN:[loss=0.147]
+[snorkel.labeling.model.label_model: 10-30 10:21:36] {80} INFO - [1300 epochs]: TRAIN:[loss=0.140]
+[snorkel.labeling.model.label_model: 10-30 10:21:36] {80} INFO - [1400 epochs]: TRAIN:[loss=0.134]
+[snorkel.labeling.model.label_model: 10-30 10:21:36] {80} INFO - [1500 epochs]: TRAIN:[loss=0.129]
+[snorkel.labeling.model.label_model: 10-30 10:21:36] {80} INFO - [1600 epochs]: TRAIN:[loss=0.123]
+[snorkel.labeling.model.label_model: 10-30 10:21:36] {80} INFO - [1700 epochs]: TRAIN:[loss=0.118]
+[snorkel.labeling.model.label_model: 10-30 10:21:36] {80} INFO - [1800 epochs]: TRAIN:[loss=0.113]
+[snorkel.labeling.model.label_model: 10-30 10:21:36] {80} INFO - [1900 epochs]: TRAIN:[loss=0.108]
+[snorkel.labeling.model.label_model: 10-30 10:21:36] {978} INFO - Finished Training
+[__main__: 10-30 10:21:36] {182} INFO - 	↑↑↑ Finished training LabelModel ↑↑↑
+[__main__: 10-30 10:21:36] {184} INFO - 	↓↓↓ Starting inference on LabelModel ↓↓↓
+[__main__: 10-30 10:21:36] {190} INFO - ModelLabel prediction is saved in "AL" column.
+[snorkel.labeling.model.base_labeler: 10-30 10:21:36] {103} WARNING - Metrics calculated over data points with non-abstain labels only
+[vizard.snorkel.modeling: 10-30 10:21:36] {51} INFO - Label Model training stats: 
+[vizard.snorkel.modeling: 10-30 10:21:36] {53} INFO - Label Model training accuracy: 100.0%
+[vizard.snorkel.modeling: 10-30 10:21:36] {53} INFO - Label Model training coverage: 100.0%
+[vizard.snorkel.modeling: 10-30 10:21:36] {53} INFO - Label Model training precision: 100.0%
+[vizard.snorkel.modeling: 10-30 10:21:36] {53} INFO - Label Model training recall: 100.0%
+[vizard.snorkel.modeling: 10-30 10:21:36] {53} INFO - Label Model training f1: 100.0%
+[snorkel.labeling.model.base_labeler: 10-30 10:21:36] {103} WARNING - Metrics calculated over data points with non-abstain labels only
+[vizard.snorkel.modeling: 10-30 10:21:36] {51} INFO - Label Model testing stats: 
+[vizard.snorkel.modeling: 10-30 10:21:36] {53} INFO - Label Model testing accuracy: 100.0%
+[vizard.snorkel.modeling: 10-30 10:21:36] {53} INFO - Label Model testing coverage: 100.0%
+[vizard.snorkel.modeling: 10-30 10:21:36] {53} INFO - Label Model testing precision: 100.0%
+[vizard.snorkel.modeling: 10-30 10:21:36] {53} INFO - Label Model testing recall: 100.0%
+[vizard.snorkel.modeling: 10-30 10:21:36] {53} INFO - Label Model testing f1: 100.0%
+[__main__: 10-30 10:21:37] {218} INFO - 	↑↑↑ Finishing inference on LabelModel ↑↑↑
+[__main__: 10-30 10:21:37] {225} INFO - 		↑↑↑ Finished labeling data with snorkel ↑↑↑
+[__main__: 10-30 10:21:37] {248} INFO - 		↓↓↓ Starting augmentation via snorkel (TFs) ↓↓↓
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-30 10:21:37] {436} INFO - Following transformation functions are being used:
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-30 10:21:37] {438} INFO - * TransformationFunction "AddNormalNoiseDOBYear" is being used on column "P1.PD.DOBYear.Period"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-30 10:21:37] {438} INFO - * TransformationFunction "AddNormalNoiseDateOfMarr" is being used on column "P1.MS.SecA.DateOfMarr.Period"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-30 10:21:37] {438} INFO - * TransformationFunction "AddNormalNoiseOccRowXPeriod" is being used on column "P3.Occ.OccRow1.Period"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-30 10:21:37] {438} INFO - * TransformationFunction "AddNormalNoiseOccRowXPeriod" is being used on column "P3.Occ.OccRow2.Period"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-30 10:21:37] {438} INFO - * TransformationFunction "AddNormalNoiseOccRowXPeriod" is being used on column "P3.Occ.OccRow3.Period"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-30 10:21:37] {438} INFO - * TransformationFunction "AddNormalNoiseHLS" is being used on column "P3.DOV.PrpsRow1.HLS.Period"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-30 10:21:37] {438} INFO - * TransformationFunction "AddCategoricalNoiseSex" is being used on column "P1.PD.Sex.Sex"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-30 10:21:37] {438} INFO - * TransformationFunction "AddOrderedNoiseChdAccomp" is being used on column "p1.SecB.Chd.X.ChdAccomp.Count"
+[vizard.snorkel.augmentation.ComposeTFAugmentation: 10-30 10:21:37] {438} INFO - * TransformationFunction "AddOrderedNoiseChdAccomp" is being used on column "p1.SecC.Chd.X.ChdAccomp.Count"
+[__main__: 10-30 10:21:38] {272} INFO - Original dataset size: 296
+[__main__: 10-30 10:21:38] {273} INFO - Augmented dataset size: 592
+[__main__: 10-30 10:21:38] {278} INFO - 		↑↑↑ Finishing augmentation via snorkel (TFs) ↑↑↑
+[__main__: 10-30 10:21:38] {280} INFO - 		↓↓↓ Starting slicing by snorkel (SFs) ↓↓↓
+[vizard.snorkel.slicing.ComposeSFSlicing: 10-30 10:21:38] {158} INFO - Following slicing functions are being used:
+[vizard.snorkel.slicing.ComposeSFSlicing: 10-30 10:21:38] {160} INFO - * SlicingFunction "SinglePerson" is being used on column "p1.SecA.App.ChdMStatus"
+[__main__: 10-30 10:21:38] {287} INFO -     P1.PD.Sex.Sex P1.PD.CWA.Row2.Country  ...  p1.SecX.LongDistAddr  p1.SecX.ForeignAddr
+290        Female                 TURKEY  ...                     1                    0
+62         Female                 TURKEY  ...                     1                    0
+209        Female                 TURKEY  ...                     0                    0
+196          Male                Armenia  ...                     0                    0
+65           Male                 TURKEY  ...                     6                    0
+
+[5 rows x 40 columns]
+[__main__: 10-30 10:21:38] {294} INFO - 		↑↑↑ Finishing slicing by snorkel (SFs) ↑↑↑
+[__main__: 10-30 10:21:38] {296} INFO - 		↓↓↓ Starting preprocessing on directly DVC `vX.X.X-dev` data ↓↓↓
+[vizard.models.preprocessors.coreColumnTransformerConfig: 10-30 10:21:38] {589} INFO - Config file "/home/nik/visaland-visa-form-utility/vizard/models/preprocessors/data/canada_column_transformer_config_x.json" is being used
+[vizard.models.preprocessors.coreColumnTransformerConfig: 10-30 10:21:38] {589} INFO - Config file "/home/nik/visaland-visa-form-utility/vizard/models/preprocessors/data/canada_column_transformer_config_x.json" is being used
+[vizard.models.preprocessors.helpers.func: 10-30 10:21:38] {142} DEBUG - preview_column_transformer() -> 
+[vizard.models.preprocessors.helpers: 10-30 10:21:38] {140} INFO - For "ChdMStatus_categorical_OneHotEncoder" transformer: 
+[vizard.models.preprocessors.helpers: 10-30 10:21:38] {141} INFO - 0 columns are affected. 
+[vizard.models.preprocessors.helpers: 10-30 10:21:38] {142} INFO - On selected columns, 0.0 unique values exist. It is expected to have 0.0 new columns and 10 columns are newly produced.
+
+[vizard.models.preprocessors.helpers: 10-30 10:21:38] {140} INFO - For "binary_categorical_OneHotEncoder" transformer: 
+[vizard.models.preprocessors.helpers: 10-30 10:21:38] {141} INFO - 5 columns are affected. 
+[vizard.models.preprocessors.helpers: 10-30 10:21:38] {142} INFO - On selected columns, 10 unique values exist. It is expected to have 5 new columns and -2 columns are newly produced.
+
+[vizard.models.preprocessors.helpers: 10-30 10:21:38] {140} INFO - For "CWAStatus_categorical_OneHotEncoder" transformer: 
+[vizard.models.preprocessors.helpers: 10-30 10:21:38] {141} INFO - 1 columns are affected. 
+[vizard.models.preprocessors.helpers: 10-30 10:21:38] {142} INFO - On selected columns, 3 unique values exist. It is expected to have 2 new columns and 4 columns are newly produced.
+
+[vizard.models.preprocessors.helpers: 10-30 10:21:38] {140} INFO - For "Country_categorical_OneHotEncoder" transformer: 
+[vizard.models.preprocessors.helpers: 10-30 10:21:38] {141} INFO - 1 columns are affected. 
+[vizard.models.preprocessors.helpers: 10-30 10:21:38] {142} INFO - On selected columns, 5 unique values exist. It is expected to have 4 new columns and 4 columns are newly produced.
+
+[vizard.models.preprocessors.helpers: 10-30 10:21:38] {140} INFO - For "Prps_categorical_OneHotEncoder" transformer: 
+[vizard.models.preprocessors.helpers: 10-30 10:21:38] {141} INFO - 1 columns are affected. 
+[vizard.models.preprocessors.helpers: 10-30 10:21:38] {142} INFO - On selected columns, 5 unique values exist. It is expected to have 4 new columns and 10 columns are newly produced.
+
+[vizard.models.preprocessors.helpers: 10-30 10:21:38] {140} INFO - For "Relationship_categorical_OneHotEncoder" transformer: 
+[vizard.models.preprocessors.helpers: 10-30 10:21:38] {141} INFO - 2 columns are affected. 
+[vizard.models.preprocessors.helpers: 10-30 10:21:38] {142} INFO - On selected columns, 11 unique values exist. It is expected to have 9 new columns and 4 columns are newly produced.
+
+[vizard.models.preprocessors.helpers: 10-30 10:21:38] {140} INFO - For "Study_categorical_OneHotEncoder" transformer: 
+[vizard.models.preprocessors.helpers: 10-30 10:21:38] {141} INFO - 1 columns are affected. 
+[vizard.models.preprocessors.helpers: 10-30 10:21:38] {142} INFO - On selected columns, 6 unique values exist. It is expected to have 5 new columns and 20 columns are newly produced.
+
+[__main__: 10-30 10:21:38] {376} INFO - [                                                    0
+P3.DOV.PrpsRow1.Funds.Funds_og            8000.000000
+P3.DOV.PrpsRow1.Funds.Funds_tf              -0.634373
+P1.PD.DOBYear.Period_og                     29.888374
+P1.PD.DOBYear.Period_tf                     -1.020538
+P1.PD.CWA.Row2.Period_og                    92.000000
+P1.PD.CWA.Row2.Period_tf                     1.894624
+P1.MS.SecA.DateOfMarr.Period_og              5.462338
+P1.MS.SecA.DateOfMarr.Period_tf             -0.597472
+P2.MS.SecA.Period_og                         0.000000
+P2.MS.SecA.Period_tf                        -0.225413
+P2.MS.SecA.Psprt.ExpiryDate.Remaining_og     4.756165
+P2.MS.SecA.Psprt.ExpiryDate.Remaining_tf     0.632738
+P3.DOV.PrpsRow1.HLS.Period_og               19.000000
+P3.DOV.PrpsRow1.HLS.Period_tf               -0.196045
+P3.Edu.Edu_Row1.Period_og                    3.002740
+P3.Edu.Edu_Row1.Period_tf                    0.159266
+P3.Occ.OccRow1.Period_og                     5.968561
+P3.Occ.OccRow1.Period_tf                    -0.556807
+P3.Occ.OccRow2.Period_og                     1.121735
+P3.Occ.OccRow2.Period_tf                    -0.308793
+P3.Occ.OccRow3.Period_og                     0.000000
+P3.Occ.OccRow3.Period_tf                    -0.301930
+p1.SecA.App.ChdMStatus_og                    5.000000
+p1.SecA.App.ChdMStatus_tf                   -0.354933
+p1.SecB.Chd.X.ChdDOB.Period.Average_og       0.000000
+p1.SecB.Chd.X.ChdDOB.Period.Average_tf      -0.637052
+p1.SecC.Chd.X.ChdDOB.Period.Average_og      35.071232
+p1.SecC.Chd.X.ChdDOB.Period.Average_tf       0.779576]
+[__main__: 10-30 10:21:38] {377} INFO - 		↑↑↑ Finished preprocessing on directly DVC `vX.X.X-dev` data ↑↑↑
+[__main__: 10-30 10:21:38] {379} INFO - 		↓↓↓ Starting defining estimators models ↓↓↓
+[__main__: 10-30 10:21:38] {388} INFO - 		↑↑↑ Finished defining estimators models ↑↑↑
+[__main__: 10-30 10:21:38] {390} INFO - 		↓↓↓ Starting loading training config and training estimators ↓↓↓
+[flaml.tune.searcher.blendsearch: 10-30 10:25:12] {168} INFO - No low-cost partial config given to the search algorithm. For cost-frugal search, consider providing low-cost values for cost-related hps via 'low_cost_partial_config'. More info can be found at https://microsoft.github.io/FLAML/docs/FAQ#about-low_cost_partial_config-in-tune
+[__main__: 10-30 13:08:18] {406} INFO - P3.DOV.PrpsRow1.Funds.Funds: 20.00
+P1.PD.DOBYear.Period: 73.00
+P1.PD.CWA.Row2.Period: 30.00
+P1.MS.SecA.DateOfMarr.Period: 60.00
+P2.MS.SecA.Period: 3.00
+P2.MS.SecA.Psprt.ExpiryDate.Remaining: 78.00
+P3.DOV.PrpsRow1.HLS.Period: 62.00
+P3.Edu.Edu_Row1.Period: 22.00
+P3.Occ.OccRow1.Period: 94.00
+P3.Occ.OccRow2.Period: 16.00
+P3.Occ.OccRow3.Period: 6.00
+p1.SecA.App.ChdMStatus: 5.00
+p1.SecB.Chd.X.ChdDOB.Period.Average: 33.00
+p1.SecC.Chd.X.ChdDOB.Period.Average: 72.00
+P1.PD.Sex.Sex_Female: 2.00
+P1.PD.Sex.Sex_Male: 3.00
+P2.MS.SecA.PrevMarrIndicator_False: 1.00
+P2.MS.SecA.PrevMarrIndicator_True: 1.00
+P3.noAuthStay_False: 0.00
+P3.noAuthStay_True: 0.00
+P3.refuseDeport_False: 11.00
+P3.refuseDeport_True: 3.00
+P3.BGI2.PrevApply_False: 16.00
+P3.BGI2.PrevApply_True: 9.00
+x2_6: 7.00
+x2_3: 16.00
+P1.PD.CWA.Row2.Status_1: 0.00
+P1.PD.CWA.Row2.Country_TURKEY: 2.00
+P1.PD.CWA.Row2.Country_OTHER: 0.00
+P1.PD.CWA.Row2.Country_Georgia: 0.00
+P1.PD.CWA.Row2.Country_UAE: 0.00
+P1.PD.CWA.Row2.Country_Armenia: 0.00
+P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit_family visit: 5.00
+P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit_tourism: 5.00
+P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit_visit: 2.00
+P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit_other: 0.00
+P3.DOV.PrpsRow1.PrpsOfVisit.PrpsOfVisit_business: 0.00
+P3.DOV.cntcts_Row1.RelationshipToMe.RelationshipToMe_f1: 4.00
+P3.DOV.cntcts_Row1.RelationshipToMe.RelationshipToMe_f2: 2.00
+P3.DOV.cntcts_Row1.RelationshipToMe.RelationshipToMe_friend: 1.00
+P3.DOV.cntcts_Row1.RelationshipToMe.RelationshipToMe_hotel: 7.00
+P3.DOV.cntcts_Row1.RelationshipToMe.RelationshipToMe_ukn: 2.00
+P3.DOV.cntcts_Row1.RelationshipToMe.RelationshipToMe_work: 0.00
+P3.cntcts_Row2.Relationship.RelationshipToMe_f1: 0.00
+P3.cntcts_Row2.Relationship.RelationshipToMe_f2: 0.00
+P3.cntcts_Row2.Relationship.RelationshipToMe_friend: 0.00
+P3.cntcts_Row2.Relationship.RelationshipToMe_hotel: 1.00
+P3.cntcts_Row2.Relationship.RelationshipToMe_ukn: 7.00
+P3.Edu.Edu_Row1.FieldOfStudy_unedu: 3.00
+P3.Edu.Edu_Row1.FieldOfStudy_master: 7.00
+P3.Edu.Edu_Row1.FieldOfStudy_bachelor: 3.00
+P3.Edu.Edu_Row1.FieldOfStudy_phd: 1.00
+P3.Edu.Edu_Row1.FieldOfStudy_apprentice: 0.00
+P3.Edu.Edu_Row1.FieldOfStudy_diploma: 1.00
+P3.Occ.OccRow1.Occ.Occ_manager: 6.00
+P3.Occ.OccRow1.Occ.Occ_specialist: 0.00
+P3.Occ.OccRow1.Occ.Occ_housewife: 2.00
+P3.Occ.OccRow1.Occ.Occ_student: 0.00
+P3.Occ.OccRow1.Occ.Occ_OTHER: 0.00
+P3.Occ.OccRow1.Occ.Occ_employee: 9.00
+P3.Occ.OccRow1.Occ.Occ_retired: 4.00
+P3.Occ.OccRow2.Occ.Occ_manager: 0.00
+P3.Occ.OccRow2.Occ.Occ_specialist: 4.00
+P3.Occ.OccRow2.Occ.Occ_housewife: 0.00
+P3.Occ.OccRow2.Occ.Occ_student: 3.00
+P3.Occ.OccRow2.Occ.Occ_OTHER: 0.00
+P3.Occ.OccRow2.Occ.Occ_employee: 0.00
+P3.Occ.OccRow2.Occ.Occ_retired: 0.00
+P3.Occ.OccRow3.Occ.Occ_manager: 0.00
+P3.Occ.OccRow3.Occ.Occ_specialist: 0.00
+P3.Occ.OccRow3.Occ.Occ_housewife: 0.00
+P3.Occ.OccRow3.Occ.Occ_student: 0.00
+P3.Occ.OccRow3.Occ.Occ_OTHER: 2.00
+P3.Occ.OccRow3.Occ.Occ_employee: 0.00
+P3.Occ.OccRow3.Occ.Occ_retired: 0.00
+P1.PD.PrevCOR.Row.Count: 3.00
+p1.SecC.Chd.X.ChdCOB.ForeignerCount: 0.00
+p1.SecB.ChdMoFaSps.X.ChdCOB.ForeignerCount: 6.00
+p1.SecB.Chd.X.ChdAccomp.Count: 10.00
+p1.SecA.ParAccomp.Count: 6.00
+p1.SecA.Sps.SpsAccomp.Count: 8.00
+p1.SecC.Chd.X.ChdAccomp.Count: 0.00
+p1.SecB.Chd.X.ChdRel.ChdCount: 9.00
+p1.SecC.Chd.X.ChdRel.ChdCount: 23.00
+p1.SecX.LongDistAddr: 22.00
+p1.SecX.ForeignAddr: 14.00
+
+[vizard.models.trainers.aml_flaml: 10-30 13:08:19] {309} INFO - model of type "Booster" is tracked via MLflow.
+[__main__: 10-30 13:08:19] {438} INFO - 		↑↑↑ Finished loading training config and training estimators ↑↑↑
+[__main__: 10-30 13:08:19] {440} INFO - 		↓↓↓ Starting loading evaluation config and evaluating estimators ↓↓↓
+[__main__: 10-30 13:08:19] {442} INFO - 		↑↑↑ Finished loading evaluation config and evaluating estimators ↑↑↑
+[__main__: 10-30 13:08:19] {444} INFO - 		↓↓↓ Starting saving good weights ↓↓↓
+[__main__: 10-30 13:08:19] {446} INFO - 		↑↑↑ Finished saving good weights ↑↑↑
+[__main__: 10-30 13:08:19] {448} INFO - 		↓↓↓ Starting logging preview of results and other stuff ↓↓↓
+[__main__: 10-30 13:08:19] {450} INFO - 		↑↑↑ Finished logging preview of results and other stuff ↑↑↑
