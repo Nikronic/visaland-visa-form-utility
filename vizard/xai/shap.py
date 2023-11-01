@@ -132,7 +132,7 @@ class FlamlTreeExplainer:
         score: np.ndarray = np.sum(shap_output.values) - shap_output.base_values
         return score.item()
 
-    def top_k_score(self, sample: np.ndarray, k: int = 5) -> dict:
+    def top_k_score(self, sample: np.ndarray, k: int = 1) -> dict:
         """Returns scores and names of top-k impactful features
 
         Note:
@@ -142,7 +142,9 @@ class FlamlTreeExplainer:
 
         Args:
             sample (:class:`numpy.ndarray`): A :class:`numpy.ndarray`
-            k (int, optional): Number of features to include. Defaults to 5.
+            k (int, optional): Number of features to include. If ``k=-1``,
+                then it will be the length of the sample. In other words,
+                this method will return the sorted list. Defaults to 1.
 
         Returns:
             dict:
@@ -162,6 +164,9 @@ class FlamlTreeExplainer:
             shap_values: np.ndarray = shap_output.values[:, :, 0].flatten()
         else:
             shap_values: np.ndarray = shap_output.values.flatten()
+        # entire list sorted
+        if k == -1:
+            k = len(shap_values)
         # top k shap values with their signs
         top_k_values, top_k_idx = get_top_k(sample=shap_values, k=k)
         # top k feature names for vis purposes
