@@ -1069,7 +1069,7 @@ async def xai(features: api_models.Payload):
             if tf_feature_names:
                 feature_cat_name_xai.update(
                     {
-                    tf_feature_name_:xai_top_k[tf_feature_name_] \
+                    FEATURE_NAME_TO_TEXT_MAP[tf_feature_name_]:xai_top_k[tf_feature_name_] \
                         for tf_feature_name_ in tf_feature_names
                     }
                 )
