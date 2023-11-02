@@ -131,52 +131,6 @@ edu_country_score_preprocessor = preprocessor.EducationCountryScoreDataframePrep
     dataframe=worldbank_overall_dataframe
 )
 
-
-def residency_status_code(string: str) -> int:
-    """convert residency status string to code
-
-    Note:
-        Condition on ``string`` and the resulting value derived from
-        enumerator :class:`vizard.data.constant.CanadaResidencyStatus`.
-
-    Args:
-        string (str): Residency string, either ``'citizen'`` or ``'visitor'``.
-
-    Returns:
-        int: Residency code ``{1: 'citizen', 3: 'visitor', 6: 'other'}``
-    """
-    string = string.lower().strip()
-    if string == CanadaResidencyStatus.CITIZEN.name:
-        return CanadaResidencyStatus.CITIZEN.value
-    elif string == CanadaResidencyStatus.VISITOR.name:
-        return CanadaResidencyStatus.VISITOR.value
-    elif string == CanadaResidencyStatus.OTHER.name:
-        return CanadaResidencyStatus.OTHER.value
-    else:
-        raise ValueError(f'"{string}" is not an acceptable residency status')
-
-
-# convert marital status string to code
-def marital_status_code(string: str) -> int:
-    string = string.lower().strip()
-    if string == CanadaMarriageStatus.COMMON_LAW.name:
-        return CanadaMarriageStatus.COMMON_LAW.value
-    if string == CanadaMarriageStatus.DIVORCED.name:
-        return CanadaMarriageStatus.DIVORCED.value
-    if string == CanadaMarriageStatus.SEPARATED.name:
-        return CanadaMarriageStatus.SEPARATED.value
-    if string == CanadaMarriageStatus.MARRIED.name:
-        return CanadaMarriageStatus.MARRIED.value
-    if string == CanadaMarriageStatus.SINGLE.name:
-        return CanadaMarriageStatus.SINGLE.value
-    if string == CanadaMarriageStatus.WIDOWED.name:
-        return CanadaMarriageStatus.WIDOWED.value
-    if string == CanadaMarriageStatus.UNKNOWN.name:
-        return CanadaMarriageStatus.UNKNOWN.value
-    else:
-        raise ValueError(f'"{string}" is not a valid marital status.')
-
-
 # configure logging
 VERBOSE = logging.DEBUG if args.verbose == 'debug' else logging.INFO
 MLFLOW_ARTIFACTS_BASE_PATH: Path = Path('artifacts')
