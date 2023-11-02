@@ -556,64 +556,7 @@ def _potential(**kwargs):
 @app.post('/potential/', response_model=api_models.PotentialResponse)
 async def potential(features: api_models.Payload):
     try:
-        payload_to_xai = _potential(
-            sex=features.sex,
-
-            country_where_applying_country=features.country_where_applying_country,
-            country_where_applying_status=features.country_where_applying_status,
-
-            previous_marriage_indicator=features.previous_marriage_indicator,
-
-            purpose_of_visit=features.purpose_of_visit,
-            funds=features.funds,
-            contact_relation_to_me=features.contact_relation_to_me,
-            contact_relation_to_me2=features.contact_relation_to_me2,
-
-            education_field_of_study=features.education_field_of_study,            
-
-            occupation_title1=features.occupation_title1,
-            occupation_title2=features.occupation_title2,            
-            occupation_title3=features.occupation_title3,
-
-            no_authorized_stay=features.no_authorized_stay,
-            refused_entry_or_deport=features.refused_entry_or_deport,
-            previous_apply=features.previous_apply,
-
-            date_of_birth=features.date_of_birth,
-
-            country_where_applying_period=features.country_where_applying_period,  # days
-
-            marriage_period=features.marriage_period,
-            previous_marriage_period=features.previous_marriage_period,
-
-            passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years
-            how_long_stay_period=features.how_long_stay_period,  # days
-
-            education_period=features.education_period,
-
-            occupation_period=features.occupation_period,
-            occupation_period2=features.occupation_period2,
-            occupation_period3=features.occupation_period3,
-
-            applicant_marital_status=features.applicant_marital_status,
-            previous_country_of_residence_count=features.previous_country_of_residence_count,
-
-            sibling_foreigner_count=features.sibling_foreigner_count,
-            child_mother_father_spouse_foreigner_count=features.child_mother_father_spouse_foreigner_count,
-
-            child_accompany=features.child_accompany,
-            parent_accompany=features.parent_accompany,
-            spouse_accompany=features.spouse_accompany,
-            sibling_accompany=features.sibling_accompany,
-
-            child_average_age=features.child_average_age,
-            child_count=features.child_count,
-            sibling_average_age=features.sibling_average_age,
-            sibling_count=features.sibling_count,
-
-            long_distance_child_sibling_count=features.long_distance_child_sibling_count,
-            foreign_living_child_sibling_count=features.foreign_living_child_sibling_count,
-        )
+        payload_to_xai = _potential(**features.model_dump())
 
         # calculate the potential: some of abs xai values for given variables
         # compute dictionary of payloads provided and their xai values
@@ -642,124 +585,9 @@ async def predict(
     features: api_models.Payload,
 ):
     try:
-        result = _predict(
-            sex=features.sex,
-
-            country_where_applying_country=features.country_where_applying_country,
-            country_where_applying_status=features.country_where_applying_status,
-
-            previous_marriage_indicator=features.previous_marriage_indicator,
-
-            purpose_of_visit=features.purpose_of_visit,
-            funds=features.funds,
-            contact_relation_to_me=features.contact_relation_to_me,
-            contact_relation_to_me2=features.contact_relation_to_me2,
-
-            education_field_of_study=features.education_field_of_study,            
-
-            occupation_title1=features.occupation_title1,
-            occupation_title2=features.occupation_title2,            
-            occupation_title3=features.occupation_title3,
-
-            no_authorized_stay=features.no_authorized_stay,
-            refused_entry_or_deport=features.refused_entry_or_deport,
-            previous_apply=features.previous_apply,
-
-            date_of_birth=features.date_of_birth,
-
-            country_where_applying_period=features.country_where_applying_period,  # days
-
-            marriage_period=features.marriage_period,
-            previous_marriage_period=features.previous_marriage_period,
-
-            passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years
-            how_long_stay_period=features.how_long_stay_period,  # days
-
-            education_period=features.education_period,
-
-            occupation_period=features.occupation_period,
-            occupation_period2=features.occupation_period2,
-            occupation_period3=features.occupation_period3,
-
-            applicant_marital_status=features.applicant_marital_status,
-            previous_country_of_residence_count=features.previous_country_of_residence_count,
-
-            sibling_foreigner_count=features.sibling_foreigner_count,
-            child_mother_father_spouse_foreigner_count=features.child_mother_father_spouse_foreigner_count,
-
-            child_accompany=features.child_accompany,
-            parent_accompany=features.parent_accompany,
-            spouse_accompany=features.spouse_accompany,
-            sibling_accompany=features.sibling_accompany,
-
-            child_average_age=features.child_average_age,
-            child_count=features.child_count,
-            sibling_average_age=features.sibling_average_age,
-            sibling_count=features.sibling_count,
-
-            long_distance_child_sibling_count=features.long_distance_child_sibling_count,
-            foreign_living_child_sibling_count=features.foreign_living_child_sibling_count,
-        )
-
+        result = _predict(**features.model_dump())
         # get the next question by suggesting the variable with highest XAI value
-        payload_to_xai: Dict[str, float] = _potential(
-            sex=features.sex,
-
-            country_where_applying_country=features.country_where_applying_country,
-            country_where_applying_status=features.country_where_applying_status,
-
-            previous_marriage_indicator=features.previous_marriage_indicator,
-
-            purpose_of_visit=features.purpose_of_visit,
-            funds=features.funds,
-            contact_relation_to_me=features.contact_relation_to_me,
-            contact_relation_to_me2=features.contact_relation_to_me2,
-
-            education_field_of_study=features.education_field_of_study,            
-
-            occupation_title1=features.occupation_title1,
-            occupation_title2=features.occupation_title2,            
-            occupation_title3=features.occupation_title3,
-
-            no_authorized_stay=features.no_authorized_stay,
-            refused_entry_or_deport=features.refused_entry_or_deport,
-            previous_apply=features.previous_apply,
-
-            date_of_birth=features.date_of_birth,
-
-            country_where_applying_period=features.country_where_applying_period,  # days
-
-            marriage_period=features.marriage_period,
-            previous_marriage_period=features.previous_marriage_period,
-
-            passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years
-            how_long_stay_period=features.how_long_stay_period,  # days
-
-            education_period=features.education_period,
-
-            occupation_period=features.occupation_period,
-            occupation_period2=features.occupation_period2,
-            occupation_period3=features.occupation_period3,
-
-            applicant_marital_status=features.applicant_marital_status,
-            previous_country_of_residence_count=features.previous_country_of_residence_count,
-
-            sibling_foreigner_count=features.sibling_foreigner_count,
-            child_mother_father_spouse_foreigner_count=features.child_mother_father_spouse_foreigner_count,
-
-            child_accompany=features.child_accompany,
-            parent_accompany=features.parent_accompany,
-            spouse_accompany=features.spouse_accompany,
-            sibling_accompany=features.sibling_accompany,
-
-            child_average_age=features.child_average_age,
-            child_count=features.child_count,
-            sibling_average_age=features.sibling_average_age,
-            sibling_count=features.sibling_count,
-
-            long_distance_child_sibling_count=features.long_distance_child_sibling_count,
-            foreign_living_child_sibling_count=features.foreign_living_child_sibling_count,
-        )
+        payload_to_xai: Dict[str, float] = _potential(**features.model_dump())
         # remove variables that are in the payload (already answered)
         for provided_variable_ in features.provided_variables:
             del payload_to_xai[provided_variable_]
@@ -791,66 +619,7 @@ async def flag(
     logger.create_artifact_instance()
 
     try:
-        result = _predict(
-            sex=features.sex,
-
-            country_where_applying_country=features.country_where_applying_country,
-            country_where_applying_status=features.country_where_applying_status,
-
-            previous_marriage_indicator=features.previous_marriage_indicator,
-
-            purpose_of_visit=features.purpose_of_visit,
-            funds=features.funds,
-            contact_relation_to_me=features.contact_relation_to_me,
-            contact_relation_to_me2=features.contact_relation_to_me2,
-
-            education_field_of_study=features.education_field_of_study,            
-
-            occupation_title1=features.occupation_title1,
-            occupation_title2=features.occupation_title2,            
-            occupation_title3=features.occupation_title3,
-
-            no_authorized_stay=features.no_authorized_stay,
-            refused_entry_or_deport=features.refused_entry_or_deport,
-            previous_apply=features.previous_apply,
-
-            date_of_birth=features.date_of_birth,
-
-            country_where_applying_period=features.country_where_applying_period,  # days
-
-            marriage_period=features.marriage_period,
-            previous_marriage_period=features.previous_marriage_period,
-
-            passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years
-            how_long_stay_period=features.how_long_stay_period,  # days
-
-            education_period=features.education_period,
-
-            occupation_period=features.occupation_period,
-            occupation_period2=features.occupation_period2,
-            occupation_period3=features.occupation_period3,
-
-            applicant_marital_status=features.applicant_marital_status,
-            previous_country_of_residence_count=features.previous_country_of_residence_count,
-
-            sibling_foreigner_count=features.sibling_foreigner_count,
-            child_mother_father_spouse_foreigner_count=features.child_mother_father_spouse_foreigner_count,
-
-            child_accompany=features.child_accompany,
-            parent_accompany=features.parent_accompany,
-            spouse_accompany=features.spouse_accompany,
-            sibling_accompany=features.sibling_accompany,
-
-            child_average_age=features.child_average_age,
-            child_count=features.child_count,
-            sibling_average_age=features.sibling_average_age,
-            sibling_count=features.sibling_count,
-
-            long_distance_child_sibling_count=features.long_distance_child_sibling_count,
-            foreign_living_child_sibling_count=features.foreign_living_child_sibling_count,
-
-            is_flagged=is_flagged
-        )
+        result = _predict(**features.model_dump())
 
         # if need to be flagged, save as artifact
         if is_flagged:
@@ -873,65 +642,7 @@ async def flag(
 @app.post('/xai', response_model=api_models.XaiResponse)
 async def xai(features: api_models.Payload, k: int = 5):
     # validate sample
-    sample = _xai(
-        sex=features.sex,
-
-        country_where_applying_country=features.country_where_applying_country,
-        country_where_applying_status=features.country_where_applying_status,
-
-        previous_marriage_indicator=features.previous_marriage_indicator,
-
-        purpose_of_visit=features.purpose_of_visit,
-        funds=features.funds,
-        contact_relation_to_me=features.contact_relation_to_me,
-        contact_relation_to_me2=features.contact_relation_to_me2,
-
-        education_field_of_study=features.education_field_of_study,
-
-        occupation_title1=features.occupation_title1,
-        occupation_title2=features.occupation_title2,
-        occupation_title3=features.occupation_title3,
-
-        no_authorized_stay=features.no_authorized_stay,
-        refused_entry_or_deport=features.refused_entry_or_deport,
-        previous_apply=features.previous_apply,
-
-        date_of_birth=features.date_of_birth,
-
-        country_where_applying_period=features.country_where_applying_period,  # days
-
-        marriage_period=features.marriage_period,
-        previous_marriage_period=features.previous_marriage_period,
-
-        passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years
-        how_long_stay_period=features.how_long_stay_period,  # days
-
-        education_period=features.education_period,
-
-        occupation_period=features.occupation_period,
-        occupation_period2=features.occupation_period2,
-        occupation_period3=features.occupation_period3,
-
-        applicant_marital_status=features.applicant_marital_status,
-
-        previous_country_of_residence_count=features.previous_country_of_residence_count,
-
-        sibling_foreigner_count=features.sibling_foreigner_count,
-        child_mother_father_spouse_foreigner_count=features.child_mother_father_spouse_foreigner_count,
-
-        child_accompany=features.child_accompany,
-        parent_accompany=features.parent_accompany,
-        spouse_accompany=features.spouse_accompany,
-        sibling_accompany=features.sibling_accompany,
-
-        child_average_age=features.child_average_age,
-        child_count=features.child_count,
-        sibling_average_age=features.sibling_average_age,
-        sibling_count=features.sibling_count,
-
-        long_distance_child_sibling_count=features.long_distance_child_sibling_count,
-        foreign_living_child_sibling_count=features.foreign_living_child_sibling_count,
-    )
+    sample = _xai(**features.model_dump())
 
     # compute xai values for the sample
     xai_overall_score: float = flaml_tree_explainer.overall_score(sample=sample)
@@ -957,65 +668,7 @@ async def xai(features: api_models.Payload, k: int = 5):
 @app.post('/grouped_xai_expanded', response_model=api_models.XaiExpandedGroupResponse)
 async def xai(features: api_models.Payload):
     # validate sample
-    sample = _xai(
-        sex=features.sex,
-
-        country_where_applying_country=features.country_where_applying_country,
-        country_where_applying_status=features.country_where_applying_status,
-
-        previous_marriage_indicator=features.previous_marriage_indicator,
-
-        purpose_of_visit=features.purpose_of_visit,
-        funds=features.funds,
-        contact_relation_to_me=features.contact_relation_to_me,
-        contact_relation_to_me2=features.contact_relation_to_me2,
-
-        education_field_of_study=features.education_field_of_study,
-
-        occupation_title1=features.occupation_title1,
-        occupation_title2=features.occupation_title2,
-        occupation_title3=features.occupation_title3,
-
-        no_authorized_stay=features.no_authorized_stay,
-        refused_entry_or_deport=features.refused_entry_or_deport,
-        previous_apply=features.previous_apply,
-
-        date_of_birth=features.date_of_birth,
-
-        country_where_applying_period=features.country_where_applying_period,  # days
-
-        marriage_period=features.marriage_period,
-        previous_marriage_period=features.previous_marriage_period,
-
-        passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years
-        how_long_stay_period=features.how_long_stay_period,  # days
-
-        education_period=features.education_period,
-
-        occupation_period=features.occupation_period,
-        occupation_period2=features.occupation_period2,
-        occupation_period3=features.occupation_period3,
-
-        applicant_marital_status=features.applicant_marital_status,
-
-        previous_country_of_residence_count=features.previous_country_of_residence_count,
-
-        sibling_foreigner_count=features.sibling_foreigner_count,
-        child_mother_father_spouse_foreigner_count=features.child_mother_father_spouse_foreigner_count,
-
-        child_accompany=features.child_accompany,
-        parent_accompany=features.parent_accompany,
-        spouse_accompany=features.spouse_accompany,
-        sibling_accompany=features.sibling_accompany,
-
-        child_average_age=features.child_average_age,
-        child_count=features.child_count,
-        sibling_average_age=features.sibling_average_age,
-        sibling_count=features.sibling_count,
-
-        long_distance_child_sibling_count=features.long_distance_child_sibling_count,
-        foreign_living_child_sibling_count=features.foreign_living_child_sibling_count,
-    )
+    sample = _xai(**features.model_dump())
 
     # compute xai values for the sample
     xai_top_k: Dict[str, float] = flaml_tree_explainer.top_k_score(sample=sample, k=-1)
@@ -1106,65 +759,7 @@ async def grouped_xai(features: api_models.Payload):
     #    `aggregate_shap_values` method)
 
     # validate sample
-    sample = _xai(
-        sex=features.sex,
-
-        country_where_applying_country=features.country_where_applying_country,
-        country_where_applying_status=features.country_where_applying_status,
-
-        previous_marriage_indicator=features.previous_marriage_indicator,
-
-        purpose_of_visit=features.purpose_of_visit,
-        funds=features.funds,
-        contact_relation_to_me=features.contact_relation_to_me,
-        contact_relation_to_me2=features.contact_relation_to_me2,
-
-        education_field_of_study=features.education_field_of_study,
-
-        occupation_title1=features.occupation_title1,
-        occupation_title2=features.occupation_title2,
-        occupation_title3=features.occupation_title3,
-
-        no_authorized_stay=features.no_authorized_stay,
-        refused_entry_or_deport=features.refused_entry_or_deport,
-        previous_apply=features.previous_apply,
-
-        date_of_birth=features.date_of_birth,
-
-        country_where_applying_period=features.country_where_applying_period,  # days
-
-        marriage_period=features.marriage_period,
-        previous_marriage_period=features.previous_marriage_period,
-
-        passport_expiry_date_remaining=features.passport_expiry_date_remaining,  # years
-        how_long_stay_period=features.how_long_stay_period,  # days
-
-        education_period=features.education_period,
-
-        occupation_period=features.occupation_period,
-        occupation_period2=features.occupation_period2,
-        occupation_period3=features.occupation_period3,
-
-        applicant_marital_status=features.applicant_marital_status,
-
-        previous_country_of_residence_count=features.previous_country_of_residence_count,
-
-        sibling_foreigner_count=features.sibling_foreigner_count,
-        child_mother_father_spouse_foreigner_count=features.child_mother_father_spouse_foreigner_count,
-
-        child_accompany=features.child_accompany,
-        parent_accompany=features.parent_accompany,
-        spouse_accompany=features.spouse_accompany,
-        sibling_accompany=features.sibling_accompany,
-
-        child_average_age=features.child_average_age,
-        child_count=features.child_count,
-        sibling_average_age=features.sibling_average_age,
-        sibling_count=features.sibling_count,
-
-        long_distance_child_sibling_count=features.long_distance_child_sibling_count,
-        foreign_living_child_sibling_count=features.foreign_living_child_sibling_count,
-    )
+    sample = _xai(**features.model_dump())
 
     # compute aggregated SHAP values for the sample
     aggregated_shap_values = flaml_tree_explainer.aggregate_shap_values(
