@@ -172,7 +172,15 @@ class Payload(BaseModel):
             raise ValueError(
                 f'"{value}" is not valid'
                 f'Please use one of "{CanadaResidencyStatus.get_member_names()}"')
-        return value
+        # convert residency status string to code
+        # Residency code `{1: 'citizen', 3: 'visitor', 6: 'other'}`
+        if value == CanadaResidencyStatus.CITIZEN.name:
+            return CanadaResidencyStatus.CITIZEN.value
+        elif value == CanadaResidencyStatus.VISITOR.name:
+            return CanadaResidencyStatus.VISITOR.value
+        elif value == CanadaResidencyStatus.OTHER.name:
+            return CanadaResidencyStatus.OTHER.value
+        
 
     previous_marriage_indicator: bool = False
     @validator('previous_marriage_indicator')
@@ -323,6 +331,21 @@ class Payload(BaseModel):
             raise ValueError(
                 f'"{value}" is not valid'
                 f' Please use one of "{CanadaMarriageStatus.get_member_names()}"')
+        # 
+        if value == CanadaMarriageStatus.COMMON_LAW.name:
+            return CanadaMarriageStatus.COMMON_LAW.value
+        if value == CanadaMarriageStatus.DIVORCED.name:
+            return CanadaMarriageStatus.DIVORCED.value
+        if value == CanadaMarriageStatus.SEPARATED.name:
+            return CanadaMarriageStatus.SEPARATED.value
+        if value == CanadaMarriageStatus.MARRIED.name:
+            return CanadaMarriageStatus.MARRIED.value
+        if value == CanadaMarriageStatus.SINGLE.name:
+            return CanadaMarriageStatus.SINGLE.value
+        if value == CanadaMarriageStatus.WIDOWED.name:
+            return CanadaMarriageStatus.WIDOWED.value
+        if value == CanadaMarriageStatus.UNKNOWN.name:
+            return CanadaMarriageStatus.UNKNOWN.value
         return value
 
     previous_country_of_residence_count: int = 0
