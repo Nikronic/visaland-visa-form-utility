@@ -18,6 +18,13 @@ Simply, build the image using given `Dockerfile-dev`:
 docker build --progress=plain -t vizard:latest -f Dockerfile-dev .
 ```
 
+##### For people located in Iran
+
+Since Docker Hub is part of the US sanctions, you must resolve it first. For this, you have two options:
+
+1. Getting a server outside of Iran: this is similar to setting up a VPN. Note that in this case, the IP is most likely part of the IR's censorship. So if you plan to deploy your service, you will need a VPN (or any other method that breaks the filtering)
+2. Getting a server in Iran: In this case, your don't need a VPN to access to IP/Port. Yet, since sanctions are existing in this case too, you need to change DNS or setup a VPN on your server. For doing that, you can use the DNS provided on [shecan.ir](https://shecan.ir) and apply it on your server using this guide on [configuring DNS on Ubuntu](https://askubuntu.com/a/1392751/1112620)
+
 #### 1.1.2 Run the image
 
 ```bash
