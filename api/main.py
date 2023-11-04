@@ -2,7 +2,6 @@
 import pandas as pd
 import numpy as np
 import pickle
-from itertools import islice
 # ours
 from vizard.data import functional
 from vizard.data import preprocessor
@@ -28,7 +27,6 @@ from vizard.api import apps as api_apps
 from vizard.api import database as api_database
 from vizard.api import models as api_models
 from vizard.utils import loggers
-from vizard.configs import CANADA_COUNTRY_CODE_TO_NAME
 from vizard.version import VERSION as VIZARD_VERSION
 # api
 import fastapi
@@ -363,7 +361,9 @@ async def potential(features: api_models.Payload):
     except Exception as error:
         e = sys.exc_info()[1]
         logger.exception(e)
-        raise fastapi.HTTPException(status_code=500, detail=str(e))
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e))
 
 
 @app.post('/predict/', response_model=api_models.PredictionResponse)
@@ -393,7 +393,9 @@ async def predict(
     except Exception as error:
         logger.exception(error)
         e = sys.exc_info()[1]
-        raise fastapi.HTTPException(status_code=500, detail=str(e))
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e))
 
 
 @app.post('/flag/', response_model=api_models.PredictionResponse)
@@ -422,7 +424,9 @@ async def flag(
     except Exception as error:
         logger.exception(error)
         e = sys.exc_info()[1]
-        raise fastapi.HTTPException(status_code=500, detail=str(e))
+        raise fastapi.HTTPException(
+            status_code=fastapi.status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e))
 
 
 @app.post('/xai', response_model=api_models.XaiResponse)
@@ -537,6 +541,7 @@ async def xai(features: api_models.Payload):
         'grouped_xai_expanded': grouped_xai_expanded
     }
 
+
 @app.post('/grouped_xai', response_model=api_models.XaiAggregatedGroupResponse)
 async def grouped_xai(features: api_models.Payload):
     # TODO: Some caching can be done here:
@@ -594,7 +599,6 @@ async def get_canada_marriage_status():
     return {
         'marriage_status_types': CanadaMarriageStatus.get_member_names()
     }
-
 
 
 @app.get(
