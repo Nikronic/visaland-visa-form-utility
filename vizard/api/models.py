@@ -172,7 +172,9 @@ class Payload(BaseModel):
             raise ValueError(
                 f'"{value}" is not valid'
                 f'Please use one of "{CanadaResidencyStatus.get_member_names()}"')
-        return value
+        # convert residency status string to code
+        # Residency code `{1: 'citizen', 3: 'visitor', 6: 'other'}`
+        return CanadaResidencyStatus[value.upper()].value
 
     previous_marriage_indicator: bool = False
     @validator('previous_marriage_indicator')
@@ -323,7 +325,7 @@ class Payload(BaseModel):
             raise ValueError(
                 f'"{value}" is not valid'
                 f' Please use one of "{CanadaMarriageStatus.get_member_names()}"')
-        return value
+        return CanadaMarriageStatus[value.upper()].value
 
     previous_country_of_residence_count: int = 0
     @validator('previous_country_of_residence_count')

@@ -27,9 +27,11 @@
         "MLMODELS",
         "nbonlycode",
         "Nums",
+        "PCAP",
         "PDFIO",
         "pdfobject",
         "prec",
+        "pretransformed",
         "Prevly",
         "Prps",
         "Psprt",
@@ -48,10 +50,14 @@
         "unedu",
         "viewcode",
         "violinplot",
+        "worldbank",
         "XFAPDF",
         "XGBD"
     ],
-    "python.linting.mypyEnabled": true,
-    "python.linting.enabled": true,
-    "terminal.integrated.shellIntegration.enabled": true
+    "python.linting.mypyEnabled": false,
+    "python.linting.enabled": false,
+    "terminal.integrated.shellIntegration.enabled": true,
+    "python.analysis.extraPaths": [
+        "./snorkel"
+    ],
 }
