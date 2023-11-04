@@ -572,122 +572,47 @@ async def grouped_xai(features: api_models.Payload):
     }
 
 
-@app.get(
-        '/const/xai_feature_categories_types',
-        response_model=api_models.XaiFeatureCategoriesResponse)
-async def get_xai_feature_categories_types():
-    """Returns a list of names of XAI categories
+@app.get(path='/const/states', response_model=api_models.ConstantStatesResponse)
+async def get_constant_states():
+    """Returns all constants used in all APIs this service provides
 
-    Note:
-        See :class:`vizard.api.models.XaiFeatureCategoriesResponse` for more info.
-    """
-    return {
-        'xai_feature_categories_types': FeatureCategories.get_member_names()
-    }
+    List of the constants this endpoint returns:
 
-
-@app.get(
-    '/const/canada_marriage_status',
-    response_model=api_models.CanadaMarriageStatusResponse)
-async def get_canada_marriage_status():
-    """Returns a list of names of marital statuses in Canada
-
-    Note:
-        See :class:`vizard.api.models.CanadaMarriageStatusResponse` for more info.
-    """
-
-    return {
-        'marriage_status_types': CanadaMarriageStatus.get_member_names()
-    }
-
-
-@app.get(
-    '/const/canada_contact_relation_types',
-    response_model=api_models.CanadaContactRelationResponse)
-async def get_canada_contact_relation_types():
-    """Returns a list of names of contact relation types in Canada (dataset wise)
-
-    Note:
-        See :class:`vizard.api.models.CanadaContactRelationResponse` for more info.
+        - ``'xai_feature_categories_types'``: Returns a list of names of XAI categories.
+            For example :dict:`vizard.data.constant.FEATURE_CATEGORY_TO_FEATURE_NAME_MAP`
+            contains the feature names for each category.
+        - ``'marriage_status_types'``: Returns a list of names of marital statuses in Canada.
+            See :class:`vizard.data.constant.CanadaMarriageStatus` for more info
+            for possible values.
+        - ``'canada_contact_relation_types'``: Returns a list of names of contact relation
+            types in Canada (dataset wise). See :class:`vizard.data.constant.CanadaContactRelation`
+            for more info for possible values.
+        - ``'canada_residency_status_types'``: Returns a list of names of residency status
+            types in Canada (dataset wise). See :class:`vizard.data.constant.CanadaResidencyStatus`
+            for more info for possible values.
+        - ``'education_field_of_study_types'``: Returns a list of names of education field of
+            study types. See :class:`vizard.data.constant.EducationFieldOfStudy` for more info
+            for possible values.
+        - ``'occupation_title_types'``: Returns a list of names of education field of study types.
+            See :class:`vizard.data.constant.OccupationTitle` for more info for possible values.
+        - ``'country_where_applying_names'``: Returns a list of names of countries user can
+            apply from. See :class:`vizard.data.constant.CountryWhereApplying` for more info.
+        - ``'purpose_of_visit_types'``: Returns a list of names of types of purposes of visit.
+            See :class:`vizard.data.constant.PurposeOfVisit` for more info.
+        
     """
 
     return {
-        'canada_contact_relation_types': CanadaContactRelation.get_member_names()
-    }
-
-
-@app.get(
-    '/const/canada_residency_status_types',
-    response_model=api_models.CanadaResidencyStatusResponse)
-async def get_canada_residency_status_types():
-    """Returns a list of names of residency status types in Canada (dataset wise)
-
-    Note:
-        See :class:`vizard.api.models.CanadaResidencyStatusResponse` for more info.
-    """
-
-    return {
-        'canada_residency_status_types': CanadaResidencyStatus.get_member_names()
-    }
-
-
-@app.get(
-    '/const/education_field_of_study_types',
-    response_model=api_models.EducationFieldOfStudyResponse)
-async def get_education_field_of_study_types():
-    """Returns a list of names of education field of study types
-
-    Note:
-        See :class:`vizard.api.models.EducationFieldOfStudyResponse`
-    """
-
-    return {
-        'education_field_of_study_types': EducationFieldOfStudy.get_member_names()
-    }
-
-
-@app.get(
-    '/const/occupation_title_types',
-    response_model=api_models.OccupationTitleResponse)
-async def get_occupation_title_types():
-    """Returns a list of names of education field of study types
-
-    Note:
-        See :class:`vizard.api.models.OccupationTitleResponse`
-    """
-
-    return {
-        'occupation_title_types': OccupationTitle.get_member_names()
-    }
-
-
-@app.get(
-    path='/const/country_where_applying_names',
-    response_model=api_models.CountryWhereApplyingResponse)
-async def get_country_where_applying_names():
-    """Returns a list of names of countries user can apply from
-
-    Note:
-        See :class:`vizard.api.models.CountryWhereApplyingResponse`
-    """
-
-    return {
-        'country_where_applying_names': CountryWhereApplying.get_member_names()
-    }
-
-
-@app.get(
-    path='/const/purpose_of_visit_types',
-    response_model=api_models.PurposeOfVisitResponse)
-async def get_country_where_applying_names():
-    """Returns a list of names of types of purposes of visit
-
-    Note:
-        See :class:`vizard.api.models.PurposeOfVisitResponse`
-    """
-
-    return {
-        'purpose_of_visit_types': PurposeOfVisit.get_member_names()
+        'constant_states': {
+            'xai_feature_categories_types': FeatureCategories.get_member_names(),
+            'marriage_status_types': CanadaMarriageStatus.get_member_names(),
+            'canada_contact_relation_types': CanadaContactRelation.get_member_names(),
+            'canada_residency_status_types': CanadaResidencyStatus.get_member_names(),
+            'education_field_of_study_types': EducationFieldOfStudy.get_member_names(),
+            'occupation_title_types': OccupationTitle.get_member_names(),
+            'country_where_applying_names': CountryWhereApplying.get_member_names(),
+            'purpose_of_visit_types': PurposeOfVisit.get_member_names()
+        }
     }
 
 
