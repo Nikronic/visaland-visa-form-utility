@@ -1,9 +1,6 @@
 __all__ = [
-    'PredictionResponse', 'Payload',
-    'CanadaMarriageStatusResponse',
-    'ChildRelationResponse', 'CanadaContactRelationResponse', 'CanadaResidencyStatusResponse',
-    'EducationFieldOfStudyResponse', 'XaiResponse', 'XaiAggregatedGroupResponse', 
-    'PotentialResponse'
+    'PredictionResponse', 'Payload', 'ConstantStatesResponse', 
+    'XaiResponse', 'XaiAggregatedGroupResponse', 'PotentialResponse'
 ]
 
 # core
@@ -533,73 +530,6 @@ class Payload(BaseModel):
             # traverse through the original properties and add "'doc': documentation" to it
             for field in fields:
                 properties[field]['doc'] = payload_fields2docs[field]
-        
-
-
-class CanadaMarriageStatusResponse(BaseModel):
-    """Canada marriage status states in string format
-
-    Note:
-        See :class:`vizard.data.constant.CanadaMarriageStatus` for more info
-        for possible values.
-    """
-
-    marriage_status_types: List[str]
-
-
-class ChildRelationResponse(BaseModel):
-    """Child relation types names
-
-    Note:
-        See :class:`vizard.data.constant.ChildRelation` for more info
-        for possible values.
-    """
-
-    child_relation_types: List[str]
-
-
-class CanadaContactRelationResponse(BaseModel):
-    """Contact relation types names in Canada
-
-    Note:
-        See :class:`vizard.data.constant.CanadaContactRelation` for more info
-        for possible values.
-    """
-
-    canada_contact_relation_types: List[str]
-
-
-class CanadaResidencyStatusResponse(BaseModel):
-    """Residency status types names in Canada
-
-    Note:
-        See :class:`vizard.data.constant.CanadaResidencyStatus` for more info
-        for possible values.
-    """
-
-    canada_residency_status_types: List[str]
-
-
-class EducationFieldOfStudyResponse(BaseModel):
-    """Education field of study types names
-
-    Note:
-        See :class:`vizard.data.constant.EducationFieldOfStudy` for more info
-        for possible values.
-    """
-
-    education_field_of_study_types: List[str]
-
-
-class OccupationTitleResponse(BaseModel):
-    """ Occupation title types names
-
-    Note:
-        See :class:`vizard.data.constant.OccupationTitle` for more info
-        for possible values.
-    """
-
-    occupation_title_types: List[str]
 
 
 class XaiResponse(BaseModel):
@@ -613,17 +543,6 @@ class XaiResponse(BaseModel):
     xai_overall_score: float
     xai_top_k: Dict[str, float]
     xai_txt_top_k: Dict[str, Tuple[float, str]]
-
-
-class XaiFeatureCategoriesResponse(BaseModel):
-    """Title of XAI categories
-    
-    Note:
-        For example :dict:`vizard.data.constant.FEATURE_CATEGORY_TO_FEATURE_NAME_MAP`
-        contains the feature names for each category.
-    """
-
-    xai_feature_categories_types: List[str]
 
 
 class XaiAggregatedGroupResponse(BaseModel):
@@ -660,25 +579,6 @@ class XaiExpandedGroupResponse(BaseModel):
     grouped_xai_expanded: Dict[str, Dict[str, float]]
 
 
-class CountryWhereApplyingResponse(BaseModel):
-    """Country where applying from response model
-
-    Note:
-        See :class:`vizard.data.constant.CountryWhereApplying` for more info
-    """
-
-    country_where_applying_names: List[str]
-
-class PurposeOfVisitResponse(BaseModel):
-    """Types of purposes of visit response model
-
-    Note:
-        See :class:`vizard.data.constant.PurposeOfVisit` for more info
-    """
-
-    purpose_of_visit_types: List[str]
-
-
 class PotentialResponse(BaseModel):
     """Response model for the potential (total XAI) of machine learning model
 
@@ -686,3 +586,13 @@ class PotentialResponse(BaseModel):
         This is to tell the user how much the user is known to the model
     """
     result: float
+
+
+class ConstantStatesResponse(BaseModel):
+    """Response model for all the constants used throughout APIs
+
+    Note:
+        You can find the original constant definitions in :mod:`vizard.data.constant`
+    """
+
+    constant_states: Dict[str, List[str]]
