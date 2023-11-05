@@ -161,17 +161,30 @@ class Payload(BaseModel):
                 f'Country "{value}" is not valid in this system.')
         return value
 
-    country_where_applying_status: str = 'OTHER'
+    country_where_applying_status: str | float | int = 6
     @validator('country_where_applying_status')
     def _residence_status(cls, value):
-        value = value.lower().strip()
-        if value not in CanadaResidencyStatus.get_member_names():
-            raise ValueError(
-                f'"{value}" is not valid'
-                f'Please use one of "{CanadaResidencyStatus.get_member_names()}"')
         # convert residency status string to code
         # Residency code `{1: 'citizen', 3: 'visitor', 6: 'other'}`
-        return CanadaResidencyStatus[value.upper()].value
+        if isinstance(value, str):
+            value = value.lower().strip()
+            if value not in CanadaResidencyStatus.get_member_names():
+                raise ValueError(
+                    f'"{value}" is not valid'
+                    f' Please use one of "{CanadaResidencyStatus.get_member_names()}"')
+            return value
+        elif isinstance(value, int) or isinstance(value, float):
+            value = int(value)
+            # get Enum values # TODO: use const class or dict
+            member_values: List[int] = []
+            for member_ in CanadaResidencyStatus._member_names_:
+                member_values.append(CanadaResidencyStatus[member_].value)
+            if value not in member_values:
+                raise ValueError(
+                    f'"{value}" is not valid'
+                    f' Please use one of "{member_values}"')
+            return value
+        return value
 
     previous_marriage_indicator: bool = False
     @validator('previous_marriage_indicator')
@@ -314,15 +327,28 @@ class Payload(BaseModel):
             raise ValueError('Value cannot be negative')
         return value
 
-    applicant_marital_status: str = 'single'
+    applicant_marital_status: str | int | float = 7
     @validator('applicant_marital_status')
     def _marital_status(cls, value):
-        value = value.lower().strip()
-        if value not in CanadaMarriageStatus.get_member_names():
-            raise ValueError(
-                f'"{value}" is not valid'
-                f' Please use one of "{CanadaMarriageStatus.get_member_names()}"')
-        return CanadaMarriageStatus[value.upper()].value
+        if isinstance(value, str):
+            value = value.lower().strip()
+            if value not in CanadaMarriageStatus.get_member_names():
+                raise ValueError(
+                    f'"{value}" is not valid'
+                    f' Please use one of "{CanadaMarriageStatus.get_member_names()}"')
+            return value
+        elif isinstance(value, int) or isinstance(value, float):
+            value = int(value)
+            # get Enum values # TODO: use const class or dict
+            member_values: List[int] = []
+            for member_ in CanadaMarriageStatus._member_names_:
+                member_values.append(CanadaMarriageStatus[member_].value)
+            if value not in member_values:
+                raise ValueError(
+                    f'"{value}" is not valid'
+                    f' Please use one of "{member_values}"')
+            return value
+        return value
 
     previous_country_of_residence_count: int = 0
     @validator('previous_country_of_residence_count')
@@ -507,6 +533,21 @@ class Payload(BaseModel):
             data['occupation_title2'] = __occupation_title_x(value=data['occupation_title2'])
         if 'occupation_title3' in data:
             data['occupation_title3'] = __occupation_title_x(value=data['occupation_title3'])
+
+        # applicant_marital_status
+        def __marital_status(value: str) -> float:
+            value = value.upper()
+            return CanadaMarriageStatus[value].value
+        if 'applicant_marital_status' in data:
+            data['applicant_marital_status'] = __marital_status(data['applicant_marital_status'])
+
+        # country_where_applying_status
+        def __residence_status(value: str) -> float:
+            value = value.upper()
+            return CanadaResidencyStatus[value].value
+        if 'country_where_applying_status' in data:
+            data['country_where_applying_status'] = __residence_status(data['country_where_applying_status'])
+
 
         # enables adding private methods to Pydantic.BaseModel
         #   see reference: https://github.com/pydantic/pydantic/issues/655
