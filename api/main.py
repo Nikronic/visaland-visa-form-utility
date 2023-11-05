@@ -456,7 +456,7 @@ async def xai(features: api_models.Payload, k: int = 5):
 
 
 @app.post('/grouped_xai_expanded', response_model=api_models.XaiExpandedGroupResponse)
-async def xai(features: api_models.Payload):
+async def grouped_xai_expanded(features: api_models.Payload):
     # validate sample
     sample = _xai(**features.model_dump())
 
