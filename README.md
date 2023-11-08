@@ -212,6 +212,15 @@ mamba install -c conda-forge enlighten==1.12.0 -y
 
 ## For developers
 
+### Testing
+
+Since we are using `FastAPI` and there is an elegant way for testing with it, we install a few more dependencies (of course `pytest` as our go-to for reasons I don't know!):
+
+```bash
+mamba install -c conda-forge httpx=0.25.1 -y
+mamba install -c anaconda pytest=7.4.0
+```
+
 ### Mlflow migration of models from training to production
 
 #### Description

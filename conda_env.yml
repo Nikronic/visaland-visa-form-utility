@@ -1,5 +1,6 @@
 name: /home/nik/micromamba/envs/vizard-dev
 channels:
+  - anaconda
   - pytorch
   - conda-forge
 dependencies:
@@ -114,7 +115,12 @@ dependencies:
   - gts=0.7.6=h977cf35_4
   - gunicorn=21.2.0=py310hff52083_1
   - h11=0.14.0=pyhd8ed1ab_0
+  - h2=4.1.0=pyhd8ed1ab_0
   - harfbuzz=8.2.1=h3d44ed6_0
+  - hpack=4.0.0=pyh9f0ad1d_0
+  - httpcore=1.0.1=pyhd8ed1ab_0
+  - httpx=0.25.1=pyhd8ed1ab_0
+  - hyperframe=6.0.1=pyhd8ed1ab_0
   - icu=73.2=h59595ed_0
   - idna=3.4=pyhd8ed1ab_0
   - importlib-metadata=6.8.0=pyha770c72_0
@@ -292,6 +298,7 @@ dependencies:
   - threadpoolctl=3.2.0=pyha21a80b_0
   - tk=8.6.13=h2797004_0
   - toml=0.10.2=pyhd8ed1ab_0
+  - tomli=2.0.1=py310h06a4308_0
   - tqdm=4.66.1=pyhd8ed1ab_0
   - typing-extensions=4.8.0=hd8ed1ab_0
   - typing_extensions=4.8.0=pyha770c72_0
@@ -349,5 +356,4 @@ dependencies:
       - snorkel==0.9.10+dev
       - tensorboard==2.14.1
       - tensorboard-data-server==0.7.1
-      - tomli==2.0.1
 prefix: /home/nik/micromamba/envs/vizard-dev
