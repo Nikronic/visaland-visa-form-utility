@@ -46,41 +46,55 @@ import sys
 
 # argparse
 parser = argparse.ArgumentParser()
-parser.add_argument('--experiment_name', type=str,
-                    help='mlflow experiment name for logging',
-                    default='',
-                    required=True
-                    )
-parser.add_argument('--verbose', type=str,
-                    help='logging verbosity level.',
-                    choices=['debug', 'info'],
-                    default='info',
-                    required=True
-                    )
-parser.add_argument('--run_id', type=str,
-                    help='MLflow run ID to extract artifacts (weights, models, etc)',
-                    required=True,
-                    )
-parser.add_argument('--bind', type=str,
-                    help='ip address of host',
-                    default='0.0.0.0',
-                    required=True
-                    )
-parser.add_argument('--mlflow_port', type=int,
-                    help='port of mlflow tracking',
-                    default=5000,
-                    required=True
-                    )
-parser.add_argument('--gunicorn_port', type=int,
-                    help='port used for creating gunicorn',
-                    default=8000,
-                    required=True
-                    )
-parser.add_argument('--workers', type=int,
-                    help='number of works used by gunicorn',
-                    default=1,
-                    required=True
-                    )
+parser.add_argument(
+    '-e',
+    '--experiment_name',
+    type=str,
+    help='mlflow experiment name for logging',
+    default='',
+    required=True)
+parser.add_argument(
+    '-d',
+    '--verbose',
+    type=str,
+    help='logging verbosity level.',
+    choices=['debug', 'info'],
+    default='info',
+    required=True)
+parser.add_argument(
+    '-r',
+    '--run_id',
+    type=str,
+    help='MLflow run ID to extract artifacts (weights, models, etc)',
+    required=True)
+parser.add_argument(
+    '-b',
+    '--bind',
+    type=str,
+    help='ip address of host',
+    default='0.0.0.0',
+    required=True)
+parser.add_argument(
+    '-m',
+    '--mlflow_port',
+    type=int,
+    help='port of mlflow tracking',
+    default=5000,
+    required=True)
+parser.add_argument(
+    '-g',
+    '--gunicorn_port',
+    type=int,
+    help='port used for creating gunicorn',
+    default=8000,
+    required=True)
+parser.add_argument(
+    '-w',
+    '--workers',
+    type=int,
+    help='number of works used by gunicorn',
+    default=1,
+    required=True)
 args = parser.parse_args()
 
 # run mlflow tracking server
