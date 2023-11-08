@@ -221,6 +221,8 @@ mamba install -c conda-forge httpx=0.25.1 -y
 mamba install -c anaconda pytest=7.4.0
 ```
 
+*Note:* you need to make sure MLflow server is running. This tests only can handle FastAPI APIs without explicit running instance. (i.e., run a MLflow server)
+
 ### Mlflow migration of models from training to production
 
 #### Description
