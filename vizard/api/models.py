@@ -6,6 +6,7 @@ __all__ = [
 # core
 import pydantic
 from pydantic import field_validator
+from pydantic import ConfigDict
 from pydantic.fields import FieldInfo
 import json
 # ours
@@ -141,6 +142,25 @@ See Also:
 
 
 class Payload(BaseModel):
+    def _json_schema_extra(
+            schema: Dict[str, Any],
+            model: Type['Payload']) -> None:
+            # get the json_schema from pydantic
+            properties: Dict[Dict[str, str]] = schema.get('properties', {})
+
+            # get all the Field of Payload (i.e., class variables)
+            fields: List[str] = list(Payload.model_fields.keys())
+            # check if model's fields are subset of documentation fields
+            validate_model_fields(model=Payload, fields2docs=payload_fields2docs)
+            # traverse through the original properties and add "'doc': documentation" to it
+            for field in fields:
+                properties[field]['doc'] = payload_fields2docs[field]
+    
+    model_config = ConfigDict(
+        from_attributes=True,
+        json_schema_extra=_json_schema_extra
+    )
+
     # required for having dynamic request body for populating ``next_variable`` of `ResponseModel`
     __slots__ = ('provided_variables',)
 
@@ -554,23 +574,6 @@ class Payload(BaseModel):
         object.__setattr__(self, 'provided_variables', list(data.keys()))
 
         super().__init__(**data)
-        
-        
-    class Config:
-        from_attributes = True
-
-        @staticmethod
-        def json_schema_extra(schema: Dict[str, Any], model: Type['Payload']) -> None:
-            # get the json_schema from pydantic
-            properties: Dict[Dict[str, str]] = schema.get('properties', {})
-
-            # get all the Field of Payload (i.e., class variables)
-            fields: List[str] = list(Payload.model_fields.keys())
-            # check if model's fields are subset of documentation fields
-            validate_model_fields(model=Payload, fields2docs=payload_fields2docs)
-            # traverse through the original properties and add "'doc': documentation" to it
-            for field in fields:
-                properties[field]['doc'] = payload_fields2docs[field]
 
 
 class XaiResponse(BaseModel):
