@@ -5,7 +5,7 @@ __all__ = [
 
 # core
 import pydantic
-from pydantic import validator
+from pydantic import field_validator
 from pydantic.fields import FieldInfo
 import json
 # ours
@@ -145,7 +145,7 @@ class Payload(BaseModel):
     __slots__ = ('provided_variables',)
 
     sex: str
-    @validator('sex')
+    @field_validator('sex')
     def _sex(cls, value):
         if value not in Sex.get_member_names():
             raise ValueError(
@@ -154,7 +154,7 @@ class Payload(BaseModel):
         return value
 
     country_where_applying_country: str = 'TURKEY'
-    @validator('country_where_applying_country')
+    @field_validator('country_where_applying_country')
     def _country_where_applying_country(cls, value):
         if value.upper() not in CountryWhereApplying.get_member_names():
             raise ValueError(
@@ -162,7 +162,7 @@ class Payload(BaseModel):
         return value
 
     country_where_applying_status: str | float | int = 6
-    @validator('country_where_applying_status')
+    @field_validator('country_where_applying_status')
     def _residence_status(cls, value):
         # convert residency status string to code
         # Residency code `{1: 'citizen', 3: 'visitor', 6: 'other'}`
@@ -187,7 +187,7 @@ class Payload(BaseModel):
         return value
 
     previous_marriage_indicator: bool = False
-    @validator('previous_marriage_indicator')
+    @field_validator('previous_marriage_indicator')
     def _previous_marriage_indicator(cls, value):
         transformed_value: bool = False
         if isinstance(value, str):
@@ -198,7 +198,7 @@ class Payload(BaseModel):
 
 
     purpose_of_visit: str = 'tourism'
-    @validator('purpose_of_visit')
+    @field_validator('purpose_of_visit')
     def _purpose_of_visit(cls, value):
         value = value.lower()
         if value.lower() not in PurposeOfVisit.get_member_names():
@@ -208,7 +208,7 @@ class Payload(BaseModel):
         return value
 
     funds: float = 8000.
-    @validator('funds')
+    @field_validator('funds')
     def _funds(cls, value):
         if isinstance(value, str):
             if not value.isnumeric():
@@ -219,7 +219,7 @@ class Payload(BaseModel):
 
     contact_relation_to_me: str = 'hotel'
     contact_relation_to_me2: str = 'ukn'
-    @validator(
+    @field_validator(
         'contact_relation_to_me',
         'contact_relation_to_me2'
     )
@@ -232,7 +232,7 @@ class Payload(BaseModel):
         return value
 
     education_field_of_study: str = 'unedu'
-    @validator('education_field_of_study')
+    @field_validator('education_field_of_study')
     def _education_field_of_study(cls, value):
         value = value.lower().strip()
         if value not in EducationFieldOfStudy.get_member_names():
@@ -244,7 +244,7 @@ class Payload(BaseModel):
     occupation_title1: str = 'OTHER'
     occupation_title2: str = 'OTHER'
     occupation_title3: str = 'OTHER'
-    @validator(
+    @field_validator(
         'occupation_title1',
         'occupation_title2',
         'occupation_title3'
@@ -262,14 +262,14 @@ class Payload(BaseModel):
     previous_apply: bool = False
 
     date_of_birth: float = 18.
-    @validator('date_of_birth')
+    @field_validator('date_of_birth')
     def _date_of_birth(cls, value):
         if value < CanadaGeneralConstants.MINIMUM_AGE:
             raise ValueError('This service only accepts adults')
         return value
 
     country_where_applying_period: float = 30.  # days
-    @validator('country_where_applying_period')
+    @field_validator('country_where_applying_period')
     def _country_where_applying_period(cls, value):
         if value < 0:
             raise ValueError('Value cannot be negative')
@@ -278,7 +278,7 @@ class Payload(BaseModel):
     marriage_period: float = 0.  # years
     previous_marriage_period: float = 0.  # years
 
-    @validator(
+    @field_validator(
         'marriage_period',
         'previous_marriage_period'
     )
@@ -288,7 +288,7 @@ class Payload(BaseModel):
         return value
 
     passport_expiry_date_remaining: float = 3.  # years
-    @validator('passport_expiry_date_remaining')
+    @field_validator('passport_expiry_date_remaining')
     def _passport_expiry_date_remaining(cls, value):
         if (value < CanadaGeneralConstants.MINIMUM_EXPIRY_PASSPORT):
             raise ValueError('The expiry date of your passport is too low.')
@@ -297,14 +297,14 @@ class Payload(BaseModel):
         return value
 
     how_long_stay_period: float = 30.  # days
-    @validator('how_long_stay_period')
+    @field_validator('how_long_stay_period')
     def _how_long_stay_period(cls, value):
         if value < 0:
             raise ValueError('Value cannot be negative')
         return value
 
     education_period: float = 0.  # years
-    @validator('education_period')
+    @field_validator('education_period')
     def _education_period(cls, value):
         if (value > 0) and (value < CanadaGeneralConstants.MINIMUM_EDUCATION_PERIOD):
             raise ValueError(
@@ -317,7 +317,7 @@ class Payload(BaseModel):
     occupation_period: float = 0.   # years
     occupation_period2: float = 0.  # years
     occupation_period3: float = 0.  # years
-    @validator(
+    @field_validator(
         'occupation_period',
         'occupation_period2',
         'occupation_period3'
@@ -328,7 +328,7 @@ class Payload(BaseModel):
         return value
 
     applicant_marital_status: str | int | float = 7
-    @validator('applicant_marital_status')
+    @field_validator('applicant_marital_status')
     def _marital_status(cls, value):
         if isinstance(value, str):
             value = value.lower().strip()
@@ -351,14 +351,14 @@ class Payload(BaseModel):
         return value
 
     previous_country_of_residence_count: int = 0
-    @validator('previous_country_of_residence_count')
+    @field_validator('previous_country_of_residence_count')
     def _previous_country_of_residence_count(cls, value):
         if value < 0:
             raise ValueError('Value cannot be negative.')
         return value
 
     sibling_foreigner_count: int = 0
-    @validator('sibling_foreigner_count')
+    @field_validator('sibling_foreigner_count')
     def _sibling_foreigner_count(cls, value):
         if value < 0:
             raise ValueError('Value cannot be negative.')
@@ -369,7 +369,7 @@ class Payload(BaseModel):
         return value
 
     child_mother_father_spouse_foreigner_count: int = 0
-    @validator('child_mother_father_spouse_foreigner_count')
+    @field_validator('child_mother_father_spouse_foreigner_count')
     def _child_mother_father_spouse_foreigner_count(cls, value):
         if value < 0:
             raise ValueError('Value cannot be negative.')
@@ -383,7 +383,7 @@ class Payload(BaseModel):
         return value
 
     child_accompany: int = 0
-    @validator('child_accompany')
+    @field_validator('child_accompany')
     def _child_accompany(cls, value):
         if value < 0:
             raise ValueError('Value cannot be negative.')
@@ -395,7 +395,7 @@ class Payload(BaseModel):
         return value
 
     parent_accompany: int = 0
-    @validator('parent_accompany')
+    @field_validator('parent_accompany')
     def _parent_accompany(cls, value):
         if value < 0:
             raise ValueError('Value cannot be negative.')
@@ -407,7 +407,7 @@ class Payload(BaseModel):
         return value
 
     spouse_accompany: int = 0
-    @validator('spouse_accompany')
+    @field_validator('spouse_accompany')
     def _spouse_accompany(cls, value):
         if value < 0:
             raise ValueError(
@@ -418,7 +418,7 @@ class Payload(BaseModel):
         return value
     sibling_accompany: int = 0
 
-    @validator('sibling_accompany')
+    @field_validator('sibling_accompany')
     def _sibling_accompany(cls, value):
         if value < 0:
             raise ValueError('Value cannot be negative.')
@@ -430,14 +430,14 @@ class Payload(BaseModel):
         return value
 
     child_average_age: float = 0.  # years
-    @validator('child_average_age')
+    @field_validator('child_average_age')
     def _child_average_age(cls, value):
         if value < 0:
             raise ValueError('Value cannot be negative.')
         return value
 
     child_count: int = 0
-    @validator('child_count')
+    @field_validator('child_count')
     def _child_count(cls, value):
         if value < 0:
             raise ValueError('Value cannot be negative.')
@@ -448,14 +448,14 @@ class Payload(BaseModel):
         return value
     
     sibling_average_age: int = 0.
-    @validator('sibling_average_age')
+    @field_validator('sibling_average_age')
     def _sibling_average_age(cls, value):
         if value < 0:
             raise ValueError('Value cannot be negative.')
         return value
 
     sibling_count: int = 0
-    @validator('sibling_count')
+    @field_validator('sibling_count')
     def _sibling_count(cls, value):
         if value < 0:
             raise ValueError('Value cannot be negative.')
@@ -467,7 +467,7 @@ class Payload(BaseModel):
 
     long_distance_child_sibling_count: int = 0
 
-    @validator('long_distance_child_sibling_count')
+    @field_validator('long_distance_child_sibling_count')
     def _long_distance_child_sibling_count(cls, value):
         if value < 0:
             raise ValueError('Value cannot be negative.')
@@ -482,7 +482,7 @@ class Payload(BaseModel):
         return value
 
     foreign_living_child_sibling_count: int = 0
-    @validator('foreign_living_child_sibling_count')
+    @field_validator('foreign_living_child_sibling_count')
     def _foreign_living_child_sibling_count(cls, value):
         if value < 0:
             raise ValueError('Value cannot be negative.')
