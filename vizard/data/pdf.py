@@ -4,7 +4,7 @@ __all__ = [
 
 # core
 import xml.etree.ElementTree as et
-import PyPDF2 as pypdf
+import pypdf
 import re
 # ours: data
 from vizard.data import functional
@@ -95,7 +95,7 @@ class XFAPDF(PDFIO):
         """
 
         pdfobject = open(pdf_path, 'rb')
-        pdf = pypdf.PdfFileReader(pdfobject)
+        pdf = pypdf.PdfReader(stream=pdfobject, strict=True)
         xfa = self.find_in_dict('/XFA', pdf.resolved_objects)
         # `datasets` keyword contains filled forms in XFA array
         xml = xfa[xfa.index('datasets')+1].get_object().get_data()

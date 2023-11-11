@@ -13,7 +13,7 @@ from catboost import CatBoostClassifier
 import numpy as np
 import flaml
 from flaml import AutoML
-from flaml.ml import sklearn_metric_loss_score
+from flaml.automl.ml import sklearn_metric_loss_score
 # devops
 import mlflow
 # helpers
