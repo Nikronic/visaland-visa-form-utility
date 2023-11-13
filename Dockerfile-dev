@@ -15,7 +15,7 @@ RUN pip install --upgrade pip
 # Install PyTorch
 RUN mamba install pytorch cpuonly -c pytorch -y
 # install mlflow
-RUN mamba install mlflow==2.7.1 -c conda-forge
+RUN mamba install mlflow==2.8.0 -c conda-forge
 # Install data extraction dependencies
 RUN mamba install -c conda-forge xmltodict==0.13.0 -y
 RUN pip install pikepdf==8.5.1

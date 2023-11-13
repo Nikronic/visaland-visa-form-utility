@@ -116,7 +116,7 @@ mamba install pytorch cpuonly -c pytorch -y
 Install the tracking server. This will install a lot of dependencies which we need directly, but any updated version which will be installed by `mlflow` would be enough.
 
 ```bash
-mamba install -c conda-forge mlflow==2.7.1 -y
+mamba install -c conda-forge mlflow==2.8.0 -y
 ```
 
 Now, if you run `bash mlflow-server.sh`, you should see a output like this:
