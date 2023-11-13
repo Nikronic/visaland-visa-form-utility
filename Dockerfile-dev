@@ -23,7 +23,7 @@ RUN pip install pypdf==3.1.0
 # Install enlighten for beauty
 RUN mamba install -c conda-forge enlighten==1.12.0
 # Install ML libs
-RUN mamba install -c conda-forge xgboost==1.7.6 -y
+RUN mamba install -c conda-forge py-xgboost-cpu==1.7.6 -y
 RUN mamba install -c conda-forge lightgbm==4.0.0 -y
 RUN mamba install -c conda-forge catboost==1.2.2 -y
 RUN mamba install -c conda-forge flaml==2.1.1 -y

@@ -167,7 +167,7 @@ cd ..
 These all are related to ML:
 
 ```bash
-mamba install -c conda-forge xgboost==2.0.0 -y
+mamba install -c conda-forge py-xgboost-cpu==1.7.6 -y
 mamba install -c conda-forge lightgbm==4.0.0 -y
 mamba install -c conda-forge catboost==1.2.2 -y
 mamba install -c conda-forge flaml==2.1.1 -y
