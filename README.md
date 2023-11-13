@@ -76,23 +76,24 @@ Now, you can open [localhost:8000/docs](http://127.0.0.1:8000/docs) and view the
 
 ### 1.2 Mamba
 
-**tip:** You can use `mamba/micromamba` to hugely speed up the installation process. If you don't want to, replace all instances of the `mamba/micromamba` with `conda` in following steps.
+You can use `mamba` to hugely speed up the installation process. If you don't want to, replace all instances of the `mamba` with `conda` in following steps.
 
-#### 1.2.1 Create a `micromamba` env
+*Note*: We used `micromamba` for installing packages which is on top of `miniforge`. Please make sure you have installed these, if you plan to exactly follow our steps. Nonetheless, having `miniforge` alone is enough since it gives the `mamba`.
+
+#### 1.2.1 Create a `mamba` env
 
 Well all packages gonna be here. Note that we have to stick to `python=3.10` as `mlflow` does not support higher versions due to `pyarrow` dependency.
 
 ```bash
-micromamba create --name vizard-dev python=3.10 -y
+mamba create --name vizard-dev python=3.10 -y
 ```
-
 
 #### 1.2.2 Activate the new environment
 
 Make sure you activate this environment right away:
 
 ```bash
-micromamba activate vizard-dev
+mamba activate vizard-dev
 ```
 
 #### 1.2.3 Update `pip`
@@ -108,7 +109,7 @@ pip install --upgrade pip
 At the moment, even though the best model does not need pytorch, but we need to install it as the dependency for AutoML and XAI modules. This is also to make sure AutoML libs (`flaml`) won't install GPU based packages.
 
 ```bash
-mamba install pytorch cpuonly -c pytorch -y
+mamba install pytorch==2.1.0 cpuonly -c pytorch -y
 ```
 
 #### 1.2.5 Install `mlflow`
@@ -116,7 +117,7 @@ mamba install pytorch cpuonly -c pytorch -y
 Install the tracking server. This will install a lot of dependencies which we need directly, but any updated version which will be installed by `mlflow` would be enough.
 
 ```bash
-mamba install -c conda-forge mlflow==2.7.1 -y
+mamba install -c conda-forge mlflow==2.8.0 -y
 ```
 
 Now, if you run `bash mlflow-server.sh`, you should see a output like this:
@@ -146,7 +147,7 @@ After installation, note that dependencies are not installed. Now, we have to in
 ```bash
 mamba install -c conda-forge xmltodict==0.13.0 -y
 pip install pikepdf==8.5.1
-pip install pypdf2==3.0.1
+pip install pypdf==3.1.0
 ```
 
 #### 1.2.8 Install Snorkel weak supervised learner
@@ -167,7 +168,7 @@ cd ..
 These all are related to ML:
 
 ```bash
-mamba install -c conda-forge xgboost==2.0.0 -y
+mamba install -c conda-forge py-xgboost-cpu==1.7.6 -y
 mamba install -c conda-forge lightgbm==4.0.0 -y
 mamba install -c conda-forge catboost==1.2.2 -y
 mamba install -c conda-forge flaml==2.1.1 -y
@@ -218,7 +219,7 @@ Since we are using `FastAPI` and there is an elegant way for testing with it, we
 
 ```bash
 mamba install -c conda-forge httpx=0.25.1 -y
-mamba install -c anaconda pytest=7.4.0
+mamba install -c anaconda pytest=7.4.0 -y
 ```
 
 *Note:* you need to make sure MLflow server is running. This tests only can handle FastAPI APIs without explicit running instance. (i.e., run a MLflow server)
