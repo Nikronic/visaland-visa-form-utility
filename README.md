@@ -108,7 +108,7 @@ pip install --upgrade pip
 At the moment, even though the best model does not need pytorch, but we need to install it as the dependency for AutoML and XAI modules. This is also to make sure AutoML libs (`flaml`) won't install GPU based packages.
 
 ```bash
-mamba install pytorch cpuonly -c pytorch -y
+mamba install pytorch==2.1.0 cpuonly -c pytorch -y
 ```
 
 #### 1.2.5 Install `mlflow`

@@ -13,7 +13,7 @@ SHELL ["mamba", "run", "-n", "viz-inf-cpu", "/bin/bash", "-c"]
 RUN pip install --upgrade pip
 
 # Install PyTorch
-RUN mamba install pytorch cpuonly -c pytorch -y
+RUN mamba install pytorch==2.1.0 cpuonly -c pytorch -y
 # install mlflow
 RUN mamba install mlflow==2.8.0 -c conda-forge
 # Install data extraction dependencies
