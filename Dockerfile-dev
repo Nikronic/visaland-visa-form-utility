@@ -19,7 +19,7 @@ RUN mamba install mlflow==2.8.0 -c conda-forge
 # Install data extraction dependencies
 RUN mamba install -c conda-forge xmltodict==0.13.0 -y
 RUN pip install pikepdf==8.5.1
-RUN pip install pypdf2==3.0.1
+RUN pip install pypdf==3.1.0
 # Install enlighten for beauty
 RUN mamba install -c conda-forge enlighten==1.12.0
 # Install ML libs

@@ -146,7 +146,7 @@ After installation, note that dependencies are not installed. Now, we have to in
 ```bash
 mamba install -c conda-forge xmltodict==0.13.0 -y
 pip install pikepdf==8.5.1
-pip install pypdf2==3.0.1
+pip install pypdf==3.1.0
 ```
 
 #### 1.2.8 Install Snorkel weak supervised learner
