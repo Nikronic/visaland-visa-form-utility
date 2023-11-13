@@ -76,23 +76,24 @@ Now, you can open [localhost:8000/docs](http://127.0.0.1:8000/docs) and view the
 
 ### 1.2 Mamba
 
-**tip:** You can use `mamba/micromamba` to hugely speed up the installation process. If you don't want to, replace all instances of the `mamba/micromamba` with `conda` in following steps.
+You can use `mamba` to hugely speed up the installation process. If you don't want to, replace all instances of the `mamba` with `conda` in following steps.
 
-#### 1.2.1 Create a `micromamba` env
+*Note*: We used `micromamba` for installing packages which is on top of `miniforge`. Please make sure you have installed these, if you plan to exactly follow our steps. Nonetheless, having `miniforge` alone is enough since it gives the `mamba`.
+
+#### 1.2.1 Create a `mamba` env
 
 Well all packages gonna be here. Note that we have to stick to `python=3.10` as `mlflow` does not support higher versions due to `pyarrow` dependency.
 
 ```bash
-micromamba create --name vizard-dev python=3.10 -y
+mamba create --name vizard-dev python=3.10 -y
 ```
-
 
 #### 1.2.2 Activate the new environment
 
 Make sure you activate this environment right away:
 
 ```bash
-micromamba activate vizard-dev
+mamba activate vizard-dev
 ```
 
 #### 1.2.3 Update `pip`
