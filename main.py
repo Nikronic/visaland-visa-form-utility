@@ -6,24 +6,15 @@ from vizard.snorkel import LABEL_MODEL_CONFIGS
 from vizard.snorkel import labeling
 from vizard.snorkel import modeling
 from vizard.snorkel import augmentation
-from vizard.snorkel import slicing
 from vizard.snorkel import PandasLFApplier
 from vizard.snorkel import PandasTFApplier
-from vizard.snorkel import PandasSFApplier
 from vizard.snorkel import LFAnalysis
 from vizard.snorkel import LabelModel
 from vizard.snorkel import ApplyAllPolicy
-from vizard.snorkel import Scorer
-# from vizard.snorkel import preview_tfs
-from vizard.snorkel import slice_dataframe
 # ours: models
 from vizard.models import preprocessors
 from vizard.models import trainers
 from vizard.models.trainers.aml_flaml import EvalMode
-# ours: data
-from vizard.data import constant
-# ours: explainers
-from vizard.xai import FlamlTreeExplainer
 # ours: helpers
 from vizard.version import VERSION as VIZARD_VERSION
 # from vizard.utils.dtreeviz import FLAMLDTreeViz
@@ -78,12 +69,8 @@ if __name__ == '__main__':
     try:
         logger.create_artifact_instance()
         logger.info('\t\t↓↓↓ Starting setting up configs: dirs, mlflow, dvc, etc ↓↓↓')
-        # main path
-        SRC_DIR = '/mnt/e/dataset/processed/all/'  # path to source encrypted pdf
-        DST_DIR = 'raw-dataset/all/'  # path to decrypted pdf
-
         # data versioning config
-        PATH = DST_DIR[:-1] + '-dev.pkl'  # path to source data, e.g. data.pkl file
+        PATH = 'raw-dataset/all-dev.pkl'  # path to source data, e.g. data.pkl file
         REPO = '../visaland-visa-form-utility'
         VERSION = 'v2.0.1-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
@@ -271,27 +258,7 @@ if __name__ == '__main__':
         # TF reports
         logger.info(f'Original dataset size: {len(data)}')
         logger.info(f'Augmented dataset size: {len(data_augmented)}')
-        cond1 = (data['p1.SecB.Chd.X.ChdAccomp.Count'] > 0) & (data['p1.SecB.Chd.X.ChdRel.ChdCount'] > data['p1.SecB.Chd.X.ChdAccomp.Count'])
-        cond2 = (data['p1.SecC.Chd.X.ChdAccomp.Count'] > 0) & (data['p1.SecC.Chd.X.ChdRel.ChdCount'] > data['p1.SecC.Chd.X.ChdAccomp.Count'])
-        cond = cond1 | cond2
-        # logger.info(preview_tfs(dataframe=data[cond], tfs=tfs, n_samples=2))
         logger.info('\t\t↑↑↑ Finishing augmentation via snorkel (TFs) ↑↑↑')
-
-        logger.info('\t\t↓↓↓ Starting slicing by snorkel (SFs) ↓↓↓')
-        # slicing functions
-        sf_compose = [
-            slicing.SinglePerson(),
-        ]
-        sfs = slicing.ComposeSFSlicing(slicers=sf_compose)()
-        single_person_slice = slice_dataframe(data_augmented, sfs[0])
-        logger.info(single_person_slice.sample(5))
-        sf_applier = PandasSFApplier(sfs)
-        data_augmented_sliced = sf_applier.apply(data_augmented)
-        scorer = Scorer(metrics=metrics)
-        # TODO: use slicing `scorer` only for `test` set
-        # logger.info(scorer.score_slices(S=S_test, golds=Y_test,
-        #             preds=preds_test, probs=probs_test, as_dataframe=True))
-        logger.info('\t\t↑↑↑ Finishing slicing by snorkel (SFs) ↑↑↑')
 
         logger.info('\t\t↓↓↓ Starting preprocessing on directly DVC `vX.X.X-dev` data ↓↓↓')
         # change dtype of augmented data to be as original data
@@ -393,7 +360,7 @@ if __name__ == '__main__':
             y_train=yt_train,
             X_val=None if EVAL_MODE==EvalMode.CV else xt_eval,
             y_val=None if EVAL_MODE==EvalMode.CV else yt_eval,
-            eval_method=EVAL_MODE.value,
+            eval_method=EVAL_MODE,
             seed=SEED,
             append_log=False,
             log_file_name=logger.MLFLOW_ARTIFACTS_LOGS_PATH / 'flaml.log',
@@ -437,41 +404,6 @@ if __name__ == '__main__':
         )
         logger.info('\t\t↑↑↑ Finished loading training config and training estimators ↑↑↑')
 
-        logger.info('\t\t↓↓↓ Starting loading evaluation config and evaluating estimators ↓↓↓')
-        # TODO: add final evaluation steps here
-        logger.info('\t\t↑↑↑ Finished loading evaluation config and evaluating estimators ↑↑↑')
-
-        logger.info('\t\t↓↓↓ Starting saving good weights ↓↓↓')
-        # TODO: add final checkpoint here (save weights)
-        logger.info('\t\t↑↑↑ Finished saving good weights ↑↑↑')
-
-        logger.info('\t\t↓↓↓ Starting logging preview of results and other stuff ↓↓↓')
-        # TODO: add final checkpoint here (save weights)
-        logger.info('\t\t↑↑↑ Finished logging preview of results and other stuff ↑↑↑')
-
-        # TODO: fix dtreeviz dependencies (remove it breaks)
-        # dtreeviz_visualizer = FLAMLDTreeViz(
-        #     flaml_automl=flaml_automl,
-        #     x_data=xt_train,
-        #     y_data=yt_train.flatten(),
-        #     target_name='VisaResult',
-        #     feature_names=flaml_automl.feature_names_in_,
-        #     class_names=list(y_ct.classes_),
-        #     explanation_type='plain_english'
-        # )
-
-        flaml_tree_explainer = FlamlTreeExplainer(
-            flaml_model=flaml_automl,
-            feature_names=feature_names,
-            data=None
-        )
-        flaml_tree_explainer.top_k_score(sample=xt_train[0], k=5)
-        # aggregate SHAP values into specific groups
-        flaml_tree_explainer.aggregate_shap_values(
-            sample=xt_train[0], 
-            feature_category_to_feature_name=constant.FEATURE_CATEGORY_TO_FEATURE_NAME_MAP,
-        )
-
     except Exception as e:
         logger.error(e)
     
@@ -485,10 +417,6 @@ if __name__ == '__main__':
         logger.info('\t\t↓↓↓ Starting logging hyperparams and params with MLFlow ↓↓↓')
         logger.info('Log global params')
         mlflow.log_param('device', DEVICE)
-        # TODO: log trainer config
-        # TODO: log evaluator config
-        # TODO: log weights
-        # TODO: log anything else in between that needs to be logged
         # log data params
         logger.info('Log EDA data params as MLflow params...')
         mlflow.log_param('EDA_dataset_dir', PATH)
