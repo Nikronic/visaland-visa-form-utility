@@ -45,7 +45,7 @@ import sys
 if __name__ == '__main__':
 
     # args
-    EVAL_MODE: EvalMode = EvalMode.cv
+    EVAL_MODE: EvalMode = EvalMode.CV
 
     # globals
     SEED = 58
@@ -224,7 +224,7 @@ if __name__ == '__main__':
         data[output_name] = data[output_name].astype('object').astype('category')
         logger.info('\t\t↑↑↑ Finished labeling data with snorkel ↑↑↑')
 
-        if EVAL_MODE == EvalMode.cv:
+        if EVAL_MODE == EvalMode.CV:
             pass
         else:
             # split to train and test to only augment train set
@@ -308,7 +308,7 @@ if __name__ == '__main__':
         y_train = data[output_name].to_numpy()
         x_train = data.drop(columns=[output_name], inplace=False).to_numpy()
 
-        if EVAL_MODE == EvalMode.cv:
+        if EVAL_MODE == EvalMode.CV:
             pass
         else:
             train_test_eval_splitter = preprocessors.TrainTestEvalSplit(
@@ -354,7 +354,7 @@ if __name__ == '__main__':
             ) as f:
             pickle.dump(x_ct, f, pickle.HIGHEST_PROTOCOL)
         
-        if EVAL_MODE == EvalMode.cv:
+        if EVAL_MODE == EvalMode.CV:
             pass
         else:
             # transform on eval data
@@ -391,8 +391,8 @@ if __name__ == '__main__':
         flaml_automl.fit(
             X_train=xt_train,
             y_train=yt_train,
-            X_val=None if EVAL_MODE==EvalMode.cv else xt_eval,
-            y_val=None if EVAL_MODE==EvalMode.cv else yt_eval,
+            X_val=None if EVAL_MODE==EvalMode.CV else xt_eval,
+            y_val=None if EVAL_MODE==EvalMode.CV else yt_eval,
             eval_method=EVAL_MODE.value,
             seed=SEED,
             append_log=False,
@@ -410,7 +410,7 @@ if __name__ == '__main__':
             )
         )
 
-        if EVAL_MODE == EvalMode.cv:
+        if EVAL_MODE == EvalMode.CV:
             pass
         else:
             y_pred = flaml_automl.predict(xt_test)
@@ -491,7 +491,7 @@ if __name__ == '__main__':
         # TODO: log anything else in between that needs to be logged
         # log data params
         logger.info('Log EDA data params as MLflow params...')
-        mlflow.log_param('EDA_dataset_dir', DST_DIR)
+        mlflow.log_param('EDA_dataset_dir', PATH)
         mlflow.log_param('EDA_data_url', data_url)
         mlflow.log_param('EDA_data_version', VERSION)
         mlflow.log_param('EDA_input_shape', data.shape)
@@ -504,7 +504,7 @@ if __name__ == '__main__':
         mlflow.log_param('unlabeled_dataframe_shape', data_unlabeled.shape)
         # log FLAML AutoML params
         logger.info('Log `FLAML` `AutoML` params as MLflow params...')
-        if EVAL_MODE == EvalMode.cv:
+        if EVAL_MODE == EvalMode.CV:
             pass
         else:
             mlflow.log_metrics(metrics_loss_score_dict)
@@ -514,7 +514,7 @@ if __name__ == '__main__':
         mlflow.log_param('xt_train_shape', xt_train.shape)
         mlflow.log_param('y_train_shape', y_train.shape)
         mlflow.log_param('yt_train_shape', yt_train.shape)
-        if EVAL_MODE == EvalMode.cv:
+        if EVAL_MODE == EvalMode.CV:
             pass
         else:
             mlflow.log_param('x_test_shape', x_test.shape)
