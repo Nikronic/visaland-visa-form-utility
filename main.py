@@ -50,8 +50,6 @@ if __name__ == '__main__':
 
     # Set up root logger, and add a file handler to root logger
     MLFLOW_ARTIFACTS_BASE_PATH: Path = Path('artifacts')
-    if MLFLOW_ARTIFACTS_BASE_PATH.exists():
-        shutil.rmtree(MLFLOW_ARTIFACTS_BASE_PATH)
     # set libs to log to our logging config
     __libs = ['snorkel', 'vizard', 'flaml']
     logger = loggers.Logger(
