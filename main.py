@@ -26,7 +26,7 @@ from vizard.utils import loggers
 import dvc.api
 import mlflow
 # helpers
-from typing import Any, Tuple
+from typing import Any, Tuple, List
 from pathlib import Path
 import enlighten
 import logging
@@ -35,46 +35,67 @@ import shutil
 import sys
 
 
+# global variables
+EVAL_MODE: EvalMode = EvalMode.CV
+SEED: int = 58
+VERBOSE = logging.DEBUG
+DEVICE: str = 'cpu'
+
+# configure MLFlow tracking remote server
+#  see `mlflow-server.sh` for port and hostname. Since
+#  we are running locally, we can use the default values.
+bind = '0.0.0.0'
+mlflow_port = 5000
+mlflow.set_tracking_uri(f'http://{bind}:{mlflow_port}')
+
+# set libs to log to our logging config
+LIBRARIES = ['snorkel', 'vizard', 'flaml']
+
+# Set up root logger, and add a file handler to root logger
+MLFLOW_ARTIFACTS_BASE_PATH: Path = Path('artifacts')
+
+# logging: setup progress bar
+manager = enlighten.get_manager(sys.stderr)
+
+# internal config handler
+config_handler = JsonConfigHandler()
+
+# path to source data, e.g. data.pkl file
+PATH = 'raw-dataset/all-dev.pkl'
+# Git repo associated 
+REPO = '../visaland-visa-form-utility'
+# use the latest EDA version (i.e. `vx.x.x-dev`)
+VERSION = 'v2.0.1-dev'
+
+# metrics used for training snorkel model on unlabeled data
+#   note that I don't want to move these into the `vizard` library as I believe
+#   the developer who trains might want to play with these metrics, hence these constants
+#   should be changable easily.
+SNORKEL_LABEL_MODEL_METRICS: List[str] = ['accuracy', 'coverage', 'precision', 'recall', 'f1']
+FLAML_AUTOML_METRICS: List[str] = ['accuracy', 'log_loss', 'f1', 'roc_auc']
+
+# config the logging using our own custom logger which:
+#   1. create artifact directory (for std log, mlflow, etc)
+#   2. redirect logs of used libraries (including ours) to our std out
+logger = loggers.Logger(
+    name=__name__,
+    level=VERBOSE,
+    mlflow_artifacts_base_path=MLFLOW_ARTIFACTS_BASE_PATH,
+    libs=LIBRARIES)
+# fitted transformation created by sklearn over our data for inference
+MLFLOW_ARTIFACTS_MODELS_SKLEARN_TRANSFORM: Path = \
+    logger.MLFLOW_ARTIFACTS_MODELS_PATH / 'train_sklearn_column_transfer.pkl'
+# fitted model created by flaml automl ready for inference (and staging and production)
+MLFLOW_ARTIFACTS_MODELS_FLAML_AUTOML: Path = \
+    logger.MLFLOW_ARTIFACTS_MODELS_PATH / 'flaml_automl.pkl'
+
+
 if __name__ == '__main__':
-
-    # args
-    EVAL_MODE: EvalMode = EvalMode.CV
-
-    # globals
-    SEED = 58
-    VERBOSE = logging.DEBUG
-    DEVICE = 'cpu'
-
-    # configure MLFlow tracking remote server
-    #  see `mlflow-server.sh` for port and hostname. Since
-    #  we are running locally, we can use the default values.
-    mlflow.set_tracking_uri('http://0.0.0.0:5000')
-
-    # Set up root logger, and add a file handler to root logger
-    MLFLOW_ARTIFACTS_BASE_PATH: Path = Path('artifacts')
-    # set libs to log to our logging config
-    __libs = ['snorkel', 'vizard', 'flaml']
-    logger = loggers.Logger(
-        name=__name__,
-        level=VERBOSE,
-        mlflow_artifacts_base_path=MLFLOW_ARTIFACTS_BASE_PATH,
-        libs=__libs
-    )
-    # logging: setup progress bar
-    manager = enlighten.get_manager(sys.stderr)
-
-    # internal config handler
-    config_handler = JsonConfigHandler()
-
     try:
         logger.create_artifact_instance()
         logger.info('\t\t↓↓↓ Starting setting up configs: dirs, mlflow, dvc, etc ↓↓↓')
-        # data versioning config
-        PATH = 'raw-dataset/all-dev.pkl'  # path to source data, e.g. data.pkl file
-        REPO = '../visaland-visa-form-utility'
-        VERSION = 'v2.0.1-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
 
-        # log experiment configs
+        # log experiment configs via mlflow
         MLFLOW_EXPERIMENT_NAME = f'{VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         mlflow.start_run()
@@ -181,12 +202,11 @@ if __name__ == '__main__':
                 tie_break_policy='abstain'
             )
             # report train accuracy (train data here is our unlabeled data)
-            metrics = ['accuracy', 'coverage', 'precision', 'recall', 'f1']
             modeling.report_label_model(
                 label_model=label_model,
                 label_matrix=label_matrix_train,
                 gold_labels=y_train,
-                metrics=metrics,
+                metrics=SNORKEL_LABEL_MODEL_METRICS,
                 set='train'
             )
             # report test accuracy (test data here is our labeled data which is larger (good!))
@@ -194,11 +214,11 @@ if __name__ == '__main__':
                 label_model=label_model,
                 label_matrix=label_matrix_test,
                 gold_labels=y_test,
-                metrics=metrics,
+                metrics=SNORKEL_LABEL_MODEL_METRICS,
                 set='test'
             )
             
-            for m in metrics:
+            for m in SNORKEL_LABEL_MODEL_METRICS:
                 mlflow.log_metric(
                     key=f'SnorkelLabelModel_{m}',
                     value=label_model_metrics[m]
@@ -317,9 +337,7 @@ if __name__ == '__main__':
         xt_train = x_ct.fit_transform(x_train)  # TODO: see #41, #42
         yt_train = y_ct.fit_transform(y_train)  # TODO: see #47, #42
         # save the fitted transforms as artifacts for later use
-        with open(
-            logger.MLFLOW_ARTIFACTS_MODELS_PATH / 'train_sklearn_column_transfer.pkl', 'wb'
-            ) as f:
+        with open(MLFLOW_ARTIFACTS_MODELS_SKLEARN_TRANSFORM, 'wb') as f:
             pickle.dump(x_ct, f, pickle.HIGHEST_PROTOCOL)
         
         if EVAL_MODE == EvalMode.CV:
@@ -383,18 +401,15 @@ if __name__ == '__main__':
         else:
             y_pred = flaml_automl.predict(xt_test)
             logger.info(f'Best FLAML model: {flaml_automl.model.estimator}')
-            metrics = ['accuracy', 'log_loss', 'f1', 'roc_auc', ]
             metrics_loss_score_dict = trainers.get_loss_score(
                 y_predict=y_pred,
                 y_true=yt_test,
-                metrics=metrics
+                metrics=FLAML_AUTOML_METRICS
             )
             logger.info(trainers.report_loss_score(metrics=metrics_loss_score_dict))
 
         # Save the model
-        with open(
-            logger.MLFLOW_ARTIFACTS_MODELS_PATH / 'flaml_automl.pkl', 'wb'
-            ) as f:
+        with open(MLFLOW_ARTIFACTS_MODELS_FLAML_AUTOML, 'wb') as f:
             pickle.dump(flaml_automl, f, pickle.HIGHEST_PROTOCOL)
         # track (and register) the model via mlflow flavors
         trainers.aml_flaml.log_model(
