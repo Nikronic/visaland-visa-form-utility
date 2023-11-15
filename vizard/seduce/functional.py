@@ -50,11 +50,11 @@ closer_adjusted_max = adjusted_mean + one_third/2
 
 
 
-print(second_adjusted_sigmoid(0.43,adjusted_min,adjusted_max))
+print(bi_level_adjusted_sigmoid(0.43,adjusted_min,adjusted_max))
 
 chances = [i/100 for i in range(101)]
 
-sigmoid_values = [second_adjusted_sigmoid(chance,adjusted_min,adjusted_max) for chance in chances]
+sigmoid_values = [bi_level_adjusted_sigmoid(chance,adjusted_min,adjusted_max) for chance in chances]
 sigmoid_values2 = [chance for chance in chances]
 
 # Plot the adjusted sigmoid function
