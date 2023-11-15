@@ -29,24 +29,88 @@ import mlflow
 from typing import Any, Tuple, List
 from pathlib import Path
 import enlighten
+import argparse
 import logging
 import pickle
 import shutil
 import sys
 
 
+# argparse
+parser = argparse.ArgumentParser()
+parser.add_argument(
+    '--dvc_data_path',
+    type=str,
+    help='path to DVC versioned processed data source',
+    default='raw-dataset/all-dev.pkl',
+    required=True)
+parser.add_argument(
+    '--dvc_repo',
+    type=str,
+    help='repo associated with DVC',
+    default='../visaland-visa-form-utility',
+    required=True)
+parser.add_argument(
+    '--dvc_data_version',
+    type=str,
+    help='version of DVC versioned data source (i.e., version of `dvc_data_path`)',
+    default='v2.0.1-dev',
+    required=True)
+parser.add_argument(
+    '-e',
+    '--experiment_name',
+    type=str,
+    help='mlflow experiment name for logging',
+    default='',
+    required=False)
+parser.add_argument(
+    '-d',
+    '--verbose',
+    type=str,
+    help='logging verbosity level.',
+    choices=['debug', 'info'],
+    default='info',
+    required=False)
+parser.add_argument(
+    '-b',
+    '--bind',
+    type=str,
+    help='ip address of host',
+    default='0.0.0.0',
+    required=False)
+parser.add_argument(
+    '-m',
+    '--mlflow_port',
+    type=int,
+    help='port of mlflow tracking',
+    default=5000,
+    required=False)
+parser.add_argument(
+    '--device',
+    type=str,
+    help='device used for training',
+    choices=['cpu', 'gpu'],
+    default='cpu',
+    required=False)
+parser.add_argument(
+    '--seed',
+    type=int,
+    help='seed for random number generators',
+    default=58,
+    required=False)
+args = parser.parse_args()
+
+
 # global variables
 EVAL_MODE: EvalMode = EvalMode.CV
-SEED: int = 58
-VERBOSE = logging.DEBUG
-DEVICE: str = 'cpu'
+SEED: int = args.seed
+VERBOSE = logging.DEBUG if args.verbose == 'debug' else logging.INFO
+DEVICE: str = args.device
 
 # configure MLFlow tracking remote server
 #  see `mlflow-server.sh` for port and hostname. Since
 #  we are running locally, we can use the default values.
-bind = '0.0.0.0'
-mlflow_port = 5000
-mlflow.set_tracking_uri(f'http://{bind}:{mlflow_port}')
+mlflow.set_tracking_uri(f'http://{args.bind}:{args.mlflow_port}')
 
 # set libs to log to our logging config
 LIBRARIES = ['snorkel', 'vizard', 'flaml']
@@ -61,11 +125,11 @@ manager = enlighten.get_manager(sys.stderr)
 config_handler = JsonConfigHandler()
 
 # path to source data, e.g. data.pkl file
-PATH = 'raw-dataset/all-dev.pkl'
-# Git repo associated 
-REPO = '../visaland-visa-form-utility'
+PATH = args.dvc_data_path
+# Git repo associated with DVC
+REPO = args.dvc_repo
 # use the latest EDA version (i.e. `vx.x.x-dev`)
-VERSION = 'v2.0.1-dev'
+VERSION = args.dvc_data_version
 
 # metrics used for training snorkel model on unlabeled data
 #   note that I don't want to move these into the `vizard` library as I believe
@@ -96,9 +160,8 @@ if __name__ == '__main__':
     try:
         
         logger.info('\t\t↓↓↓ Starting setting up configs: dirs, mlflow, dvc, etc ↓↓↓')
-
         # log experiment configs via mlflow
-        MLFLOW_EXPERIMENT_NAME = f'{VIZARD_VERSION}'
+        MLFLOW_EXPERIMENT_NAME = f'{args.experiment_name if args.experiment_name else ""} - {VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         mlflow.start_run()
 
