@@ -6,24 +6,17 @@ from vizard.snorkel import LABEL_MODEL_CONFIGS
 from vizard.snorkel import labeling
 from vizard.snorkel import modeling
 from vizard.snorkel import augmentation
-from vizard.snorkel import slicing
 from vizard.snorkel import PandasLFApplier
 from vizard.snorkel import PandasTFApplier
-from vizard.snorkel import PandasSFApplier
 from vizard.snorkel import LFAnalysis
 from vizard.snorkel import LabelModel
 from vizard.snorkel import ApplyAllPolicy
-from vizard.snorkel import Scorer
-# from vizard.snorkel import preview_tfs
-from vizard.snorkel import slice_dataframe
+# ours: data
+from vizard.data.constant import ClassificationLabels
 # ours: models
 from vizard.models import preprocessors
 from vizard.models import trainers
 from vizard.models.trainers.aml_flaml import EvalMode
-# ours: data
-from vizard.data import constant
-# ours: explainers
-from vizard.xai import FlamlTreeExplainer
 # ours: helpers
 from vizard.version import VERSION as VIZARD_VERSION
 # from vizard.utils.dtreeviz import FLAMLDTreeViz
@@ -33,7 +26,7 @@ from vizard.utils import loggers
 import dvc.api
 import mlflow
 # helpers
-from typing import Any, Tuple
+from typing import Any, Tuple, List
 from pathlib import Path
 import enlighten
 import logging
@@ -42,52 +35,69 @@ import shutil
 import sys
 
 
+# global variables
+EVAL_MODE: EvalMode = EvalMode.CV
+SEED: int = 58
+VERBOSE = logging.DEBUG
+DEVICE: str = 'cpu'
+
+# configure MLFlow tracking remote server
+#  see `mlflow-server.sh` for port and hostname. Since
+#  we are running locally, we can use the default values.
+bind = '0.0.0.0'
+mlflow_port = 5000
+mlflow.set_tracking_uri(f'http://{bind}:{mlflow_port}')
+
+# set libs to log to our logging config
+LIBRARIES = ['snorkel', 'vizard', 'flaml']
+
+# Set up root logger, and add a file handler to root logger
+MLFLOW_ARTIFACTS_BASE_PATH: Path = Path('artifacts')
+
+# logging: setup progress bar
+manager = enlighten.get_manager(sys.stderr)
+
+# internal config handler
+config_handler = JsonConfigHandler()
+
+# path to source data, e.g. data.pkl file
+PATH = 'raw-dataset/all-dev.pkl'
+# Git repo associated 
+REPO = '../visaland-visa-form-utility'
+# use the latest EDA version (i.e. `vx.x.x-dev`)
+VERSION = 'v2.0.1-dev'
+
+# metrics used for training snorkel model on unlabeled data
+#   note that I don't want to move these into the `vizard` library as I believe
+#   the developer who trains might want to play with these metrics, hence these constants
+#   should be changable easily.
+SNORKEL_LABEL_MODEL_METRICS: List[str] = ['accuracy', 'coverage', 'precision', 'recall', 'f1']
+FLAML_AUTOML_METRICS: List[str] = ['accuracy', 'log_loss', 'f1', 'roc_auc']
+
+# config the logging using our own custom logger which:
+#   1. create artifact directory (for std log, mlflow, etc)
+#   2. redirect logs of used libraries (including ours) to our std out
+logger = loggers.Logger(
+    name=__name__,
+    level=VERBOSE,
+    mlflow_artifacts_base_path=MLFLOW_ARTIFACTS_BASE_PATH,
+    libs=LIBRARIES)
+# create an instance of logging artifact
+logger.create_artifact_instance()
+# fitted transformation created by sklearn over our data for inference
+MLFLOW_ARTIFACTS_MODELS_SKLEARN_TRANSFORM: Path = \
+    logger.MLFLOW_ARTIFACTS_MODELS_PATH / 'train_sklearn_column_transfer.pkl'
+# fitted model created by flaml automl ready for inference (and staging and production)
+MLFLOW_ARTIFACTS_MODELS_FLAML_AUTOML: Path = \
+    logger.MLFLOW_ARTIFACTS_MODELS_PATH / 'flaml_automl.pkl'
+
+
 if __name__ == '__main__':
-
-    # args
-    EVAL_MODE: EvalMode = EvalMode.cv
-
-    # globals
-    SEED = 58
-    VERBOSE = logging.DEBUG
-    DEVICE = 'cpu'
-
-    # configure MLFlow tracking remote server
-    #  see `mlflow-server.sh` for port and hostname. Since
-    #  we are running locally, we can use the default values.
-    mlflow.set_tracking_uri('http://0.0.0.0:5000')
-
-    # Set up root logger, and add a file handler to root logger
-    MLFLOW_ARTIFACTS_BASE_PATH: Path = Path('artifacts')
-    if MLFLOW_ARTIFACTS_BASE_PATH.exists():
-        shutil.rmtree(MLFLOW_ARTIFACTS_BASE_PATH)
-    # set libs to log to our logging config
-    __libs = ['snorkel', 'vizard', 'flaml']
-    logger = loggers.Logger(
-        name=__name__,
-        level=VERBOSE,
-        mlflow_artifacts_base_path=MLFLOW_ARTIFACTS_BASE_PATH,
-        libs=__libs
-    )
-    # logging: setup progress bar
-    manager = enlighten.get_manager(sys.stderr)
-
-    # internal config handler
-    config_handler = JsonConfigHandler()
-
     try:
-        logger.create_artifact_instance()
+        
         logger.info('\t\t↓↓↓ Starting setting up configs: dirs, mlflow, dvc, etc ↓↓↓')
-        # main path
-        SRC_DIR = '/mnt/e/dataset/processed/all/'  # path to source encrypted pdf
-        DST_DIR = 'raw-dataset/all/'  # path to decrypted pdf
 
-        # data versioning config
-        PATH = DST_DIR[:-1] + '-dev.pkl'  # path to source data, e.g. data.pkl file
-        REPO = '../visaland-visa-form-utility'
-        VERSION = 'v2.0.1-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
-
-        # log experiment configs
+        # log experiment configs via mlflow
         MLFLOW_EXPERIMENT_NAME = f'{VIZARD_VERSION}'
         mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
         mlflow.start_run()
@@ -121,18 +131,19 @@ if __name__ == '__main__':
         output_name = 'VisaResult'
         # for training the snorkel label model
         data_unlabeled = data[
-            (data[output_name] != 'acc') &
-            (data[output_name] != 'rej')].copy()
+            (data[output_name] != ClassificationLabels.ACC) &
+            (data[output_name] != ClassificationLabels.REJ)].copy()
         # for testing the snorkel label model
         data_labeled = data[
-            (data[output_name] == 'acc') |
-            (data[output_name] == 'rej')].copy()
+            (data[output_name] == ClassificationLabels.ACC) |
+            (data[output_name] == ClassificationLabels.REJ)].copy()
         logger.info(f'shape of unlabeled data: {data_unlabeled.shape}')
         logger.info(f'shape of labeled unlabeled data: {data_labeled.shape}')
         # convert strong to weak temporary to `lf_weak_*` so `LabelFunction`s'
         #   can work i.e. convert `acc` and `rej` in *labeled* dataset to `w-acc` and `w-rej`'
         data_labeled[output_name] = data_labeled[output_name].apply(
-            lambda x: 'w-acc' if x == 'acc' else 'w-rej')
+            lambda x: ClassificationLabels.WEAK_ACC if x == ClassificationLabels.ACC \
+                else ClassificationLabels.WEAK_REJ)
         
         logger.info('\t↓↓↓ Starting extracting label matrices (L) by applying `LabelFunction`s ↓↓↓')
         # labeling functions
@@ -151,9 +162,9 @@ if __name__ == '__main__':
         label_matrix_test = applier.apply(data_labeled)
 
         y_test = data_labeled[output_name].apply(
-            lambda x: labeling.ACC if x == 'w-acc' else labeling.REJ).values
+            lambda x: labeling.ACC if x == ClassificationLabels.WEAK_ACC else labeling.REJ).values
         y_train = data_unlabeled[output_name].apply(
-            lambda x: labeling.ACC if x == 'w-acc' else labeling.REJ).values
+            lambda x: labeling.ACC if x == ClassificationLabels.WEAK_ACC else labeling.REJ).values
         # LF reports
         logger.info(LFAnalysis(L=label_matrix_train, lfs=lfs).lf_summary())
         logger.info('\t↑↑↑ Finishing extracting label matrices (L) by applying `LabelFunction`s ↑↑↑')
@@ -193,12 +204,11 @@ if __name__ == '__main__':
                 tie_break_policy='abstain'
             )
             # report train accuracy (train data here is our unlabeled data)
-            metrics = ['accuracy', 'coverage', 'precision', 'recall', 'f1']
             modeling.report_label_model(
                 label_model=label_model,
                 label_matrix=label_matrix_train,
                 gold_labels=y_train,
-                metrics=metrics,
+                metrics=SNORKEL_LABEL_MODEL_METRICS,
                 set='train'
             )
             # report test accuracy (test data here is our labeled data which is larger (good!))
@@ -206,11 +216,11 @@ if __name__ == '__main__':
                 label_model=label_model,
                 label_matrix=label_matrix_test,
                 gold_labels=y_test,
-                metrics=metrics,
+                metrics=SNORKEL_LABEL_MODEL_METRICS,
                 set='test'
             )
             
-            for m in metrics:
+            for m in SNORKEL_LABEL_MODEL_METRICS:
                 mlflow.log_metric(
                     key=f'SnorkelLabelModel_{m}',
                     value=label_model_metrics[m]
@@ -218,13 +228,13 @@ if __name__ == '__main__':
         logger.info('\t↑↑↑ Finishing inference on LabelModel ↑↑↑')
         # merge unlabeled data into all data
         data_unlabeled[auto_label_column_name] = data_unlabeled[auto_label_column_name].apply(
-            lambda x: 'acc' if x == labeling.ACC else 
-            'rej' if x == labeling.REJ else 'no idea')
+            lambda x: ClassificationLabels.ACC if x == labeling.ACC else 
+            ClassificationLabels.REJ if x == labeling.REJ else ClassificationLabels.NO_IDEA)
         data.loc[data_unlabeled.index, [output_name]] = data_unlabeled[auto_label_column_name]
         data[output_name] = data[output_name].astype('object').astype('category')
         logger.info('\t\t↑↑↑ Finished labeling data with snorkel ↑↑↑')
 
-        if EVAL_MODE == EvalMode.cv:
+        if EVAL_MODE == EvalMode.CV:
             pass
         else:
             # split to train and test to only augment train set
@@ -271,27 +281,7 @@ if __name__ == '__main__':
         # TF reports
         logger.info(f'Original dataset size: {len(data)}')
         logger.info(f'Augmented dataset size: {len(data_augmented)}')
-        cond1 = (data['p1.SecB.Chd.X.ChdAccomp.Count'] > 0) & (data['p1.SecB.Chd.X.ChdRel.ChdCount'] > data['p1.SecB.Chd.X.ChdAccomp.Count'])
-        cond2 = (data['p1.SecC.Chd.X.ChdAccomp.Count'] > 0) & (data['p1.SecC.Chd.X.ChdRel.ChdCount'] > data['p1.SecC.Chd.X.ChdAccomp.Count'])
-        cond = cond1 | cond2
-        # logger.info(preview_tfs(dataframe=data[cond], tfs=tfs, n_samples=2))
         logger.info('\t\t↑↑↑ Finishing augmentation via snorkel (TFs) ↑↑↑')
-
-        logger.info('\t\t↓↓↓ Starting slicing by snorkel (SFs) ↓↓↓')
-        # slicing functions
-        sf_compose = [
-            slicing.SinglePerson(),
-        ]
-        sfs = slicing.ComposeSFSlicing(slicers=sf_compose)()
-        single_person_slice = slice_dataframe(data_augmented, sfs[0])
-        logger.info(single_person_slice.sample(5))
-        sf_applier = PandasSFApplier(sfs)
-        data_augmented_sliced = sf_applier.apply(data_augmented)
-        scorer = Scorer(metrics=metrics)
-        # TODO: use slicing `scorer` only for `test` set
-        # logger.info(scorer.score_slices(S=S_test, golds=Y_test,
-        #             preds=preds_test, probs=probs_test, as_dataframe=True))
-        logger.info('\t\t↑↑↑ Finishing slicing by snorkel (SFs) ↑↑↑')
 
         logger.info('\t\t↓↓↓ Starting preprocessing on directly DVC `vX.X.X-dev` data ↓↓↓')
         # change dtype of augmented data to be as original data
@@ -308,7 +298,7 @@ if __name__ == '__main__':
         y_train = data[output_name].to_numpy()
         x_train = data.drop(columns=[output_name], inplace=False).to_numpy()
 
-        if EVAL_MODE == EvalMode.cv:
+        if EVAL_MODE == EvalMode.CV:
             pass
         else:
             train_test_eval_splitter = preprocessors.TrainTestEvalSplit(
@@ -349,12 +339,10 @@ if __name__ == '__main__':
         xt_train = x_ct.fit_transform(x_train)  # TODO: see #41, #42
         yt_train = y_ct.fit_transform(y_train)  # TODO: see #47, #42
         # save the fitted transforms as artifacts for later use
-        with open(
-            logger.MLFLOW_ARTIFACTS_MODELS_PATH / 'train_sklearn_column_transfer.pkl', 'wb'
-            ) as f:
+        with open(MLFLOW_ARTIFACTS_MODELS_SKLEARN_TRANSFORM, 'wb') as f:
             pickle.dump(x_ct, f, pickle.HIGHEST_PROTOCOL)
         
-        if EVAL_MODE == EvalMode.cv:
+        if EVAL_MODE == EvalMode.CV:
             pass
         else:
             # transform on eval data
@@ -391,9 +379,9 @@ if __name__ == '__main__':
         flaml_automl.fit(
             X_train=xt_train,
             y_train=yt_train,
-            X_val=None if EVAL_MODE==EvalMode.cv else xt_eval,
-            y_val=None if EVAL_MODE==EvalMode.cv else yt_eval,
-            eval_method=EVAL_MODE.value,
+            X_val=None if EVAL_MODE==EvalMode.CV else xt_eval,
+            y_val=None if EVAL_MODE==EvalMode.CV else yt_eval,
+            eval_method=EVAL_MODE,
             seed=SEED,
             append_log=False,
             log_file_name=logger.MLFLOW_ARTIFACTS_LOGS_PATH / 'flaml.log',
@@ -410,23 +398,20 @@ if __name__ == '__main__':
             )
         )
 
-        if EVAL_MODE == EvalMode.cv:
+        if EVAL_MODE == EvalMode.CV:
             pass
         else:
             y_pred = flaml_automl.predict(xt_test)
             logger.info(f'Best FLAML model: {flaml_automl.model.estimator}')
-            metrics = ['accuracy', 'log_loss', 'f1', 'roc_auc', ]
             metrics_loss_score_dict = trainers.get_loss_score(
                 y_predict=y_pred,
                 y_true=yt_test,
-                metrics=metrics
+                metrics=FLAML_AUTOML_METRICS
             )
             logger.info(trainers.report_loss_score(metrics=metrics_loss_score_dict))
 
         # Save the model
-        with open(
-            logger.MLFLOW_ARTIFACTS_MODELS_PATH / 'flaml_automl.pkl', 'wb'
-            ) as f:
+        with open(MLFLOW_ARTIFACTS_MODELS_FLAML_AUTOML, 'wb') as f:
             pickle.dump(flaml_automl, f, pickle.HIGHEST_PROTOCOL)
         # track (and register) the model via mlflow flavors
         trainers.aml_flaml.log_model(
@@ -436,41 +421,6 @@ if __name__ == '__main__':
             registered_model_name=None  # manually register desired models
         )
         logger.info('\t\t↑↑↑ Finished loading training config and training estimators ↑↑↑')
-
-        logger.info('\t\t↓↓↓ Starting loading evaluation config and evaluating estimators ↓↓↓')
-        # TODO: add final evaluation steps here
-        logger.info('\t\t↑↑↑ Finished loading evaluation config and evaluating estimators ↑↑↑')
-
-        logger.info('\t\t↓↓↓ Starting saving good weights ↓↓↓')
-        # TODO: add final checkpoint here (save weights)
-        logger.info('\t\t↑↑↑ Finished saving good weights ↑↑↑')
-
-        logger.info('\t\t↓↓↓ Starting logging preview of results and other stuff ↓↓↓')
-        # TODO: add final checkpoint here (save weights)
-        logger.info('\t\t↑↑↑ Finished logging preview of results and other stuff ↑↑↑')
-
-        # TODO: fix dtreeviz dependencies (remove it breaks)
-        # dtreeviz_visualizer = FLAMLDTreeViz(
-        #     flaml_automl=flaml_automl,
-        #     x_data=xt_train,
-        #     y_data=yt_train.flatten(),
-        #     target_name='VisaResult',
-        #     feature_names=flaml_automl.feature_names_in_,
-        #     class_names=list(y_ct.classes_),
-        #     explanation_type='plain_english'
-        # )
-
-        flaml_tree_explainer = FlamlTreeExplainer(
-            flaml_model=flaml_automl,
-            feature_names=feature_names,
-            data=None
-        )
-        flaml_tree_explainer.top_k_score(sample=xt_train[0], k=5)
-        # aggregate SHAP values into specific groups
-        flaml_tree_explainer.aggregate_shap_values(
-            sample=xt_train[0], 
-            feature_category_to_feature_name=constant.FEATURE_CATEGORY_TO_FEATURE_NAME_MAP,
-        )
 
     except Exception as e:
         logger.error(e)
@@ -485,13 +435,9 @@ if __name__ == '__main__':
         logger.info('\t\t↓↓↓ Starting logging hyperparams and params with MLFlow ↓↓↓')
         logger.info('Log global params')
         mlflow.log_param('device', DEVICE)
-        # TODO: log trainer config
-        # TODO: log evaluator config
-        # TODO: log weights
-        # TODO: log anything else in between that needs to be logged
         # log data params
         logger.info('Log EDA data params as MLflow params...')
-        mlflow.log_param('EDA_dataset_dir', DST_DIR)
+        mlflow.log_param('EDA_dataset_dir', PATH)
         mlflow.log_param('EDA_data_url', data_url)
         mlflow.log_param('EDA_data_version', VERSION)
         mlflow.log_param('EDA_input_shape', data.shape)
@@ -504,7 +450,7 @@ if __name__ == '__main__':
         mlflow.log_param('unlabeled_dataframe_shape', data_unlabeled.shape)
         # log FLAML AutoML params
         logger.info('Log `FLAML` `AutoML` params as MLflow params...')
-        if EVAL_MODE == EvalMode.cv:
+        if EVAL_MODE == EvalMode.CV:
             pass
         else:
             mlflow.log_metrics(metrics_loss_score_dict)
@@ -514,7 +460,7 @@ if __name__ == '__main__':
         mlflow.log_param('xt_train_shape', xt_train.shape)
         mlflow.log_param('y_train_shape', y_train.shape)
         mlflow.log_param('yt_train_shape', yt_train.shape)
-        if EVAL_MODE == EvalMode.cv:
+        if EVAL_MODE == EvalMode.CV:
             pass
         else:
             mlflow.log_param('x_test_shape', x_test.shape)

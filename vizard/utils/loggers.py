@@ -8,6 +8,7 @@ import logging
 from typing import List, Optional, Union
 from enum import IntEnum
 from pathlib import Path
+import shutil
 import sys
 
 
@@ -38,6 +39,10 @@ class Logger(logging.Logger):
         super().__init__(name, level)
 
         self.__mlflow_artifacts_base_path = mlflow_artifacts_base_path
+        # remove 'artifact' dir from the previous run
+        if mlflow_artifacts_base_path.exists():
+            shutil.rmtree(mlflow_artifacts_base_path)
+        # create 'artifact' dir for the new run
         self.__create_artifacts_dir(self.mlflow_artifacts_base_path)
         self.logger_formatter = logging.Formatter(
             "[%(name)s: %(asctime)s] {%(lineno)d} %(levelname)s - %(message)s", "%m-%d %H:%M:%S"

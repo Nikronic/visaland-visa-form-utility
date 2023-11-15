@@ -19,7 +19,6 @@ import mlflow
 # helpers
 from typing import Any, Dict, List, Optional, Union, Callable
 from pathlib import Path
-from enum import Enum
 import logging
 
 
@@ -189,17 +188,17 @@ def report_feature_importances(
     return msg
 
 
-class EvalMode(Enum):
+class EvalMode:
     """Evaluation methods available in ``flaml``
     """
-    holdout = 'holdout'
+    HOLDOUT = 'holdout'
     """A fixed holdout set for evaluating the model
 
     Note:
         You might want to set ``split_ratio`` too
     """
 
-    cv = 'cv'
+    CV = 'cv'
     """Cross-validation with ``n`` splits
 
     Note:
