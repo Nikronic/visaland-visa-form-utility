@@ -32,7 +32,6 @@ def adjusted_sigmoid(x, adjusted_min, adjusted_max, scaler):
     mask = np.logical_and(adjusted_min < x, x < adjusted_max)
 
     # Shift and scale the input to fit the sigmoid function
-    
     adjusted_mean = (adjusted_min + adjusted_max) / 2
     sigmoid_input = x - adjusted_mean
 
