@@ -5,6 +5,36 @@
     "version": "0.2.0",
     "configurations": [
         {
+            "name": "Python: Training",
+            "type": "python",
+            "request": "launch",
+            "cwd": "${workspaceFolder}/",
+            "program": "${workspaceFolder}/main.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--dvc_data_path",
+                "raw-dataset/all-dev.pkl",
+                "--dvc_repo",
+                "../visaland-visa-form-utility",
+                "--dvc_data_version",
+                "v2.0.1-dev",
+                "--experiment_name",
+                "",
+                "--verbose",
+                "debug",
+                "--bind",
+                "0.0.0.0",
+                "--mlflow_port",
+                "5000",
+                "--device",
+                "cpu",
+                "--seed",
+                "58"
+            ],
+            "justMyCode": true
+        },
+
+        {
             "name": "Python: FastAPI main",
             "type": "python",
             "request": "launch",
