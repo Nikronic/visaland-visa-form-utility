@@ -12,6 +12,7 @@ this version (or any version you want).
 
 # core
 import pandas as pd
+
 # ours: data
 from vizard.data.constant import DOC_TYPES
 from vizard.data import functional
@@ -19,8 +20,10 @@ from vizard.data.preprocessor import MakeContentCopyProtectedMachineReadable
 from vizard.data.preprocessor import CanadaDataframePreprocessor
 from vizard.data.preprocessor import FileTransformCompose
 from vizard.data.preprocessor import CopyFile
+
 # devops
 import mlflow
+
 # helpers
 from pathlib import Path
 import enlighten
@@ -30,7 +33,7 @@ import sys
 import os
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # globals
     SEED = 322
     VERBOSE = logging.DEBUG
@@ -40,19 +43,20 @@ if __name__ == '__main__':
     logger.setLevel(VERBOSE)
 
     # Set up root logger, and add a file handler to root logger
-    MLFLOW_ARTIFACTS_PATH = Path('artifacts')
-    MLFLOW_ARTIFACTS_LOGS_PATH = MLFLOW_ARTIFACTS_PATH / 'logs'
-    MLFLOW_ARTIFACTS_CONFIGS_PATH = MLFLOW_ARTIFACTS_PATH / 'configs'
+    MLFLOW_ARTIFACTS_PATH = Path("artifacts")
+    MLFLOW_ARTIFACTS_LOGS_PATH = MLFLOW_ARTIFACTS_PATH / "logs"
+    MLFLOW_ARTIFACTS_CONFIGS_PATH = MLFLOW_ARTIFACTS_PATH / "configs"
     if not os.path.exists(MLFLOW_ARTIFACTS_PATH):
         os.makedirs(MLFLOW_ARTIFACTS_PATH)
         os.makedirs(MLFLOW_ARTIFACTS_LOGS_PATH)
         os.makedirs(MLFLOW_ARTIFACTS_CONFIGS_PATH)
 
-    logger_handler = logging.FileHandler(filename=MLFLOW_ARTIFACTS_LOGS_PATH / 'import-data.log',
-                                        mode='w')
+    logger_handler = logging.FileHandler(
+        filename=MLFLOW_ARTIFACTS_LOGS_PATH / "import-data.log", mode="w"
+    )
     logger.parent.addHandler(logger_handler)  # type: ignore
     # set libs to log to our logging config
-    __libs = ['snorkel', 'vizard']
+    __libs = ["snorkel", "vizard"]
     for __l in __libs:
         __libs_logger = logging.getLogger(__l)
         __libs_logger.setLevel(VERBOSE)
@@ -60,55 +64,58 @@ if __name__ == '__main__':
 
     manager = enlighten.get_manager(sys.stderr)  # setup progress bar
 
-    logger.info(
-        '\t\t↓↓↓ Starting setting up configs: dirs, mlflow, dvc, etc ↓↓↓')
+    logger.info("\t\t↓↓↓ Starting setting up configs: dirs, mlflow, dvc, etc ↓↓↓")
     # main path
-    SRC_DIR = '/mnt/e/dataset/processed/all/'  # path to source encrypted pdf
-    DST_DIR = 'raw-dataset/all/'  # path to decrypted pdf
+    SRC_DIR = "/mnt/e/dataset/processed/all/"  # path to source encrypted pdf
+    DST_DIR = "raw-dataset/all/"  # path to decrypted pdf
 
     # MLFlow configs
     # data versioning config
-    PATH = DST_DIR[:-1] + '.pkl'  # path to source data, e.g. data.pkl file
-    REPO = '/home/nik/visaland-visa-form-utility'
+    PATH = DST_DIR[:-1] + ".pkl"  # path to source data, e.g. data.pkl file
+    REPO = "/home/nik/visaland-visa-form-utility"
     # the version it is GOING TO BE (the version you gonna `dvc add` and `git tag`)
-    VERSION = 'v1.0.3'
+    VERSION = "v1.0.3"
     # run `git tag` and use a newer version than anything with this pattern `vx.x.x` (without `-field-*`)
 
     # log experiment configs
-    MLFLOW_EXPERIMENT_NAME = 'full dataset construction from raw documents to csv'
+    MLFLOW_EXPERIMENT_NAME = "full dataset construction from raw documents to csv"
     mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
-    MLFLOW_TAGS = {
-        'stage': 'dev'  # dev, beta, production
-    }
+    MLFLOW_TAGS = {"stage": "dev"}  # dev, beta, production
     mlflow.set_tags(MLFLOW_TAGS)
 
-    logger.info(f'MLflow experiment name: {MLFLOW_EXPERIMENT_NAME}')
-    logger.info(f'MLflow experiment id: {mlflow.active_run().info.run_id}')
-    logger.info(f'DVC data version: {VERSION}')
-    logger.info(f'DVC repo (root): {REPO}')
-    logger.info(f'DVC data source path: {PATH}')
-    logger.info(
-        '\t\t↑↑↑ Finished setting up configs: dirs, mlflow, dvc, etc ↑↑↑')
+    logger.info(f"MLflow experiment name: {MLFLOW_EXPERIMENT_NAME}")
+    logger.info(f"MLflow experiment id: {mlflow.active_run().info.run_id}")
+    logger.info(f"DVC data version: {VERSION}")
+    logger.info(f"DVC repo (root): {REPO}")
+    logger.info(f"DVC data source path: {PATH}")
+    logger.info("\t\t↑↑↑ Finished setting up configs: dirs, mlflow, dvc, etc ↑↑↑")
 
     # main code
-    logger.info('\t\t↓↓↓ Starting data extraction ↓↓↓')
+    logger.info("\t\t↓↓↓ Starting data extraction ↓↓↓")
     # Canada protected PDF to machine readable for all entries and transferring other files as it is
     compose = {
-        CopyFile(mode='cf'): '.csv',
-        CopyFile(mode='cf'): '.txt',
-        MakeContentCopyProtectedMachineReadable(): '.pdf'
+        CopyFile(mode="cf"): ".csv",
+        CopyFile(mode="cf"): ".txt",
+        MakeContentCopyProtectedMachineReadable(): ".pdf",
     }
     file_transform_compose = FileTransformCompose(transforms=compose)
-    functional.process_directory(src_dir=SRC_DIR, dst_dir=DST_DIR,
-                                compose=file_transform_compose, file_pattern='*')
-    logger.info('\t\t↑↑↑ Finished data extraction ↑↑↑')
+    functional.process_directory(
+        src_dir=SRC_DIR,
+        dst_dir=DST_DIR,
+        compose=file_transform_compose,
+        file_pattern="*",
+    )
+    logger.info("\t\t↑↑↑ Finished data extraction ↑↑↑")
 
-    logger.info('\t\t↓↓↓ Starting data preprocessing ↓↓↓')
+    logger.info("\t\t↓↓↓ Starting data preprocessing ↓↓↓")
     # convert PDFs to pandas dataframes
     SRC_DIR = DST_DIR[:-1]
     dataframe = pd.DataFrame()
-    progress_bar = manager.counter(total=len(next(os.walk(DST_DIR), (None, [], None))[1]),
-                                desc='Preprocessed', unit='data point')
+    progress_bar = manager.counter(
+        total=len(next(os.walk(DST_DIR), (None, [], None))[1]),
+        desc="Preprocessed",
+        unit="data point",
+    )
     i = 0  # for progress bar
     for dirpath, dirnames, all_filenames in os.walk(SRC_DIR):
         dataframe_entry = pd.DataFrame()
@@ -118,51 +125,60 @@ if __name__ == '__main__':
         if filenames:
             files = [os.path.join(dirpath, fname) for fname in filenames]
             # applicant form
-            in_fname = [f for f in files if '5257' in f][0]
+            in_fname = [f for f in files if "5257" in f][0]
             df_preprocessor = CanadaDataframePreprocessor()
             if len(in_fname) != 0:
                 dataframe_applicant = df_preprocessor.file_specific_basic_transform(
-                    path=in_fname, type=DOC_TYPES.canada_5257e)
+                    path=in_fname, type=DOC_TYPES.canada_5257e
+                )
             # applicant family info
-            in_fname = [f for f in files if '5645' in f][0]
+            in_fname = [f for f in files if "5645" in f][0]
             if len(in_fname) != 0:
                 dataframe_family = df_preprocessor.file_specific_basic_transform(
-                    path=in_fname, type=DOC_TYPES.canada_5645e)
+                    path=in_fname, type=DOC_TYPES.canada_5645e
+                )
             # manually added labels
-            in_fname = [f for f in files if 'label' in f][0]
+            in_fname = [f for f in files if "label" in f][0]
             if len(in_fname) != 0:
                 dataframe_label = df_preprocessor.file_specific_basic_transform(
-                    path=in_fname, type=DOC_TYPES.canada_label)
+                    path=in_fname, type=DOC_TYPES.canada_label
+                )
 
             # final dataframe: concatenate common forms and label column wise
             dataframe_entry = pd.concat(
                 objs=[dataframe_applicant, dataframe_family, dataframe_label],
-                axis=1, verify_integrity=True)
+                axis=1,
+                verify_integrity=True,
+            )
 
         # concat the dataframe_entry into the main dataframe (i.e. adding rows)
-        dataframe = pd.concat(objs=[dataframe, dataframe_entry], axis=0,
-                            verify_integrity=True, ignore_index=True)
+        dataframe = pd.concat(
+            objs=[dataframe, dataframe_entry],
+            axis=0,
+            verify_integrity=True,
+            ignore_index=True,
+        )
         # logging
         i += 1
-        logger.info(f'Processed {i}th data point...')
+        logger.info(f"Processed {i}th data point...")
         progress_bar.update()
 
     # save dataframe to disc as pickle
-    logger.info('\t↓↓↓ Starting saving dataframe to disc ↓↓↓')
-    dataset_path = DST_DIR[:-1] + '.pkl'
+    logger.info("\t↓↓↓ Starting saving dataframe to disc ↓↓↓")
+    dataset_path = DST_DIR[:-1] + ".pkl"
     dataframe.to_pickle(dataset_path)
-    logger.info(f'Dataframe saved to path={dataset_path}')
-    logger.info('\t↑↑↑ Finished saving dataframe to disc ↑↑↑')
-    logger.info('\t\t↑↑↑ Finished data preprocessing ↑↑↑')
+    logger.info(f"Dataframe saved to path={dataset_path}")
+    logger.info("\t↑↑↑ Finished saving dataframe to disc ↑↑↑")
+    logger.info("\t\t↑↑↑ Finished data preprocessing ↑↑↑")
 
     # log data params
-    logger.info('\t\t↓↓↓ Starting logging with MLFlow ↓↓↓')
-    mlflow.log_param('raw_dataset_dir', DST_DIR)
-    mlflow.log_param('data_version', VERSION)
-    mlflow.log_param('input_shape', dataframe.shape)
-    mlflow.log_param('input_columns', dataframe.columns.values)
-    mlflow.log_param('input_dtypes', dataframe.dtypes.values)
-    logger.info('\t\t↑↑↑ Finished logging with MLFlow ↑↑↑')
+    logger.info("\t\t↓↓↓ Starting logging with MLFlow ↓↓↓")
+    mlflow.log_param("raw_dataset_dir", DST_DIR)
+    mlflow.log_param("data_version", VERSION)
+    mlflow.log_param("input_shape", dataframe.shape)
+    mlflow.log_param("input_columns", dataframe.columns.values)
+    mlflow.log_param("input_dtypes", dataframe.dtypes.values)
+    logger.info("\t\t↑↑↑ Finished logging with MLFlow ↑↑↑")
 
     # Log artifacts (logs, saved files, etc)
     mlflow.log_artifacts(MLFLOW_ARTIFACTS_PATH)

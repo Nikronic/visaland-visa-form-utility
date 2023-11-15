@@ -1,5 +1,6 @@
 # core
 import numpy as np
+
 # helpers
 from typing import Tuple, Dict
 
@@ -19,14 +20,16 @@ def get_top_k_idx(sample: np.ndarray, k: int) -> np.ndarray:
     return top_k_idx
 
 
-def get_top_k(sample: np.ndarray, k: int, absolute: bool = True) -> Tuple[np.ndarray, np.ndarray]:
+def get_top_k(
+    sample: np.ndarray, k: int, absolute: bool = True
+) -> Tuple[np.ndarray, np.ndarray]:
     """Extracts top-k items in an numpy array conditioned on sign of values
 
     Args:
         sample (:class:`numpy.ndarray`): A :class:`numpy.ndarray` array
         k (int): Number of items to return
         absolute (bool, optional): Wether or not to consider
-            the sign of values in computing top-k. If ``True``, 
+            the sign of values in computing top-k. If ``True``,
             then absolute values used and vice versa. Defaults to True.
 
     Raises:
@@ -55,14 +58,11 @@ def get_top_k(sample: np.ndarray, k: int, absolute: bool = True) -> Tuple[np.nda
         return (top_k, top_k_idx)
     else:
         raise NotImplementedError(
-            'This method is only available for'
-            ' single-instance numpy arrays. (yet)'
+            "This method is only available for" " single-instance numpy arrays. (yet)"
         )
 
-def xai_threshold_to_text(
-        xai_value: float,
-        threshold: float = 0.
-        ) -> str:
+
+def xai_threshold_to_text(xai_value: float, threshold: float = 0.0) -> str:
     """Converts a XAI value to a negative/positive text by thresholding
 
     Args:
@@ -72,16 +72,16 @@ def xai_threshold_to_text(
     Returns:
         str: a negative/positive string satisfying ``threshold``
     """
-    
+
     if xai_value >= threshold:
-        return 'خوب است'
+        return "خوب است"
     else:
-        return 'بد است'
+        return "بد است"
+
 
 def xai_to_text(
-        xai_feature_values: Dict[str, float],
-        feature_to_keyword_mapping: Dict[str, str]
-        ) -> Dict[str, Tuple[float, str]]:
+    xai_feature_values: Dict[str, float], feature_to_keyword_mapping: Dict[str, str]
+) -> Dict[str, Tuple[float, str]]:
     """Takes XAI values for features and generates basic textual descriptions
 
     XAI values are computed using `SHAP` (see :class:`vizard.xai.shap`). Then, I
@@ -110,9 +110,9 @@ def xai_to_text(
         xai_txt_top_k[_feature_name] = (
             _feature_xai_value,
             (
-                f'{feature_to_keyword_mapping[_feature_name]}'
-                f' {xai_threshold_to_text(xai_value=_feature_xai_value, threshold=0.)}'
-            )
+                f"{feature_to_keyword_mapping[_feature_name]}"
+                f" {xai_threshold_to_text(xai_value=_feature_xai_value, threshold=0.)}"
+            ),
         )
-    
+
     return xai_txt_top_k

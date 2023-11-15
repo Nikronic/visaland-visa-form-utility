@@ -1,21 +1,17 @@
 # core
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
-from sklearn.ensemble import (
-    RandomForestClassifier,
-    ExtraTreesClassifier
-)
-from sklearn.tree import (
-    DecisionTreeClassifier,
-    ExtraTreeClassifier
-)
+from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
+from sklearn.tree import DecisionTreeClassifier, ExtraTreeClassifier
 from catboost import CatBoostClassifier
 import numpy as np
 import flaml
 from flaml import AutoML
 from flaml.automl.ml import sklearn_metric_loss_score
+
 # devops
 import mlflow
+
 # helpers
 from typing import Any, Dict, List, Optional, Union, Callable
 from pathlib import Path
@@ -27,9 +23,7 @@ logger = logging.getLogger(__name__)
 
 
 def get_loss_score(
-    y_predict: np.ndarray,
-    y_true: np.ndarray,
-    metrics: Union[List[str], str, Callable]
+    y_predict: np.ndarray, y_true: np.ndarray, metrics: Union[List[str], str, Callable]
 ) -> Dict[str, Any]:
     """Gives loss score given predicted and true labels and metrics
 
@@ -67,27 +61,23 @@ def get_loss_score(
     if isinstance(metrics, str):
         metrics_names = [metrics]
         metrics_values = sklearn_metric_loss_score(
-            metric_name=metrics,
-            y_predict=y_predict,
-            y_true=y_true
+            metric_name=metrics, y_predict=y_predict, y_true=y_true
         )
     # if `metrics` is a list of metrics of flaml's metrics
     elif isinstance(metrics, list):
         metrics_names = metrics
         metrics_values = [
             sklearn_metric_loss_score(
-                metric_name=metric,
-                y_predict=y_predict,
-                y_true=y_true) for metric in metrics
+                metric_name=metric, y_predict=y_predict, y_true=y_true
+            )
+            for metric in metrics
         ]
     # if `metrics` is a class
     # TODO: fix complaining that mypy does not understand Callable (herald :D)
     elif isinstance(metrics, Callable):  # type: ignore
         metrics = metrics()
-        metrics_names = [f'custom_{metrics.__class__.__name__}']
-        metrics_values = [
-            metrics(y_predict=y_predict, y_true=y_true)  # type: ignore
-        ]
+        metrics_names = [f"custom_{metrics.__class__.__name__}"]
+        metrics_values = [metrics(y_predict=y_predict, y_true=y_true)]  # type: ignore
 
     # return dictionary of metrics values and their names
     metrics_name_value: dict = {}
@@ -104,8 +94,8 @@ def report_loss_score(metrics: Dict[str, Any]) -> str:
     Args:
         metrics (Dict[str, Any]): Dictionary of ``{'metric_name': metric_value}``
 
-    Returns: 
-        str: 
+    Returns:
+        str:
         A string containing the loss score and their corresponding names
         in a new line. e.g.::
 
@@ -113,12 +103,12 @@ def report_loss_score(metrics: Dict[str, Any]) -> str:
             'f1: 0.94'
 
     """
-    msg: str = ''
+    msg: str = ""
     for metric_name, metric_value in metrics.items():
         if is_score_or_loss(metric_name):
-            msg += f'{metric_name} score: {1 - metric_value:.2f}\n'
+            msg += f"{metric_name} score: {1 - metric_value:.2f}\n"
         else:
-            msg += f'{metric_name} loss: {metric_value:.2f}\n'
+            msg += f"{metric_name} loss: {metric_value:.2f}\n"
     return msg
 
 
@@ -133,7 +123,7 @@ def is_score_or_loss(metric: str) -> bool:
     when users' chosen ``metric`` is a **score** rather than a **loss**.
 
     Args:
-        metric (str): metric name that is supported by ``flaml``. For 
+        metric (str): metric name that is supported by ``flaml``. For
             more info see :func:`flaml.ml.sklearn_metric_loss_score`.
 
     See Also:
@@ -145,29 +135,26 @@ def is_score_or_loss(metric: str) -> bool:
     # determine if it is 'score' (maximization) or 'loss' (minimization)
     result = False
     if metric in [
-        'r2',
-        'accuracy',
-        'roc_auc',
-        'roc_auc_ovr',
-        'roc_auc_ovo',
-        'f1',
-        'ap',
-        'micro_f1',
-        'macro_f1',
+        "r2",
+        "accuracy",
+        "roc_auc",
+        "roc_auc_ovr",
+        "roc_auc_ovo",
+        "f1",
+        "ap",
+        "micro_f1",
+        "macro_f1",
     ]:
         result = True
     return result
 
 
-def report_feature_importances(
-    estimator: Any,
-    feature_names: List[str]
-) -> str:
+def report_feature_importances(estimator: Any, feature_names: List[str]) -> str:
     """Prints feature importances of an fitted ``flaml.AutoML`` instance
 
     Args:
         estimator (Any): :class:`flaml.AutoML` underlying estimator that has ``feature_importances_``
-            attribute, i.e. pass ``estimator`` in ``flaml_obj.model.estimator.feature_importances_``. 
+            attribute, i.e. pass ``estimator`` in ``flaml_obj.model.estimator.feature_importances_``.
         feature_names (List[str]): List of feature names. One can pass
             columns of original dataframe as ``feature_names``
 
@@ -180,25 +167,24 @@ def report_feature_importances(
             ...
 
     """
-    msg: str = ''
+    msg: str = ""
     feature_importance = estimator.feature_importances_
-    for feature_name, feature_importance in zip(feature_names,
-                                                feature_importance):
-        msg += f'{feature_name}: {feature_importance:.2f}\n'
+    for feature_name, feature_importance in zip(feature_names, feature_importance):
+        msg += f"{feature_name}: {feature_importance:.2f}\n"
     return msg
 
 
 class EvalMode:
-    """Evaluation methods available in ``flaml``
-    """
-    HOLDOUT = 'holdout'
+    """Evaluation methods available in ``flaml``"""
+
+    HOLDOUT = "holdout"
     """A fixed holdout set for evaluating the model
 
     Note:
         You might want to set ``split_ratio`` too
     """
 
-    CV = 'cv'
+    CV = "cv"
     """Cross-validation with ``n`` splits
 
     Note:
@@ -219,7 +205,7 @@ def find_estimator(flaml_automl: flaml.AutoML):
 
     Returns:
         Any:
-        The underlying estimator itself or a component of it that 
+        The underlying estimator itself or a component of it that
         quacks like sklearn estimators
     """
     # get best fitted estimator
@@ -240,9 +226,7 @@ def find_estimator(flaml_automl: flaml.AutoML):
     elif isinstance(estimator, ExtraTreesClassifier):
         pass  # sklearn
     else:
-        logger.debug(
-            f'estimator "{estimator.__class__.__name__}" not found'
-        )
+        logger.debug(f'estimator "{estimator.__class__.__name__}" not found')
     return estimator
 
 
@@ -250,7 +234,7 @@ def log_model(
     estimator: Any,
     artifact_path: Union[Path, str],
     conda_env: str,
-    registered_model_name: Optional[str] = None
+    registered_model_name: Optional[str] = None,
 ):
     """Logs the underlying estimator of :class:`flaml.AutoML` as an flavor-specific ``MLflow`` artifact
 
@@ -280,21 +264,21 @@ def log_model(
             xgb_model=estimator,
             artifact_path=artifact_path,
             conda_env=conda_env,
-            registered_model_name=registered_model_name
+            registered_model_name=registered_model_name,
         )
     if isinstance(estimator, LGBMClassifier):
         mlflow.lightgbm.log_model(
             lgb_model=estimator,
             artifact_path=artifact_path,
             conda_env=conda_env,
-            registered_model_name=registered_model_name
+            registered_model_name=registered_model_name,
         )
     if isinstance(estimator, CatBoostClassifier):
         mlflow.catboost.log_model(
             cb_model=estimator,
             artifact_path=artifact_path,
             conda_env=conda_env,
-            registered_model_name=registered_model_name
+            registered_model_name=registered_model_name,
         )
     else:
         # sklearn api: RandomForestClassifier, DecisionTreeClassifier, ...
@@ -302,10 +286,9 @@ def log_model(
             sk_model=estimator,
             artifact_path=artifact_path,
             conda_env=conda_env,
-            registered_model_name=registered_model_name
+            registered_model_name=registered_model_name,
         )
 
     logger.info(
-        f'model of type "{estimator.__class__.__name__}"'
-        f' is tracked via MLflow.'
+        f'model of type "{estimator.__class__.__name__}"' f" is tracked via MLflow."
     )

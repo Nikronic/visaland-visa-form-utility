@@ -1,11 +1,10 @@
-__all__ = [
-    'Logics', 'CanadaLogics'
-]
+__all__ = ["Logics", "CanadaLogics"]
 
 # core
 from functools import reduce
 import pandas as pd
 import numpy as np
+
 # helpers
 from typing import Callable, cast
 
@@ -16,8 +15,8 @@ class Logics:
     Methods here are implemented in the way that can be used as Pandas.agg_ function
     over `Pandas.Series` using functools.reduce_.
 
-    Note: 
-        This is constructed based on domain knowledge hence is designed 
+    Note:
+        This is constructed based on domain knowledge hence is designed
         for a specific purpose based on application.
 
     .. _Pandas.agg: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.Series.agg.html
@@ -28,7 +27,7 @@ class Logics:
         """Init class by setting dataframe globally
 
         Args:
-            dataframe (pd.DataFrame, optional): The dataframe that functions of this class 
+            dataframe (pd.DataFrame, optional): The dataframe that functions of this class
                 will be user over its series, i.e. ``Logics.*(series)``. Defaults to None.
         """
         self.df = dataframe
@@ -43,14 +42,13 @@ class Logics:
             TypeError: If ``self.df`` is not initialized
         """
         if self.df is None:
-            raise TypeError(
-                f'`df` attribute cannot be `None` when using "{func}".')
+            raise TypeError(f'`df` attribute cannot be `None` when using "{func}".')
 
     def reset_dataframe(self, dataframe: pd.DataFrame) -> None:
         """Takes a new dataframe and replaces the old one
 
         Note:
-            This should be used when the dataframe is modified outside of functions 
+            This should be used when the dataframe is modified outside of functions
             provided in this class. E.g.::
 
                 my_df: pd.DataFrame = ...
@@ -65,10 +63,7 @@ class Logics:
         self.df = dataframe
 
     def add_agg_column(
-        self,
-        aggregator: Callable,
-        agg_column_name: str,
-        columns: list
+        self, aggregator: Callable, agg_column_name: str, columns: list
     ) -> pd.DataFrame:
         """Aggregate columns and adds it to the original dataframe using an aggregator function
 
@@ -100,11 +95,10 @@ class Logics:
         self.df = cast(pd.DataFrame, self.df)
         # aggregate
         self.df[agg_column_name] = self.df[columns].agg(aggregator, axis=1)
-        self.df = self.df.rename(
-            columns={aggregator.__name__: agg_column_name})
+        self.df = self.df.rename(columns={aggregator.__name__: agg_column_name})
         # return updated dataframe to be used outside of this class
         return self.df
-    
+
     def average_age_group(self, series: pd.Series) -> float:
         """Calculates the average age of a specific group
 
@@ -165,7 +159,7 @@ class Logics:
 
         Note:
             Those who are living in another country may not be considered as
-            long distance resident. In that case, 
+            long distance resident. In that case,
             see :func:`count_foreign_family_resident` for more info.
 
         Args:
@@ -181,9 +175,9 @@ class Logics:
         """Counts the number of family members that are living in a foreign country
 
         Note:
-            This is an special case of :func:`count_long_distance_family_resident` 
+            This is an special case of :func:`count_long_distance_family_resident`
             where those who are living in another country are treated
-            separately. In case you don't care, just use 
+            separately. In case you don't care, just use
             :func:`count_long_distance_family_resident` instead.
 
         Args:
@@ -210,7 +204,7 @@ class CanadaLogics(Logics):
 
         This is used when we have many instances in a group that each instance
         by themselves don't provide much info; particularly when they are
-        highly correlated with a main factor such as the age of the applicant 
+        highly correlated with a main factor such as the age of the applicant
         him/herself. In this case, we rather have the aggregated mode (average).
 
         Args:
@@ -221,8 +215,10 @@ class CanadaLogics(Logics):
             float: Result of averaging
         """
 
-        def sum(x, y): return np.sum([x, y])
-        return reduce(lambda x, y: sum(x, y), series, 0.) / len(series)
+        def sum(x, y):
+            return np.sum([x, y])
+
+        return reduce(lambda x, y: sum(x, y), series, 0.0) / len(series)
 
     def count_previous_residency_country(self, series: pd.Series) -> int:
         """Counts the number of previous residency by counting non-zero periods of residency
@@ -238,7 +234,9 @@ class CanadaLogics(Logics):
             int: Result of counting
         """
 
-        def counter(x, y): return np.sum(np.isin([x, y], [0]))
+        def counter(x, y):
+            return np.sum(np.isin([x, y], [0]))
+
         return reduce(lambda x, y: 2 - counter(x, y), series)
 
     def count_foreigner_family(self, series: pd.Series) -> int:
@@ -248,15 +246,16 @@ class CanadaLogics(Logics):
         country of birth.
 
         Args:
-            series (:class:`pandas.Series`): Pandas Series to be processed containing 
+            series (:class:`pandas.Series`): Pandas Series to be processed containing
                 country of birth of members
 
         Returns:
             int: Result of counting
         """
 
-        def counter(y): return np.sum(
-            np.invert(np.isin([y], ['iran', None])))  # type: ignore
+        def counter(y):
+            return np.sum(np.invert(np.isin([y], ["iran", None])))  # type: ignore
+
         return reduce(lambda x, y: x + counter(y), series, 0)
 
     def count_accompanying(self, series: pd.Series) -> int:
@@ -272,8 +271,9 @@ class CanadaLogics(Logics):
             int: Result of counting
         """
 
-        def counter(y): return np.sum(
-            np.isin([y], [True, None]))  # type: ignore
+        def counter(y):
+            return np.sum(np.isin([y], [True, None]))  # type: ignore
+
         # type: ignore
         return reduce(lambda x, y: x + counter(y), series, False)
 
@@ -281,13 +281,15 @@ class CanadaLogics(Logics):
         """Counts the number of people for the given relationship, e.g. siblings.
 
         Args:
-            series (:class:`pandas.Series`): Pandas Series to be processed 
+            series (:class:`pandas.Series`): Pandas Series to be processed
 
         Returns:
             int: Result of counting
         """
 
-        def counter(y): return np.sum(y != 0.)
+        def counter(y):
+            return np.sum(y != 0.0)
+
         return reduce(lambda x, y: x + counter(y), series, 0)
 
     def count_long_distance_family_resident(self, series: pd.Series) -> int:
@@ -302,8 +304,8 @@ class CanadaLogics(Logics):
             that case, see :func:`count_foreign_family_resident` for more info.
 
         Args:
-            series (:class:`pandas.Series`): Pandas Series to be processed containing 
-                the residency state/province in string. In practice, 
+            series (:class:`pandas.Series`): Pandas Series to be processed containing
+                the residency state/province in string. In practice,
                 any string different from applicant's province will be counted
                 as difference.
 
@@ -315,7 +317,7 @@ class CanadaLogics(Logics):
             >>>    index=['p1.SecA.App.AppAddr', 1, 2, 3, 4, 5, 6, 7, 8])
             >>> f(s)
             2
-            >>> s1 = pd.Series(['alborz', 'alborz', 'alborz', 'alborz'], 
+            >>> s1 = pd.Series(['alborz', 'alborz', 'alborz', 'alborz'],
             >>>    index=['p1.SecA.App.AppAddr', '1', '2', '3'])
             >>> f(s1)
             0
@@ -327,15 +329,16 @@ class CanadaLogics(Logics):
 
         self.df = cast(pd.DataFrame, self.df)  # for mypy only
 
-        apps_loc: str = series['p1.SecA.App.AppAddr']
+        apps_loc: str = series["p1.SecA.App.AppAddr"]
 
         def counter(y):
             return np.sum(
                 np.invert(
-                    np.isin([y], [apps_loc, None, 'foreign', 'deceased']),  # type: ignore
-                    dtype=bool
+                    np.isin([y], [apps_loc, None, "foreign", "deceased"]),  # type: ignore
+                    dtype=bool,
                 )
             )
+
         return reduce(lambda x, y: x + counter(y), series, 0)
 
     def count_foreign_family_resident(self, series: pd.Series) -> int:
@@ -349,8 +352,8 @@ class CanadaLogics(Logics):
             that case, see :func:`count_long_distance_family_resident` for more info.
 
         Args:
-            series (:class:`pandas.Series`): Pandas Series to be processed containing 
-                the residency state/province in string. In practice, 
+            series (:class:`pandas.Series`): Pandas Series to be processed containing
+                the residency state/province in string. In practice,
                 any string different from applicant's province will be counted
                 as difference.
 
@@ -374,6 +377,7 @@ class CanadaLogics(Logics):
 
         self.df = cast(pd.DataFrame, self.df)  # for mypy only
 
-        def counter(y): return np.sum(
-            np.isin([y], ['foreign']))  # type: ignore
+        def counter(y):
+            return np.sum(np.isin([y], ["foreign"]))  # type: ignore
+
         return reduce(lambda x, y: x + counter(y), series, 0)  # type: ignore
