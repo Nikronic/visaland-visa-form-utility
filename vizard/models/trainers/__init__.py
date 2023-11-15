@@ -16,6 +16,7 @@ from .aml_flaml import report_loss_score
 from .aml_flaml import get_loss_score
 from .aml_flaml import log_model
 from .aml_flaml import AutoML
+
 # helpers
 import logging
 import pathlib
@@ -27,10 +28,10 @@ logger = logging.getLogger(__name__)
 
 # path to all config/db files
 parent_dir = pathlib.Path(__file__).parent
-DATA_DIR = parent_dir / 'data'
+DATA_DIR = parent_dir / "data"
 
 # we have to import path to `/data` here to avoid circular import
-FLAML_AUTOML_CONFIGS = DATA_DIR / 'flaml_automl_configs.json'
+FLAML_AUTOML_CONFIGS = DATA_DIR / "flaml_automl_configs.json"
 """Configs for FLAML_ AutoML args and params as JSON
 
 For more information:

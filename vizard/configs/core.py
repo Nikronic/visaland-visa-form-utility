@@ -1,7 +1,9 @@
 # core
 import json
+
 # ours
 from snorkel.labeling.model import LabelModel
+
 # helper
 from typing import Any, Union
 from pathlib import Path
@@ -13,7 +15,7 @@ class JsonConfigHandler:
 
     @staticmethod
     def load(filename: str) -> Any:
-        with open(filename, 'r') as f:
+        with open(filename, "r") as f:
             configs = json.load(f)
         return configs
 
@@ -56,52 +58,54 @@ class JsonConfigHandler:
         self.configs = configs
 
         # parse configs for each target
-        if target == 'LabelModel':
+        if target == "LabelModel":
             # args of `fit` method of LabelModel
-            method_fit_configs = configs['method_fit']
+            method_fit_configs = configs["method_fit"]
             fit_args = {
-                'n_epochs': method_fit_configs['LM_N_EPOCHS'],
-                'lr': method_fit_configs['LM_LR'],
-                'log_freq': method_fit_configs['LM_LOG_FREQ'],
-                'optimizer': method_fit_configs['LM_OPTIM'],
+                "n_epochs": method_fit_configs["LM_N_EPOCHS"],
+                "lr": method_fit_configs["LM_LR"],
+                "log_freq": method_fit_configs["LM_LOG_FREQ"],
+                "optimizer": method_fit_configs["LM_OPTIM"],
             }
 
             # args of `__init__` method of LabelModel
-            init_configs = configs['method_init']
+            init_configs = configs["method_init"]
             init_args: dict = {
-                'cardinality': init_configs['LM_CARDINALITY'],
+                "cardinality": init_configs["LM_CARDINALITY"],
             }
 
             return {
-                'method_fit': fit_args,
-                'method_init': init_args,
+                "method_fit": fit_args,
+                "method_init": init_args,
             }
-        elif target == 'FLAML_AutoML':
+        elif target == "FLAML_AutoML":
             # args of `fit` method of FLAML.AutoML
-            method_fit_configs = configs['method_fit']
+            method_fit_configs = configs["method_fit"]
             fit_args = {
-                'task': method_fit_configs['FLAML_AUTOML_TASK'],
-                'metric': method_fit_configs['FLAML_AUTOML_METRIC'],
-                'max_iter': method_fit_configs['FLAML_AUTOML_MAX_ITER'],
-                'time_budget': method_fit_configs['FLAML_AUTOML_TIME_BUDGET'],
-                'split_ratio': method_fit_configs['FLAML_SPLIT_RATIO'],
-                'mem_thres': method_fit_configs['FLAML_AUTOML_MEM_THRES'],
-                'n_concurrent_trials': method_fit_configs['FLAML_AUTOML_N_CONCURRENT_TRIALS'],
-                'auto_augment': method_fit_configs['FLAML_AUTOML_AUTO_AUGMENT'],
-                'early_stop': method_fit_configs['FLAML_AUTOML_EARLY_STOP'],
-                'verbose': method_fit_configs['FLAML_AUTOML_VERBOSE'],
+                "task": method_fit_configs["FLAML_AUTOML_TASK"],
+                "metric": method_fit_configs["FLAML_AUTOML_METRIC"],
+                "max_iter": method_fit_configs["FLAML_AUTOML_MAX_ITER"],
+                "time_budget": method_fit_configs["FLAML_AUTOML_TIME_BUDGET"],
+                "split_ratio": method_fit_configs["FLAML_SPLIT_RATIO"],
+                "mem_thres": method_fit_configs["FLAML_AUTOML_MEM_THRES"],
+                "n_concurrent_trials": method_fit_configs[
+                    "FLAML_AUTOML_N_CONCURRENT_TRIALS"
+                ],
+                "auto_augment": method_fit_configs["FLAML_AUTOML_AUTO_AUGMENT"],
+                "early_stop": method_fit_configs["FLAML_AUTOML_EARLY_STOP"],
+                "verbose": method_fit_configs["FLAML_AUTOML_VERBOSE"],
             }
 
             # delete unset variables (indicated via empty string "")
             for fit_arg_ in fit_args.copy():
-                if fit_args[fit_arg_] == '':
+                if fit_args[fit_arg_] == "":
                     del fit_args[fit_arg_]
 
             return {
-                'method_fit': fit_args,
+                "method_fit": fit_args,
             }
         else:
-            raise ValueError(f'{target} is not implemented or not supported.')
+            raise ValueError(f"{target} is not implemented or not supported.")
 
     def as_mlflow_artifact(self, target_path: Union[Path, str]) -> None:
         """Saves the configs to the MLFlow artifact directory
@@ -116,11 +120,9 @@ class JsonConfigHandler:
             target_path = Path(target_path)
 
         if self.conf_path is None:
-            raise ValueError(
-                'Configs have not been set yet. Use `.parse` to set them.'
-            )
+            raise ValueError("Configs have not been set yet. Use `.parse` to set them.")
 
         # save the configs to the artifact directory
         target_path = target_path / self.conf_path.name
-        with open(target_path, 'w') as f:
+        with open(target_path, "w") as f:
             json.dump(self.configs, f)

@@ -1,9 +1,19 @@
 __all__ = [
-    'dict_summarizer', 'dict_to_csv', 'column_dropper', 'fillna_datetime',
-    'aggregate_datetime', 'tag_to_regex_compatible', 'change_dtype',
-    'unit_converter', 'flatten_dict', 'xml_to_flattened_dict',
-    'create_directory_structure_tree', 'dump_directory_structure_csv',
-    'process_directory', 'search_dict', 'config_csv_to_dict'
+    "dict_summarizer",
+    "dict_to_csv",
+    "column_dropper",
+    "fillna_datetime",
+    "aggregate_datetime",
+    "tag_to_regex_compatible",
+    "change_dtype",
+    "unit_converter",
+    "flatten_dict",
+    "xml_to_flattened_dict",
+    "create_directory_structure_tree",
+    "dump_directory_structure_csv",
+    "process_directory",
+    "search_dict",
+    "config_csv_to_dict",
 ]
 
 """
@@ -21,11 +31,14 @@ import xmltodict
 import datetime
 import csv
 import re
+
 # ours: data
 from vizard.data.preprocessor import FileTransformCompose
 from vizard.data.constant import *
+
 # ours: helper
 from vizard.utils.helpers import loggingdecorator
+
 # helpers
 from typing import Any, Callable, Iterable, List, Literal, Optional, Union, cast
 from enlighten import Manager
@@ -40,19 +53,19 @@ import os
 logger = logging.getLogger(__name__)
 
 
-@loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=False)
+@loggingdecorator(logger.name + ".func", level=logging.DEBUG, output=False)
 def dict_summarizer(
     d: dict,
     cutoff_term: str,
     KEY_ABBREVIATION_DICT: dict = None,
-    VALUE_ABBREVIATION_DICT: dict = None
+    VALUE_ABBREVIATION_DICT: dict = None,
 ) -> dict:
     """Takes a flattened dictionary and shortens its keys
 
     Args:
         d (dict): The dictionary to be shortened
         cutoff_term (str): The string that used to find in keys and remove anything behind it
-        KEY_ABBREVIATION_DICT (dict, optional): A dictionary containing abbreviation 
+        KEY_ABBREVIATION_DICT (dict, optional): A dictionary containing abbreviation
             mapping for keys. Defaults to None.
         VALUE_ABBREVIATION_DICT (dict, optional): A dictionary containing abbreviation
             mapping for values. Defaults to None.
@@ -69,7 +82,7 @@ def dict_summarizer(
         if KEY_ABBREVIATION_DICT is not None:
             new_k = k
             if cutoff_term in k:  # FIXME: cutoff part should be outside of abbreviation
-                new_k = k[k.index(cutoff_term)+len(cutoff_term)+1:]
+                new_k = k[k.index(cutoff_term) + len(cutoff_term) + 1 :]
 
             # add any filtering over keys here
             # abbreviation
@@ -81,8 +94,10 @@ def dict_summarizer(
             # values can be None
             if v is not None:
                 new_v = v
-                if cutoff_term in v:  # FIXME: cutoff part should be outside of abbreviation
-                    new_v = v[v.index(cutoff_term)+len(cutoff_term)+1:]
+                if (
+                    cutoff_term in v
+                ):  # FIXME: cutoff part should be outside of abbreviation
+                    new_v = v[v.index(cutoff_term) + len(cutoff_term) + 1 :]
 
                 # add any filtering over values here
                 # abbreviation
@@ -100,7 +115,7 @@ def dict_summarizer(
     return dict((new_keys[key], new_values[value]) for (key, value) in d.items())
 
 
-@loggingdecorator(logger.name+'.func', level=logging.INFO, output=False)
+@loggingdecorator(logger.name + ".func", level=logging.INFO, output=False)
 def dict_to_csv(d: dict, path: str) -> None:
     """Takes a flattened dictionary and writes it to a CSV file.
 
@@ -109,7 +124,7 @@ def dict_to_csv(d: dict, path: str) -> None:
         path (str): Path to the output file (will be created if not exist)
     """
 
-    with open(path, 'w') as f:
+    with open(path, "w") as f:
         w = csv.DictWriter(f, d.keys())
         w.writeheader()
         w.writerow(d)
@@ -120,7 +135,7 @@ def column_dropper(
     string: str,
     exclude: str = None,
     regex: bool = False,
-    inplace: bool = True
+    inplace: bool = True,
 ) -> Optional[pd.DataFrame]:
     """Takes a Pandas Dataframe and drops columns matching a pattern
 
@@ -145,8 +160,7 @@ def column_dropper(
         r = re.compile(string)
         col_to_drop = list(filter(r.match, dataframe.columns.values))
     else:
-        col_to_drop = [
-            col for col in dataframe.columns.values if string in col]
+        col_to_drop = [col for col in dataframe.columns.values if string in col]
 
     if exclude is not None:
         col_to_drop = [col for col in col_to_drop if exclude not in col]
@@ -165,7 +179,7 @@ def fillna_datetime(
     date: str,
     type: DOC_TYPES,
     one_sided: Union[str, bool] = False,
-    inplace: bool = False
+    inplace: bool = False,
 ) -> Optional[pd.DataFrame]:
     """Takes names of two columns of dates (start, end) and fills them with a predefined value
 
@@ -187,7 +201,7 @@ def fillna_datetime(
 
     Note:
         In transformation operations such as :func:`aggregate_datetime` function,
-        this would be converted to period of zero. It is useful for filling periods of 
+        this would be converted to period of zero. It is useful for filling periods of
         non existing items (e.g. age of children for single person).
 
     Returns:
@@ -197,11 +211,11 @@ def fillna_datetime(
     """
 
     if not one_sided:
-        r = re.compile(tag_to_regex_compatible(
-            string=col_base_name, type=type))
+        r = re.compile(tag_to_regex_compatible(string=col_base_name, type=type))
     else:
-        r = re.compile(tag_to_regex_compatible(
-            string=col_base_name, type=type)+'\.(From|To).+')
+        r = re.compile(
+            tag_to_regex_compatible(string=col_base_name, type=type) + "\.(From|To).+"
+        )
     columns_to_fillna_names = list(filter(r.match, dataframe.columns.values))
     for col in dataframe[columns_to_fillna_names]:
         if inplace:
@@ -216,11 +230,11 @@ def aggregate_datetime(
     col_base_name: str,
     new_col_name: str,
     type: DOC_TYPES,
-    if_nan: Union[str, Callable, None] = 'skip',
+    if_nan: Union[str, Callable, None] = "skip",
     one_sided: str = None,
     reference_date: str = None,
     current_date: str = None,
-    **kwargs
+    **kwargs,
 ) -> pd.DataFrame:
     """Takes two columns of dates in string form and calculates the period of them
 
@@ -258,79 +272,88 @@ def aggregate_datetime(
     """
 
     default_datetime = datetime.datetime(
-        year=DATEUTIL_DEFAULT_DATETIME['year'],
-        month=DATEUTIL_DEFAULT_DATETIME['month'],
-        day=DATEUTIL_DEFAULT_DATETIME['day']
+        year=DATEUTIL_DEFAULT_DATETIME["year"],
+        month=DATEUTIL_DEFAULT_DATETIME["month"],
+        day=DATEUTIL_DEFAULT_DATETIME["day"],
     )
-    default_datetime = kwargs.get('default_datetime', default_datetime)
+    default_datetime = kwargs.get("default_datetime", default_datetime)
 
     aggregated_column_name = None
     if one_sided is None:
-        aggregated_column_name = col_base_name + '.' + new_col_name
-        r = re.compile(tag_to_regex_compatible(
-            string=col_base_name, type=type)+'\.(From|To).+')
+        aggregated_column_name = col_base_name + "." + new_col_name
+        r = re.compile(
+            tag_to_regex_compatible(string=col_base_name, type=type) + "\.(From|To).+"
+        )
     else:  # when one_sided, we no longer have *From* or *To*
-        aggregated_column_name = col_base_name + '.' + new_col_name
-        r = re.compile(tag_to_regex_compatible(
-            string=col_base_name, type=type))
-    columns_to_aggregate_names = list(
-        filter(r.match, dataframe.columns.values))
+        aggregated_column_name = col_base_name + "." + new_col_name
+        r = re.compile(tag_to_regex_compatible(string=col_base_name, type=type))
+    columns_to_aggregate_names = list(filter(r.match, dataframe.columns.values))
 
     # *.FromDate and *.ToDate --> *.Period
     column_from_date = reference_date
     column_to_date = current_date
-    if one_sided == 'left':
+    if one_sided == "left":
         column_from_date = reference_date
         to_date = columns_to_aggregate_names[0]
-    elif one_sided == 'right':
+    elif one_sided == "right":
         column_to_date = current_date
         from_date = columns_to_aggregate_names[0]
     else:
-        from_date = [
-            col for col in columns_to_aggregate_names if 'From' in col][0]
-        to_date = [col for col in columns_to_aggregate_names if 'To' in col][0]
+        from_date = [col for col in columns_to_aggregate_names if "From" in col][0]
+        to_date = [col for col in columns_to_aggregate_names if "To" in col][0]
 
     if isinstance(column_to_date, str):
         column_to_date = parser.parse(
-            column_to_date, default=default_datetime)  # type: ignore
+            column_to_date, default=default_datetime
+        )  # type: ignore
 
     if column_from_date is None:  # ignore reference_date if from_date exists
         # to able to use already parsed data from fillna
-        if not dataframe[from_date].dtypes == '<M8[ns]':
+        if not dataframe[from_date].dtypes == "<M8[ns]":
             dataframe[from_date] = dataframe[from_date].apply(
-                lambda x: parser.parse(x, default=default_datetime) if x is not None else x)
+                lambda x: parser.parse(x, default=default_datetime)
+                if x is not None
+                else x
+            )
         column_from_date = dataframe[from_date]
     else:
         if isinstance(column_from_date, str):
             column_from_date = parser.parse(
-                column_from_date, default=default_datetime)  # type: ignore
+                column_from_date, default=default_datetime
+            )  # type: ignore
 
     if column_to_date is None:  # ignore current_date if to_date exists
         # to able to use already parsed data from fillna
-        if not dataframe[to_date].dtypes == '<M8[ns]':
+        if not dataframe[to_date].dtypes == "<M8[ns]":
             dataframe[to_date] = dataframe[to_date].apply(
-                lambda x: parser.parse(x, default=default_datetime) if x is not None else x)
+                lambda x: parser.parse(x, default=default_datetime)
+                if x is not None
+                else x
+            )
         column_to_date = dataframe[to_date]
     else:
         if isinstance(column_to_date, str):
             column_to_date = parser.parse(
-                column_to_date, default=default_datetime)  # type: ignore
+                column_to_date, default=default_datetime
+            )  # type: ignore
 
     if if_nan is not None:
-        if if_nan == 'skip':
+        if if_nan == "skip":
             if column_from_date.isna().all() or column_to_date.isna().all():  # type: ignore
                 return dataframe
 
     dataframe[aggregated_column_name] = np.nan  # combination of dates
     dataframe[aggregated_column_name].fillna(  # period
-        column_to_date - column_from_date, inplace=True)  # type: ignore
-    dataframe[aggregated_column_name] = dataframe[aggregated_column_name].dt.days.astype(
-        'int32')  # change to int of days
+        column_to_date - column_from_date, inplace=True
+    )  # type: ignore
+    dataframe[aggregated_column_name] = dataframe[
+        aggregated_column_name
+    ].dt.days.astype(
+        "int32"
+    )  # change to int of days
 
     dataframe.drop(
-        columns_to_aggregate_names,
-        axis=1,
-        inplace=True
+        columns_to_aggregate_names, axis=1, inplace=True
     )  # drop from/to columns
     return dataframe
 
@@ -345,15 +368,18 @@ def tag_to_regex_compatible(string: str, type: DOC_TYPES) -> str:
     Args:
         string (str): input string to get manipulated
         type (DOC_TYPES): specified :class:`DOC_TYPES <vizard.data.constant.DOC_TYPES>`
-            to determine regex rules 
+            to determine regex rules
 
     Returns:
         str: A modified string
     """
 
-    if type == DOC_TYPES.canada_5257e or type == DOC_TYPES.canada_5645e or type == DOC_TYPES.canada:
-        string = string.replace('.', '\.').replace(
-            '[', '\[').replace(']', '\]')
+    if (
+        type == DOC_TYPES.canada_5257e
+        or type == DOC_TYPES.canada_5645e
+        or type == DOC_TYPES.canada
+    ):
+        string = string.replace(".", "\.").replace("[", "\[").replace("]", "\]")
 
     return string
 
@@ -362,8 +388,8 @@ def change_dtype(
     dataframe: pd.DataFrame,
     col_name: str,
     dtype: Callable,
-    if_nan: Union[str, Callable] = 'skip',
-    **kwargs
+    if_nan: Union[str, Callable] = "skip",
+    **kwargs,
 ) -> pd.DataFrame:
     """Changes the data type of a column with ability to fill ``None`` s
 
@@ -385,27 +411,32 @@ def change_dtype(
             raise if ``if_nan`` is ``Callable``.
 
     Returns:
-        :class:`pandas.DataFrame`: 
-            A Pandas Dataframe calculate the period of two columns of dates 
+        :class:`pandas.DataFrame`:
+            A Pandas Dataframe calculate the period of two columns of dates
             and represent it in integer form. The two columns used will be dropped.
     """
 
     default_datetime = datetime.datetime(
-        year=DATEUTIL_DEFAULT_DATETIME['year'],
-        month=DATEUTIL_DEFAULT_DATETIME['month'],
-        day=DATEUTIL_DEFAULT_DATETIME['day']
+        year=DATEUTIL_DEFAULT_DATETIME["year"],
+        month=DATEUTIL_DEFAULT_DATETIME["month"],
+        day=DATEUTIL_DEFAULT_DATETIME["day"],
     )
-    default_datetime = kwargs.get('default_datetime', default_datetime)
+    default_datetime = kwargs.get("default_datetime", default_datetime)
 
     # define `func` for different cases of predefined logics
     if isinstance(if_nan, str):  # predefined `if_nan` cases
-        if if_nan == 'skip':
+        if if_nan == "skip":
             # the function to be used in `.apply` method of dataframe
-            def func(x): return x
-        elif if_nan == 'fill':
-            value = kwargs['value']
+            def func(x):
+                return x
+
+        elif if_nan == "fill":
+            value = kwargs["value"]
+
             # the function to be used in `.apply` method of dataframe
-            def func(x): return value
+            def func(x):
+                return value
+
         else:
             raise ValueError(f'Unknown mode "{if_nan}".')
     else:
@@ -419,7 +450,7 @@ def change_dtype(
 
         Note:
             This is mostly hardcoded and cannot be written better (I think!). So, you can
-            remove it entirely, and see what errors you get, and change this accordingly to 
+            remove it entirely, and see what errors you get, and change this accordingly to
             errors and exceptions you get.
 
         Returns:
@@ -432,15 +463,11 @@ def change_dtype(
                 # we want YYYY-MM-DD
                 # MMDDYYYY format (Canada Common Forms)
                 if len(value) == 8 and value.isnumeric():
-                    value = '{}-{}-{}'.format(
-                        value[4:],
-                        value[2:4],
-                        value[0:2]
-                    )
+                    value = "{}-{}-{}".format(value[4:], value[2:4], value[0:2])
 
                 # fix values
-                if value[5:7] == '02' and value[8:10] == '30':  # using >28 for February
-                    value = '28'.join(value.rsplit('30', 1))
+                if value[5:7] == "02" and value[8:10] == "30":  # using >28 for February
+                    value = "28".join(value.rsplit("30", 1))
         return value
 
     def apply_dtype(x: Any) -> Any:
@@ -462,16 +489,14 @@ def change_dtype(
 
     # apply the rules and data type change
     dataframe[col_name] = dataframe[col_name].apply(
-        lambda x: apply_dtype(standardize(x)) if x is not None else func(x))
+        lambda x: apply_dtype(standardize(x)) if x is not None else func(x)
+    )
 
     return dataframe
 
 
-@loggingdecorator(logger.name+'.func', level=logging.INFO, output=False)
-def dump_directory_structure_csv(
-    src: str,
-    shallow: bool = True
-) -> None:
+@loggingdecorator(logger.name + ".func", level=logging.INFO, output=False)
+def dump_directory_structure_csv(src: str, shallow: bool = True) -> None:
     """Saves a tree structure of a directory in csv file
 
     Takes a ``src`` directory path, creates a tree of dir structure and writes
@@ -490,7 +515,7 @@ def dump_directory_structure_csv(
     dic = create_directory_structure_tree(src=src, shallow=shallow)
     flat_dic = flatten_dict(dic)
     flat_dic = {k: v for k, v in flat_dic.items() if v is not None}
-    dict_to_csv(d=flat_dic, path=src+'/label.csv')
+    dict_to_csv(d=flat_dic, path=src + "/label.csv")
 
 
 def create_directory_structure_tree(src: str, shallow: bool = False) -> dict:
@@ -509,14 +534,17 @@ def create_directory_structure_tree(src: str, shallow: bool = False) -> dict:
             Dictionary of all dirs (and subdirs) where keys are path
             and values are ``0``
     """
-    d = {'name': os.path.basename(src) if os.path.isdir(
-        src) else None}  # ignore files, only dir
+    d = {
+        "name": os.path.basename(src) if os.path.isdir(src) else None
+    }  # ignore files, only dir
     if os.path.isdir(src):
         if shallow:
-            d['children'] = [{x: '0'} for x in os.listdir(src)]  # type: ignore
+            d["children"] = [{x: "0"} for x in os.listdir(src)]  # type: ignore
         else:  # recursively walk into all dirs and subdirs
-            d['children'] = [create_directory_structure_tree(  # type: ignore
-                os.path.join(src, x)) for x in os.listdir(src)]
+            d["children"] = [
+                create_directory_structure_tree(os.path.join(src, x))  # type: ignore
+                for x in os.listdir(src)
+            ]
     else:
         pass
         # d['type'] = "file"
@@ -546,15 +574,16 @@ def flatten_dict(d: dict) -> dict:
                 # nested subtree
                 if isinstance(value, dict):
                     for subkey, subvalue in flatten_dict(value).items():
-                        yield '{}.{}'.format(key, subkey), subvalue
+                        yield "{}.{}".format(key, subkey), subvalue
                 # nested list
                 elif isinstance(value, list):
                     for num, elem in enumerate(value):
                         for subkey, subvalue in flatten_dict(elem).items():
-                            yield '{}.[{}].{}'.format(key, num, subkey), subvalue
+                            yield "{}.[{}].{}".format(key, num, subkey), subvalue
                 # everything else (only leafs should remain)
                 else:
                     yield key, value
+
     return dict(items())
 
 
@@ -583,7 +612,7 @@ def unit_converter(sparse: float, dense: float, factor: float) -> float:
             if provided calculates ``dense = (1/factor) sparse``. If provided,
             ``sparse`` must be None.
         factor (float): sparse to dense factor, either directly provided as a
-            float number or as a predefined factor given by :py:mod:`vizard.data.constant <vizard.data.constant>`, 
+            float number or as a predefined factor given by :py:mod:`vizard.data.constant <vizard.data.constant>`,
             e.g. ``vizard.data.constant.FINANCIAL_RATIOS`` for computing currency exchange rate
 
     Returns:
@@ -596,17 +625,17 @@ def unit_converter(sparse: float, dense: float, factor: float) -> float:
         dense = factor * sparse
         return dense
     if dense is not None:
-        sparse = (1./factor) * dense
+        sparse = (1.0 / factor) * dense
         return sparse
 
 
-@loggingdecorator(logger.name+'.func', level=logging.INFO, output=False, input=True)
+@loggingdecorator(logger.name + ".func", level=logging.INFO, output=False, input=True)
 def process_directory(
     src_dir: str,
     dst_dir: str,
     compose: FileTransformCompose,
-    file_pattern: str = '*',
-    manager: Optional[Manager] = None
+    file_pattern: str = "*",
+    manager: Optional[Manager] = None,
 ) -> None:
     """Transforms all files that match pattern in given dir and saves new files preserving dir structure
 
@@ -628,28 +657,27 @@ def process_directory(
             Defaults to None.
     """
 
-    assert src_dir != dst_dir, 'Source and destination dir must differ.'
-    if src_dir[-1] != '/':
-        src_dir += '/'
+    assert src_dir != dst_dir, "Source and destination dir must differ."
+    if src_dir[-1] != "/":
+        src_dir += "/"
 
     # logging
     manager = enlighten.get_manager(sys.stderr) if manager is None else manager
     progress_bar = manager.counter(
         total=len(next(os.walk(src_dir), (None, [], None))[1]),
-        desc='Extracted',
-        unit='data point files'
+        desc="Extracted",
+        unit="data point files",
     )
     i = 0
 
     # process directories
     for dirpath, _, all_filenames in os.walk(src_dir):
         # filter out files that match pattern only
-        filenames = filter(lambda fname: fnmatch(
-            fname, file_pattern), all_filenames)
-        dirname = dirpath[len(dirpath) - dirpath[::-1].find('/'):]
+        filenames = filter(lambda fname: fnmatch(fname, file_pattern), all_filenames)
+        dirname = dirpath[len(dirpath) - dirpath[::-1].find("/") :]
         logger.info(f'Processing directory="{dirname}"...')
         if filenames:
-            dir_ = os.path.join(dst_dir, dirpath.replace(src_dir, ''))
+            dir_ = os.path.join(dst_dir, dirpath.replace(src_dir, ""))
             os.makedirs(dir_, exist_ok=True)
             for fname in filenames:
                 in_fname = os.path.join(dirpath, fname)  # original path
@@ -661,7 +689,7 @@ def process_directory(
         progress_bar.update()
 
 
-@loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=True, input=True)
+@loggingdecorator(logger.name + ".func", level=logging.DEBUG, output=True, input=True)
 def search_dict(string: str, dic: dict, if_nan: str) -> str:
     """Converts a string to another given a dictionary to search for
 
@@ -680,17 +708,13 @@ def search_dict(string: str, dic: dict, if_nan: str) -> str:
     if country:
         return dic[country[0]]
     else:
-        logger.debug(
-            f'"{string}" key could not be found, filled with "{if_nan}".')
+        logger.debug(f'"{string}" key could not be found, filled with "{if_nan}".')
         return if_nan
 
 
-@loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=True, input=True)
+@loggingdecorator(logger.name + ".func", level=logging.DEBUG, output=True, input=True)
 def extended_dict_get(
-    string: str,
-    dic: dict,
-    if_nan: str,
-    condition: Union[Callable, bool, None] = None
+    string: str, dic: dict, if_nan: str, condition: Union[Callable, bool, None] = None
 ):
     """Takes a string and looks for it inside a dictionary with default value if condition is satisfied
 
@@ -699,7 +723,7 @@ def extended_dict_get(
         dic (dict): the dictionary that ``string`` is expected to be
         if_nan (str): the value returned if ``string`` could not be found in ``dic``
         condition (Optional[bool], optional): look for ``string`` in ``dic`` only
-            if ``condition`` is True 
+            if ``condition`` is True
 
     Examples:
         >>> d = {'1': 'a', '2': 'b', '3': 'c'}
@@ -719,17 +743,17 @@ def extended_dict_get(
     if condition(string):
         return dic.get(string, if_nan)  # look for `string` if not use `if_nan`
     else:
-        logger.info((f'"{string}" is not True for the given `condition`',
-                    '==> `false_condition_value` will be applied.'))
+        logger.info(
+            (
+                f'"{string}" is not True for the given `condition`',
+                "==> `false_condition_value` will be applied.",
+            )
+        )
         return string
 
 
-@loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=True, input=True)
-def fix_typo(
-    string: str,
-    typos: Union[list, dict],
-    fix: Optional[str] = None
-) -> str:
+@loggingdecorator(logger.name + ".func", level=logging.DEBUG, output=True, input=True)
+def fix_typo(string: str, typos: Union[list, dict], fix: Optional[str] = None) -> str:
     """Fixes a typo in a token/word given a list of typos or dictionary of typos
 
     Args:
@@ -750,7 +774,7 @@ def fix_typo(
         str: fixed typo
     """
     if isinstance(typos, list) and (fix is None):
-        raise TypeError('`fix` cannot be `None` when `typos` is `list`.')
+        raise TypeError("`fix` cannot be `None` when `typos` is `list`.")
 
     if isinstance(typos, list):
         fix = cast(str, fix)
@@ -761,7 +785,7 @@ def fix_typo(
         raise TypeError(f'type "{type(typos)}" is not recognized.')
 
 
-@loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=False, input=True)
+@loggingdecorator(logger.name + ".func", level=logging.DEBUG, output=False, input=True)
 def config_csv_to_dict(path: str) -> dict:
     """Takes a config CSV and return a dictionary of key and values
 
@@ -779,7 +803,7 @@ def config_csv_to_dict(path: str) -> dict:
     return dict(zip(config_df[config_df.columns[0]], config_df[config_df.columns[1]]))
 
 
-@loggingdecorator(logger.name+'.func', level=logging.DEBUG, output=False, input=False)
+@loggingdecorator(logger.name + ".func", level=logging.DEBUG, output=False, input=False)
 def detect_outliers(df: pd.DataFrame, features: Iterable) -> list:
     """Takes a dataframe and desired features and finds outliers using percentiles
 
@@ -803,13 +827,13 @@ def detect_outliers(df: pd.DataFrame, features: Iterable) -> list:
         # Outlier step
         outlier_step = IQR * 1.5
         # detect outlier and their indices
-        outlier_list_col = df[(df[c] < Q1 - outlier_step)
-                              | (df[c] > Q3 + outlier_step)].index
+        outlier_list_col = df[
+            (df[c] < Q1 - outlier_step) | (df[c] > Q3 + outlier_step)
+        ].index
         # store indices
         outlier_indices.extend(outlier_list_col)
 
     outlier_indices_counter = collections.Counter(outlier_indices)
-    multiple_outliers = list(
-        i for i, v in outlier_indices_counter.items() if v > 2)
+    multiple_outliers = list(i for i, v in outlier_indices_counter.items() if v > 2)
 
     return multiple_outliers

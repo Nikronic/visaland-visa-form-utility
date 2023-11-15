@@ -6,10 +6,10 @@ import pathlib
 
 # path to all config/db files
 parent_dir = pathlib.Path(__file__).parent
-DATA_DIR = parent_dir / 'data'
+DATA_DIR = parent_dir / "data"
 
 
-CANADA_COUNTRY_CODE_TO_NAME = DATA_DIR / 'canada-country-code-to-name.csv'
+CANADA_COUNTRY_CODE_TO_NAME = DATA_DIR / "canada-country-code-to-name.csv"
 """Canada visa form country code to name
 
 Note:
@@ -18,7 +18,7 @@ Note:
     their forms.
 """
 
-IRAN_PROVINCE_TO_CITY = DATA_DIR / 'iran-province-to-city.csv'
+IRAN_PROVINCE_TO_CITY = DATA_DIR / "iran-province-to-city.csv"
 """Iran city to province name
 
 Note:

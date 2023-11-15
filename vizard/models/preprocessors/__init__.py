@@ -22,31 +22,35 @@ import pathlib
 
 # path to all config/db files
 parent_dir = pathlib.Path(__file__).parent
-DATA_DIR = parent_dir / 'data'
+DATA_DIR = parent_dir / "data"
 
 # we have to import path to `/data` here to avoid circular import in `core.py`
-CANADA_COLUMN_TRANSFORMER_CONFIG_X = DATA_DIR / 'canada_column_transformer_config_x.json'
+CANADA_COLUMN_TRANSFORMER_CONFIG_X = (
+    DATA_DIR / "canada_column_transformer_config_x.json"
+)
 """Configs for transforming *features* data for Canada
 
 For information about how to use it and what fields are expected, 
 see :class:`vizard.models.preprocessors.core.ColumnTransformerConfig`.
 """
 
-CANADA_COLUMN_TRANSFORMER_CONFIG_Y = DATA_DIR / 'canada_column_transformer_config_y.json'
+CANADA_COLUMN_TRANSFORMER_CONFIG_Y = (
+    DATA_DIR / "canada_column_transformer_config_y.json"
+)
 """Configs for transforming *target* data for Canada
 
 For information about how to use it and what fields are expected, 
 see :class:`vizard.models.preprocessors.core.ColumnTransformerConfig`.
 """
 
-CANADA_TRAIN_TEST_EVAL_SPLIT = DATA_DIR / 'canada_train_test_eval_split.json'
+CANADA_TRAIN_TEST_EVAL_SPLIT = DATA_DIR / "canada_train_test_eval_split.json"
 """Configs for splitting dataframe into numpy ndarray of train, test, eval for Canada
 
 For information about how to use it and what fields are expected,
 see :class:`vizard.models.preprocessors.core.TrainTestEvalSplit`.
 """
 
-CANADA_PANDAS_TRAIN_TEST_SPLIT = DATA_DIR / 'canada_pandas_train_test_split.json'
+CANADA_PANDAS_TRAIN_TEST_SPLIT = DATA_DIR / "canada_pandas_train_test_split.json"
 """Configs for splitting dataframe train and test for Canada
 
 For information about how to use it and what fields are expected,
@@ -68,14 +72,14 @@ from sklearn.preprocessing import MultiLabelBinarizer
 
 # a dictionary of transforms and their names
 TRANSFORMS = {
-    'OneHotEncoder': OneHotEncoder,
-    'LabelEncoder': LabelEncoder,
-    'StandardScaler': StandardScaler,
-    'MinMaxScaler': MinMaxScaler,
-    'RobustScaler': RobustScaler,
-    'MaxAbsScaler': MaxAbsScaler,
-    'LabelBinarizer': LabelBinarizer,
-    'MultiLabelBinarizer': MultiLabelBinarizer,
+    "OneHotEncoder": OneHotEncoder,
+    "LabelEncoder": LabelEncoder,
+    "StandardScaler": StandardScaler,
+    "MinMaxScaler": MinMaxScaler,
+    "RobustScaler": RobustScaler,
+    "MaxAbsScaler": MaxAbsScaler,
+    "LabelBinarizer": LabelBinarizer,
+    "MultiLabelBinarizer": MultiLabelBinarizer,
 }
 """A dictionary of transforms and their names used to verify configs in :class:`vizard.models.preprocessors.core.ColumnTransformerConfig`
 
@@ -94,8 +98,10 @@ from .core import ColumnTransformerConfig
 from .core import PandasTrainTestSplit
 from .core import TrainTestEvalSplit
 from .core import ColumnSelector
+
 # ours: helpers
 from .helpers import preview_column_transformer
+
 # helpers
 import logging
 
@@ -105,28 +111,28 @@ logger = logging.getLogger(__name__)
 
 __all__ = [
     # configs constants
-    'CANADA_COLUMN_TRANSFORMER_CONFIG_X',
-    'CANADA_COLUMN_TRANSFORMER_CONFIG_Y',
-    'CANADA_TRAIN_TEST_EVAL_SPLIT',
-    'CANADA_PANDAS_TRAIN_TEST_SPLIT',
+    "CANADA_COLUMN_TRANSFORMER_CONFIG_X",
+    "CANADA_COLUMN_TRANSFORMER_CONFIG_Y",
+    "CANADA_TRAIN_TEST_EVAL_SPLIT",
+    "CANADA_PANDAS_TRAIN_TEST_SPLIT",
     # other constants
-    'TRANSFORMS',
+    "TRANSFORMS",
     # sklearn
-    'ColumnTransformer',
-    'OneHotEncoder',
-    'LabelEncoder',
-    'StandardScaler',
-    'MinMaxScaler',
-    'RobustScaler',
-    'MaxAbsScaler',
-    'LabelBinarizer',
-    'MultiLabelBinarizer',
+    "ColumnTransformer",
+    "OneHotEncoder",
+    "LabelEncoder",
+    "StandardScaler",
+    "MinMaxScaler",
+    "RobustScaler",
+    "MaxAbsScaler",
+    "LabelBinarizer",
+    "MultiLabelBinarizer",
     # ours
-    'PandasTrainTestSplit',
-    'TrainTestEvalSplit',
-    'ColumnTransformerConfig',
-    'ColumnSelector',
-    'move_dependent_variable_to_end',
-    'preview_column_transformer',
-    'get_transformed_feature_names'
+    "PandasTrainTestSplit",
+    "TrainTestEvalSplit",
+    "ColumnTransformerConfig",
+    "ColumnSelector",
+    "move_dependent_variable_to_end",
+    "preview_column_transformer",
+    "get_transformed_feature_names",
 ]

@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np
 import pickle
+
 # ours
 from vizard.data import functional
 from vizard.data import preprocessor
@@ -15,7 +16,7 @@ from vizard.data.constant import (
     CountryWhereApplying,
     PurposeOfVisit,
     FEATURE_CATEGORY_TO_FEATURE_NAME_MAP,
-    FEATURE_NAME_TO_TEXT_MAP
+    FEATURE_NAME_TO_TEXT_MAP,
 )
 from vizard.models import preprocessors
 from vizard.models import trainers
@@ -28,13 +29,16 @@ from vizard.api import database as api_database
 from vizard.api import models as api_models
 from vizard.utils import loggers
 from vizard.version import VERSION as VIZARD_VERSION
+
 # api
 import fastapi
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+
 # devops
 import mlflow
 import dvc.api
+
 # helpers
 from typing import Dict, List, Tuple
 from pathlib import Path
@@ -47,74 +51,81 @@ import sys
 # argparse
 parser = argparse.ArgumentParser()
 parser.add_argument(
-    '-e',
-    '--experiment_name',
+    "-e",
+    "--experiment_name",
     type=str,
-    help='mlflow experiment name for logging',
-    default='',
-    required=True)
+    help="mlflow experiment name for logging",
+    default="",
+    required=True,
+)
 parser.add_argument(
-    '-d',
-    '--verbose',
+    "-d",
+    "--verbose",
     type=str,
-    help='logging verbosity level.',
-    choices=['debug', 'info'],
-    default='info',
-    required=True)
+    help="logging verbosity level.",
+    choices=["debug", "info"],
+    default="info",
+    required=True,
+)
 parser.add_argument(
-    '-r',
-    '--run_id',
+    "-r",
+    "--run_id",
     type=str,
-    help='MLflow run ID to extract artifacts (weights, models, etc)',
-    required=True)
+    help="MLflow run ID to extract artifacts (weights, models, etc)",
+    required=True,
+)
 parser.add_argument(
-    '-b',
-    '--bind',
+    "-b",
+    "--bind",
     type=str,
-    help='ip address of host',
-    default='0.0.0.0',
-    required=True)
+    help="ip address of host",
+    default="0.0.0.0",
+    required=True,
+)
 parser.add_argument(
-    '-m',
-    '--mlflow_port',
+    "-m",
+    "--mlflow_port",
     type=int,
-    help='port of mlflow tracking',
+    help="port of mlflow tracking",
     default=5000,
-    required=True)
+    required=True,
+)
 parser.add_argument(
-    '-g',
-    '--gunicorn_port',
+    "-g",
+    "--gunicorn_port",
     type=int,
-    help='port used for creating gunicorn',
+    help="port used for creating gunicorn",
     default=8000,
-    required=True)
+    required=True,
+)
 parser.add_argument(
-    '-w',
-    '--workers',
+    "-w",
+    "--workers",
     type=int,
-    help='number of works used by gunicorn',
+    help="number of works used by gunicorn",
     default=1,
-    required=True)
+    required=True,
+)
 args = parser.parse_args()
 
 # run mlflow tracking server
-mlflow.set_tracking_uri(f'http://{args.bind}:{args.mlflow_port}')
+mlflow.set_tracking_uri(f"http://{args.bind}:{args.mlflow_port}")
 
 # data versioning config
-PATH = 'raw-dataset/all-dev.pkl'  # path to source data, e.g. data.pkl file
-REPO = '../visaland-visa-form-utility'
-VERSION = 'v2.0.1-dev'  # use the latest EDA version (i.e. `vx.x.x-dev`)
+PATH = "raw-dataset/all-dev.pkl"  # path to source data, e.g. data.pkl file
+REPO = "../visaland-visa-form-utility"
+VERSION = "v2.0.1-dev"  # use the latest EDA version (i.e. `vx.x.x-dev`)
 # get url data from DVC data storage
 data_url = dvc.api.get_url(path=PATH, repo=REPO, rev=VERSION)
-data = pd.read_pickle(data_url).drop(columns=['VisaResult'], inplace=False)
+data = pd.read_pickle(data_url).drop(columns=["VisaResult"], inplace=False)
 
 # DVC: helper - (for more info see the API that uses these files)
 # data file for converting country names to continuous score in "economical" sense
-HELPER_PATH_GDP = 'raw-dataset/API_NY.GDP.PCAP.CD_DS2_en_xml_v2_4004943.pkl'
-HELPER_VERSION_GDP = 'v0.1.0-field-GDP'  # use latest using `git tag`
+HELPER_PATH_GDP = "raw-dataset/API_NY.GDP.PCAP.CD_DS2_en_xml_v2_4004943.pkl"
+HELPER_VERSION_GDP = "v0.1.0-field-GDP"  # use latest using `git tag`
 # data file for converting country names to continuous score in "all" possible senses
-HELPER_PATH_OVERALL = 'raw-dataset/databank-2015-2019.pkl'
-HELPER_VERSION_OVERALL = 'v0.1.0-field'  # use latest using `git tag`
+HELPER_PATH_OVERALL = "raw-dataset/databank-2015-2019.pkl"
+HELPER_VERSION_OVERALL = "v0.1.0-field"  # use latest using `git tag`
 # gather these for MLFlow track
 all_helper_data_info = {
     HELPER_PATH_GDP: HELPER_VERSION_GDP,
@@ -122,73 +133,67 @@ all_helper_data_info = {
 }
 # data file for converting country names to continuous score in "economical" sense
 worldbank_gdp_dataframe = pd.read_pickle(
-    dvc.api.get_url(
-        path=HELPER_PATH_GDP,
-        repo=REPO,
-        rev=HELPER_VERSION_GDP
-    )
+    dvc.api.get_url(path=HELPER_PATH_GDP, repo=REPO, rev=HELPER_VERSION_GDP)
 )
 eco_country_score_preprocessor = preprocessor.WorldBankXMLProcessor(
     dataframe=worldbank_gdp_dataframe
 )
 # data file for converting country names to continuous score in "all" possible senses
 worldbank_overall_dataframe = pd.read_pickle(
-    dvc.api.get_url(
-        path=HELPER_PATH_OVERALL,
-        repo=REPO,
-        rev=HELPER_VERSION_OVERALL
-    )
+    dvc.api.get_url(path=HELPER_PATH_OVERALL, repo=REPO, rev=HELPER_VERSION_OVERALL)
 )
-edu_country_score_preprocessor = preprocessor.EducationCountryScoreDataframePreprocessor(
-    dataframe=worldbank_overall_dataframe
+edu_country_score_preprocessor = (
+    preprocessor.EducationCountryScoreDataframePreprocessor(
+        dataframe=worldbank_overall_dataframe
+    )
 )
 
 # configure logging
-VERBOSE = logging.DEBUG if args.verbose == 'debug' else logging.INFO
-MLFLOW_ARTIFACTS_BASE_PATH: Path = Path('artifacts')
+VERBOSE = logging.DEBUG if args.verbose == "debug" else logging.INFO
+MLFLOW_ARTIFACTS_BASE_PATH: Path = Path("artifacts")
 if MLFLOW_ARTIFACTS_BASE_PATH.exists():
     shutil.rmtree(MLFLOW_ARTIFACTS_BASE_PATH)
-__libs = ['snorkel', 'vizard', 'flaml']
+__libs = ["snorkel", "vizard", "flaml"]
 logger = loggers.Logger(
     name=__name__,
     level=VERBOSE,
     mlflow_artifacts_base_path=MLFLOW_ARTIFACTS_BASE_PATH,
-    libs=__libs
+    libs=__libs,
 )
 
 # log experiment configs
-if args.experiment_name == '':
-    MLFLOW_EXPERIMENT_NAME = f'{VIZARD_VERSION}'
+if args.experiment_name == "":
+    MLFLOW_EXPERIMENT_NAME = f"{VIZARD_VERSION}"
 else:
-    MLFLOW_EXPERIMENT_NAME = f'{args.experiment_name} - {VIZARD_VERSION}'
+    MLFLOW_EXPERIMENT_NAME = f"{args.experiment_name} - {VIZARD_VERSION}"
 mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
 mlflow.start_run()
 
-logger.info(f'MLflow experiment name: {MLFLOW_EXPERIMENT_NAME}')
-logger.info(f'MLflow experiment id: {mlflow.active_run().info.run_id}')
+logger.info(f"MLflow experiment name: {MLFLOW_EXPERIMENT_NAME}")
+logger.info(f"MLflow experiment id: {mlflow.active_run().info.run_id}")
 
 # get mlflow run id for extracting artifacts of the desired run
 MLFLOW_RUN_ID = args.run_id
-mlflow.log_param('mlflow-trained-run-id', MLFLOW_RUN_ID)
+mlflow.log_param("mlflow-trained-run-id", MLFLOW_RUN_ID)
 
 # load fitted preprocessing models
-X_CT_NAME = 'train_sklearn_column_transfer.pkl'
+X_CT_NAME = "train_sklearn_column_transfer.pkl"
 x_ct_path = mlflow.artifacts.download_artifacts(
     run_id=MLFLOW_RUN_ID,
-    artifact_path=f'0/models/{X_CT_NAME}',
-    dst_path=f'api/artifacts'
+    artifact_path=f"0/models/{X_CT_NAME}",
+    dst_path=f"api/artifacts",
 )
-with open(x_ct_path, 'rb') as f:
+with open(x_ct_path, "rb") as f:
     x_ct: preprocessors.ColumnTransformer = pickle.load(f)
 
 # load fitted FLAML AutoML model for prediction
-FLAML_AUTOML_NAME = 'flaml_automl.pkl'
+FLAML_AUTOML_NAME = "flaml_automl.pkl"
 flaml_automl_path = mlflow.artifacts.download_artifacts(
     run_id=MLFLOW_RUN_ID,
-    artifact_path=f'0/models/{FLAML_AUTOML_NAME}',
-    dst_path=f'api/artifacts'
+    artifact_path=f"0/models/{FLAML_AUTOML_NAME}",
+    dst_path=f"api/artifacts",
 )
-with open(flaml_automl_path, 'rb') as f:
+with open(flaml_automl_path, "rb") as f:
     flaml_automl: trainers.AutoML = pickle.load(f)
 
 feature_names = preprocessors.get_transformed_feature_names(
@@ -198,28 +203,25 @@ feature_names = preprocessors.get_transformed_feature_names(
 
 # SHAP tree explainer #56
 flaml_tree_explainer = FlamlTreeExplainer(
-    flaml_model=flaml_automl,
-    feature_names=feature_names,
-    data=None
+    flaml_model=flaml_automl, feature_names=feature_names, data=None
 )
 
 
 # instantiate fast api app
 app = fastapi.FastAPI(
-    title='Vizard',
-    summary='Visa chance AI assistant',
+    title="Vizard",
+    summary="Visa chance AI assistant",
     version=VIZARD_VERSION,
-    
 )
 
 # fastapi cross origin
-origins = ['*']
+origins = ["*"]
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_credentials=True,
-    allow_methods=['*'],
-    allow_headers=['*'],
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 
@@ -238,8 +240,8 @@ def _xai(**kwargs):
 def _predict(is_flagged=False, **kwargs):
     # flag raw data from the user
     if is_flagged:
-        logger.debug(f'Raw data from pydantic:')
-        logger.debug(f'{kwargs}\n\n')
+        logger.debug(f"Raw data from pydantic:")
+        logger.debug(f"{kwargs}\n\n")
 
     # convert api data to model data
     args = list(kwargs.values())
@@ -249,21 +251,21 @@ def _predict(is_flagged=False, **kwargs):
     x_test = x_test.to_numpy()
     # flag pre transformed data
     if is_flagged:
-        logger.debug(f'Preprocessed but not pretransformed data:')
-        logger.debug(f'{x_test}\n\n')
-    
+        logger.debug(f"Preprocessed but not pretransformed data:")
+        logger.debug(f"{x_test}\n\n")
+
     # preprocess test data
     xt_test = x_ct.transform(x_test)
     # flag transformed data
     if is_flagged:
-        logger.debug(f'Preprocessed and pretransformed data:')
-        logger.debug(f'{xt_test}\n\n')
-    
+        logger.debug(f"Preprocessed and pretransformed data:")
+        logger.debug(f"{xt_test}\n\n")
+
     # predict
     y_pred = flaml_automl.predict_proba(xt_test)
     label = np.argmax(y_pred)
     y_pred = y_pred[0, label]
-    y_pred = y_pred if label == 1 else 1. - y_pred
+    y_pred = y_pred if label == 1 else 1.0 - y_pred
     return y_pred
 
 
@@ -271,17 +273,14 @@ def _potential(**kwargs):
     # 1. create a one-to-one mapping from payload variables to data columns
     payload_variables: List = list(kwargs.keys())
     column_names_to_payload: Dict[str, str] = {
-        column_name:payload_v for column_name, payload_v in \
-            zip(list(data.columns.values), payload_variables)
+        column_name: payload_v
+        for column_name, payload_v in zip(list(data.columns.values), payload_variables)
     }
 
     # 2. create a one-to-many mapping from data columns to transformed feature names
     payload_to_transformed_feature_names: Dict[str, List[str]] = {}
 
-    def _get_indices(
-            sublist: List[str],
-            superlist: List[str]
-        ) -> List[int]:
+    def _get_indices(sublist: List[str], superlist: List[str]) -> List[int]:
         """Finds the index of strings of B in A where strings in B have similar initial chars as strings in A
 
         Note:
@@ -289,48 +288,53 @@ def _potential(**kwargs):
 
         Args:
             sublist (List[str]): List of strings as subset of ``superlist``
-            superlist (List[str]): List of strings where are shortened versions of strings in 
+            superlist (List[str]): List of strings where are shortened versions of strings in
                 ``sublist``.
 
         Returns:
             List[int]: List of indices of strings of ``sublist`` in ``superlist``
         """
 
-        return [i for item in sublist for i, s_item in enumerate(superlist) if s_item.startswith(item)]
-
+        return [
+            i
+            for item in sublist
+            for i, s_item in enumerate(superlist)
+            if s_item.startswith(item)
+        ]
 
     for _og_feature in list(data.columns.values):
         # get indices of transformed features resulted from original features
-        features_idx = _get_indices(
-            sublist=[_og_feature],
-            superlist=feature_names
-        )
-        payload_to_transformed_feature_names[column_names_to_payload[_og_feature]] = \
-            [feature_names[_feature_idx] for _feature_idx in features_idx]
+        features_idx = _get_indices(sublist=[_og_feature], superlist=feature_names)
+        payload_to_transformed_feature_names[column_names_to_payload[_og_feature]] = [
+            feature_names[_feature_idx] for _feature_idx in features_idx
+        ]
 
     ####### TEMP: hardcode shit
 
     # manipulate multiple instance variables into a single one
-    payload_to_transformed_feature_names['contact_relation_to_me'] = \
-        payload_to_transformed_feature_names['contact_relation_to_me'] + \
-        payload_to_transformed_feature_names['contact_relation_to_me2']
-    
-    payload_to_transformed_feature_names['occupation_title1'] = \
-        payload_to_transformed_feature_names['occupation_title1'] + \
-        payload_to_transformed_feature_names['occupation_title2'] + \
-        payload_to_transformed_feature_names['occupation_title3']
+    payload_to_transformed_feature_names["contact_relation_to_me"] = (
+        payload_to_transformed_feature_names["contact_relation_to_me"]
+        + payload_to_transformed_feature_names["contact_relation_to_me2"]
+    )
 
-    payload_to_transformed_feature_names['occupation_period'] = \
-        payload_to_transformed_feature_names['occupation_period'] + \
-        payload_to_transformed_feature_names['occupation_period2'] + \
-        payload_to_transformed_feature_names['occupation_period3']
-    
+    payload_to_transformed_feature_names["occupation_title1"] = (
+        payload_to_transformed_feature_names["occupation_title1"]
+        + payload_to_transformed_feature_names["occupation_title2"]
+        + payload_to_transformed_feature_names["occupation_title3"]
+    )
+
+    payload_to_transformed_feature_names["occupation_period"] = (
+        payload_to_transformed_feature_names["occupation_period"]
+        + payload_to_transformed_feature_names["occupation_period2"]
+        + payload_to_transformed_feature_names["occupation_period3"]
+    )
+
     # delete merged variables
-    del payload_to_transformed_feature_names['contact_relation_to_me2']
-    del payload_to_transformed_feature_names['occupation_title2']
-    del payload_to_transformed_feature_names['occupation_title3']
-    del payload_to_transformed_feature_names['occupation_period2']
-    del payload_to_transformed_feature_names['occupation_period3']
+    del payload_to_transformed_feature_names["contact_relation_to_me2"]
+    del payload_to_transformed_feature_names["occupation_title2"]
+    del payload_to_transformed_feature_names["occupation_title3"]
+    del payload_to_transformed_feature_names["occupation_period2"]
+    del payload_to_transformed_feature_names["occupation_period3"]
 
     ####### TEMP: hardcode shit
 
@@ -338,20 +342,22 @@ def _potential(**kwargs):
     xai_input: np.ndarray = _xai(**kwargs)
     # compute xai values for the sample
     xai_top_k: Dict[str, float] = flaml_tree_explainer.top_k_score(
-        sample=xai_input,
-        k=-1)
+        sample=xai_input, k=-1
+    )
 
     # 4. provide a one-to-one mapping from payload variables to xai values
     # assign the aggregated xai value of transformed features to payload variables
     payload_to_xai: Dict[str, float] = {}
     for _payload_v, _tf_names in payload_to_transformed_feature_names.items():
-        total_xai_for_tf_names: List[int] = [xai_top_k[_tf_name] for _tf_name in _tf_names]
+        total_xai_for_tf_names: List[int] = [
+            xai_top_k[_tf_name] for _tf_name in _tf_names
+        ]
         payload_to_xai[_payload_v] = np.sum(np.absolute(total_xai_for_tf_names)).item()
-    
+
     return payload_to_xai
 
 
-@app.post('/potential/', response_model=api_models.PotentialResponse)
+@app.post("/potential/", response_model=api_models.PotentialResponse)
 async def potential(features: api_models.Payload):
     try:
         payload_to_xai = _potential(**features.model_dump())
@@ -359,7 +365,10 @@ async def potential(features: api_models.Payload):
         # calculate the potential: some of abs xai values for given variables
         # compute dictionary of payloads provided and their xai values
         provided_payload: Dict[str, float] = dict(
-            (k, payload_to_xai[k]) for k in features.provided_variables if k in payload_to_xai)
+            (k, payload_to_xai[k])
+            for k in features.provided_variables
+            if k in payload_to_xai
+        )
         potential_by_xai_raw: float = np.sum(np.abs(list(provided_payload.values())))
         # total XAI values as the denominator (normalizer)
         total_xai: float = np.sum(np.abs(list(payload_to_xai.values())))
@@ -368,19 +377,17 @@ async def potential(features: api_models.Payload):
 
         # TEMP: hardcoded small value to prevent 1.0 from happening just for fun
         FUN_EPSILON: float = 1e-7
-        return {
-            'result': potential_by_xai_normalized - FUN_EPSILON
-        }
+        return {"result": potential_by_xai_normalized - FUN_EPSILON}
 
     except Exception as error:
         e = sys.exc_info()[1]
         logger.exception(e)
         raise fastapi.HTTPException(
-            status_code=fastapi.status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e))
+            status_code=fastapi.status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
 
 
-@app.post('/predict/', response_model=api_models.PredictionResponse)
+@app.post("/predict/", response_model=api_models.PredictionResponse)
 async def predict(
     features: api_models.Payload,
 ):
@@ -392,27 +399,23 @@ async def predict(
         for provided_variable_ in features.provided_variables:
             del payload_to_xai[provided_variable_]
 
-        next_variable: str = ''
+        next_variable: str = ""
         if payload_to_xai:
             next_variable = max(
-                payload_to_xai,
-                key=lambda xai_value: np.abs(payload_to_xai[xai_value])
+                payload_to_xai, key=lambda xai_value: np.abs(payload_to_xai[xai_value])
             )
-        
-        logger.info('Inference finished')
-        return {
-            'result': result,
-            'next_variable': next_variable
-        }
+
+        logger.info("Inference finished")
+        return {"result": result, "next_variable": next_variable}
     except Exception as error:
         logger.exception(error)
         e = sys.exc_info()[1]
         raise fastapi.HTTPException(
-            status_code=fastapi.status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e))
+            status_code=fastapi.status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
 
 
-@app.post('/flag/', response_model=api_models.PredictionResponse)
+@app.post("/flag/", response_model=api_models.PredictionResponse)
 async def flag(
     features: api_models.Payload,
 ):
@@ -425,25 +428,25 @@ async def flag(
 
         # if need to be flagged, save as artifact
         if is_flagged:
-            logger.debug(f'Features Pydantic type passed to the main endpoints:')
-            logger.debug(f'{features}\n\n')
-            logger.debug(f'Features dict type passed to the main endpoints:')
-            logger.debug(f'{features.__dict__}\n\n')
-            logger.info(f'artifacts saved in MLflow artifacts directory.')
+            logger.debug(f"Features Pydantic type passed to the main endpoints:")
+            logger.debug(f"{features}\n\n")
+            logger.debug(f"Features dict type passed to the main endpoints:")
+            logger.debug(f"{features.__dict__}\n\n")
+            logger.info(f"artifacts saved in MLflow artifacts directory.")
             mlflow.log_artifacts(MLFLOW_ARTIFACTS_BASE_PATH)
 
         return {
-            'result': result,
+            "result": result,
         }
     except Exception as error:
         logger.exception(error)
         e = sys.exc_info()[1]
         raise fastapi.HTTPException(
-            status_code=fastapi.status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(e))
+            status_code=fastapi.status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e)
+        )
 
 
-@app.post('/xai', response_model=api_models.XaiResponse)
+@app.post("/xai", response_model=api_models.XaiResponse)
 async def xai(features: api_models.Payload, k: int = 5):
     # validate sample
     sample = _xai(**features.model_dump())
@@ -454,22 +457,22 @@ async def xai(features: api_models.Payload, k: int = 5):
 
     # TODO: cannot retrieve value for transformed (let's say categorical)
     # for i, (k, v) in enumerate(xai_top_k.items()):
-        # print(f'idx={i} => feat={k}, val={sample[0, i]}, xai={v}\n')
+    # print(f'idx={i} => feat={k}, val={sample[0, i]}, xai={v}\n')
 
     # dict of {feature_name, xai value, textual description}
     xai_txt_top_k: Dict[str, Tuple[float, str]] = xai_to_text(
         xai_feature_values=xai_top_k,
-        feature_to_keyword_mapping=FEATURE_NAME_TO_TEXT_MAP
+        feature_to_keyword_mapping=FEATURE_NAME_TO_TEXT_MAP,
     )
 
     return {
-        'xai_overall_score': xai_overall_score,
-        'xai_top_k': xai_top_k,
-        'xai_txt_top_k': xai_txt_top_k
+        "xai_overall_score": xai_overall_score,
+        "xai_top_k": xai_top_k,
+        "xai_txt_top_k": xai_txt_top_k,
     }
 
 
-@app.post('/grouped_xai_expanded', response_model=api_models.XaiExpandedGroupResponse)
+@app.post("/grouped_xai_expanded", response_model=api_models.XaiExpandedGroupResponse)
 async def grouped_xai_expanded(features: api_models.Payload):
     # validate sample
     sample = _xai(**features.model_dump())
@@ -488,10 +491,7 @@ async def grouped_xai_expanded(features: api_models.Payload):
     # a one-to-many mapping from data columns to transformed feature names
     og_feature_to_transformed_feature_names: Dict[str, List[str]] = {}
 
-    def _get_indices(
-            sublist: List[str],
-            superlist: List[str]
-        ) -> List[int]:
+    def _get_indices(sublist: List[str], superlist: List[str]) -> List[int]:
         """Finds the index of strings of B in A where strings in B have similar initial chars as strings in A
 
         Note:
@@ -499,34 +499,39 @@ async def grouped_xai_expanded(features: api_models.Payload):
 
         Args:
             sublist (List[str]): List of strings as subset of ``superlist``
-            superlist (List[str]): List of strings where are shortened versions of strings in 
+            superlist (List[str]): List of strings where are shortened versions of strings in
                 ``sublist``.
 
         Returns:
             List[int]: List of indices of strings of ``sublist`` in ``superlist``
         """
 
-        return [i for item in sublist for i, s_item in enumerate(superlist) if s_item.startswith(item)]
+        return [
+            i
+            for item in sublist
+            for i, s_item in enumerate(superlist)
+            if s_item.startswith(item)
+        ]
 
     for _og_feature in list(data.columns.values):
         # get indices of transformed features resulted from original features
-        features_idx = _get_indices(
-            sublist=[_og_feature],
-            superlist=feature_names
-        )
-        og_feature_to_transformed_feature_names[_og_feature] = \
-            [feature_names[_feature_idx] for _feature_idx in features_idx]
-    
+        features_idx = _get_indices(sublist=[_og_feature], superlist=feature_names)
+        og_feature_to_transformed_feature_names[_og_feature] = [
+            feature_names[_feature_idx] for _feature_idx in features_idx
+        ]
+
     for feature_cat_, feature_names_ in FEATURE_CATEGORY_TO_FEATURE_NAME_MAP.items():
         feature_cat_name_xai: Dict[str, float] = {}
         for feature_name_ in feature_names_:
             tf_feature_names: List[str] = og_feature_to_transformed_feature_names.get(
-                feature_name_,
-                None)
+                feature_name_, None
+            )
             if tf_feature_names:
                 feature_cat_name_xai.update(
                     {
-                    FEATURE_NAME_TO_TEXT_MAP[tf_feature_name_]:xai_top_k[tf_feature_name_] \
+                        FEATURE_NAME_TO_TEXT_MAP[tf_feature_name_]: xai_top_k[
+                            tf_feature_name_
+                        ]
                         for tf_feature_name_ in tf_feature_names
                     }
                 )
@@ -542,21 +547,20 @@ async def grouped_xai_expanded(features: api_models.Payload):
             sorted(
                 feature_cat_name_xai.items(),
                 key=lambda item: np.abs(item[1]),
-                reverse=True)
+                reverse=True,
             )
-        
+        )
+
         grouped_xai_expanded[feature_cat_.name] = feature_cat_name_xai
         # A: feature_names_
         # B: xai_top_k[feature_name_]
         # C: feature_cat_name_xai
     # X: grouped_xai_expanded
 
-    return {
-        'grouped_xai_expanded': grouped_xai_expanded
-    }
+    return {"grouped_xai_expanded": grouped_xai_expanded}
 
 
-@app.post('/grouped_xai', response_model=api_models.XaiAggregatedGroupResponse)
+@app.post("/grouped_xai", response_model=api_models.XaiAggregatedGroupResponse)
 async def grouped_xai(features: api_models.Payload):
     # TODO: Some caching can be done here:
     # 1) `sample` is shared between all `xai` methods
@@ -575,18 +579,18 @@ async def grouped_xai(features: api_models.Payload):
     # replace categories Enum items with their names
     for key in list(aggregated_shap_values.keys()):
         aggregated_shap_values[key.name] = aggregated_shap_values.pop(key)
-    
+
     # convert shap values into normalized values in (-1, 1)
     total_xai: float = np.sum(np.abs(list(aggregated_shap_values.values())))
     for k, v in aggregated_shap_values.items():
         aggregated_shap_values[k] = v / total_xai
 
     return {
-        'aggregated_shap_values': aggregated_shap_values,
+        "aggregated_shap_values": aggregated_shap_values,
     }
 
 
-@app.get(path='/const/states', response_model=api_models.ConstantStatesResponse)
+@app.get(path="/const/states", response_model=api_models.ConstantStatesResponse)
 async def get_constant_states():
     """Returns all constants used in all APIs this service provides
 
@@ -613,34 +617,34 @@ async def get_constant_states():
             apply from. See :class:`vizard.data.constant.CountryWhereApplying` for more info.
         - ``'purpose_of_visit_types'``: Returns a list of names of types of purposes of visit.
             See :class:`vizard.data.constant.PurposeOfVisit` for more info.
-        
+
     """
 
     return {
-        'constant_states': {
-            'xai_feature_categories_types': FeatureCategories.get_member_names(),
-            'marriage_status_types': CanadaMarriageStatus.get_member_names(),
-            'canada_contact_relation_types': CanadaContactRelation.get_member_names(),
-            'canada_residency_status_types': CanadaResidencyStatus.get_member_names(),
-            'education_field_of_study_types': EducationFieldOfStudy.get_member_names(),
-            'occupation_title_types': OccupationTitle.get_member_names(),
-            'country_where_applying_names': CountryWhereApplying.get_member_names(),
-            'purpose_of_visit_types': PurposeOfVisit.get_member_names()
+        "constant_states": {
+            "xai_feature_categories_types": FeatureCategories.get_member_names(),
+            "marriage_status_types": CanadaMarriageStatus.get_member_names(),
+            "canada_contact_relation_types": CanadaContactRelation.get_member_names(),
+            "canada_residency_status_types": CanadaResidencyStatus.get_member_names(),
+            "education_field_of_study_types": EducationFieldOfStudy.get_member_names(),
+            "occupation_title_types": OccupationTitle.get_member_names(),
+            "country_where_applying_names": CountryWhereApplying.get_member_names(),
+            "purpose_of_visit_types": PurposeOfVisit.get_member_names(),
         }
     }
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     options = {
-        'bind': f'{args.bind}:{args.gunicorn_port}',
-        'workers': args.workers,
-        'worker_class': 'uvicorn.workers.UvicornWorker'
+        "bind": f"{args.bind}:{args.gunicorn_port}",
+        "workers": args.workers,
+        "worker_class": "uvicorn.workers.UvicornWorker",
     }
     # api_apps.StandaloneApplication(app=app, options=options).run()
     uvicorn.run(
         app=app,
         host=args.bind,
         port=args.gunicorn_port,
-        log_level='debug',
-        use_colors=True
+        log_level="debug",
+        use_colors=True,
     )

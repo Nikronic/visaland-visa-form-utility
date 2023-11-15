@@ -8,11 +8,13 @@ from sklearn.compose import ColumnTransformer
 from sklearn.compose import make_column_selector
 import pandas as pd
 import numpy as np
+
 # ours
 from vizard.models.preprocessors import CANADA_COLUMN_TRANSFORMER_CONFIG_X
 from vizard.models.preprocessors import CANADA_PANDAS_TRAIN_TEST_SPLIT
 from vizard.models.preprocessors import CANADA_TRAIN_TEST_EVAL_SPLIT
 from vizard.models.preprocessors import TRANSFORMS
+
 # helpers
 from typing import Callable, Tuple, Optional, Any, List, Union
 import inspect
@@ -34,10 +36,10 @@ class TrainTestEvalSplit:
 
     Note:
 
-        * To obtain the eval set, we use the train set as the original data to be splitted 
-          i.e. the eval set is a subset of train set. This is of course to make 
+        * To obtain the eval set, we use the train set as the original data to be splitted
+          i.e. the eval set is a subset of train set. This is of course to make
           sure model by no means sees the test set.
-        * ``args`` cannot be set directly and need to be provided using a json file. 
+        * ``args`` cannot be set directly and need to be provided using a json file.
           See :meth:`set_configs` for more information.
         * You can explicitly override following ``args`` by passing it as an argument
           to :meth:`__init__`:
@@ -51,9 +53,7 @@ class TrainTestEvalSplit:
     """
 
     def __init__(
-        self,
-        stratify: Any = None,
-        random_state: Union[np.random.Generator, int] = None
+        self, stratify: Any = None, random_state: Union[np.random.Generator, int] = None
     ) -> None:
         self.logger = logging.getLogger(logger.name + self.__class__.__name__)
         self.CONF = self.set_configs()
@@ -103,7 +103,7 @@ class TrainTestEvalSplit:
         self.logger.info(f'Config file "{self.conf_path}" is being used')
 
         # read the json file
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
             configs = json.load(f)
 
         # set the configs if explicit calls made to this method
@@ -125,22 +125,20 @@ class TrainTestEvalSplit:
 
         if self.conf_path is None:
             raise ValueError(
-                'Configs have not been set yet. Use set_configs to set them.')
+                "Configs have not been set yet. Use set_configs to set them."
+            )
 
         # read the json file
-        with open(self.conf_path, 'r') as f:
+        with open(self.conf_path, "r") as f:
             configs = json.load(f)
 
         # save the configs to the artifact directory
         target_path = target_path / self.conf_path.name
-        with open(target_path, 'w') as f:
+        with open(target_path, "w") as f:
             json.dump(configs, f)
 
     def __call__(
-        self,
-        df: pd.DataFrame,
-        target_column: str,
-        *args: Any, **kwds: Any
+        self, df: pd.DataFrame, target_column: str, *args: Any, **kwds: Any
     ) -> Tuple[np.ndarray, ...]:
         """Convert a pandas dataframe to a numpy array for with train, test, and eval splits
 
@@ -153,11 +151,15 @@ class TrainTestEvalSplit:
             ``(x_train, x_test, x_eval, y_train, y_test, y_eval)``
         """
         # get values from config
-        test_ratio = self.CONF['test_ratio']
-        eval_ratio = self.CONF['eval_ratio']
-        shuffle = self.CONF['shuffle']
-        stratify = self.CONF['stratify']
-        random_state = self.CONF['random_state'] if self.random_state is None else self.random_state
+        test_ratio = self.CONF["test_ratio"]
+        eval_ratio = self.CONF["eval_ratio"]
+        shuffle = self.CONF["shuffle"]
+        stratify = self.CONF["stratify"]
+        random_state = (
+            self.CONF["random_state"]
+            if self.random_state is None
+            else self.random_state
+        )
 
         # separate dependent and independent variables
         y = df[target_column].to_numpy()
@@ -165,24 +167,26 @@ class TrainTestEvalSplit:
 
         # create train and test data
         x_train, x_test, y_train, y_test = model_selection.train_test_split(
-            x, y,
+            x,
+            y,
             train_size=None,
             test_size=test_ratio,
             shuffle=shuffle,
             stratify=stratify,
-            random_state=random_state
+            random_state=random_state,
         )
-        if eval_ratio == 0.:
+        if eval_ratio == 0.0:
             return (x_train, x_test, y_train, y_test)
 
         # create eval data from train data
         x_train, x_eval, y_train, y_eval = model_selection.train_test_split(
-            x_train, y_train,
+            x_train,
+            y_train,
             train_size=None,
             test_size=eval_ratio,
             shuffle=shuffle,
             stratify=stratify,
-            random_state=random_state
+            random_state=random_state,
         )
         return (x_train, x_test, x_eval, y_train, y_test, y_eval)
 
@@ -198,7 +202,7 @@ class PandasTrainTestSplit:
 
     Note:
 
-        * ``args`` cannot be set directly and need to be provided using a json file. 
+        * ``args`` cannot be set directly and need to be provided using a json file.
           See :meth:`set_configs` for more information.
         * You can explicitly override following ``args`` by passing it as an argument
           to :meth:`__init__`:
@@ -207,13 +211,14 @@ class PandasTrainTestSplit:
             * :attr:`stratify`
 
     Returns:
-        Tuple[:class:`numpy.ndarray`, ...]: A tuple of 
-        ``(data_train, data_test)`` which contains both dependent and 
+        Tuple[:class:`numpy.ndarray`, ...]: A tuple of
+        ``(data_train, data_test)`` which contains both dependent and
         independent variables
     """
 
-    def __init__(self, stratify: Any = None,
-                 random_state: Union[np.random.Generator, int] = None) -> None:
+    def __init__(
+        self, stratify: Any = None, random_state: Union[np.random.Generator, int] = None
+    ) -> None:
         self.logger = logging.getLogger(logger.name + self.__class__.__name__)
         self.CONF = self.set_configs()
 
@@ -261,7 +266,7 @@ class PandasTrainTestSplit:
         self.logger.info(f'Config file "{self.conf_path}" is being used')
 
         # read the json file
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
             configs = json.load(f)
 
         # set the configs if explicit calls made to this method
@@ -283,22 +288,20 @@ class PandasTrainTestSplit:
 
         if self.conf_path is None:
             raise ValueError(
-                'Configs have not been set yet. Use set_configs to set them.')
+                "Configs have not been set yet. Use set_configs to set them."
+            )
 
         # read the json file
-        with open(self.conf_path, 'r') as f:
+        with open(self.conf_path, "r") as f:
             configs = json.load(f)
 
         # save the configs to the artifact directory
         target_path = target_path / self.conf_path.name
-        with open(target_path, 'w') as f:
+        with open(target_path, "w") as f:
             json.dump(configs, f)
 
     def __call__(
-        self,
-        df: pd.DataFrame,
-        target_column: str,
-        *args: Any, **kwds: Any
+        self, df: pd.DataFrame, target_column: str, *args: Any, **kwds: Any
     ) -> Tuple[pd.DataFrame, pd.DataFrame]:
         """Split a pandas dataframe with train and test splits
 
@@ -311,10 +314,14 @@ class PandasTrainTestSplit:
             ``(data_train, data_test)``
         """
         # get values from config
-        train_ratio = self.CONF['train_ratio']
-        shuffle = self.CONF['shuffle']
-        stratify = self.CONF['stratify']
-        random_state = self.CONF['random_state'] if self.random_state is None else self.random_state
+        train_ratio = self.CONF["train_ratio"]
+        shuffle = self.CONF["shuffle"]
+        stratify = self.CONF["stratify"]
+        random_state = (
+            self.CONF["random_state"]
+            if self.random_state is None
+            else self.random_state
+        )
 
         # shuffle dataframe
         if shuffle:
@@ -322,8 +329,7 @@ class PandasTrainTestSplit:
 
         # stratify dataframe
         if stratify is not None:
-            raise NotImplementedError(
-                'Stratify is not implemented yet. Sadge :(')
+            raise NotImplementedError("Stratify is not implemented yet. Sadge :(")
 
         # split dataframe into train and test by rows
         idx: int = int(len(df) * train_ratio)
@@ -333,8 +339,7 @@ class PandasTrainTestSplit:
 
 
 def move_dependent_variable_to_end(
-    df: pd.DataFrame,
-    target_column: str
+    df: pd.DataFrame, target_column: str
 ) -> pd.DataFrame:
     """Move the dependent variable to the end of the dataframe
 
@@ -421,18 +426,20 @@ class ColumnSelector:
 
     """
 
-    def __init__(self,
-                 columns_type: str,
-                 dtype_include: Any,
-                 pattern_include: Optional[str] = None,
-                 dtype_exclude: Any = None,
-                 pattern_exclude: Optional[str] = None) -> None:
+    def __init__(
+        self,
+        columns_type: str,
+        dtype_include: Any,
+        pattern_include: Optional[str] = None,
+        dtype_exclude: Any = None,
+        pattern_exclude: Optional[str] = None,
+    ) -> None:
         """Selects columns based on regex pattern and dtype
 
         Args:
             columns_type (str): Type of columns:
 
-                1. ``'string'``: returns the name of the columns. Useful for 
+                1. ``'string'``: returns the name of the columns. Useful for
                    :class:`pandas.DataFrame`
                 2. ``'numeric'``: returns the index of the columns. Useful for
                    :class:`numpy.ndarray`
@@ -451,9 +458,7 @@ class ColumnSelector:
         self.dtype_exclude = dtype_exclude
 
     def __call__(
-        self,
-        df: pd.DataFrame,
-        *args: Any, **kwds: Any
+        self, df: pd.DataFrame, *args: Any, **kwds: Any
     ) -> Union[List[str], List[int]]:
         """
 
@@ -469,30 +474,31 @@ class ColumnSelector:
 
         """
         if not isinstance(df, pd.DataFrame):
-            raise TypeError(f'`df` must be a `DataFrame` not {type(df)}')
+            raise TypeError(f"`df` must be a `DataFrame` not {type(df)}")
 
         # since `make_column_selector` will ignore pattern if None provide,
         # we need to set pattern (pattern_exclude) to sth pepega to ignore all columns
-        pattern_exclude = '\~' if self.pattern_exclude is None else self.pattern_exclude
+        pattern_exclude = "\~" if self.pattern_exclude is None else self.pattern_exclude
 
         # first select desired then select undesired
         columns_to_include = make_column_selector(
             dtype_include=self.dtype_include,
             dtype_exclude=self.dtype_exclude,
-            pattern=self.pattern_include
+            pattern=self.pattern_include,
         )(df)
         columns_to_exclude = make_column_selector(
             dtype_include=self.dtype_include,
             dtype_exclude=self.dtype_exclude,
-            pattern=pattern_exclude
+            pattern=pattern_exclude,
         )(df)
 
         # remove columns_to_exclude from columns_to_include
         columns = [
-            column for column in columns_to_include if column not in columns_to_exclude]
+            column for column in columns_to_include if column not in columns_to_exclude
+        ]
 
         # return columns based on columns_type (`columns` is already `string`)
-        if self.columns_type == 'numeric':
+        if self.columns_type == "numeric":
             return [df.columns.get_loc(column) for column in columns]
         return columns
 
@@ -510,8 +516,7 @@ class ColumnTransformerConfig:
     """
 
     def __init__(self) -> None:
-
-        self.logger = logging.getLogger(logger.name+self.__class__.__name__)
+        self.logger = logging.getLogger(logger.name + self.__class__.__name__)
         self.CONF = self.set_configs()
 
     def set_configs(self, path: Union[str, pathlib.Path] = None) -> dict:
@@ -571,7 +576,7 @@ class ColumnTransformerConfig:
             path: path to the JSON file containing the configs
 
         Returns:
-            dict: A dictionary where keys are string names, values are tuple of 
+            dict: A dictionary where keys are string names, values are tuple of
             :class:`vizard.models.preprocessors.core.ColumnSelector` instance and a boolean control
             variable which will be passed to :meth:`generate_pipeline`.
         """
@@ -589,7 +594,7 @@ class ColumnTransformerConfig:
         self.logger.info(f'Config file "{self.conf_path}" is being used')
 
         # read the json file
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
             configs = json.load(f)
 
         # parse the configs (json files)
@@ -598,21 +603,17 @@ class ColumnTransformerConfig:
             parsed_values = {k: eval(v) for k, v in value.items()}
 
             # extract 'group'; if didn't exist in configs, then set it to False
-            group = parsed_values.get('group', False)
+            group = parsed_values.get("group", False)
             # remove 'group' from parsed_values after parsing it
-            if 'group' in parsed_values:
-                del parsed_values['group']
+            if "group" in parsed_values:
+                del parsed_values["group"]
 
             # extract 'use_global'; if didn't exist in configs, then set it to False
-            use_global = parsed_values.get('use_global', False)
+            use_global = parsed_values.get("use_global", False)
             # remove 'use_global' from parsed_values after parsing it
-            if 'use_global' in parsed_values:
-                del parsed_values['use_global']
-            parsed_configs[key] = (
-                ColumnSelector(**parsed_values),
-                group,
-                use_global
-            )
+            if "use_global" in parsed_values:
+                del parsed_values["use_global"]
+            parsed_configs[key] = (ColumnSelector(**parsed_values), group, use_global)
 
         # set the configs when explicit call to this method is made
         self.CONF = parsed_configs
@@ -634,21 +635,21 @@ class ColumnTransformerConfig:
 
         if self.conf_path is None:
             raise ValueError(
-                'Configs have not been set yet. Use set_configs to set them.')
+                "Configs have not been set yet. Use set_configs to set them."
+            )
 
         # read the json file
-        with open(self.conf_path, 'r') as f:
+        with open(self.conf_path, "r") as f:
             configs = json.load(f)
 
         # save the configs to the artifact directory
         target_path = target_path / self.conf_path.name
-        with open(target_path, 'w') as f:
+        with open(target_path, "w") as f:
             json.dump(configs, f)
 
     @staticmethod
     def extract_selected_columns(
-        selector: ColumnSelector,
-        df: pd.DataFrame
+        selector: ColumnSelector, df: pd.DataFrame
     ) -> Union[List[str], List[int]]:
         """Extracts the columns from the dataframe based on the selector
 
@@ -692,7 +693,8 @@ class ColumnTransformerConfig:
         # check if the argument exists in the signature
         if arg not in sig.parameters:
             raise ValueError(
-                f'Argument "{arg}" does not exist in the "{callable}" signature')
+                f'Argument "{arg}" does not exist in the "{callable}" signature'
+            )
 
     @staticmethod
     def __get_df_column_unique(df: pd.DataFrame, loc: Union[int, str]) -> list:
@@ -716,11 +718,7 @@ class ColumnTransformerConfig:
             return list(df.loc[:, loc].unique())
 
     def calculate_params(
-        self,
-        df: pd.DataFrame,
-        columns: List,
-        group: bool,
-        transformer_name: str
+        self, df: pd.DataFrame, columns: List, group: bool, transformer_name: str
     ) -> dict:
         """Calculates the parameters for the group transformation w.r.t. the transformer name
 
@@ -744,43 +742,35 @@ class ColumnTransformerConfig:
         params: dict = {}
 
         # if transformer is OneHotEncoder, extract the unique categories from all columns
-        if transformer_name == 'OneHotEncoder':
+        if transformer_name == "OneHotEncoder":
             unique_values: list = []
             # get all uniques from all columns if 'group' is True
             if group:
                 for col in columns:
-                    unique_values.extend(
-                        self.__get_df_column_unique(df=df, loc=col)
-                    )
+                    unique_values.extend(self.__get_df_column_unique(df=df, loc=col))
                 unique_values = list(set(unique_values))
             else:
                 # if columns is a list, then we assume that user wants default behavior
                 #   of OneHotEncoder and left finding categories to 3rd party library
                 if len(columns) > 1:
                     return {}  # return empty params
-                unique_values = self.__get_df_column_unique(
-                    df=df,
-                    loc=columns[0]
-                )
+                unique_values = self.__get_df_column_unique(df=df, loc=columns[0])
             # check correct arg to set given the transformer object signature
-            transformer_arg = 'categories'
-            self.__check_arg_exists(
-                TRANSFORMS[transformer_name], transformer_arg)
+            transformer_arg = "categories"
+            self.__check_arg_exists(TRANSFORMS[transformer_name], transformer_arg)
             # set args appropriately
             # for OneHotEncoder, the arg is 'categories'
-            params[transformer_arg] = [
-                unique_values for _ in range(len(columns))
-            ]
+            params[transformer_arg] = [unique_values for _ in range(len(columns))]
         else:
             if group:
                 raise NotImplementedError(
-                    f'Group transformation param calculation'
-                    f'is not implemented for {transformer_name}')
+                    f"Group transformation param calculation"
+                    f"is not implemented for {transformer_name}"
+                )
         return params
 
     def _check_overlap_in_transformation_columns(
-        self,
-        transformers: List[Tuple]
+        self, transformers: List[Tuple]
     ) -> None:
         """Checks if there are multiple transformers on the same columns and reports them
 
@@ -808,24 +798,24 @@ class ColumnTransformerConfig:
         count = len(transformers)
 
         for i in range(count):
-            for j in range(i+1, count):
+            for j in range(i + 1, count):
                 # (_ , _, columns)
                 columns_a: List[Union[int, str]] = transformers[i][-1]
                 # (_ , _, columns)
                 columns_b: List[Union[int, str]] = transformers[j][-1]
                 overlap: List[Union[int, str]] = list(
-                    set(columns_a).intersection(columns_b))
+                    set(columns_a).intersection(columns_b)
+                )
                 if len(overlap) > 0:  # found overlap
                     name_a: str = transformers[i][0]  # (name, _, _)
                     name_b: str = transformers[j][0]  # (name, _, _)
                     self.logger.info(
                         f'transformer "{name_a}" is overlapping with\n'
-                        f' transformer "{name_b}" on columns {overlap}')
+                        f' transformer "{name_b}" on columns {overlap}'
+                    )
 
     def generate_pipeline(
-        self,
-        df: pd.DataFrame,
-        df_all: Optional[pd.DataFrame] = None
+        self, df: pd.DataFrame, df_all: Optional[pd.DataFrame] = None
     ) -> list:
         """Generates the list of transformers to be used by the :class:`sklearn.compose.ColumnTransformer`
 
@@ -853,9 +843,9 @@ class ColumnTransformerConfig:
         """
 
         # just place holders for what we want
-        name: str = ''              # name of the transformer
+        name: str = ""  # name of the transformer
         transformer: object = None  # initialized sklearn transformer
-        columns: List = []          # columns to transform
+        columns: List = []  # columns to transform
 
         # list of (name, transformer, columns) tuples to return
         transformers: List[Tuple] = []
@@ -867,26 +857,23 @@ class ColumnTransformerConfig:
             group: bool = value[1]
             use_global: bool = value[2]
             # extract transformer name
-            transformer_name = key.split('_')[-1]
+            transformer_name = key.split("_")[-1]
             if transformer_name in TRANSFORMS:
                 name = key
                 # extract list of columns names
-                columns = self.extract_selected_columns(
-                    selector=selector,
-                    df=df
-                )
+                columns = self.extract_selected_columns(selector=selector, df=df)
                 # if group not false, extract group level transformation params
                 group_params: dict = {}
                 group_params = self.calculate_params(
                     df=df_all if use_global else df,
                     columns=columns,
                     group=group,
-                    transformer_name=transformer_name
+                    transformer_name=transformer_name,
                 )
-            # build transformer object
+                # build transformer object
                 transformer = TRANSFORMS[transformer_name](**group_params)
             else:
-                raise ValueError(f'Unknown transformer {key} in config.')
+                raise ValueError(f"Unknown transformer {key} in config.")
 
             # add to the list of transformers
             transformers.append((name, transformer, columns))
@@ -904,7 +891,7 @@ def get_transformed_feature_names(
 
     This is super useful as the default
     :meth:`sklearn.compose.ColumnTransformer.get_feature_names_out` uses meaningless names
-    for features after transformation which makes tracking the transformed features almost 
+    for features after transformation which makes tracking the transformed features almost
     impossible as it uses ``f0[_category], f1[_category], ... fn[_category]` as feature names.
     This method for example, extracts the name of original column ``A`` (with categories ``[a, b]``)
     before transformation and finds new columns after transforming that column and names them
@@ -914,7 +901,7 @@ def get_transformed_feature_names(
         column_transformer (:class:`sklearn.compose.ColumnTransformer`): A **fitted**
             column transformer that has ``.transformers_`` where each is a tuple
             as ``(name, transformer, in_columns)``. ``in_columns`` used to detect the
-            original index of transformed columns. 
+            original index of transformed columns.
         original_columns_names (List[str]): List of original columns names before transformation
 
     Returns:
@@ -933,11 +920,7 @@ def get_transformed_feature_names(
         original_columns_dict[ni] = original_columns_names[ni]
     # original_columns_dict = dict(sorted(original_columns_dict.items()))
     original_columns_dict = dict(
-        sorted(
-            original_columns_dict.items(),
-            key=lambda x: x[0],
-            reverse=True
-        )
+        sorted(original_columns_dict.items(), key=lambda x: x[0], reverse=True)
     )
     # replace idx with `original feature name` in `transformed feature names``
     feature_names: List[str] = column_transformer.get_feature_names_out()
@@ -948,7 +931,7 @@ def get_transformed_feature_names(
             # if index of orig feature is in transformed name
             if str(k) in fn:
                 # replace `x[num]` with original column names
-                fn = fn.replace(f'x{k}', v)
+                fn = fn.replace(f"x{k}", v)
                 new_feature_names.append(fn)
                 # we can have only one index, so go for next feature if u found one already
                 break

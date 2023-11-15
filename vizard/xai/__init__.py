@@ -1,7 +1,4 @@
-__all__ = [
-    'FlamlTreeExplainer',
-    'xai_to_text'
-]
+__all__ = ["FlamlTreeExplainer", "xai_to_text"]
 
 """Explainable AI (XAI) enables humans to understand the decisions or predictions made by the AI.
 

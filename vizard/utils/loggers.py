@@ -1,9 +1,8 @@
-__all__ = [
-    'Logger'
-]
+__all__ = ["Logger"]
 
 # core
 import logging
+
 # helpers
 from typing import List, Optional, Union
 from enum import IntEnum
@@ -15,7 +14,7 @@ import sys
 class LoggingLevels(IntEnum):
     """Logging levels from ``logging``
 
-    Just a clone of ``logging`` **levels** for our internal use, do not expose to user. 
+    Just a clone of ``logging`` **levels** for our internal use, do not expose to user.
     """
 
     CRITICAL = 50
@@ -34,7 +33,7 @@ class Logger(logging.Logger):
         name: str,
         level: Union[LoggingLevels, int],
         mlflow_artifacts_base_path: Union[Path, str],
-        libs: Optional[List[str]] = None
+        libs: Optional[List[str]] = None,
     ) -> None:
         super().__init__(name, level)
 
@@ -45,7 +44,8 @@ class Logger(logging.Logger):
         # create 'artifact' dir for the new run
         self.__create_artifacts_dir(self.mlflow_artifacts_base_path)
         self.logger_formatter = logging.Formatter(
-            "[%(name)s: %(asctime)s] {%(lineno)d} %(levelname)s - %(message)s", "%m-%d %H:%M:%S"
+            "[%(name)s: %(asctime)s] {%(lineno)d} %(levelname)s - %(message)s",
+            "%m-%d %H:%M:%S",
         )
 
         # config system standard in/out to redirect to logger
@@ -94,7 +94,7 @@ class Logger(logging.Logger):
             string (Union[str, `pathlib.Path`]): path string or object to convert
 
         Returns:
-            :class:`pathlib.Path`: ``Path`` instance of given path string 
+            :class:`pathlib.Path`: ``Path`` instance of given path string
         """
         if isinstance(string, str):
             return Path(string)
@@ -110,22 +110,22 @@ class Logger(logging.Logger):
             - logging prints: ``logs``
             - configs of classes, setting, etc as json files: ``configs``
             - model weights or objects: ``models``
-            - ``MLflow`` flavor-specific tracked model: ``MLmodel`` 
+            - ``MLflow`` flavor-specific tracked model: ``MLmodel``
 
         Note:
             If you are using this class for just flagging the data,
             you can simply send numerical values (``1/*``, ``2/*``)
 
         Args:
-            base_path (Union[str, :class:`pathlib.Path`]): Base path for artifacts. 
+            base_path (Union[str, :class:`pathlib.Path`]): Base path for artifacts.
         """
         base_path = self.__str_to_path(string=base_path)
         base_path = self.mlflow_artifacts_base_path / base_path
-        MLFLOW_ARTIFACTS_LOGS_PATH = base_path / 'logs'
-        MLFLOW_ARTIFACTS_CONFIGS_PATH = base_path / 'configs'
-        MLFLOW_ARTIFACTS_IMAGES_PATH = base_path / 'images'
-        MLFLOW_ARTIFACTS_MODELS_PATH = base_path / 'models'
-        MLFLOW_ARTIFACTS_MLMODELS_PATH = base_path / 'MLmodel'
+        MLFLOW_ARTIFACTS_LOGS_PATH = base_path / "logs"
+        MLFLOW_ARTIFACTS_CONFIGS_PATH = base_path / "configs"
+        MLFLOW_ARTIFACTS_IMAGES_PATH = base_path / "images"
+        MLFLOW_ARTIFACTS_MODELS_PATH = base_path / "models"
+        MLFLOW_ARTIFACTS_MLMODELS_PATH = base_path / "MLmodel"
         if not base_path.exists():
             base_path.mkdir(parents=True)
             MLFLOW_ARTIFACTS_LOGS_PATH.mkdir(parents=True)
@@ -151,10 +151,7 @@ class Logger(logging.Logger):
             for lib_log in self.libs_logger:
                 lib_log.removeHandler(self.__prev_handler)
 
-    def create_artifact_instance(
-        self,
-        artifact_name: str = None
-    ):
+    def create_artifact_instance(self, artifact_name: str = None):
         """Creates an entire artifact (mlflow) directory each time it is called
 
         This is used to create artifacts sub directories that each include
@@ -163,9 +160,9 @@ class Logger(logging.Logger):
         include the artifacts of that type.
 
         Args:
-            artifact_name (str): a directory name. Please refrain 
-                from providing full path and only give a directory name. It is expected 
-                that you pass the path as :attr:`mlflow_artifacts_base_path` which makes  
+            artifact_name (str): a directory name. Please refrain
+                from providing full path and only give a directory name. It is expected
+                that you pass the path as :attr:`mlflow_artifacts_base_path` which makes
                 ``artifact_name`` as its sub directory. If None, we use an internal
                 counter and use natural numbers increasing each time this method is called.
         """
@@ -174,7 +171,7 @@ class Logger(logging.Logger):
 
         # check if artifact_name is provided, if not, count calls to this method
         if artifact_name is None:
-            artifact_name = f'{self._artifact_name}'
+            artifact_name = f"{self._artifact_name}"
             self._artifact_name += 1
 
         # create new artifacts directory
@@ -182,8 +179,7 @@ class Logger(logging.Logger):
 
         # setup main logger
         logger_handler = logging.FileHandler(
-            filename=self.MLFLOW_ARTIFACTS_LOGS_PATH / f'{artifact_name}.log',
-            mode='w'
+            filename=self.MLFLOW_ARTIFACTS_LOGS_PATH / f"{artifact_name}.log", mode="w"
         )
         logger_handler.setFormatter(self.logger_formatter)
         self.addHandler(logger_handler)

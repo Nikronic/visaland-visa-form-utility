@@ -1,6 +1,4 @@
-__all__ = [
-    'deprecated', 'loggingdecorator', 'LoggerWriter'
-]
+__all__ = ["deprecated", "loggingdecorator", "LoggerWriter"]
 
 # helpers
 import functools
@@ -10,7 +8,7 @@ from typing import Any
 import warnings
 import logging
 
-string_types = (type(b''), type(u''))
+string_types = (type(b""), type(""))
 
 
 def deprecated(reason):
@@ -21,7 +19,6 @@ def deprecated(reason):
     """
 
     if isinstance(reason, string_types):
-
         # The @deprecated is used with a 'reason'.
         #
         # .. code-block:: python
@@ -31,7 +28,6 @@ def deprecated(reason):
         #      pass
 
         def decorator(func1):
-
             if inspect.isclass(func1):
                 fmt1 = "Call to deprecated class {name} ({reason})."
             else:
@@ -39,13 +35,13 @@ def deprecated(reason):
 
             @functools.wraps(func1)
             def new_func1(*args, **kwargs):
-                warnings.simplefilter('always', DeprecationWarning)
+                warnings.simplefilter("always", DeprecationWarning)
                 warnings.warn(
                     fmt1.format(name=func1.__name__, reason=reason),
                     category=DeprecationWarning,
-                    stacklevel=2
+                    stacklevel=2,
                 )
-                warnings.simplefilter('default', DeprecationWarning)
+                warnings.simplefilter("default", DeprecationWarning)
                 return func1(*args, **kwargs)
 
             return new_func1
@@ -53,7 +49,6 @@ def deprecated(reason):
         return decorator
 
     elif inspect.isclass(reason) or inspect.isfunction(reason):
-
         # The @deprecated is used without any 'reason'.
         #
         # .. code-block:: python
@@ -71,13 +66,13 @@ def deprecated(reason):
 
         @functools.wraps(func2)
         def new_func2(*args, **kwargs):
-            warnings.simplefilter('always', DeprecationWarning)
+            warnings.simplefilter("always", DeprecationWarning)
             warnings.warn(
                 fmt2.format(name=func2.__name__),
                 category=DeprecationWarning,
-                stacklevel=2
+                stacklevel=2,
             )
-            warnings.simplefilter('default', DeprecationWarning)
+            warnings.simplefilter("default", DeprecationWarning)
             return func2(*args, **kwargs)
 
         return new_func2
@@ -85,17 +80,17 @@ def deprecated(reason):
     else:
         raise TypeError(repr(type(reason)))
 
+
 # A Python decorator to log the function call and return value
 
 
 class loggingdecorator(object):
-
     def __init__(
         self,
         name: str,
         level: int = logging.DEBUG,
         input: bool = False,
-        output: bool = False
+        output: bool = False,
     ) -> None:
         self.name = name
         self.level = level
@@ -126,7 +121,6 @@ class loggingdecorator(object):
     """
 
     def __call__(self, fn, *args: Any, **kwds: Any) -> Any:
-
         @_wraps(fn)
         def _decor(*args, **kwds):
             function_name = fn.__name__
@@ -135,12 +129,15 @@ class loggingdecorator(object):
                 ret = fn(*args, **kwds)
                 if self.input:
                     argstr = [str(x) for x in args]
-                    argstr += [key+"="+str(val) for key, val in kwds.items()]
+                    argstr += [key + "=" + str(val) for key, val in kwds.items()]
                 else:
-                    argstr = ''
-                ret_str = ret if self.output else ''
-                self.logger.debug("%s(%s) -> %s", function_name,
-                                  ", ".join(argstr), ret_str)
+                    argstr = ""
+                ret_str = ret if self.output else ""
+                self.logger.debug(
+                    "%s(%s) -> %s", function_name, ", ".join(argstr), ret_str
+                )
                 return ret
+
             return _fn
+
         return _decor(*args, **kwds)

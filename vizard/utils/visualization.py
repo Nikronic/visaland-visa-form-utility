@@ -1,5 +1,5 @@
 __all__ = [
-    'add_percentage_axes',
+    "add_percentage_axes",
 ]
 
 # core
@@ -23,7 +23,7 @@ def add_percentage_axes(ax: plt.Axes, n: int) -> None:
     """
 
     for p in ax.patches:
-        percentage = '{:1.1f}%'.format(100 * p.get_height()/float(n))
+        percentage = "{:1.1f}%".format(100 * p.get_height() / float(n))
         x = p.get_x() + p.get_width() / 2
         y = p.get_y() + p.get_height() / 2
-        ax.annotate(percentage, (x, y), ha='center', color='black')
+        ax.annotate(percentage, (x, y), ha="center", color="black")
