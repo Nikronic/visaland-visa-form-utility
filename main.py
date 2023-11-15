@@ -82,6 +82,8 @@ logger = loggers.Logger(
     level=VERBOSE,
     mlflow_artifacts_base_path=MLFLOW_ARTIFACTS_BASE_PATH,
     libs=LIBRARIES)
+# create an instance of logging artifact
+logger.create_artifact_instance()
 # fitted transformation created by sklearn over our data for inference
 MLFLOW_ARTIFACTS_MODELS_SKLEARN_TRANSFORM: Path = \
     logger.MLFLOW_ARTIFACTS_MODELS_PATH / 'train_sklearn_column_transfer.pkl'
@@ -92,7 +94,7 @@ MLFLOW_ARTIFACTS_MODELS_FLAML_AUTOML: Path = \
 
 if __name__ == '__main__':
     try:
-        logger.create_artifact_instance()
+        
         logger.info('\t\t↓↓↓ Starting setting up configs: dirs, mlflow, dvc, etc ↓↓↓')
 
         # log experiment configs via mlflow
