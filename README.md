@@ -213,6 +213,12 @@ mamba install -c conda-forge enlighten==1.12.0 -y
 
 ## For developers
 
+### Formatting
+
+We use [black](https://marketplace.visualstudio.com/items?itemName=ms-python.black-formatter) for formatting our code.
+
+*Note*: This wasn't the case until 15 Nov 2023 which recommendation and adoption of `black` was done ([PR#107](https://github.com/Nikronic/visaland-visa-form-utility/pull/107))
+
 ### Testing
 
 Since we are using `FastAPI` and there is an elegant way for testing with it, we install a few more dependencies (of course `pytest` as our go-to for reasons I don't know!):
