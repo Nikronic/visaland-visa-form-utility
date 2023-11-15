@@ -11,6 +11,8 @@ from vizard.snorkel import PandasTFApplier
 from vizard.snorkel import LFAnalysis
 from vizard.snorkel import LabelModel
 from vizard.snorkel import ApplyAllPolicy
+# ours: data
+from vizard.data.constant import ClassificationLabels
 # ours: models
 from vizard.models import preprocessors
 from vizard.models import trainers
@@ -106,18 +108,19 @@ if __name__ == '__main__':
         output_name = 'VisaResult'
         # for training the snorkel label model
         data_unlabeled = data[
-            (data[output_name] != 'acc') &
-            (data[output_name] != 'rej')].copy()
+            (data[output_name] != ClassificationLabels.ACC) &
+            (data[output_name] != ClassificationLabels.REJ)].copy()
         # for testing the snorkel label model
         data_labeled = data[
-            (data[output_name] == 'acc') |
-            (data[output_name] == 'rej')].copy()
+            (data[output_name] == ClassificationLabels.ACC) |
+            (data[output_name] == ClassificationLabels.REJ)].copy()
         logger.info(f'shape of unlabeled data: {data_unlabeled.shape}')
         logger.info(f'shape of labeled unlabeled data: {data_labeled.shape}')
         # convert strong to weak temporary to `lf_weak_*` so `LabelFunction`s'
         #   can work i.e. convert `acc` and `rej` in *labeled* dataset to `w-acc` and `w-rej`'
         data_labeled[output_name] = data_labeled[output_name].apply(
-            lambda x: 'w-acc' if x == 'acc' else 'w-rej')
+            lambda x: ClassificationLabels.WEAK_ACC if x == ClassificationLabels.ACC \
+                else ClassificationLabels.WEAK_REJ)
         
         logger.info('\t↓↓↓ Starting extracting label matrices (L) by applying `LabelFunction`s ↓↓↓')
         # labeling functions
@@ -136,9 +139,9 @@ if __name__ == '__main__':
         label_matrix_test = applier.apply(data_labeled)
 
         y_test = data_labeled[output_name].apply(
-            lambda x: labeling.ACC if x == 'w-acc' else labeling.REJ).values
+            lambda x: labeling.ACC if x == ClassificationLabels.WEAK_ACC else labeling.REJ).values
         y_train = data_unlabeled[output_name].apply(
-            lambda x: labeling.ACC if x == 'w-acc' else labeling.REJ).values
+            lambda x: labeling.ACC if x == ClassificationLabels.WEAK_ACC else labeling.REJ).values
         # LF reports
         logger.info(LFAnalysis(L=label_matrix_train, lfs=lfs).lf_summary())
         logger.info('\t↑↑↑ Finishing extracting label matrices (L) by applying `LabelFunction`s ↑↑↑')
@@ -203,8 +206,8 @@ if __name__ == '__main__':
         logger.info('\t↑↑↑ Finishing inference on LabelModel ↑↑↑')
         # merge unlabeled data into all data
         data_unlabeled[auto_label_column_name] = data_unlabeled[auto_label_column_name].apply(
-            lambda x: 'acc' if x == labeling.ACC else 
-            'rej' if x == labeling.REJ else 'no idea')
+            lambda x: ClassificationLabels.ACC if x == labeling.ACC else 
+            ClassificationLabels.REJ if x == labeling.REJ else ClassificationLabels.NO_IDEA)
         data.loc[data_unlabeled.index, [output_name]] = data_unlabeled[auto_label_column_name]
         data[output_name] = data[output_name].astype('object').astype('category')
         logger.info('\t\t↑↑↑ Finished labeling data with snorkel ↑↑↑')

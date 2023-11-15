@@ -9,7 +9,7 @@ __all__ = [
     'CountryWhereApplying', 'PurposeOfVisit', 'OccupationTitle',
 
     # Constants (similar to Enums but not inherited from Enum)
-    'CanadaGeneralConstants'
+    'CanadaGeneralConstants', 'ClassificationLabels'
 ]
 
 import datetime
@@ -455,6 +455,26 @@ class CanadaGeneralConstants:
     MAXIMUM_SPOUSE_COUNT: int = 1
     """Canada isn't a muslim country!
     """
+
+class ClassificationLabels:
+    """Labels (dependent variable) in the data
+    
+    The labels are:
+
+        * ``'ACC'``: Accepted, True or 1
+        * ``'REJ'``: Rejected, False or 0
+        * ``'WEAK_ACC'``: Weak accept, which is the result of our heuristic telling us it could be ``'ACC'``
+        * ``'WEAK_REJ'``: Weak reject, which is the result of our heuristic telling us it could be ``'REJ'``
+        * ``'NO_IDEA'``: No knowledge at all!
+    
+    """
+
+    ACC: str = 'acc'
+    REJ: str = 'rej'
+    WEAK_ACC: str = 'w-acc'
+    WEAK_REJ: str = 'w-rej'
+    NO_IDEA: str = 'no idea'
+
 
 # data used for aggregating SHAP values into categories based on features
 class FeatureCategories(CustomNamingEnum):
