@@ -1,13 +1,14 @@
 import numpy as np
 
 def sigmoid(x, scaler):
-    """sigmoid function with a custome scaler 
+    """sigmoid function with a custom scaler 
     Args:
-        x (int | float | np.ndarray): Input of the sigmid function
-        scaler (int): our scaler that mutiply every input of x ,new input = old input*scaler, 1 for normal sigmoid 
+        x (int | float | np.ndarray): Input of the sigmoid function
+        scaler (int): multiply inputs with scaler number, use 1 for normal sigmoid 
+
     Returns:
         int | float | np.ndarray:
-        output of the sigmoid function with our customized scaler --> f(x) = 1 / (1 + e^(-scaler*x))
+            output of the sigmoid function with our customized scaler --> f(x) = 1 / (1 + e^(-scaler*x))
 
     """
     return 1 / (1 + np.exp(-scaler * x))
@@ -15,18 +16,17 @@ def sigmoid(x, scaler):
 def adjusted_sigmoid(x, adjusted_min, adjusted_max, scaler):
     """apply sigmoid to some parts of our function
     Args:
-        x (int | float | np.ndarray): Input of the sigmid function
-        adjusted_min (float): start of our adjustmet inputs before that wont get any changes
-        adjusted_max (float): end of our adjustmet, inputs after that wont get any changes
-        scaler (int): our scaler that mutiply every input of x ,new input = old input*scaler, 1 for normal sigmoid 
+        x (int | float | np.ndarray): Input of the sigmoid function
+        adjusted_min (float): start of our adjustment inputs before that wont get any changes
+        adjusted_max (float): end of our adjustment, inputs after that wont get any changes
+        scaler (int): multiply inputs with scaler number, use 1 for normal sigmoid 
 
     Returns:
         int | float | np.ndarray:
-        for inputs of x, adjusted_min < x < adjusted_max gives the
-        output of the sigmoid function with our customized scaler --> f(x) = 1 / (1 + e^(-scaler*x))
-        for other inputs return them witout any change
+            for inputs of x, adjusted_min < x < adjusted_max gives the
+            output of the sigmoid function with our customized scaler --> f(x) = 1 / (1 + e^(-scaler*x))
+            for other inputs return them without any change
 
-        `This is an extention of :vizard.seduce.functional:`
     """
     # Check input
     mask = np.logical_and(adjusted_min < x, x < adjusted_max)
@@ -53,23 +53,27 @@ def bi_level_adjusted_sigmoid(
         closer_adjusted_max: float,
         scaler1: int | float,
         scaler2: int | float) -> np.ndarray:
-    """apply sigmoid to limited parts of function foucus more on closer part to middle of our adjusment
+    """apply sigmoid to limited parts of function focus more on closer part to middle of our adjustment
+
+    This is an extension of :func: vizard.seduce.functional.adjusted_sigmoid
+
     Args:
-        x (int | float | np.ndarray): Input of the sigmid function
-        adjusted_min (float): start of our adjustmet inputs before that wont get any changes
-        closer_adjusted_min (float): min for closer part to middle of our adjusment this part will be modifed more
-        adjusted_max (float): end of our adjustmet, inputs after that wont get any changes
-        closer_adjusted_max (float): max for closer part to middle of our adjusment this part will be modifed more
-        scaler1 (int): our scaler that mutiply every input of x ,new input = old_input*scaler, 1 for normal sigmoid, this scaler will be used in closer to middle part
-        scaler2 (int): our scaler that mutiply every input of x ,new input = old_input*scaler, 1 for normal sigmoid, this scaler will be used in farther to middle part
+        x (int | float | np.ndarray): Input of the sigmoid function
+        adjusted_min (float): start of our adjustment inputs before that wont get any changes
+        closer_adjusted_min (float): min for closer part to middle of our adjustment this part will be modified more
+        # adjusted_max (float): end of our adjustment, inputs after that wont get any changes
+        closer_adjusted_max (float): max for closer part to middle of our adjustment this part will be modified more
+        scaler1 (int): multiply inputs with scaler number, use 1 for normal sigmoid, this scaler will be used in closer to middle part
+        scaler2 (int): multiply inputs with scaler number, use 1 for normal sigmoid, this scaler will be used in farther to middle part
 
     Returns:
         int | float | np.ndarray:
-        for inputs of x, closer_adjusted_min < x < closer_adjusted_max gives the
-        output of the sigmoid function with our customized scaler --> f(x) = 1 / (1 + e^(-scaler1*x))
-        for other inputs that are x, adjusted_min < x < adjusted_max gives the
-        output of the sigmoid function with our customized scaler --> f(x) = 1 / (1 + e^(-scaler2*x))
-        for any other inputs return them witout any change
+            for inputs of x, closer_adjusted_min < x < closer_adjusted_max gives the
+            output of the sigmoid function with our customized scaler --> f(x) = 1 / (1 + e^(-scaler1*x))
+            for other inputs that are x, adjusted_min < x < adjusted_max gives the
+            output of the sigmoid function with our customized scaler --> f(x) = 1 / (1 + e^(-scaler2*x))
+            for any other inputs return them without any change
+
     """
     mask = np.logical_and(adjusted_min < x, x < adjusted_max)
 
