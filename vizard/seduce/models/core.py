@@ -5,14 +5,20 @@ from vizard.seduce import functional
 
 
 class SigmoidSeducer:
+    """use a customized sigmoid to manipulate numbers
+        Numbers around 50% aren't intreating enough and give the user a uncertainty which is like what was the purpose of doing this form I am were i was before doing this shit and it tells me nothing
+    Solution
+        One way to do this is to use math a function like Sigmoid and some randomization to round numbers around 50 to some other numbers.
+    """
+
     def __init__(self) -> None:
         pass
 
-    def __type_check(x):
+    def __type_check(self, x):
         if (
             not isinstance(x, int)
-            or not isinstance(x, float)
-            or not isinstance(x, np.ndarray)
+            and not isinstance(x, float)
+            and not isinstance(x, np.ndarray)
         ):
             raise ValueError(f"Type x {type(x)} is not right.")
 
@@ -20,7 +26,10 @@ class SigmoidSeducer:
         """sigmoid function with a custom scaler
         for more information check :func:`vizard.seduce.functional.sigmoid`
 
+
         """
+        self.__type_check(x)
+
         return functional.sigmoid(x, scaler)
 
     def adjusted_sigmoid(
@@ -28,7 +37,7 @@ class SigmoidSeducer:
         x: int | float | np.ndarray,
         adjusted_min: float,
         adjusted_max: float,
-        scaler: Optional[int | float] = 1,
+        scaler: int | float = 1,
     ):
         """apply sigmoid to some parts of our function
         for more information check :func:`vizard.seduce.functional.adjusted_sigmoid`
@@ -48,11 +57,13 @@ class SigmoidSeducer:
         closer_adjusted_min: Optional[float] = None,
         closer_adjusted_max: Optional[float] = None,
         scaler1: Optional[int | float] = None,
-        scaler2: Optional[int | float] = 1,
+        scaler2: Optional[int | float] = None,
     ) -> np.ndarray:
         """apply sigmoid to limited parts of function focus more on closer part to middle of our adjustment
         for more information check :func:`vizard.seduce.functional.bi_level_adjusted_sigmoid`
         """
+        self.__type_check(x)
+
         # check if user provided any value for optional values
         # if it was provided we use them
         # if not we use some we calculate them by provided values
@@ -70,7 +81,7 @@ class SigmoidSeducer:
             one_third = distance / 3
             closer_adjusted_max = adjusted_mean + one_third / 2
             closer_adjusted_min = adjusted_mean - one_third / 2
-            
+
         if closer_adjusted_min >= closer_adjusted_max:
             closer_adjusted_max = closer_adjusted_min + 1
         if adjusted_min >= adjusted_max:
@@ -85,18 +96,4 @@ class SigmoidSeducer:
             scaler1,
             scaler2,
         )
-        print(
-            x,
-            adjusted_min,
-            adjusted_max,
-            closer_adjusted_min,
-            closer_adjusted_max,
-            scaler1,
-            scaler2,
-        )
-        print(closer_adjusted_max)
-
-        self.__type_check(x)
-        # type check
-
         return result
