@@ -44,7 +44,6 @@ def adjusted_sigmoid(x, adjusted_min, adjusted_max, scaler):
     return output
 
 def bi_level_adjusted_sigmoid(
-        self,
         x: int | float | np.ndarray,
         adjusted_min: float,
         adjusted_max: float,
@@ -54,7 +53,7 @@ def bi_level_adjusted_sigmoid(
         scaler2: int | float) -> np.ndarray:
     """apply sigmoid to limited parts of function focus more on closer part to middle of our adjustment
 
-    This is an extension of :func: vizard.seduce.functional.adjusted_sigmoid
+    This is an extension of :func:`vizard.seduce.functional.adjusted_sigmoid`
 
     Args:
         x (int | float | np.ndarray): Input of the sigmoid function

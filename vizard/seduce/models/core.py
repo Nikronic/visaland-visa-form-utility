@@ -69,7 +69,12 @@ class SigmoidSeducer:
             distance = adjusted_max - adjusted_min
             one_third = distance / 3
             closer_adjusted_max = adjusted_mean + one_third / 2
-            closer_adjusted_max = adjusted_mean - one_third / 2
+            closer_adjusted_min = adjusted_mean - one_third / 2
+            
+        if closer_adjusted_min >= closer_adjusted_max:
+            closer_adjusted_max = closer_adjusted_min + 1
+        if adjusted_min >= adjusted_max:
+            adjusted_max = adjusted_min + 1
 
         result = functional.bi_level_adjusted_sigmoid(
             x,
@@ -80,8 +85,18 @@ class SigmoidSeducer:
             scaler1,
             scaler2,
         )
+        print(
+            x,
+            adjusted_min,
+            adjusted_max,
+            closer_adjusted_min,
+            closer_adjusted_max,
+            scaler1,
+            scaler2,
+        )
+        print(closer_adjusted_max)
 
-        # type check
         self.__type_check(x)
+        # type check
 
         return result
