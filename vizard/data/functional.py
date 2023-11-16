@@ -22,32 +22,27 @@ Contains implementation of functions that could be used for processing data ever
 
 """
 
-# core
-from dateutil import parser
-import pandas as pd
-import numpy as np
 import collections
-import xmltodict
-import datetime
 import csv
-import re
-
-# ours: data
-from vizard.data.preprocessor import FileTransformCompose
-from vizard.data.constant import *
-
-# ours: helper
-from vizard.utils.helpers import loggingdecorator
-
-# helpers
-from typing import Any, Callable, Iterable, List, Literal, Optional, Union, cast
-from enlighten import Manager
-from fnmatch import fnmatch
-import enlighten
+import datetime
 import logging
-import sys
 import os
+import re
+import sys
+from fnmatch import fnmatch
+from typing import (Any, Callable, Iterable, List, Literal, Optional, Union,
+                    cast)
 
+import enlighten
+import numpy as np
+import pandas as pd
+import xmltodict
+from dateutil import parser
+from enlighten import Manager
+
+from vizard.data.constant import *
+from vizard.data.preprocessor import FileTransformCompose
+from vizard.utils.helpers import loggingdecorator
 
 # set logger
 logger = logging.getLogger(__name__)

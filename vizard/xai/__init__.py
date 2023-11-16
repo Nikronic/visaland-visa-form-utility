@@ -18,13 +18,10 @@ Submodules:
 """
 
 
-# ours
-from .shap import FlamlTreeExplainer
-from .core import xai_to_text
-
-# helpers
 import logging
 
+from .core import xai_to_text
+from .shap import FlamlTreeExplainer
 
 # set logger
 logger = logging.getLogger(__name__)

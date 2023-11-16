@@ -7,6 +7,5 @@ a MLP or Multi-Headed MLP.
 # helpers
 import logging
 
-
 # set logger
 logger = logging.getLogger(__name__)

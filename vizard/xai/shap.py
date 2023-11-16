@@ -1,16 +1,13 @@
-# core
+import logging
+from typing import Dict, List, Optional
+
 import numpy as np
 import shap
 from flaml import AutoML
 
-# ours
+from vizard.data.constant import (FEATURE_CATEGORY_TO_FEATURE_NAME_MAP,
+                                  FeatureCategories)
 from vizard.xai.core import get_top_k
-from vizard.data.constant import FeatureCategories, FEATURE_CATEGORY_TO_FEATURE_NAME_MAP
-
-# helpers
-from typing import Dict, List, Optional
-import logging
-
 
 # configure logging
 logger = logging.getLogger(__name__)

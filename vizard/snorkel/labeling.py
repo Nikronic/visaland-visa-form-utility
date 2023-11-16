@@ -10,17 +10,12 @@ __all__ = [
     "ACC",
 ]
 
-# core
+import logging
+from typing import Any, Callable, List, Optional, Sequence
+
 import pandas as pd
 
-# snorkel
-from snorkel.labeling import labeling_function
-from snorkel.labeling import LabelingFunction
-
-# helper
-from typing import Optional, Any, List, Callable, Sequence
-import logging
-
+from snorkel.labeling import LabelingFunction, labeling_function
 
 # configure logging
 logger = logging.getLogger(__name__)

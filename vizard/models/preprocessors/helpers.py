@@ -1,14 +1,11 @@
-# core
+import logging
+from typing import List, Union
+
 import numpy as np
 import pandas as pd
-# ours: models
-from vizard.models.preprocessors import ColumnTransformer
-from vizard.models.preprocessors import OneHotEncoder
-from vizard.utils.helpers import loggingdecorator
-# helpers
-from typing import List, Union
-import logging
 
+from vizard.models.preprocessors import ColumnTransformer, OneHotEncoder
+from vizard.utils.helpers import loggingdecorator
 
 # configure logging
 logger = logging.getLogger(__name__)

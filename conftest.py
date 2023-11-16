@@ -1,7 +1,5 @@
-# core
 from pytest import Parser
 
-# ours
 from vizard.version import VERSION
 
 

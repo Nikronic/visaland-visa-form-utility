@@ -1,8 +1,6 @@
-# core
-import numpy as np
+from typing import Dict, Tuple
 
-# helpers
-from typing import Tuple, Dict
+import numpy as np
 
 
 def get_top_k_idx(sample: np.ndarray, k: int) -> np.ndarray:

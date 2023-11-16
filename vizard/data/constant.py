@@ -30,7 +30,6 @@ from enum import Enum, auto
 from types import DynamicClassAttribute
 from typing import List
 
-
 # DICTIONARY
 CANADA_5257E_KEY_ABBREVIATION = {
     "Page": "P",

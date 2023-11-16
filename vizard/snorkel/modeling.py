@@ -1,15 +1,11 @@
 __all__ = ["report_label_model"]
 
-# core
+import logging
+from typing import Dict
+
 import numpy as np
 
-# snorkel
 from snorkel.labeling.model import LabelModel
-
-# helpers
-from typing import Dict
-import logging
-
 
 # configure logging
 logger = logging.getLogger(__name__)

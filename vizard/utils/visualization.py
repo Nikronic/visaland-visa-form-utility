@@ -2,7 +2,6 @@ __all__ = [
     "add_percentage_axes",
 ]
 
-# core
 import matplotlib.pyplot as plt
 
 

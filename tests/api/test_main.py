@@ -1,9 +1,9 @@
 # core
-from starlette.testclient import TestClient
 from fastapi import status
+from starlette.testclient import TestClient
+
 # ours: API
 from api.main import app as vizard_api
-
 
 # the test client for the all tests
 client = TestClient(vizard_api)

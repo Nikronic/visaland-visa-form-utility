@@ -1,12 +1,10 @@
 __all__ = ["Logics", "CanadaLogics"]
 
-# core
 from functools import reduce
-import pandas as pd
-import numpy as np
-
-# helpers
 from typing import Callable, cast
+
+import numpy as np
+import pandas as pd
 
 
 class Logics:

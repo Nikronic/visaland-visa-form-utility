@@ -1,7 +1,6 @@
 # for forward reference https://stackoverflow.com/a/50768146/18971263
 from __future__ import annotations
 
-
 __all__ = [
     # base classes
     "SeriesNoise",
@@ -21,20 +20,16 @@ __all__ = [
     "AGE_CATEGORY",
 ]
 
-# core
-from scipy.stats import truncnorm
-import pandas as pd
-import numpy as np
-
-# snorkel
-from snorkel.augmentation import transformation_function
-from snorkel.augmentation import TransformationFunction
-
-# helpers
-from typing import Any, Callable, List, Optional, Sequence, Tuple, Union, cast
-from enum import Enum
 import logging
+from enum import Enum
+from typing import Any, Callable, List, Optional, Sequence, Tuple, Union, cast
 
+import numpy as np
+import pandas as pd
+from scipy.stats import truncnorm
+
+from snorkel.augmentation import (TransformationFunction,
+                                  transformation_function)
 
 # configure logging
 logger = logging.getLogger(__name__)

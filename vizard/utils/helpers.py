@@ -1,12 +1,11 @@
 __all__ = ["deprecated", "loggingdecorator", "LoggerWriter"]
 
-# helpers
 import functools
-from functools import wraps as _wraps
 import inspect
-from typing import Any
-import warnings
 import logging
+import warnings
+from functools import wraps as _wraps
+from typing import Any
 
 string_types = (type(b""), type(""))
 

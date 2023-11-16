@@ -1,22 +1,17 @@
-# core
-from xgboost import XGBClassifier
-from lightgbm import LGBMClassifier
-from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
-from sklearn.tree import DecisionTreeClassifier, ExtraTreeClassifier
-from catboost import CatBoostClassifier
-import numpy as np
+import logging
+from pathlib import Path
+from typing import Any, Callable, Dict, List, Optional, Union
+
 import flaml
+import mlflow
+import numpy as np
+from catboost import CatBoostClassifier
 from flaml import AutoML
 from flaml.automl.ml import sklearn_metric_loss_score
-
-# devops
-import mlflow
-
-# helpers
-from typing import Any, Dict, List, Optional, Union, Callable
-from pathlib import Path
-import logging
-
+from lightgbm import LGBMClassifier
+from sklearn.ensemble import ExtraTreesClassifier, RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier, ExtraTreeClassifier
+from xgboost import XGBClassifier
 
 # configure logging
 logger = logging.getLogger(__name__)

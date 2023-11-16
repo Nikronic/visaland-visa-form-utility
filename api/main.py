@@ -1,52 +1,33 @@
-# core
-import pandas as pd
-import numpy as np
+import argparse
+import logging
 import pickle
+import shutil
+import sys
+from pathlib import Path
+from typing import Dict, List, Tuple
 
-# ours
-from vizard.data import functional
-from vizard.data import preprocessor
-from vizard.data.constant import (
-    CanadaContactRelation,
-    CanadaResidencyStatus,
-    CanadaMarriageStatus,
-    EducationFieldOfStudy,
-    OccupationTitle,
-    FeatureCategories,
-    CountryWhereApplying,
-    PurposeOfVisit,
-    FEATURE_CATEGORY_TO_FEATURE_NAME_MAP,
-    FEATURE_NAME_TO_TEXT_MAP,
-)
-from vizard.models import preprocessors
-from vizard.models import trainers
-from vizard.xai import (
-    FlamlTreeExplainer,
-    xai_to_text,
-)
+import dvc.api
+import fastapi
+import mlflow
+import numpy as np
+import pandas as pd
+import uvicorn
+from fastapi.middleware.cors import CORSMiddleware
+
 from vizard.api import apps as api_apps
 from vizard.api import database as api_database
 from vizard.api import models as api_models
+from vizard.data import functional, preprocessor
+from vizard.data.constant import (FEATURE_CATEGORY_TO_FEATURE_NAME_MAP,
+                                  FEATURE_NAME_TO_TEXT_MAP,
+                                  CanadaContactRelation, CanadaMarriageStatus,
+                                  CanadaResidencyStatus, CountryWhereApplying,
+                                  EducationFieldOfStudy, FeatureCategories,
+                                  OccupationTitle, PurposeOfVisit)
+from vizard.models import preprocessors, trainers
 from vizard.utils import loggers
 from vizard.version import VERSION as VIZARD_VERSION
-
-# api
-import fastapi
-from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
-
-# devops
-import mlflow
-import dvc.api
-
-# helpers
-from typing import Dict, List, Tuple
-from pathlib import Path
-import argparse
-import logging
-import shutil
-import sys
-
+from vizard.xai import FlamlTreeExplainer, xai_to_text
 
 # argparse
 parser = argparse.ArgumentParser()
