@@ -23,6 +23,5 @@ For instance assume we have VGG models in `vizard.models.estimators.networks.vgg
 # helpers
 import logging
 
-
 # set logger
 logger = logging.getLogger(__name__)

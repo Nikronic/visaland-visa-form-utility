@@ -9,18 +9,13 @@ Note that training scripts must be complete. I.e. they should be able to
 checkpoint, load model, load data, etc.
 """
 
-# flaml
-from .aml_flaml import report_feature_importances
-from .aml_flaml import sklearn_metric_loss_score
-from .aml_flaml import report_loss_score
-from .aml_flaml import get_loss_score
-from .aml_flaml import log_model
-from .aml_flaml import AutoML
-
-# helpers
 import logging
 import pathlib
 
+# flaml
+from .aml_flaml import (AutoML, get_loss_score, log_model,
+                        report_feature_importances, report_loss_score,
+                        sklearn_metric_loss_score)
 
 # set logger
 logger = logging.getLogger(__name__)

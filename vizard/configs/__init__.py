@@ -1,8 +1,7 @@
-from .core import JsonConfigHandler
-
 # ref: https://stackoverflow.com/a/50797410/18971263
 import pathlib
 
+from .core import JsonConfigHandler
 
 # path to all config/db files
 parent_dir = pathlib.Path(__file__).parent

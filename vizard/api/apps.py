@@ -1,8 +1,6 @@
-# core
-from gunicorn.app.base import BaseApplication
-
-# helpers
 from typing import Callable
+
+from gunicorn.app.base import BaseApplication
 
 
 class StandaloneApplication(BaseApplication):

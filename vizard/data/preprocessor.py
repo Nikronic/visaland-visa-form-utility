@@ -14,27 +14,21 @@ __all__ = [
     "WorldBankDataframeProcessor",
 ]
 
-# core
-from dateutil.relativedelta import *
-from dateutil import parser
-import pandas as pd
-import numpy as np
-import pikepdf
+import logging
+import shutil
+from typing import Any, Callable, Optional, Tuple, Union
 
-# ours: data
-from vizard.data.pdf import CanadaXFA
+import numpy as np
+import pandas as pd
+import pikepdf
+from dateutil import parser
+from dateutil.relativedelta import *
+
+from vizard.configs import CANADA_COUNTRY_CODE_TO_NAME
 from vizard.data import functional
 from vizard.data.constant import *
-from vizard.configs import CANADA_COUNTRY_CODE_TO_NAME
-
-# ours: helpers
+from vizard.data.pdf import CanadaXFA
 from vizard.utils.helpers import loggingdecorator
-
-# helpers
-from typing import Callable, Optional, Tuple, Union, Any
-import shutil
-import logging
-
 
 # logging
 logger = logging.getLogger(__name__)

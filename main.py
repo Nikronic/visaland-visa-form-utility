@@ -1,47 +1,26 @@
-# core
-import pandas as pd
-import torch
-
-# ours: snorkel
-from vizard.snorkel import LABEL_MODEL_CONFIGS
-from vizard.snorkel import labeling
-from vizard.snorkel import modeling
-from vizard.snorkel import augmentation
-from vizard.snorkel import PandasLFApplier
-from vizard.snorkel import PandasTFApplier
-from vizard.snorkel import LFAnalysis
-from vizard.snorkel import LabelModel
-from vizard.snorkel import ApplyAllPolicy
-
-# ours: data
-from vizard.data.constant import ClassificationLabels
-
-# ours: models
-from vizard.models import preprocessors
-from vizard.models import trainers
-from vizard.models.trainers.aml_flaml import EvalMode
-
-# ours: helpers
-from vizard.version import VERSION as VIZARD_VERSION
-
-# from vizard.utils.dtreeviz import FLAMLDTreeViz
-from vizard.configs import JsonConfigHandler
-from vizard.utils import loggers
-
-# devops
-import dvc.api
-import mlflow
-
-# helpers
-from typing import Any, Tuple, List
-from pathlib import Path
-import enlighten
 import argparse
 import logging
 import pickle
 import shutil
 import sys
+from pathlib import Path
+from typing import Any, List, Tuple
 
+import dvc.api
+import enlighten
+import mlflow
+import pandas as pd
+import torch
+
+from vizard.configs import JsonConfigHandler
+from vizard.data.constant import ClassificationLabels
+from vizard.models import preprocessors, trainers
+from vizard.models.trainers.aml_flaml import EvalMode
+from vizard.snorkel import (LABEL_MODEL_CONFIGS, ApplyAllPolicy, LabelModel,
+                            LFAnalysis, PandasLFApplier, PandasTFApplier,
+                            augmentation, labeling, modeling)
+from vizard.utils import loggers
+from vizard.version import VERSION as VIZARD_VERSION
 
 # argparse
 parser = argparse.ArgumentParser()

@@ -2,26 +2,21 @@
 
 """
 
-# core
-from sklearn import model_selection
-from sklearn.compose import ColumnTransformer
-from sklearn.compose import make_column_selector
-import pandas as pd
-import numpy as np
-
-# ours
-from vizard.models.preprocessors import CANADA_COLUMN_TRANSFORMER_CONFIG_X
-from vizard.models.preprocessors import CANADA_PANDAS_TRAIN_TEST_SPLIT
-from vizard.models.preprocessors import CANADA_TRAIN_TEST_EVAL_SPLIT
-from vizard.models.preprocessors import TRANSFORMS
-
-# helpers
-from typing import Callable, Tuple, Optional, Any, List, Union
 import inspect
+import json
 import logging
 import pathlib
-import json
+from typing import Any, Callable, List, Optional, Tuple, Union
 
+import numpy as np
+import pandas as pd
+from sklearn import model_selection
+from sklearn.compose import ColumnTransformer, make_column_selector
+
+from vizard.models.preprocessors import (CANADA_COLUMN_TRANSFORMER_CONFIG_X,
+                                         CANADA_PANDAS_TRAIN_TEST_SPLIT,
+                                         CANADA_TRAIN_TEST_EVAL_SPLIT,
+                                         TRANSFORMS)
 
 # configure logging
 logger = logging.getLogger(__name__)

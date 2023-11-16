@@ -4,18 +4,13 @@ __all__ = [
     "SinglePerson",
 ]
 
-# core
-import pandas as pd
-import re
-
-# snorkel
-from snorkel.slicing import slicing_function
-from snorkel.slicing import SlicingFunction
-
-# helpers
-from typing import Optional, Any, List, Callable, Sequence
 import logging
+import re
+from typing import Any, Callable, List, Optional, Sequence
 
+import pandas as pd
+
+from snorkel.slicing import SlicingFunction, slicing_function
 
 # configure logging
 logger = logging.getLogger(__name__)

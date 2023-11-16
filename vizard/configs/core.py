@@ -1,12 +1,9 @@
-# core
 import json
+from pathlib import Path
+from typing import Any, Union
 
 # ours
 from snorkel.labeling.model import LabelModel
-
-# helper
-from typing import Any, Union
-from pathlib import Path
 
 
 class JsonConfigHandler:

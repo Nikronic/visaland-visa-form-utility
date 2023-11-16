@@ -19,7 +19,6 @@ Following modules are available:
 """
 import pathlib
 
-
 # path to all config/db files
 parent_dir = pathlib.Path(__file__).parent
 DATA_DIR = parent_dir / "data"
@@ -60,15 +59,9 @@ see :class:`vizard.models.preprocessors.core.PandasTrainTestSplit`.
 
 # sklearn
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import OneHotEncoder
-from sklearn.preprocessing import LabelEncoder
-from sklearn.preprocessing import StandardScaler
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.preprocessing import RobustScaler
-from sklearn.preprocessing import MaxAbsScaler
-from sklearn.preprocessing import LabelBinarizer
-from sklearn.preprocessing import MultiLabelBinarizer
-
+from sklearn.preprocessing import (LabelBinarizer, LabelEncoder, MaxAbsScaler,
+                                   MinMaxScaler, MultiLabelBinarizer,
+                                   OneHotEncoder, RobustScaler, StandardScaler)
 
 # a dictionary of transforms and their names
 TRANSFORMS = {
@@ -91,20 +84,13 @@ Note:
 """
 
 
-# ours: core
-from .core import move_dependent_variable_to_end
-from .core import get_transformed_feature_names
-from .core import ColumnTransformerConfig
-from .core import PandasTrainTestSplit
-from .core import TrainTestEvalSplit
-from .core import ColumnSelector
-
-# ours: helpers
-from .helpers import preview_column_transformer
-
-# helpers
 import logging
 
+from .core import (ColumnSelector, ColumnTransformerConfig,
+                   PandasTrainTestSplit, TrainTestEvalSplit,
+                   get_transformed_feature_names,
+                   move_dependent_variable_to_end)
+from .helpers import preview_column_transformer
 
 # set logger
 logger = logging.getLogger(__name__)

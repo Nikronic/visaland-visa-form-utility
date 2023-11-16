@@ -7,29 +7,18 @@ __all__ = [
     "PotentialResponse",
 ]
 
-# core
-import pydantic
-from pydantic import field_validator
-from pydantic import ConfigDict
-from pydantic.fields import FieldInfo
 import json
+from typing import Any, Dict, List, Optional, Tuple, Type
 
-# ours
-from vizard.data.constant import (
-    CanadaMarriageStatus,
-    CanadaContactRelation,
-    CanadaResidencyStatus,
-    Sex,
-    EducationFieldOfStudy,
-    CountryWhereApplying,
-    PurposeOfVisit,
-    OccupationTitle,
-    CanadaGeneralConstants,
-    FeatureCategories,
-)
+import pydantic
+from pydantic import ConfigDict, field_validator
+from pydantic.fields import FieldInfo
 
-# helpers
-from typing import Any, Dict, List, Tuple, Type, Optional
+from vizard.data.constant import (CanadaContactRelation,
+                                  CanadaGeneralConstants, CanadaMarriageStatus,
+                                  CanadaResidencyStatus, CountryWhereApplying,
+                                  EducationFieldOfStudy, FeatureCategories,
+                                  OccupationTitle, PurposeOfVisit, Sex)
 
 
 class BaseModel(pydantic.BaseModel):

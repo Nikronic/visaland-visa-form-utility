@@ -10,28 +10,21 @@ data analysis or machine learning for prediction, only pull from DVC remote stor
 this version (or any version you want).
 """
 
-# core
-import pandas as pd
-
-# ours: data
-from vizard.data.constant import DOC_TYPES
-from vizard.data import functional
-from vizard.data.preprocessor import MakeContentCopyProtectedMachineReadable
-from vizard.data.preprocessor import CanadaDataframePreprocessor
-from vizard.data.preprocessor import FileTransformCompose
-from vizard.data.preprocessor import CopyFile
-
-# devops
-import mlflow
-
-# helpers
-from pathlib import Path
-import enlighten
 import logging
+import os
 import shutil
 import sys
-import os
+from pathlib import Path
 
+import enlighten
+import mlflow
+import pandas as pd
+
+from vizard.data import functional
+from vizard.data.constant import DOC_TYPES
+from vizard.data.preprocessor import (CanadaDataframePreprocessor, CopyFile,
+                                      FileTransformCompose,
+                                      MakeContentCopyProtectedMachineReadable)
 
 if __name__ == "__main__":
     # globals

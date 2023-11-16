@@ -1,22 +1,14 @@
-
 __all__ = [
     'create_engine', 'declarative_base', 'Session'
     'Base'
 ]
 
-# core
-from sqlalchemy import (
-    create_engine,
-    Column,
-    Integer,
-    String,
-    Boolean,
-    Float,
-)
-from sqlalchemy.orm import declarative_base
-from sqlalchemy.orm import Session
 # helper
 import logging
+
+# core
+from sqlalchemy import Boolean, Column, Float, Integer, String, create_engine
+from sqlalchemy.orm import Session, declarative_base
 
 # configure logger
 logger = logging.getLogger(__name__)
@@ -24,4 +16,3 @@ logger = logging.getLogger(__name__)
 
 # create a DeclarativeMeta instance
 Base = declarative_base()
-
