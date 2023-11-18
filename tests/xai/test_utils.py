@@ -20,11 +20,12 @@ correct_answer = (
         "child_accompany": 0,
         "marriage_period": 0,
         "previous_marriage_period": 0,
-        "spouse_accompany": 0,
+        "spouse_accompany": 2,
         "previous_marriage_indicator": False,
     },
 )
 
+
 def test_logical_questions():
     check = utils.logical_questions(is_answered, answers)
-    assert check == correct_answer, "test logical has failed"
+    assert check == correct_answer, "test logical questions has been failed"
