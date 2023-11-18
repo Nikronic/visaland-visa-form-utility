@@ -21,18 +21,18 @@ def test_sigmoid():
     )
     assert output_numpy.all() == correct_numpy.all(), "np array sigmoid failed"
 
-# def test_adjusted_sigmoid():
-#     output_float = functional.adjusted_sigmoid(input_float,adjusted_min,adjusted_max, scaler1)
-#     correct_float = 0.9608342772032357
-#     assert output_float == correct_float, "float adjusted sigmoid failed"
-#     output_numpy: np.ndarray = functional.adjusted_sigmoid(input_float,adjusted_min,adjusted_max, scaler1)
-#     correct_numpy = np.array([0.01,0.2575,0.50506645, 0.7525,1.0])
-#     assert output_numpy.all() == correct_numpy.all(), "np array adjusted sigmoid failed"
+def test_adjusted_sigmoid():
+    output_float = functional.adjusted_sigmoid(input_float,adjusted_min,adjusted_max, scaler1)
+    correct_float = 0.3855638786081178
+    assert output_float == correct_float, "float adjusted sigmoid failed"
+    output_numpy: np.ndarray = functional.adjusted_sigmoid(input_float,adjusted_min,adjusted_max, scaler1)
+    correct_numpy = np.array([0.01,0.2575,0.50506645, 0.7525,1.0])
+    assert output_numpy.all() == correct_numpy.all(), "np array adjusted sigmoid failed"
 
-# def test_bi_level_adjusted_sigmoid():
-#     output_float = functional.bi_level_adjusted_sigmoid(input_float, adjusted_min, adjusted_max, closer_adjusted_min, closer_adjusted_max, scaler1, scaler2)
-#     correct_float = 0.9608342772032357
-#     assert output_float == correct_float, "float bi level adjusted sigmoid failed"
-#     output_numpy: np.ndarray = functional.bi_level_adjusted_sigmoid(input_numpy, adjusted_min, adjusted_max, closer_adjusted_min, closer_adjusted_max, scaler1, scaler2)
-#     correct_numpy = np.array([0.01, 0.2575, 0.50526316, 0.7525, 1])
-#     assert output_numpy.all() == correct_numpy.all(), "np array bi level adjusted sigmoid failed"
+def test_bi_level_adjusted_sigmoid():
+    output_float = functional.bi_level_adjusted_sigmoid(input_float, adjusted_min, adjusted_max, closer_adjusted_min, closer_adjusted_max, scaler1, scaler2)
+    correct_float = 0.39900662908474405
+    assert output_float == correct_float, "float bi level adjusted sigmoid failed"
+    output_numpy: np.ndarray = functional.bi_level_adjusted_sigmoid(input_numpy, adjusted_min, adjusted_max, closer_adjusted_min, closer_adjusted_max, scaler1, scaler2)
+    correct_numpy = np.array([0.01, 0.2575, 0.50526316, 0.7525, 1])
+    assert output_numpy.all() == correct_numpy.all(), "np array bi level adjusted sigmoid failed"
