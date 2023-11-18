@@ -20,7 +20,7 @@ correct_answer = (
         "child_accompany": 0,
         "marriage_period": 0,
         "previous_marriage_period": 0,
-        "spouse_accompany": 2,
+        "spouse_accompany": 0,
         "previous_marriage_indicator": False,
     },
 )
