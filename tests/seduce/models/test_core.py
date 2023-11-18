@@ -22,7 +22,6 @@ class TestSigmoidSeducer:
         correct_numpy = np.array(
             [0.50499983, 0.62597786, 0.73302015, 0.81831902, 0.88079708]
         )
-        print(output_float)
         assert output_numpy.all() == correct_numpy.all(), "np array sigmoid failed"
 
     def test_adjusted_sigmoid(self):
@@ -61,7 +60,6 @@ class TestSigmoidSeducer:
             scaler2,
         )
         correct_numpy = np.array([0.01, 0.2575, 0.50526316, 0.7525, 1])
-        print(output_float)
         assert (
             output_numpy.all() == correct_numpy.all()
         ), "np array bi level adjusted sigmoid failed"
