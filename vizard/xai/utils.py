@@ -57,7 +57,6 @@ def logical_questions(is_answered: list, answers):
         is_answered.extend(extend_list)
         is_answered = list(dict.fromkeys(is_answered))  # Remove Duplicates
 
-
     if "child_count" in is_answered and answers["child_count"] == 0:
         answers["child_average_age"] = 0
         answers["child_accompany"] = 0
