@@ -24,9 +24,6 @@ correct_answer = (
         "previous_marriage_indicator": False,
     },
 )
-# for item,value in logical_questions(is_answered,answers)[1].items():
-#     print(item,": ",value,sep="")
-
 
 def test_logical_questions():
     check = utils.logical_questions(is_answered, answers)
