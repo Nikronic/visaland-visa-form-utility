@@ -67,8 +67,3 @@ def logical_questions(is_answered: list, answers):
         is_answered = list(dict.fromkeys(is_answered))  # Remove Duplicates
 
     return is_answered, answers
-
-is_answered = ["applicant_marital_status"]
-answers = {"applicant_marital_status":7}
-for item,value in logical_questions(is_answered,answers)[1].items():
-    print(item,": ",value,sep="")
