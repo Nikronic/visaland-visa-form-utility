@@ -1,4 +1,7 @@
-def logical_questions(is_answered: list, answers: dict) -> tuple:
+from typing import Dict, List, Tuple
+
+
+def logical_questions(is_answered: List, answers: Dict) -> Tuple:
     """check the logical sense of answer to automatically answer some other questions
 
     Note:
@@ -67,7 +70,7 @@ def logical_questions(is_answered: list, answers: dict) -> tuple:
     return is_answered, answers
 
 
-def logical_order(question_title: str, logical_dict: dict) -> str:
+def logical_order(question_title: str, logical_dict: Dict) -> str:
     """check logical order of questions
     Note:
         there is a suggested question that has highest information gain
@@ -75,6 +78,7 @@ def logical_order(question_title: str, logical_dict: dict) -> str:
         like asking average age of kids before person in question said he/she has any
     Args:
         question_title (str): given title of the suggested question
+        logical_dict (dict): given dict that represent logical order
     Returns:
         str: logical question that we should ask with the given suggestion
     """
