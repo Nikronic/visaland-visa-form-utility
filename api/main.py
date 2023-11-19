@@ -383,7 +383,7 @@ async def predict(
         payload_to_xai: Dict[str, float] = _potential(**features.model_dump())
 
         # remove variables that are in the payload (already answered)
-        for provided_variable_ in features.provided_variables:
+        for provided_variable_ in is_answered:
             del payload_to_xai[provided_variable_]
 
         next_suggested_variable: str = ""
