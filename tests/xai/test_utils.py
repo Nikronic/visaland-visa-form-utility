@@ -34,5 +34,5 @@ def test_logical_questions():
 
 
 def test_logical_order():
-    check = utils.logical_order(question_title)
+    check = utils.logical_order(question_title,utils.logical_dict)
     assert check == correct_order_question, "test logical order has been failed"
