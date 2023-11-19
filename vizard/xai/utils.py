@@ -1,4 +1,4 @@
-def logical_questions(is_answered: list, answers):
+def logical_questions(is_answered: list, answers: dict) -> tuple:
     """check the logical sense of answer to automatically answer some other questions
 
     Note:
