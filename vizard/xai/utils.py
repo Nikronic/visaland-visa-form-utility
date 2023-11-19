@@ -65,3 +65,33 @@ def logical_questions(is_answered: list, answers: dict) -> tuple:
     is_answered = list(dict.fromkeys(is_answered))  # Remove Duplicates in is_answered
 
     return is_answered, answers
+
+
+def logical_order(question_title: str) -> str:
+    """check logical order of questions
+    Note:
+        there is a suggested question that has highest information gain
+        we check is it logical to ask that or we should go to another one
+        like asking average age of kids before person in question said he/she has any
+    Args:
+        question_title (str): given title of the suggested question
+    Returns:
+        str: logical question that we should ask with the given suggestion 
+    """
+    logical_dict = {
+        "spouse_accompany": "applicant_marital_status",
+        "previous_marriage_period": "applicant_marital_status",
+        "marriage_period": "applicant_marital_status",
+        "child_accompany": "applicant_marital_status",
+        "child_average_age": "applicant_marital_status",
+        "child_count": "applicant_marital_status",
+        "sibling_average_age": "sibling_count",
+        "sibling_accompany": "sibling_count",
+        "sibling_foreigner_count": "sibling_count",
+    }
+    if question_title in logical_dict:
+        output = logical_dict[question_title]
+    else:
+        output = question_title
+
+    return output
