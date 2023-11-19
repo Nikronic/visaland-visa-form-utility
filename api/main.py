@@ -342,7 +342,7 @@ def _potential(**kwargs):
 async def potential(features: api_models.Payload):
     try:
         payload_to_xai = _potential(**features.model_dump())
-
+        # TODO: this method is broken reason conflict features.provided_variables and is_answered
         # calculate the potential: some of abs xai values for given variables
         # compute dictionary of payloads provided and their xai values
         provided_payload: Dict[str, float] = dict(
@@ -373,9 +373,15 @@ async def predict(
     features: api_models.Payload,
 ):
     try:
-        result = _predict(**features.model_dump())
+        logic_answers_implanted = utils.logical_questions(
+            features.provided_variables, features.model_dump()
+        )
+        is_answered = logic_answers_implanted[0] # TODO: conflict features.provided_variables
+        given_answers = logic_answers_implanted[1]
+        result = _predict(**given_answers)
         # get the next question by suggesting the variable with highest XAI value
         payload_to_xai: Dict[str, float] = _potential(**features.model_dump())
+
         # remove variables that are in the payload (already answered)
         for provided_variable_ in features.provided_variables:
             del payload_to_xai[provided_variable_]
@@ -385,7 +391,7 @@ async def predict(
             next_suggested_variable = max(
                 payload_to_xai, key=lambda xai_value: np.abs(payload_to_xai[xai_value])
             )
-            next_logical_variable = utils.logical_order(next_suggested_variable)
+            next_logical_variable = utils.logical_order(next_suggested_variable,utils.logical_dict)
 
         logger.info("Inference finished")
         return {"result": result, "next_variable": next_logical_variable}
