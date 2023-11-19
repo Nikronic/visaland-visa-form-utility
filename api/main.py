@@ -27,7 +27,7 @@ from vizard.data.constant import (FEATURE_CATEGORY_TO_FEATURE_NAME_MAP,
 from vizard.models import preprocessors, trainers
 from vizard.utils import loggers
 from vizard.version import VERSION as VIZARD_VERSION
-from vizard.xai import FlamlTreeExplainer, xai_to_text
+from vizard.xai import FlamlTreeExplainer, utils, xai_to_text
 
 # argparse
 parser = argparse.ArgumentParser()
@@ -380,14 +380,15 @@ async def predict(
         for provided_variable_ in features.provided_variables:
             del payload_to_xai[provided_variable_]
 
-        next_variable: str = ""
+        next_suggested_variable: str = ""
         if payload_to_xai:
-            next_variable = max(
+            next_suggested_variable = max(
                 payload_to_xai, key=lambda xai_value: np.abs(payload_to_xai[xai_value])
             )
+            next_logical_variable = utils.logical_order(next_suggested_variable)
 
         logger.info("Inference finished")
-        return {"result": result, "next_variable": next_variable}
+        return {"result": result, "next_variable": next_logical_variable}
     except Exception as error:
         logger.exception(error)
         e = sys.exc_info()[1]
