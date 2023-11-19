@@ -42,7 +42,6 @@ def logical_questions(is_answered: list, answers):
         ]
 
         is_answered.extend(extend_list)
-        is_answered = list(dict.fromkeys(is_answered))  # Remove Duplicates
 
     if "sibling_count" in is_answered and answers["sibling_count"] == 0:
         answers["sibling_average_age"] = 0
@@ -55,7 +54,6 @@ def logical_questions(is_answered: list, answers):
             "sibling_foreigner_count",
         ]
         is_answered.extend(extend_list)
-        is_answered = list(dict.fromkeys(is_answered))  # Remove Duplicates
 
     if "child_count" in is_answered and answers["child_count"] == 0:
         answers["child_average_age"] = 0
@@ -63,6 +61,7 @@ def logical_questions(is_answered: list, answers):
 
         extend_list = ["child_average_age", "child_accompany"]
         is_answered.extend(extend_list)
-        is_answered = list(dict.fromkeys(is_answered))  # Remove Duplicates
+
+    is_answered = list(dict.fromkeys(is_answered))  # Remove Duplicates in is_answered
 
     return is_answered, answers
