@@ -29,7 +29,7 @@ def test_adjusted_sigmoid():
     correct_float = 0.3855638786081178
     assert output_float == correct_float, "float adjusted sigmoid failed"
     output_numpy: np.ndarray = functional.adjusted_sigmoid(
-        input_float, adjusted_min, adjusted_max, scaler1
+        input_numpy, adjusted_min, adjusted_max, scaler1
     )
     correct_numpy = np.array([0.01, 0.2575, 0.50506645, 0.7525, 1.0])
     assert np.isclose(output_numpy,correct_numpy).all(), "np array adjusted sigmoid failed"
