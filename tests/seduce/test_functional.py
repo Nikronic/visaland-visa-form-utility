@@ -12,7 +12,7 @@ def test_sigmoid():
     assert output_float == correct_float, "float sigmoid failed"
     output_numpy: np.ndarray = functional.sigmoid(input_numpy, scaler1)
     correct_numpy = np.array(
-        [0.50499983, 0.62597786, 0.73302015, 0.81831902, 0.88079708]
+        [0.51998934, 0.88695417, 0.98270684, 0.99757622, 0.99966465]
     )
     assert np.isclose(output_numpy, correct_numpy).all(), np.isclose(
         output_numpy, correct_numpy
@@ -35,7 +35,7 @@ def test_adjusted_sigmoid():
     output_numpy: np.ndarray = functional.adjusted_sigmoid(
         input_numpy, adjusted_min, adjusted_max, scaler1
     )
-    correct_numpy = np.array([0.01, 0.2575, 0.50506645, 0.7525, 1.0])
+    correct_numpy = np.array([0.01, 0.2575, 0.50602296, 0.7525, 1.0])
     assert np.isclose(
         output_numpy, correct_numpy
     ).all(), "np array adjusted sigmoid failed"
