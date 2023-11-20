@@ -84,7 +84,9 @@ def logical_order(question_title: str, logical_dict: Dict, is_answered) -> str:
     Returns:
         str: logical question that we should ask with the given suggestion
     """
-    if question_title in logical_dict and not (logical_dict[question_title] in is_answered):
+    if question_title in logical_dict and not (
+        logical_dict[question_title] in is_answered
+    ):
         output = logical_dict[question_title]
     else:
         output = question_title
