@@ -2,8 +2,8 @@ from vizard.xai import utils
 
 is_answered = ["applicant_marital_status"]
 answers = {"applicant_marital_status": 7}
-question_title = "child_average_age"
-correct_order_question = "applicant_marital_status"
+question_title = "sibling_foreigner_count"
+correct_order_question = "sibling_count"
 correct_answer = (
     [
         "applicant_marital_status",
