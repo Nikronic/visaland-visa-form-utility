@@ -70,7 +70,7 @@ def logical_questions(is_answered: List, answers: Dict) -> Tuple:
     return is_answered, answers
 
 
-def logical_order(question_title: str, logical_dict: Dict) -> str:
+def logical_order(question_title: str, logical_dict: Dict, is_answered) -> str:
     """check logical order of questions
     Note:
         there is a suggested question that has highest information gain
@@ -79,10 +79,12 @@ def logical_order(question_title: str, logical_dict: Dict) -> str:
     Args:
         question_title (str): given title of the suggested question
         logical_dict (dict): given dict that represent logical order
+        is_answered (List): a list of answered questions
+
     Returns:
         str: logical question that we should ask with the given suggestion
     """
-    if question_title in logical_dict:
+    if question_title in logical_dict and not (logical_dict[question_title] in is_answered):
         output = logical_dict[question_title]
     else:
         output = question_title

@@ -18,12 +18,18 @@ from vizard.api import apps as api_apps
 from vizard.api import database as api_database
 from vizard.api import models as api_models
 from vizard.data import functional, preprocessor
-from vizard.data.constant import (FEATURE_CATEGORY_TO_FEATURE_NAME_MAP,
-                                  FEATURE_NAME_TO_TEXT_MAP,
-                                  CanadaContactRelation, CanadaMarriageStatus,
-                                  CanadaResidencyStatus, CountryWhereApplying,
-                                  EducationFieldOfStudy, FeatureCategories,
-                                  OccupationTitle, PurposeOfVisit)
+from vizard.data.constant import (
+    FEATURE_CATEGORY_TO_FEATURE_NAME_MAP,
+    FEATURE_NAME_TO_TEXT_MAP,
+    CanadaContactRelation,
+    CanadaMarriageStatus,
+    CanadaResidencyStatus,
+    CountryWhereApplying,
+    EducationFieldOfStudy,
+    FeatureCategories,
+    OccupationTitle,
+    PurposeOfVisit,
+)
 from vizard.models import preprocessors, trainers
 from vizard.utils import loggers
 from vizard.version import VERSION as VIZARD_VERSION
@@ -376,7 +382,9 @@ async def predict(
         logic_answers_implanted = utils.logical_questions(
             features.provided_variables, features.model_dump()
         )
-        is_answered = logic_answers_implanted[0] # TODO: conflict features.provided_variables
+        is_answered = logic_answers_implanted[
+            0
+        ]  # TODO: conflict features.provided_variables
         given_answers = logic_answers_implanted[1]
         result = _predict(**given_answers)
         # get the next question by suggesting the variable with highest XAI value
@@ -391,7 +399,9 @@ async def predict(
             next_suggested_variable = max(
                 payload_to_xai, key=lambda xai_value: np.abs(payload_to_xai[xai_value])
             )
-            next_logical_variable = utils.logical_order(next_suggested_variable,utils.logical_dict)
+            next_logical_variable = utils.logical_order(
+                next_suggested_variable, utils.logical_dict, is_answered
+            )
 
         logger.info("Inference finished")
         return {"result": result, "next_variable": next_logical_variable}
