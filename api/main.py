@@ -18,16 +18,22 @@ from vizard.api import apps as api_apps
 from vizard.api import database as api_database
 from vizard.api import models as api_models
 from vizard.data import functional, preprocessor
-from vizard.data.constant import (FEATURE_CATEGORY_TO_FEATURE_NAME_MAP,
-                                  FEATURE_NAME_TO_TEXT_MAP,
-                                  CanadaContactRelation, CanadaMarriageStatus,
-                                  CanadaResidencyStatus, CountryWhereApplying,
-                                  EducationFieldOfStudy, FeatureCategories,
-                                  OccupationTitle, PurposeOfVisit)
+from vizard.data.constant import (
+    FEATURE_CATEGORY_TO_FEATURE_NAME_MAP,
+    FEATURE_NAME_TO_TEXT_MAP,
+    CanadaContactRelation,
+    CanadaMarriageStatus,
+    CanadaResidencyStatus,
+    CountryWhereApplying,
+    EducationFieldOfStudy,
+    FeatureCategories,
+    OccupationTitle,
+    PurposeOfVisit,
+)
 from vizard.models import preprocessors, trainers
 from vizard.utils import loggers
 from vizard.version import VERSION as VIZARD_VERSION
-from vizard.xai import FlamlTreeExplainer, xai_to_text
+from vizard.xai import FlamlTreeExplainer, utils, xai_to_text
 
 # argparse
 parser = argparse.ArgumentParser()
@@ -342,7 +348,7 @@ def _potential(**kwargs):
 async def potential(features: api_models.Payload):
     try:
         payload_to_xai = _potential(**features.model_dump())
-
+        # TODO: this method is broken reason conflict features.provided_variables and is_answered
         # calculate the potential: some of abs xai values for given variables
         # compute dictionary of payloads provided and their xai values
         provided_payload: Dict[str, float] = dict(
@@ -373,21 +379,32 @@ async def predict(
     features: api_models.Payload,
 ):
     try:
-        result = _predict(**features.model_dump())
+        logic_answers_implanted = utils.logical_questions(
+            features.provided_variables, features.model_dump()
+        )
+        is_answered = logic_answers_implanted[
+            0
+        ]  # TODO: conflict features.provided_variables
+        given_answers = logic_answers_implanted[1]
+        result = _predict(**given_answers)
         # get the next question by suggesting the variable with highest XAI value
         payload_to_xai: Dict[str, float] = _potential(**features.model_dump())
+
         # remove variables that are in the payload (already answered)
-        for provided_variable_ in features.provided_variables:
+        for provided_variable_ in is_answered:
             del payload_to_xai[provided_variable_]
 
-        next_variable: str = ""
+        next_suggested_variable: str = ""
         if payload_to_xai:
-            next_variable = max(
+            next_suggested_variable = max(
                 payload_to_xai, key=lambda xai_value: np.abs(payload_to_xai[xai_value])
+            )
+            next_logical_variable = utils.logical_order(
+                next_suggested_variable, utils.logical_dict, is_answered
             )
 
         logger.info("Inference finished")
-        return {"result": result, "next_variable": next_variable}
+        return {"result": result, "next_variable": next_logical_variable}
     except Exception as error:
         logger.exception(error)
         e = sys.exc_info()[1]
