@@ -36,6 +36,15 @@ RESPONSE_PREDICT_JSON = __read_json(
     path=Path("tests/api/test_main/response_predict.json")
 )
 
+# path to the json file containing the full payload for `grouped_xai` endpoint
+PAYLOAD_GROUPED_XAI_JSON = __read_json(
+    path=Path("tests/api/test_main/payload_grouped_xai.json")
+)
+# path to the json file containing the step by step response of `grouped_xai` endpoint
+RESPONSE_GROUPED_XAI_JSON = __read_json(
+    path=Path("tests/api/test_main/response_grouped_xai.json")
+)
+
 # the dictionary of full payload
 payload_dict = dict(PAYLOAD_JSON)
 # length of payload for generating test cases for pytest parameterization
@@ -94,3 +103,36 @@ def test_predict(given: Dict, expected: Dict[str, str | float]):
     assert math.isclose(response_body["result"], expected["result"])
 
     assert response_body["next_variable"] == expected["next_variable"]
+
+
+# path to the json file containing the full payload for `grouped_xai` endpoint
+payload_grouped_xai_dict = dict(PAYLOAD_GROUPED_XAI_JSON)
+# length of payload for generating test cases for pytest parameterization
+count: int = len(payload_grouped_xai_dict)
+# path to the json file containing the step by step response of `grouped_xai` endpoint
+response_grouped_xai_list: List[Dict[str, float]] = dict(RESPONSE_GROUPED_XAI_JSON)[
+    "aggregated_shap_values"
+]
+
+
+@mark.parametrize(
+    argnames=["given", "expected"],
+    argvalues=[
+        (
+            dict(list(payload_grouped_xai_dict.items())[: i + 1]),
+            response_grouped_xai_list[i],
+        )
+        for i in range(count)
+    ],
+)
+def test_grouped_xai(given: Dict, expected: Dict[str, float]):
+    http_response = client.post(url="grouped_xai/", json=given)
+    assert http_response.status_code == status.HTTP_200_OK
+
+    response_body: Dict[str, float] = dict(http_response.json())[
+        "aggregated_shap_values"
+    ]
+
+    # compare key by key
+    for xai_group_ in expected.keys():
+        assert math.isclose(response_body[xai_group_], expected[xai_group_])
