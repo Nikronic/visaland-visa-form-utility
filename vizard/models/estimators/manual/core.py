@@ -1,8 +1,10 @@
+__all__ = ["ParameterBuilderBase", "InvitationLetterParameterBuilder"]
 
 from typing import Any, Dict, List, Optional
 
 from vizard.data.constant import FeatureCategories
 from vizard.models.estimators.manual import functional
+from vizard.models.estimators.manual import constant
 
 
 class ParameterBuilderBase:
@@ -160,3 +162,49 @@ class ParameterBuilderBase:
             probability (float): the old probability value without the effect of this variable
         """
         raise NotImplementedError("Please extend this class and implement this method")
+
+
+class InvitationLetterParameterBuilder(ParameterBuilderBase):
+    def __init__(self) -> None:
+        name: str = "invitation_letter"
+        responses: Dict[
+            constant.InvitationLetterSenderRelation, float
+        ] = constant.INVITATION_LETTER_SENDER_IMPORTANCE
+        feature_category: FeatureCategories = FeatureCategories(
+            FeatureCategories.PURPOSE
+        )
+
+        super().__init__(name, responses, feature_category)
+
+    def potential_modifier(self, potential: float) -> float:
+        """Modifies ``potential`` based on given importance
+
+        See Also:
+            Base method :meth:`vizard.models.estimators.manual.ParameterBuilderBase.potential_modifier`
+        """
+        # check if response is provided
+        self._check_importance_set()
+        # check input is valid
+        self._percent_check(percent=potential)
+
+        new_potential: float = functional.extend_mean(
+            percent=potential, new_value=self.importance
+        )
+
+        return new_potential
+
+    def probability_modifier(self, probability: float) -> float:
+        """Modifies ``probability`` based on given importance
+
+        See Also:
+            Base method :meth:`vizard.models.estimators.manual.ParameterBuilderBase.probability_modifier`
+        """
+        # check if response is provided
+        self._check_importance_set()
+        # check input is valid
+        self._percent_check(percent=probability)
+
+        new_probability: float = functional.extend_mean(
+            percent=probability, new_value=self.importance
+        )
+        return new_probability
