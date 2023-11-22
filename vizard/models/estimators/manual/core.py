@@ -1,6 +1,8 @@
-from typing import Dict, List, Optional, Any
+
+from typing import Any, Dict, List, Optional
 
 from vizard.data.constant import FeatureCategories
+from vizard.models.estimators.manual import functional
 
 
 class ParameterBuilderBase:
@@ -68,6 +70,19 @@ class ParameterBuilderBase:
         if not isinstance(self.name, str):
             raise ValueError("The name can only be string.")
 
+    def _percent_check(self, percent: float) -> None:
+        """Checks if the input variable is a percentage in [0, 1]
+
+        Args:
+            percent (float): A standardized value
+        """
+
+        if not isinstance(percent, float):
+            raise ValueError(f"'{percent}' is not a float.")
+
+        if (percent > 1.0) or (percent < 0.0):
+            raise ValueError("'Value should be in '0.0<=value<=1.0'")
+
     def _check_importance_set(self) -> None:
         """Checks if operators are ready to be used by this class
 
@@ -117,6 +132,9 @@ class ParameterBuilderBase:
 
         self.response = response
         self.importance = self.__get_importance(response=response, raw=raw)
+        # check for range if raw=false
+        if not raw:
+            self._percent_check(percent=self.importance)
         return self.importance
 
     def potential_modifier(self, potential: float) -> float:
