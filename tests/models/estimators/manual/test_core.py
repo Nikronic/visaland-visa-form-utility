@@ -1,4 +1,5 @@
 from math import isclose
+from typing import Dict
 
 from pytest import mark
 
@@ -55,3 +56,60 @@ class TestInvitationLetterParameterBuilder:
         )
 
         assert isclose(new_probability, expected_probability)
+
+    @mark.parametrize(
+        argnames=[
+            "given_grouped_xai",
+            "given_response",
+            "expected_grouped_xai",
+        ],
+        argvalues=[
+            (
+                {
+                    "purpose": 0.49196228635250716,
+                    "emotional": -0.3633606764015736,
+                    "career": 0.10153467401648415,
+                    "financial": -0.04314236322943492,
+                },
+                "f2",
+                {
+                    "purpose": 0.7459811431762535,
+                    "emotional": -0.3633606764015736,
+                    "career": 0.10153467401648415,
+                    "financial": -0.04314236322943492,
+                },
+            ),
+            (
+                {
+                    "purpose": -0.3633606764015736,
+                    "emotional": 0.49196228635250716,
+                    "career": 0.10153467401648415,
+                    "financial": -0.04314236322943492,
+                },
+                "f3",
+                {
+                    "purpose": -0.15885657494133756,
+                    "emotional": 0.49196228635250716,
+                    "career": 0.10153467401648415,
+                    "financial": -0.04314236322943492,
+                },
+            ),
+        ],
+    )
+    def test_grouped_xai_modifier(
+        self,
+        given_grouped_xai: Dict[str, float],
+        given_response: str,
+        expected_grouped_xai: Dict[str, float],
+    ):
+        inv_letter_param.set_response(
+            response=constant.InvitationLetterSenderRelation(given_response), raw=True
+        )
+        new_grouped_xai: float = inv_letter_param.grouped_xai_modifier(
+            grouped_xai=given_grouped_xai
+        )
+
+        for xai_group_name, _ in new_grouped_xai.items():
+            assert isclose(
+                new_grouped_xai[xai_group_name], expected_grouped_xai[xai_group_name]
+            )
