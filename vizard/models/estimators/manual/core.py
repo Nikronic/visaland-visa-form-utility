@@ -3,8 +3,7 @@ __all__ = ["ParameterBuilderBase", "InvitationLetterParameterBuilder"]
 from typing import Any, Dict, List, Optional
 
 from vizard.data.constant import FeatureCategories
-from vizard.models.estimators.manual import functional
-from vizard.models.estimators.manual import constant
+from vizard.models.estimators.manual import constant, functional
 
 
 class ParameterBuilderBase:
@@ -267,16 +266,3 @@ class InvitationLetterParameterBuilder(ParameterBuilderBase):
                 value = functional.extend_mean(percent=value, new_value=self.importance)
             new_grouped_xai[key] = value
         return new_grouped_xai
-
-
-print
-inv_letter_param = InvitationLetterParameterBuilder()
-gxai = {
-    "purpose": 0.49196228635250716,
-    "emotional": -0.3633606764015736,
-    "career": 0.10153467401648415,
-    "financial": -0.04314236322943492,
-}
-inv_letter_param.set_response(constant.InvitationLetterSenderRelation("parent"), True)
-gxai2 = inv_letter_param.grouped_xai_modifier(gxai)
-print
