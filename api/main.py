@@ -4,7 +4,7 @@ import pickle
 import shutil
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Any
 
 import dvc.api
 import fastapi
@@ -29,6 +29,10 @@ from vizard.data.constant import (
     FeatureCategories,
     OccupationTitle,
     PurposeOfVisit,
+)
+from vizard.models.estimators.manual import (
+    InvitationLetterParameterBuilder,
+    InvitationLetterSenderRelation,
 )
 from vizard.models import preprocessors, trainers
 from vizard.utils import loggers
@@ -192,6 +196,9 @@ feature_names = preprocessors.get_transformed_feature_names(
 flaml_tree_explainer = FlamlTreeExplainer(
     flaml_model=flaml_automl, feature_names=feature_names, data=None
 )
+
+# Create instances of manual parameter insertion
+invitation_letter_param = InvitationLetterParameterBuilder()
 
 
 # instantiate fast api app
@@ -379,16 +386,32 @@ async def predict(
     features: api_models.Payload,
 ):
     try:
+        features_dict: Dict[str, Any] = features.model_dump()
+        provided_variables: List[str] = features.provided_variables
+
+        # set response for invitation letter
+        invitation_letter_param.set_response(
+            response=InvitationLetterSenderRelation(features.invitation_letter),
+            raw=True,
+        )
+        # remove invitation letter so preprocessing, transformation, etc works just like before
+        del features_dict[invitation_letter_param.name]
+        provided_variables.remove(invitation_letter_param.name)
+
         logic_answers_implanted = utils.logical_questions(
-            features.provided_variables, features.model_dump()
+            provided_variables, features_dict
         )
         is_answered = logic_answers_implanted[
             0
         ]  # TODO: conflict features.provided_variables
         given_answers = logic_answers_implanted[1]
         result = _predict(**given_answers)
+
+        # apply modification given the response
+        result: float = invitation_letter_param.probability_modifier(probability=result)
+
         # get the next question by suggesting the variable with highest XAI value
-        payload_to_xai: Dict[str, float] = _potential(**features.model_dump())
+        payload_to_xai: Dict[str, float] = _potential(**features_dict)
 
         # remove variables that are in the payload (already answered)
         for provided_variable_ in is_answered:
@@ -565,8 +588,18 @@ async def grouped_xai(features: api_models.Payload):
     # 2) `FEATURE_CATEGORY_TO_FEATURE_NAME_MAP` can be indexed (see
     #    `aggregate_shap_values` method)
 
+    features_dict: Dict[str, Any] = features.model_dump()
+
+    # set response for invitation letter
+    invitation_letter_param.set_response(
+        response=InvitationLetterSenderRelation(features.invitation_letter),
+        raw=True,
+    )
+    # remove invitation letter so preprocessing, transformation, etc works just like before
+    del features_dict[invitation_letter_param.name]
+
     # validate sample
-    sample = _xai(**features.model_dump())
+    sample = _xai(**features_dict)
 
     # compute aggregated SHAP values for the sample
     aggregated_shap_values = flaml_tree_explainer.aggregate_shap_values(
@@ -582,6 +615,11 @@ async def grouped_xai(features: api_models.Payload):
     total_xai: float = np.sum(np.abs(list(aggregated_shap_values.values())))
     for k, v in aggregated_shap_values.items():
         aggregated_shap_values[k] = v / total_xai
+
+    # apply modification given the response
+    aggregated_shap_values: Dict[
+        str, float
+    ] = invitation_letter_param.grouped_xai_modifier(grouped_xai=aggregated_shap_values)
 
     return {
         "aggregated_shap_values": aggregated_shap_values,
@@ -615,7 +653,9 @@ async def get_constant_states():
             apply from. See :class:`vizard.data.constant.CountryWhereApplying` for more info.
         - ``'purpose_of_visit_types'``: Returns a list of names of types of purposes of visit.
             See :class:`vizard.data.constant.PurposeOfVisit` for more info.
-
+        - ``'invitation_letter_types'``: Returns a list of names of type of relations of sender
+            of invitation letter.
+            See :class:`vizard.models.estimators.manual.constant.InvitationLetterSenderRelation`.
     """
 
     return {
@@ -628,6 +668,7 @@ async def get_constant_states():
             "occupation_title_types": OccupationTitle.get_member_names(),
             "country_where_applying_names": CountryWhereApplying.get_member_names(),
             "purpose_of_visit_types": PurposeOfVisit.get_member_names(),
+            "invitation_letter": list(InvitationLetterSenderRelation._value2member_map_.keys())
         }
     }
 
