@@ -16,6 +16,7 @@ class InvitationLetterSenderRelation(Enum):
     SPOUSE = "spouse"  # from your spouse (you should have had "family" visa already)
     PRO_UNRELATED = "pro_unrelated"  # professional yet not related to your career
     PRO_RELATED = "pro_related"  # professional and aligned with your career
+    NONE = "none"  # no invitation letter
 
 
 INVITATION_LETTER_SENDER_IMPORTANCE: Dict[InvitationLetterSenderRelation, float] = {
@@ -28,4 +29,5 @@ INVITATION_LETTER_SENDER_IMPORTANCE: Dict[InvitationLetterSenderRelation, float]
     InvitationLetterSenderRelation.SPOUSE: 0.1,
     InvitationLetterSenderRelation.PRO_UNRELATED: 0.1,
     InvitationLetterSenderRelation.PRO_RELATED: 0.35,
+    InvitationLetterSenderRelation.NONE: 0.0
 }
