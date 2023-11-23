@@ -668,7 +668,7 @@ async def get_constant_states():
             "occupation_title_types": OccupationTitle.get_member_names(),
             "country_where_applying_names": CountryWhereApplying.get_member_names(),
             "purpose_of_visit_types": PurposeOfVisit.get_member_names(),
-            "invitation_letter": list(InvitationLetterSenderRelation._value2member_map_.keys())
+            "invitation_letter_types": list(InvitationLetterSenderRelation._value2member_map_.keys())
         }
     }
 
