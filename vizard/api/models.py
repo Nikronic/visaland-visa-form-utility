@@ -13,12 +13,20 @@ from typing import Any, Dict, List, Optional, Tuple, Type
 import pydantic
 from pydantic import ConfigDict, field_validator
 from pydantic.fields import FieldInfo
+from vizard.models.estimators.manual import InvitationLetterSenderRelation
 
-from vizard.data.constant import (CanadaContactRelation,
-                                  CanadaGeneralConstants, CanadaMarriageStatus,
-                                  CanadaResidencyStatus, CountryWhereApplying,
-                                  EducationFieldOfStudy, FeatureCategories,
-                                  OccupationTitle, PurposeOfVisit, Sex)
+from vizard.data.constant import (
+    CanadaContactRelation,
+    CanadaGeneralConstants,
+    CanadaMarriageStatus,
+    CanadaResidencyStatus,
+    CountryWhereApplying,
+    EducationFieldOfStudy,
+    FeatureCategories,
+    OccupationTitle,
+    PurposeOfVisit,
+    Sex,
+)
 
 
 class BaseModel(pydantic.BaseModel):
@@ -123,6 +131,7 @@ payload_fields2docs: Dict[str, str] = {
     "sibling_count": "How many siblings the user has. Input must be a integer (0 if no siblings).",
     "long_distance_child_sibling_count": "How many of the children or siblings are residing outside of the city the user is currently residing in. Input must be a integer (0 if none).",
     "foreign_living_child_sibling_count": "How many of the children or siblings are residing in a foreign country. Input must be a integer (0 if none).",
+    "invitation_letter": "The relation of the person sending you the invitation letter. Input must be one of ['child', 'sibling', 'parent', 'f2', 'f3', 'friend', 'spouse', 'pro_unrelated', 'pro_related', 'none']"
 }
 """A dictionary of input payload and their documentation for OpenAPI docs
 
@@ -540,6 +549,17 @@ class Payload(BaseModel):
                 f" than {total_count} "
                 f"({CanadaGeneralConstants.MAXIMUM_CHILD_COUNT} children and"
                 f" {CanadaGeneralConstants.MAXIMUM_SIBLING_COUNT} siblings)."
+            )
+        return value
+
+    invitation_letter: str = InvitationLetterSenderRelation.NONE.value
+
+    @field_validator("invitation_letter")
+    def _invitation_letter(cls, value):
+        if value.lower() not in InvitationLetterSenderRelation._value2member_map_:
+            raise ValueError(
+                f"'{value}' is not valid"
+                f" Please use one of '{list(InvitationLetterSenderRelation._value2member_map_.keys())}'"
             )
         return value
 
