@@ -13,7 +13,10 @@ from typing import Any, Dict, List, Optional, Tuple, Type
 import pydantic
 from pydantic import ConfigDict, field_validator
 from pydantic.fields import FieldInfo
-from vizard.models.estimators.manual import InvitationLetterSenderRelation
+from vizard.models.estimators.manual import (
+    InvitationLetterSenderRelation,
+    TravelHistoryRegion,
+)
 
 from vizard.data.constant import (
     CanadaContactRelation,
@@ -131,7 +134,8 @@ payload_fields2docs: Dict[str, str] = {
     "sibling_count": "How many siblings the user has. Input must be a integer (0 if no siblings).",
     "long_distance_child_sibling_count": "How many of the children or siblings are residing outside of the city the user is currently residing in. Input must be a integer (0 if none).",
     "foreign_living_child_sibling_count": "How many of the children or siblings are residing in a foreign country. Input must be a integer (0 if none).",
-    "invitation_letter": "The relation of the person sending you the invitation letter. Input must be one of ['child', 'sibling', 'parent', 'f2', 'f3', 'friend', 'spouse', 'pro_unrelated', 'pro_related', 'none']"
+    "invitation_letter": "The relation of the person sending you the invitation letter. Input must be one of ['child', 'sibling', 'parent', 'f2', 'f3', 'friend', 'spouse', 'pro_unrelated', 'pro_related', 'none']",
+    "travel_history": "The history of travels based on customized regions. Input must be one of ['schengen_once', schengen_twice', 'us_uk_au', 'jp_kr_af', 'br_sg_th_my_ru', 'ae_om_qa', 'am_ge_tr_az', 'none']",
 }
 """A dictionary of input payload and their documentation for OpenAPI docs
 
@@ -560,6 +564,17 @@ class Payload(BaseModel):
             raise ValueError(
                 f"'{value}' is not valid"
                 f" Please use one of '{list(InvitationLetterSenderRelation._value2member_map_.keys())}'"
+            )
+        return value
+
+    travel_history: str = TravelHistoryRegion.NONE.value
+
+    @field_validator("travel_history")
+    def _travel_history(cls, value):
+        if value.lower() not in TravelHistoryRegion._value2member_map_:
+            raise ValueError(
+                f"'{value}' is not valid"
+                f" Please use one of '{list(TravelHistoryRegion._value2member_map_.keys())}'"
             )
         return value
 
