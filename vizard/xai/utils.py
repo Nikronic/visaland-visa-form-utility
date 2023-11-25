@@ -94,7 +94,7 @@ def logical_order(question_title: str, logical_dict: Dict, is_answered) -> str:
         return question_title
 
 
-logical_dict: Dict[str, List[str]] = {
+logical_dict = {
     "spouse_accompany": ["applicant_marital_status"],
     "previous_marriage_period": ["applicant_marital_status"],
     "marriage_period": ["applicant_marital_status"],
