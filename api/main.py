@@ -33,6 +33,8 @@ from vizard.data.constant import (
 from vizard.models.estimators.manual import (
     InvitationLetterParameterBuilder,
     InvitationLetterSenderRelation,
+    TravelHistoryParameterBuilder,
+    TravelHistoryRegion,
 )
 from vizard.models import preprocessors, trainers
 from vizard.utils import loggers
@@ -199,7 +201,8 @@ flaml_tree_explainer = FlamlTreeExplainer(
 
 # Create instances of manual parameter insertion
 invitation_letter_param = InvitationLetterParameterBuilder()
-
+# Create instances of manual parameter insertion
+travel_history_param = TravelHistoryParameterBuilder()
 
 # instantiate fast api app
 app = fastapi.FastAPI(
@@ -398,6 +401,15 @@ async def predict(
         del features_dict[invitation_letter_param.name]
         provided_variables.remove(invitation_letter_param.name)
 
+        # set response for travel history
+        travel_history_param.set_response(
+            response=TravelHistoryRegion(features.travel_history),
+            raw=True,
+        )
+        # remove invitation letter so preprocessing, transformation, etc works just like before
+        del features_dict[travel_history_param.name]
+        provided_variables.remove(travel_history_param.name)
+
         logic_answers_implanted = utils.logical_questions(
             provided_variables, features_dict
         )
@@ -407,8 +419,10 @@ async def predict(
         given_answers = logic_answers_implanted[1]
         result = _predict(**given_answers)
 
-        # apply modification given the response
+        # apply invitation letter modification given the response
         result: float = invitation_letter_param.probability_modifier(probability=result)
+        # apply travel history modification given the response
+        result: float = travel_history_param.probability_modifier(probability=result)
 
         # get the next question by suggesting the variable with highest XAI value
         payload_to_xai: Dict[str, float] = _potential(**features_dict)
@@ -598,6 +612,14 @@ async def grouped_xai(features: api_models.Payload):
     # remove invitation letter so preprocessing, transformation, etc works just like before
     del features_dict[invitation_letter_param.name]
 
+    # set response for travel history
+    travel_history_param.set_response(
+        response=TravelHistoryRegion(features.travel_history),
+        raw=True,
+    )
+    # remove travel history so preprocessing, transformation, etc works just like before
+    del features_dict[travel_history_param.name]
+
     # validate sample
     sample = _xai(**features_dict)
 
@@ -616,10 +638,15 @@ async def grouped_xai(features: api_models.Payload):
     for k, v in aggregated_shap_values.items():
         aggregated_shap_values[k] = v / total_xai
 
-    # apply modification given the response
+    # apply invitation letter modification given the response
     aggregated_shap_values: Dict[
         str, float
     ] = invitation_letter_param.grouped_xai_modifier(grouped_xai=aggregated_shap_values)
+
+    # apply travel history modification given the response
+    aggregated_shap_values: Dict[
+        str, float
+    ] = travel_history_param.grouped_xai_modifier(grouped_xai=aggregated_shap_values)
 
     return {
         "aggregated_shap_values": aggregated_shap_values,
@@ -656,6 +683,9 @@ async def get_constant_states():
         - ``'invitation_letter_types'``: Returns a list of names of type of relations of sender
             of invitation letter.
             See :class:`vizard.models.estimators.manual.constant.InvitationLetterSenderRelation`.
+        - ``'travel_history_types'``: Returns a list of names of regions of world as travel history.
+            See :class:`vizard.models.estimators.manual.constant.TravelHistoryRegion`.
+
     """
 
     return {
@@ -668,7 +698,10 @@ async def get_constant_states():
             "occupation_title_types": OccupationTitle.get_member_names(),
             "country_where_applying_names": CountryWhereApplying.get_member_names(),
             "purpose_of_visit_types": PurposeOfVisit.get_member_names(),
-            "invitation_letter_types": list(InvitationLetterSenderRelation._value2member_map_.keys())
+            "invitation_letter_types": list(
+                InvitationLetterSenderRelation._value2member_map_.keys()
+            ),
+            "travel_history_types": list(TravelHistoryRegion._value2member_map_.keys()),
         }
     }
 
