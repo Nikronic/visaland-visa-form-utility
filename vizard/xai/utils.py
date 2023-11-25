@@ -70,7 +70,9 @@ def logical_questions(is_answered: List, answers: Dict) -> Tuple:
     return is_answered, answers
 
 
-def logical_order(question_title: str, logical_dict: Dict, is_answered) -> str:
+def logical_order(
+    question_title: str, logical_dict: Dict[str, List[str]], is_answered
+) -> str:
     """check logical order of questions
     Note:
         there is a suggested question that has highest information gain
@@ -78,7 +80,7 @@ def logical_order(question_title: str, logical_dict: Dict, is_answered) -> str:
         like asking average age of kids before person in question said he/she has any
     Args:
         question_title (str): given title of the suggested question
-        logical_dict (dict): given dict that represent logical order
+        logical_dict (Dict[str, List[str]]): given dict that represent logical order
         is_answered (List): a list of answered questions
 
     Returns:
@@ -94,14 +96,14 @@ def logical_order(question_title: str, logical_dict: Dict, is_answered) -> str:
     return output
 
 
-logical_dict = {
-    "spouse_accompany": "applicant_marital_status",
-    "previous_marriage_period": "applicant_marital_status",
-    "marriage_period": "applicant_marital_status",
-    "child_accompany": "applicant_marital_status",
-    "child_average_age": "applicant_marital_status",
-    "child_count": "applicant_marital_status",
-    "sibling_average_age": "sibling_count",
-    "sibling_accompany": "sibling_count",
-    "sibling_foreigner_count": "sibling_count",
+logical_dict: Dict[str, List[str]] = {
+    "spouse_accompany": ["applicant_marital_status"],
+    "previous_marriage_period": ["applicant_marital_status"],
+    "marriage_period": ["applicant_marital_status"],
+    "child_accompany": ["applicant_marital_status", "child_count"],
+    "child_average_age": ["applicant_marital_status", "child_count"],
+    "child_count": ["applicant_marital_status"],
+    "sibling_average_age": ["sibling_count"],
+    "sibling_accompany": ["sibling_count"],
+    "sibling_foreigner_count": ["sibling_count"],
 }
