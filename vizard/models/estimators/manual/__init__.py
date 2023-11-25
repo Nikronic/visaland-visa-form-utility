@@ -9,8 +9,10 @@ import logging
 # set logger
 logger = logging.getLogger(__name__)
 
-from .core import InvitationLetterParameterBuilder
+from .core import InvitationLetterParameterBuilder, TravelHistoryParameterBuilder
 from .constant import (
     InvitationLetterSenderRelation,
     INVITATION_LETTER_SENDER_IMPORTANCE,
+    TravelHistoryRegion,
+    TRAVEL_HISTORY_REGION_IMPORTANCE,
 )
