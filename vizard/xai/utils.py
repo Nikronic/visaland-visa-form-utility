@@ -85,23 +85,23 @@ def logical_order(question_title: str, logical_dict: Dict, is_answered) -> str:
         str: logical question that we should ask with the given suggestion
     """
     if question_title in logical_dict and not (
-        logical_dict[question_title][-1] in is_answered
+        logical_dict[question_title] in is_answered
     ):
-        for item in logical_dict[question_title]:
-            if not item in is_answered:
-                return item
+        output = logical_dict[question_title]
     else:
-        return question_title
+        output = question_title
+
+    return output
 
 
 logical_dict = {
-    "spouse_accompany": ["applicant_marital_status"],
-    "previous_marriage_period": ["applicant_marital_status"],
-    "marriage_period": ["applicant_marital_status"],
-    "child_accompany": ["applicant_marital_status", "child_count"],
-    "child_average_age": ["applicant_marital_status", "child_count"],
-    "child_count": ["applicant_marital_status"],
-    "sibling_average_age": ["sibling_count"],
-    "sibling_accompany": ["sibling_count"],
-    "sibling_foreigner_count": ["sibling_count"],
+    "spouse_accompany": "applicant_marital_status",
+    "previous_marriage_period": "applicant_marital_status",
+    "marriage_period": "applicant_marital_status",
+    "child_accompany": "applicant_marital_status",
+    "child_average_age": "applicant_marital_status",
+    "child_count": "applicant_marital_status",
+    "sibling_average_age": "sibling_count",
+    "sibling_accompany": "sibling_count",
+    "sibling_foreigner_count": "sibling_count",
 }
