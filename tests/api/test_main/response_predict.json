@@ -18,6 +18,10 @@
         },
         {
             "result": 0.8885579323143297,
+            "next_variable": "applicant_marital_status"
+        },
+        {
+            "result": 0.8885579323143297,
             "next_variable": "marriage_period"
         },
         {
@@ -26,15 +30,15 @@
         },
         {
             "result": 0.8882309992120156,
-            "next_variable": "passport_expiry_date_remaining"
-        },
-        {
-            "result": 0.8882309992120156,
-            "next_variable": "child_average_age"
+            "next_variable": "child_count"
         },
         {
             "result": 0.8882309992120156,
             "next_variable": "occupation_title1"
+        },       
+        {
+            "result": 0.8570929042575479,
+            "next_variable": "passport_expiry_date_remaining"
         },
         {
             "result": 0.8570929042575479,
@@ -43,7 +47,7 @@
         {
             "result": 0.8570929042575479,
             "next_variable": "purpose_of_visit"
-        },
+        },        
         {
             "result": 0.8570929042575479,
             "next_variable": "foreign_living_child_sibling_count"
@@ -55,7 +59,7 @@
         {
             "result": 0.8570929042575479,
             "next_variable": "education_field_of_study"
-        },
+        },        
         {
             "result": 0.8887035857366837,
             "next_variable": "long_distance_child_sibling_count"
@@ -67,14 +71,10 @@
         {
             "result": 0.8085667503672124,
             "next_variable": "sibling_average_age"
-        },
+        },        
         {
             "result": 0.7062662442857051,
             "next_variable": "education_period"
-        },
-        {
-            "result": 0.7062662442857051,
-            "next_variable": "applicant_marital_status"
         },
         {
             "result": 0.7062662442857051,
@@ -83,59 +83,66 @@
         {
             "result": 0.7062662442857051,
             "next_variable": "previous_marriage_indicator"
-        },
+        },        
         {
-            "result": 0.7062662442857051,
+            "result": 0.8201639340009821,
             "next_variable": "child_mother_father_spouse_foreigner_count"
         },
         {
-            "result": 0.7062662442857051,
-            "next_variable": "child_count"
-        },
-        {
-            "result": 0.7062662442857051,
+            "result": 0.8201639340009821,
             "next_variable": "refused_entry_or_deport"
         },
         {
-            "result": 0.7062662442857051,
+            "result": 0.8201639340009821,
             "next_variable": "parent_accompany"
-        },
+        },        
         {
-            "result": 0.7062662442857051,
-            "next_variable": "child_accompany"
-        },
-        {
-            "result": 0.7062662442857051,
+            "result": 0.8201639340009821,
             "next_variable": "previous_country_of_residence_count"
         },
         {
-            "result": 0.7062662442857051,
+            "result": 0.8201639340009821,
             "next_variable": "country_where_applying_country"
         },
         {
-            "result": 0.7062662442857051,
-            "next_variable": "previous_marriage_period"
-        },
-        {
-            "result": 0.7062662442857051,
+            "result": 0.8201639340009821,
             "next_variable": "country_where_applying_status"
-        },
+        },        
         {
-            "result": 0.81019584008343,
+            "result": 0.8900667623421421,
             "next_variable": "no_authorized_stay"
         },
         {
-            "result": 0.81019584008343,
+            "result": 0.8900667623421421,
             "next_variable": "sibling_foreigner_count"
         },
         {
-            "result": 0.81019584008343,
+            "result": 0.8900667623421421,
             "next_variable": "sibling_accompany"
+        },        
+        {
+            "result": 0.7151880969520132,
+            "next_variable": ""
         },
         {
             "result": 0.81019584008343,
             "next_variable": ""
+        },
+        {
+            "result": 0.81019584008343,
+            "next_variable": ""
+        },    
+        {
+            "result": 0.81019584008343,
+            "next_variable": ""
+        }, 
+        {
+            "result": 0.81019584008343,
+            "next_variable": ""
+        }, 
+        {
+            "result": 0.81019584008343,
+            "next_variable": ""
         }
-        
     ]
 }

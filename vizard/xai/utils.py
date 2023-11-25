@@ -87,13 +87,13 @@ def logical_order(
         str: logical question that we should ask with the given suggestion
     """
     if question_title in logical_dict and not (
-        logical_dict[question_title][-1] in is_answered
+        logical_dict[question_title] in is_answered
     ):
-        for item in logical_dict[question_title]:
-            if not item in is_answered:
-                return item
+        output = logical_dict[question_title]
     else:
-        return question_title
+        output = question_title
+
+    return output
 
 
 logical_dict: Dict[str, List[str]] = {
