@@ -32,7 +32,7 @@ INVITATION_LETTER_SENDER_IMPORTANCE: Dict[InvitationLetterSenderRelation, float]
     InvitationLetterSenderRelation.SPOUSE: 0.1,
     InvitationLetterSenderRelation.PRO_UNRELATED: 0.1,
     InvitationLetterSenderRelation.PRO_RELATED: 0.35,
-    InvitationLetterSenderRelation.NONE: 0.0
+    InvitationLetterSenderRelation.NONE: 0.0,
 }
 
 
@@ -42,7 +42,7 @@ class TravelHistoryRegion(Enum):
     Note:
         This customization is based on our domain experts and only based on difference in
         acquisition of visa.
-    
+
     Note:
         There is an exception, where we have included the count for **Schengen** visa.
         The reason is that this is the only region where multiple acquisition of visa has
@@ -57,8 +57,9 @@ class TravelHistoryRegion(Enum):
      - ``AE_OM_QA``: Emirates, Oman, Qatar
      - ``AM_GE_TR_AZ``: Armenia, Georgia, Turkiye, Azerbaijan
      - ``NONE``: no travel history
-    
+
     """
+
     SCHENGEN_ONCE = "schengen_once"  # Schengen one time
     SCHENGEN_TWICE = "schengen_twice"  # Schengen twice
     US_UK_AU = "us_uk_au"  # United States, United Kingdom and Australia
