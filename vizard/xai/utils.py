@@ -28,14 +28,12 @@ def logical_questions(is_answered: List, answers: Dict) -> Tuple:
         answers["child_accompany"] = 0
         answers["marriage_period"] = 0
         answers["spouse_accompany"] = 0
-        answers["applicant_marital_status"] = 7
 
         extend_list = [
             "child_count",
             "child_accompany",
             "marriage_period",
             "spouse_accompany",
-            "applicant_marital_status",
         ]
 
         is_answered.extend(extend_list)
