@@ -1,5 +1,7 @@
 from typing import Dict, List, Tuple
 
+from vizard.data import constant
+
 
 def logical_questions(is_answered: List, answers: Dict) -> Tuple:
     """check the logical sense of answer to automatically answer some other questions
@@ -22,50 +24,33 @@ def logical_questions(is_answered: List, answers: Dict) -> Tuple:
         and answers["previous_marriage_indicator"] == False
     ) or (
         "applicant_marital_status" in is_answered
-        and answers["applicant_marital_status"] == 7
+        and answers["applicant_marital_status"]
+        == constant.CanadaMarriageStatus.SINGLE.name
     ):
         answers["child_count"] = 0
-        answers["child_average_age"] = 0
         answers["child_accompany"] = 0
         answers["marriage_period"] = 0
-        answers["previous_marriage_period"] = 0
         answers["spouse_accompany"] = 0
         answers["applicant_marital_status"] = 7
-        answers["previous_marriage_indicator"] = False
 
         extend_list = [
             "child_count",
-            "child_average_age",
             "child_accompany",
             "marriage_period",
-            "previous_marriage_period",
             "spouse_accompany",
             "applicant_marital_status",
-            "previous_marriage_indicator",
         ]
 
-        is_answered.extend(extend_list)
-
-    if "sibling_count" in is_answered and answers["sibling_count"] == 0:
-        answers["sibling_average_age"] = 0
-        answers["sibling_accompany"] = 0
-        answers["sibling_foreigner_count"] = 0
-
-        extend_list = [
-            "sibling_average_age",
-            "sibling_accompany",
-            "sibling_foreigner_count",
-        ]
         is_answered.extend(extend_list)
 
     if "child_count" in is_answered and answers["child_count"] == 0:
-        answers["child_average_age"] = 0
         answers["child_accompany"] = 0
 
-        extend_list = ["child_average_age", "child_accompany"]
+        extend_list = ["child_accompany"]
         is_answered.extend(extend_list)
 
-    is_answered = list(dict.fromkeys(is_answered))  # Remove Duplicates in is_answered
+    # Remove Duplicates in is_answered
+    is_answered = list(dict.fromkeys(is_answered))
 
     return is_answered, answers
 
@@ -95,14 +80,11 @@ def logical_order(
     else:
         return question_title
 
+
 logical_dict: Dict[str, List[str]] = {
     "spouse_accompany": ["applicant_marital_status"],
-    "previous_marriage_period": ["applicant_marital_status"],
     "marriage_period": ["applicant_marital_status"],
     "child_accompany": ["applicant_marital_status", "child_count"],
-    "child_average_age": ["applicant_marital_status", "child_count"],
     "child_count": ["applicant_marital_status"],
-    "sibling_average_age": ["sibling_count"],
     "sibling_accompany": ["sibling_count"],
-    "sibling_foreigner_count": ["sibling_count"],
 }
