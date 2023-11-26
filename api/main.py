@@ -4,7 +4,7 @@ import pickle
 import shutil
 import sys
 from pathlib import Path
-from typing import Dict, List, Tuple, Any
+from typing import Any, Dict, List, Tuple
 
 import dvc.api
 import fastapi
@@ -30,13 +30,13 @@ from vizard.data.constant import (
     OccupationTitle,
     PurposeOfVisit,
 )
+from vizard.models import preprocessors, trainers
 from vizard.models.estimators.manual import (
     InvitationLetterParameterBuilder,
     InvitationLetterSenderRelation,
     TravelHistoryParameterBuilder,
     TravelHistoryRegion,
 )
-from vizard.models import preprocessors, trainers
 from vizard.utils import loggers
 from vizard.version import VERSION as VIZARD_VERSION
 from vizard.xai import FlamlTreeExplainer, utils, xai_to_text
@@ -107,7 +107,7 @@ mlflow.set_tracking_uri(f"http://{args.bind}:{args.mlflow_port}")
 # data versioning config
 PATH = "raw-dataset/all-dev.pkl"  # path to source data, e.g. data.pkl file
 REPO = "../visaland-visa-form-utility"
-VERSION = "v2.0.1-dev"  # use the latest EDA version (i.e. `vx.x.x-dev`)
+VERSION = "v3.0.0-dev"  # use the latest EDA version (i.e. `vx.x.x-dev`)
 # get url data from DVC data storage
 data_url = dvc.api.get_url(path=PATH, repo=REPO, rev=VERSION)
 data = pd.read_pickle(data_url).drop(columns=["VisaResult"], inplace=False)
@@ -306,35 +306,6 @@ def _potential(**kwargs):
             feature_names[_feature_idx] for _feature_idx in features_idx
         ]
 
-    ####### TEMP: hardcode shit
-
-    # manipulate multiple instance variables into a single one
-    payload_to_transformed_feature_names["contact_relation_to_me"] = (
-        payload_to_transformed_feature_names["contact_relation_to_me"]
-        + payload_to_transformed_feature_names["contact_relation_to_me2"]
-    )
-
-    payload_to_transformed_feature_names["occupation_title1"] = (
-        payload_to_transformed_feature_names["occupation_title1"]
-        + payload_to_transformed_feature_names["occupation_title2"]
-        + payload_to_transformed_feature_names["occupation_title3"]
-    )
-
-    payload_to_transformed_feature_names["occupation_period"] = (
-        payload_to_transformed_feature_names["occupation_period"]
-        + payload_to_transformed_feature_names["occupation_period2"]
-        + payload_to_transformed_feature_names["occupation_period3"]
-    )
-
-    # delete merged variables
-    del payload_to_transformed_feature_names["contact_relation_to_me2"]
-    del payload_to_transformed_feature_names["occupation_title2"]
-    del payload_to_transformed_feature_names["occupation_title3"]
-    del payload_to_transformed_feature_names["occupation_period2"]
-    del payload_to_transformed_feature_names["occupation_period3"]
-
-    ####### TEMP: hardcode shit
-
     # 3. get feature names' xai values
     xai_input: np.ndarray = _xai(**kwargs)
     # compute xai values for the sample
@@ -432,6 +403,7 @@ async def predict(
             del payload_to_xai[provided_variable_]
 
         next_suggested_variable: str = ""
+        next_logical_variable: str = next_suggested_variable
         if payload_to_xai:
             next_suggested_variable = max(
                 payload_to_xai, key=lambda xai_value: np.abs(payload_to_xai[xai_value])
@@ -665,21 +637,11 @@ async def get_constant_states():
         - ``'marriage_status_types'``: Returns a list of names of marital statuses in Canada.
             See :class:`vizard.data.constant.CanadaMarriageStatus` for more info
             for possible values.
-        - ``'canada_contact_relation_types'``: Returns a list of names of contact relation
-            types in Canada (dataset wise). See :class:`vizard.data.constant.CanadaContactRelation`
-            for more info for possible values.
-        - ``'canada_residency_status_types'``: Returns a list of names of residency status
-            types in Canada (dataset wise). See :class:`vizard.data.constant.CanadaResidencyStatus`
-            for more info for possible values.
         - ``'education_field_of_study_types'``: Returns a list of names of education field of
             study types. See :class:`vizard.data.constant.EducationFieldOfStudy` for more info
             for possible values.
         - ``'occupation_title_types'``: Returns a list of names of education field of study types.
             See :class:`vizard.data.constant.OccupationTitle` for more info for possible values.
-        - ``'country_where_applying_names'``: Returns a list of names of countries user can
-            apply from. See :class:`vizard.data.constant.CountryWhereApplying` for more info.
-        - ``'purpose_of_visit_types'``: Returns a list of names of types of purposes of visit.
-            See :class:`vizard.data.constant.PurposeOfVisit` for more info.
         - ``'invitation_letter_types'``: Returns a list of names of type of relations of sender
             of invitation letter.
             See :class:`vizard.models.estimators.manual.constant.InvitationLetterSenderRelation`.
@@ -692,12 +654,8 @@ async def get_constant_states():
         "constant_states": {
             "xai_feature_categories_types": FeatureCategories.get_member_names(),
             "marriage_status_types": CanadaMarriageStatus.get_member_names(),
-            "canada_contact_relation_types": CanadaContactRelation.get_member_names(),
-            "canada_residency_status_types": CanadaResidencyStatus.get_member_names(),
             "education_field_of_study_types": EducationFieldOfStudy.get_member_names(),
             "occupation_title_types": OccupationTitle.get_member_names(),
-            "country_where_applying_names": CountryWhereApplying.get_member_names(),
-            "purpose_of_visit_types": PurposeOfVisit.get_member_names(),
             "invitation_letter_types": list(
                 InvitationLetterSenderRelation._value2member_map_.keys()
             ),
