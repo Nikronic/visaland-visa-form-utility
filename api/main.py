@@ -21,14 +21,10 @@ from vizard.data import functional, preprocessor
 from vizard.data.constant import (
     FEATURE_CATEGORY_TO_FEATURE_NAME_MAP,
     FEATURE_NAME_TO_TEXT_MAP,
-    CanadaContactRelation,
     CanadaMarriageStatus,
-    CanadaResidencyStatus,
-    CountryWhereApplying,
     EducationFieldOfStudy,
     FeatureCategories,
     OccupationTitle,
-    PurposeOfVisit,
 )
 from vizard.models import preprocessors, trainers
 from vizard.models.estimators.manual import (
