@@ -369,8 +369,10 @@ async def predict(
             raw=True,
         )
         # remove invitation letter so preprocessing, transformation, etc works just like before
-        del features_dict[invitation_letter_param.name]
-        provided_variables.remove(invitation_letter_param.name)
+        if invitation_letter_param.name in features_dict:
+            del features_dict[invitation_letter_param.name]
+        if invitation_letter_param.name in provided_variables:
+            provided_variables.remove(invitation_letter_param.name)
 
         # set response for travel history
         travel_history_param.set_response(
@@ -378,8 +380,10 @@ async def predict(
             raw=True,
         )
         # remove invitation letter so preprocessing, transformation, etc works just like before
-        del features_dict[travel_history_param.name]
-        provided_variables.remove(travel_history_param.name)
+        if travel_history_param.name in features_dict:
+            del features_dict[travel_history_param.name]
+        if travel_history_param.name in provided_variables:
+            provided_variables.remove(travel_history_param.name)
 
         logic_answers_implanted = utils.logical_questions(
             provided_variables, features_dict
@@ -582,7 +586,8 @@ async def grouped_xai(features: api_models.Payload):
         raw=True,
     )
     # remove invitation letter so preprocessing, transformation, etc works just like before
-    del features_dict[invitation_letter_param.name]
+    if invitation_letter_param.name in features_dict:
+        del features_dict[invitation_letter_param.name]
 
     # set response for travel history
     travel_history_param.set_response(
@@ -590,7 +595,8 @@ async def grouped_xai(features: api_models.Payload):
         raw=True,
     )
     # remove travel history so preprocessing, transformation, etc works just like before
-    del features_dict[travel_history_param.name]
+    if travel_history_param.name:
+        del features_dict[travel_history_param.name]
 
     # validate sample
     sample = _xai(**features_dict)
