@@ -353,12 +353,8 @@ if __name__ == "__main__":
             augmentation.AddNormalNoiseDOBYear(dataframe=data),
             augmentation.AddNormalNoiseDateOfMarr(dataframe=data),
             augmentation.AddNormalNoiseOccRowXPeriod(dataframe=data, row=1),
-            augmentation.AddNormalNoiseOccRowXPeriod(dataframe=data, row=2),
-            augmentation.AddNormalNoiseOccRowXPeriod(dataframe=data, row=3),
-            augmentation.AddNormalNoiseHLS(dataframe=data),
             augmentation.AddCategoricalNoiseSex(dataframe=data),
             augmentation.AddOrderedNoiseChdAccomp(dataframe=data, sec="B"),
-            augmentation.AddOrderedNoiseChdAccomp(dataframe=data, sec="C"),
         ]
         tfs = augmentation.ComposeTFAugmentation(augments=tf_compose)()  # type: ignore
         # define policy for applying TFs
