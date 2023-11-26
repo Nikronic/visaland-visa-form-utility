@@ -42,7 +42,7 @@ parser.add_argument(
     "--dvc_data_version",
     type=str,
     help="version of DVC versioned data source (i.e., version of `dvc_data_path`)",
-    default="v2.0.1-dev",
+    default="v3.0.0-dev",
     required=True,
 )
 parser.add_argument(
