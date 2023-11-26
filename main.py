@@ -16,9 +16,17 @@ from vizard.configs import JsonConfigHandler
 from vizard.data.constant import ClassificationLabels
 from vizard.models import preprocessors, trainers
 from vizard.models.trainers.aml_flaml import EvalMode
-from vizard.snorkel import (LABEL_MODEL_CONFIGS, ApplyAllPolicy, LabelModel,
-                            LFAnalysis, PandasLFApplier, PandasTFApplier,
-                            augmentation, labeling, modeling)
+from vizard.snorkel import (
+    LABEL_MODEL_CONFIGS,
+    ApplyAllPolicy,
+    LabelModel,
+    LFAnalysis,
+    PandasLFApplier,
+    PandasTFApplier,
+    augmentation,
+    labeling,
+    modeling,
+)
 from vizard.utils import loggers
 from vizard.version import VERSION as VIZARD_VERSION
 
