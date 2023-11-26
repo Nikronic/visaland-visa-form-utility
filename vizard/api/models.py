@@ -202,7 +202,7 @@ class Payload(BaseModel):
 
     @field_validator("applicant_marital_status")
     def _marital_status(cls, value):
-        if isinstance(value, str):
+        if isinstance(value, str) and (not value.isnumeric()):
             value = value.lower().strip()
             if value not in CanadaMarriageStatus.get_member_names():
                 raise ValueError(
@@ -210,7 +210,7 @@ class Payload(BaseModel):
                     f' Please use one of "{CanadaMarriageStatus.get_member_names()}"'
                 )
             return value
-        elif isinstance(value, int) or isinstance(value, float):
+        elif isinstance(value, int) or isinstance(value, float) or value.isnumeric():
             value = int(value)
             # get Enum values # TODO: use const class or dict
             member_values: List[int] = []
