@@ -16,9 +16,17 @@ from vizard.configs import JsonConfigHandler
 from vizard.data.constant import ClassificationLabels
 from vizard.models import preprocessors, trainers
 from vizard.models.trainers.aml_flaml import EvalMode
-from vizard.snorkel import (LABEL_MODEL_CONFIGS, ApplyAllPolicy, LabelModel,
-                            LFAnalysis, PandasLFApplier, PandasTFApplier,
-                            augmentation, labeling, modeling)
+from vizard.snorkel import (
+    LABEL_MODEL_CONFIGS,
+    ApplyAllPolicy,
+    LabelModel,
+    LFAnalysis,
+    PandasLFApplier,
+    PandasTFApplier,
+    augmentation,
+    labeling,
+    modeling,
+)
 from vizard.utils import loggers
 from vizard.version import VERSION as VIZARD_VERSION
 
@@ -129,7 +137,7 @@ VERSION = args.dvc_data_version
 # metrics used for training snorkel model on unlabeled data
 #   note that I don't want to move these into the `vizard` library as I believe
 #   the developer who trains might want to play with these metrics, hence these constants
-#   should be changable easily.
+#   should be changeable easily.
 SNORKEL_LABEL_MODEL_METRICS: List[str] = [
     "accuracy",
     "coverage",

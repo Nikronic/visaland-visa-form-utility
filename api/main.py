@@ -21,14 +21,10 @@ from vizard.data import functional, preprocessor
 from vizard.data.constant import (
     FEATURE_CATEGORY_TO_FEATURE_NAME_MAP,
     FEATURE_NAME_TO_TEXT_MAP,
-    CanadaContactRelation,
     CanadaMarriageStatus,
-    CanadaResidencyStatus,
-    CountryWhereApplying,
     EducationFieldOfStudy,
     FeatureCategories,
     OccupationTitle,
-    PurposeOfVisit,
 )
 from vizard.models import preprocessors, trainers
 from vizard.models.estimators.manual import (
@@ -327,21 +323,54 @@ def _potential(**kwargs):
 
 @app.post("/potential/", response_model=api_models.PotentialResponse)
 async def potential(features: api_models.Payload):
+    # calculate the potential: some of abs xai values for given variables
     try:
-        payload_to_xai = _potential(**features.model_dump())
         # TODO: this method is broken reason conflict features.provided_variables and is_answered
-        # calculate the potential: some of abs xai values for given variables
+        features_dict: Dict[str, Any] = features.model_dump()
+        provided_variables: List[str] = features.provided_variables
+
+        # set response for invitation letter
+        invitation_letter_param.set_response(
+            response=InvitationLetterSenderRelation(features.invitation_letter),
+            raw=True,
+        )
+        # remove invitation letter so preprocessing, transformation, etc works just like before
+        if invitation_letter_param.name in features_dict:
+            del features_dict[invitation_letter_param.name]
+        if invitation_letter_param.name in provided_variables:
+            provided_variables.remove(invitation_letter_param.name)
+
+        # set response for travel history
+        travel_history_param.set_response(
+            response=TravelHistoryRegion(features.travel_history),
+            raw=True,
+        )
+        # remove invitation letter so preprocessing, transformation, etc works just like before
+        if travel_history_param.name in features_dict:
+            del features_dict[travel_history_param.name]
+        if travel_history_param.name in provided_variables:
+            provided_variables.remove(travel_history_param.name)
+
+        payload_to_xai = _potential(**features_dict)
+
         # compute dictionary of payloads provided and their xai values
         provided_payload: Dict[str, float] = dict(
-            (k, payload_to_xai[k])
-            for k in features.provided_variables
-            if k in payload_to_xai
+            (k, payload_to_xai[k]) for k in provided_variables if k in payload_to_xai
         )
         potential_by_xai_raw: float = np.sum(np.abs(list(provided_payload.values())))
         # total XAI values as the denominator (normalizer)
         total_xai: float = np.sum(np.abs(list(payload_to_xai.values())))
         # normalize to 0-1 for percentage
         potential_by_xai_normalized: float = potential_by_xai_raw / total_xai
+
+        # apply invitation letter modification given the response
+        potential_by_xai_normalized: float = invitation_letter_param.potential_modifier(
+            potential=potential_by_xai_normalized
+        )
+        # apply travel history modification given the response
+        potential_by_xai_normalized: float = travel_history_param.potential_modifier(
+            potential=potential_by_xai_normalized
+        )
 
         # TEMP: hardcoded small value to prevent 1.0 from happening just for fun
         FUN_EPSILON: float = 1e-7
@@ -369,8 +398,10 @@ async def predict(
             raw=True,
         )
         # remove invitation letter so preprocessing, transformation, etc works just like before
-        del features_dict[invitation_letter_param.name]
-        provided_variables.remove(invitation_letter_param.name)
+        if invitation_letter_param.name in features_dict:
+            del features_dict[invitation_letter_param.name]
+        if invitation_letter_param.name in provided_variables:
+            provided_variables.remove(invitation_letter_param.name)
 
         # set response for travel history
         travel_history_param.set_response(
@@ -378,8 +409,10 @@ async def predict(
             raw=True,
         )
         # remove invitation letter so preprocessing, transformation, etc works just like before
-        del features_dict[travel_history_param.name]
-        provided_variables.remove(travel_history_param.name)
+        if travel_history_param.name in features_dict:
+            del features_dict[travel_history_param.name]
+        if travel_history_param.name in provided_variables:
+            provided_variables.remove(travel_history_param.name)
 
         logic_answers_implanted = utils.logical_questions(
             provided_variables, features_dict
@@ -582,7 +615,8 @@ async def grouped_xai(features: api_models.Payload):
         raw=True,
     )
     # remove invitation letter so preprocessing, transformation, etc works just like before
-    del features_dict[invitation_letter_param.name]
+    if invitation_letter_param.name in features_dict:
+        del features_dict[invitation_letter_param.name]
 
     # set response for travel history
     travel_history_param.set_response(
@@ -590,7 +624,8 @@ async def grouped_xai(features: api_models.Payload):
         raw=True,
     )
     # remove travel history so preprocessing, transformation, etc works just like before
-    del features_dict[travel_history_param.name]
+    if travel_history_param.name:
+        del features_dict[travel_history_param.name]
 
     # validate sample
     sample = _xai(**features_dict)
