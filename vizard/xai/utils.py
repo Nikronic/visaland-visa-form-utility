@@ -20,9 +20,6 @@ def logical_questions(is_answered: List, answers: Dict) -> Tuple:
     """
 
     if (
-        "previous_marriage_indicator" in is_answered
-        and answers["previous_marriage_indicator"] == False
-    ) or (
         "applicant_marital_status" in is_answered
         and answers["applicant_marital_status"]
         == constant.CanadaMarriageStatus.SINGLE.name
@@ -56,7 +53,7 @@ def logical_questions(is_answered: List, answers: Dict) -> Tuple:
 
 
 def logical_order(
-    question_title: str, logical_dict: Dict[str, List[str]], is_answered
+    question_title: str, logical_dict: Dict[str, List[str]], is_answered: List[str]
 ) -> str:
     """check logical order of questions
     Note:
