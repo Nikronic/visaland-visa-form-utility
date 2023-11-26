@@ -12,7 +12,7 @@ def test_logical_questions():
             "spouse_accompany",
         ],
         {
-            "applicant_marital_status": 7,
+            "applicant_marital_status": constant.CanadaMarriageStatus.SINGLE.name,
             "child_count": 0,
             "child_accompany": 0,
             "marriage_period": 0,
