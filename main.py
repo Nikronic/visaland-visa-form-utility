@@ -129,7 +129,7 @@ VERSION = args.dvc_data_version
 # metrics used for training snorkel model on unlabeled data
 #   note that I don't want to move these into the `vizard` library as I believe
 #   the developer who trains might want to play with these metrics, hence these constants
-#   should be changable easily.
+#   should be changeable easily.
 SNORKEL_LABEL_MODEL_METRICS: List[str] = [
     "accuracy",
     "coverage",
