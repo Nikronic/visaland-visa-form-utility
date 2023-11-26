@@ -356,12 +356,10 @@ async def potential(features: api_models.Payload):
             provided_variables.remove(travel_history_param.name)
 
         payload_to_xai = _potential(**features_dict)
-        
+
         # compute dictionary of payloads provided and their xai values
         provided_payload: Dict[str, float] = dict(
-            (k, payload_to_xai[k])
-            for k in provided_variables
-            if k in payload_to_xai
+            (k, payload_to_xai[k]) for k in provided_variables if k in payload_to_xai
         )
         potential_by_xai_raw: float = np.sum(np.abs(list(provided_payload.values())))
         # total XAI values as the denominator (normalizer)
@@ -370,9 +368,13 @@ async def potential(features: api_models.Payload):
         potential_by_xai_normalized: float = potential_by_xai_raw / total_xai
 
         # apply invitation letter modification given the response
-        potential_by_xai_normalized: float = invitation_letter_param.potential_modifier(potential=potential_by_xai_normalized)
+        potential_by_xai_normalized: float = invitation_letter_param.potential_modifier(
+            potential=potential_by_xai_normalized
+        )
         # apply travel history modification given the response
-        potential_by_xai_normalized: float = travel_history_param.potential_modifier(potential=potential_by_xai_normalized)
+        potential_by_xai_normalized: float = travel_history_param.potential_modifier(
+            potential=potential_by_xai_normalized
+        )
 
         # TEMP: hardcoded small value to prevent 1.0 from happening just for fun
         FUN_EPSILON: float = 1e-7
