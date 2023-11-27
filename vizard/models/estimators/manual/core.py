@@ -133,6 +133,29 @@ class ParameterBuilderBase:
             return self.responses[response]
         raise NotImplementedError("Normalized importance is not yet implemented.")
 
+    def _clip_to_percent(
+        self, value: float, lower: float = 0.0, upper: float = 1.0
+    ) -> float:
+        """Clips a value to the range of [0, 1]
+
+        Note:
+            Heuristics used by
+            :meth:`vizard.models.estimators.manual.ParameterBuilderBase.potential_modifier`
+            or :meth:`vizard.models.estimators.manual.ParameterBuilderBase.potential_modifier`
+            might results in scenarios where the output is no longer a percentage. In such
+            scenarios, clipping to [0, 1] is desired.
+
+        Args:
+            value (float): single number to be clipped
+            lower (float, optional): minimum value of clip. Defaults to 0.0.
+            upper (float, optional): maximum value of clip. Defaults to 1.0.
+
+        Returns:
+            float: A clipped value as a standard percent value
+        """
+
+        return max(min(value, upper), lower)  # clip in range of [0, 1]
+
     def set_response(self, response: str, raw: bool = False) -> float:
         """Sets the response to calculate ``self.importance`` used for ``_modifier`` s
 
@@ -223,8 +246,13 @@ class InvitationLetterParameterBuilder(ParameterBuilderBase):
         self._percent_check(percent=potential)
 
         new_potential: float = functional.extend_mean(
-            percent=potential, new_value=self.importance
+            percent=potential,
+            new_value=self.importance,
+            shift=self.responses[constant.InvitationLetterSenderRelation.BASE],
         )
+
+        # `potential` is a percent value
+        new_potential = self._clip_to_percent(value=new_potential)
 
         return new_potential
 
@@ -240,8 +268,14 @@ class InvitationLetterParameterBuilder(ParameterBuilderBase):
         self._percent_check(percent=probability)
 
         new_probability: float = functional.extend_mean(
-            percent=probability, new_value=self.importance
+            percent=probability,
+            new_value=self.importance,
+            shift=self.responses[constant.InvitationLetterSenderRelation.BASE],
         )
+
+        # `new_probability` is a percent value
+        new_probability = self._clip_to_percent(value=new_probability)
+
         return new_probability
 
     def grouped_xai_modifier(self, grouped_xai: Dict[str, float]) -> Dict[str, float]:
@@ -267,7 +301,11 @@ class InvitationLetterParameterBuilder(ParameterBuilderBase):
         # update the key that matches `feature_category`
         for key, value in grouped_xai.items():
             if key == xai_group:
-                value = functional.extend_mean(percent=value, new_value=self.importance)
+                value = functional.extend_mean(
+                    percent=value,
+                    new_value=self.importance,
+                    shift=self.responses[constant.InvitationLetterSenderRelation.BASE],
+                )
             new_grouped_xai[key] = value
         return new_grouped_xai
 
@@ -296,8 +334,13 @@ class TravelHistoryParameterBuilder(ParameterBuilderBase):
         self._percent_check(percent=potential)
 
         new_potential: float = functional.extend_mean(
-            percent=potential, new_value=self.importance
+            percent=potential,
+            new_value=self.importance,
+            shift=self.responses[constant.TravelHistoryRegion.BASE],
         )
+
+        # `potential` is a percent value
+        new_potential = self._clip_to_percent(value=new_potential)
 
         return new_potential
 
@@ -313,8 +356,14 @@ class TravelHistoryParameterBuilder(ParameterBuilderBase):
         self._percent_check(percent=probability)
 
         new_probability: float = functional.extend_mean(
-            percent=probability, new_value=self.importance
+            percent=probability,
+            new_value=self.importance,
+            shift=self.responses[constant.TravelHistoryRegion.BASE],
         )
+
+        # `new_probability` is a percent value
+        new_probability = self._clip_to_percent(value=new_probability)
+
         return new_probability
 
     def grouped_xai_modifier(self, grouped_xai: Dict[str, float]) -> Dict[str, float]:
@@ -340,6 +389,10 @@ class TravelHistoryParameterBuilder(ParameterBuilderBase):
         # update the key that matches `feature_category`
         for key, value in grouped_xai.items():
             if key == xai_group:
-                value = functional.extend_mean(percent=value, new_value=self.importance)
+                value = functional.extend_mean(
+                    percent=value,
+                    new_value=self.importance,
+                    shift=self.responses[constant.TravelHistoryRegion.BASE],
+                )
             new_grouped_xai[key] = value
         return new_grouped_xai
