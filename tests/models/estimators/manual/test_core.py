@@ -146,7 +146,7 @@ class TestTravelHistoryParameterBuilder:
             (0.4, "jp_kr_af", 0.66),
             (0.5, "schengen_twice", 1.0),
             (0.9, "am_ge_tr_az", 0.635),
-            (0.3, "am_ge_tr_az", 0.245), 
+            (0.3, "am_ge_tr_az", 0.245),
         ],
     )
     def test_potential_modifier(
@@ -171,7 +171,7 @@ class TestTravelHistoryParameterBuilder:
             (0.3, "jp_kr_af", 0.595),
             (0.7, "schengen_twice", 1.0),
             (0.9, "am_ge_tr_az", 0.635),
-            (0.3, "am_ge_tr_az", 0.245), 
+            (0.3, "am_ge_tr_az", 0.245),
         ],
     )
     def test_probability_modifier(

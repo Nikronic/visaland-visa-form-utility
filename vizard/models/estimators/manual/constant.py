@@ -86,7 +86,7 @@ TRAVEL_HISTORY_REGION_IMPORTANCE: Dict[TravelHistoryRegion, float] = {
     TravelHistoryRegion.AE_OM_QA: 0.1,
     TravelHistoryRegion.AM_GE_TR_AZ: 0.05,
     TravelHistoryRegion.NONE: 0.0,
-    TravelHistoryRegion.BASE: -0.35
+    TravelHistoryRegion.BASE: -0.35,
 }
 """A mapping from :class:`TravelHistoryRegion` to a percentage based importance
 
