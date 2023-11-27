@@ -18,9 +18,10 @@ class TestInvitationLetterParameterBuilder:
         ],
         argvalues=[
             (0.0, "f2", 0.5),
-            (1.0, "f3", 1.0),
+            (1.0, "f3", 0.7),
             (0.4, "child", 1.0),
-            (0.5, "parent", 0.875),
+            (0.3, "parent", 0.915),
+            (0.5, "none", 0.275),
         ],
     )
     def test_potential_modifier(
@@ -41,9 +42,10 @@ class TestInvitationLetterParameterBuilder:
         ],
         argvalues=[
             (0.0, "f2", 0.5),
-            (1.0, "f3", 1.0),
+            (1.0, "f3", 0.7),
             (0.3, "child", 1.0),
-            (0.7, "parent", 0.925),
+            (0.3, "parent", 0.915),
+            (0.5, "none", 0.275),
         ],
     )
     def test_probability_modifier(
@@ -74,7 +76,7 @@ class TestInvitationLetterParameterBuilder:
                 },
                 "f2",
                 {
-                    "purpose": 0.7459811431762535,
+                    "purpose": 0.7705792574938789,
                     "emotional": -0.3633606764015736,
                     "career": 0.10153467401648415,
                     "financial": -0.04314236322943492,
@@ -89,7 +91,22 @@ class TestInvitationLetterParameterBuilder:
                 },
                 "f3",
                 {
-                    "purpose": -0.15885657494133756,
+                    "purpose": -0.04984837202086548,
+                    "emotional": 0.49196228635250716,
+                    "career": 0.10153467401648415,
+                    "financial": -0.04314236322943492,
+                },
+            ),
+            (
+                {
+                    "purpose": -0.3633606764015736,
+                    "emotional": 0.49196228635250716,
+                    "career": 0.10153467401648415,
+                    "financial": -0.04314236322943492,
+                },
+                "none",
+                {
+                    "purpose": -0.19984837202086547,
                     "emotional": 0.49196228635250716,
                     "career": 0.10153467401648415,
                     "financial": -0.04314236322943492,
@@ -126,8 +143,10 @@ class TestTravelHistoryParameterBuilder:
         argvalues=[
             (0.0, "schengen_once", 0.5),
             (1.0, "schengen_twice", 1.0),
-            (0.4, "jp_kr_af", 0.64),
-            (0.5, "schengen_twice", 0.875),
+            (0.4, "jp_kr_af", 0.66),
+            (0.5, "schengen_twice", 1.0),
+            (0.9, "am_ge_tr_az", 0.635),
+            (0.3, "am_ge_tr_az", 0.245),
         ],
     )
     def test_potential_modifier(
@@ -149,8 +168,10 @@ class TestTravelHistoryParameterBuilder:
         argvalues=[
             (0.0, "schengen_once", 0.5),
             (1.0, "schengen_twice", 1.0),
-            (0.3, "jp_kr_af", 0.58),
-            (0.7, "schengen_twice", 0.925),
+            (0.3, "jp_kr_af", 0.595),
+            (0.7, "schengen_twice", 1.0),
+            (0.9, "am_ge_tr_az", 0.635),
+            (0.3, "am_ge_tr_az", 0.245),
         ],
     )
     def test_probability_modifier(
@@ -181,7 +202,7 @@ class TestTravelHistoryParameterBuilder:
                 },
                 "schengen_once",
                 {
-                    "purpose": 0.7459811431762535,
+                    "purpose": 0.8197754861291296,
                     "emotional": -0.3633606764015736,
                     "career": 0.10153467401648415,
                     "financial": -0.04314236322943492,
@@ -196,7 +217,22 @@ class TestTravelHistoryParameterBuilder:
                 },
                 "schengen_twice",
                 {
-                    "purpose": 0.6591598308996066,
+                    "purpose": 0.5138155603389771,
+                    "emotional": 0.49196228635250716,
+                    "career": 0.10153467401648415,
+                    "financial": -0.04314236322943492,
+                },
+            ),
+            (
+                {
+                    "purpose": -0.3633606764015736,
+                    "emotional": 0.49196228635250716,
+                    "career": 0.10153467401648415,
+                    "financial": -0.04314236322943492,
+                },
+                "none",
+                {
+                    "purpose": -0.23618443966102284,
                     "emotional": 0.49196228635250716,
                     "career": 0.10153467401648415,
                     "financial": -0.04314236322943492,

@@ -20,6 +20,7 @@ class InvitationLetterSenderRelation(Enum):
     PRO_UNRELATED = "pro_unrelated"  # professional yet not related to your career
     PRO_RELATED = "pro_related"  # professional and aligned with your career
     NONE = "none"  # no invitation letter
+    BASE = "base"  # negative effect for not normalizing other features - see #137
 
 
 INVITATION_LETTER_SENDER_IMPORTANCE: Dict[InvitationLetterSenderRelation, float] = {
@@ -33,6 +34,7 @@ INVITATION_LETTER_SENDER_IMPORTANCE: Dict[InvitationLetterSenderRelation, float]
     InvitationLetterSenderRelation.PRO_UNRELATED: 0.1,
     InvitationLetterSenderRelation.PRO_RELATED: 0.35,
     InvitationLetterSenderRelation.NONE: 0.0,
+    InvitationLetterSenderRelation.BASE: -0.45,
 }
 
 
@@ -47,6 +49,10 @@ class TravelHistoryRegion(Enum):
         There is an exception, where we have included the count for **Schengen** visa.
         The reason is that this is the only region where multiple acquisition of visa has
         different meaning than only having it for once (such as *JP*)
+
+    Note:
+        See issue #137 to further know about the reason behind having a negative
+        importance for `"base"`.
 
     Variable description:
      - ``SCHENGEN_ONCE``: Schengen one time
@@ -68,6 +74,7 @@ class TravelHistoryRegion(Enum):
     AE_OM_QA = "ae_om_qa"  # Emirates, Oman, Qatar
     AM_GE_TR_AZ = "am_ge_tr_az"  # Armenia, Georgia, Turkiye, Azerbaijan
     NONE = "none"  # no travel history
+    BASE = "base"  # negative effect for not normalizing other features - see #137
 
 
 TRAVEL_HISTORY_REGION_IMPORTANCE: Dict[TravelHistoryRegion, float] = {
@@ -79,6 +86,7 @@ TRAVEL_HISTORY_REGION_IMPORTANCE: Dict[TravelHistoryRegion, float] = {
     TravelHistoryRegion.AE_OM_QA: 0.1,
     TravelHistoryRegion.AM_GE_TR_AZ: 0.05,
     TravelHistoryRegion.NONE: 0.0,
+    TravelHistoryRegion.BASE: -0.35,
 }
 """A mapping from :class:`TravelHistoryRegion` to a percentage based importance
 
@@ -89,6 +97,10 @@ of parameters via :class:`vizard.models.estimators.manual.core.ParameterBuilderB
 Note:
     The keys of this dictionary are
         :class:`vizard.models.estimators.manual.constant.TravelHistoryRegion`
+
+Note:
+    See issue #137 to further know about the reason behind having a negative
+    importance for `"base"`.
 
 See Also:
     :class:`vizard.models.estimators.manual.core.TravelHistoryParameterBuilder`
