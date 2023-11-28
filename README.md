@@ -238,8 +238,8 @@ Since the training is done in local machine, when I exported and then imported t
 
 This is done thanks to:
 
-1. [mlflow import export utility](https://github.com/mlflow/mlflow-export-import/blob/master/README_single.md): enables exporting registered models from one server and then importing them into another mlflow db and server.
-2. [DB Browser for SQLite](https://sqlitebrowser.org/): enables modifying the mlflow db manually to remove all those absolute paths of local machine
+1. [mlflow import export utility](https://github.com/mlflow/mlflow-export-import/blob/master/README_single.md): enables exporting registered models from one server and then importing them into another mlflow db and server. Install via `pip install mlflow-export-import`.
+2. [DB Browser for SQLite](https://sqlitebrowser.org/): enables modifying the mlflow db manually to remove all those absolute paths of local machine.
 
 #### Steps
 
@@ -252,7 +252,7 @@ Steps needed to migrate a registered model trained on server A (e.g., local mach
     export MLFLOW_TRACKING_URI=http://localhost:5000
     ```
 
-2. Export mlflow registered model:
+2. Export mlflow registered model (set `stages` if you want `[Staging, Production, Archived]`):
 
     ```bash
     export-model --model v0.20.0-d2.0.1 --output-dir temp_ --stages Staging
@@ -263,7 +263,13 @@ Steps needed to migrate a registered model trained on server A (e.g., local mach
 4. Import exported model from step `2`:
 
     ```bash
-    import-model --model v0.20.0-d2.0.1 --experiment-name train_on_v0.20.0-d2.0.1-HOTFIX \--input-dir temp_
+    import-model --model v0.20.0-d2.0.1 --experiment-name train_on_v0.20.0-d2.0.1 \--input-dir temp_
     ```
 
 5. Open the mlflow database (e.g., `mlflow-inference.db`) on server B and manually edit entries that include absolute path of server A with their relative path. For that, tables `model_versions` and `runs`.
+
+6. In some cases (I really don't the bug), the registered model is not transferred. In this case, `registered_models` need to be fixed too.
+
+#### Remark
+
+It is a ugly scene where we have to manually do something that happens all the time. Hence, a script for fixing this should be provided.
