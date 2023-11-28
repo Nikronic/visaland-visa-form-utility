@@ -1,8 +1,8 @@
 __all__ = ["VERSION_SHORT", "VERSION"]
 
 _MAJOR = "0"
-_MINOR = "24"
-_REVISION = "1"
+_MINOR = "25"
+_REVISION = "0"
 
 VERSION_SHORT = f"{_MAJOR}.{_MINOR}"
 """Version of the package as ``major.minor``
