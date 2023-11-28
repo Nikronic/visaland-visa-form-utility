@@ -1,0 +1,31 @@
+[__main__: 10-10 12:15:55] {442} DEBUG - Raw data from pydantic:
+[__main__: 10-10 12:15:55] {443} DEBUG - {'sex': 'Male', 'country_where_applying_country': 'TURKEY', 'country_where_applying_status': 'other', 'previous_marriage_indicator': False, 'purpose_of_visit': 'tourism', 'funds': 8000.0, 'contact_relation_to_me': 'hotel', 'contact_relation_to_me2': 'ukn', 'education_field_of_study': 'unedu', 'occupation_title1': 'OTHER', 'occupation_title2': 'OTHER', 'occupation_title3': 'OTHER', 'no_authorized_stay': False, 'refused_entry_or_deport': False, 'previous_apply': False, 'date_of_birth': 30.0, 'country_where_applying_period': 30.0, 'marriage_period': 0.0, 'previous_marriage_period': 0.0, 'passport_expiry_date_remaining': 3.0, 'how_long_stay_period': 30.0, 'education_period': 0.0, 'occupation_period': 0.0, 'occupation_period2': 0.0, 'occupation_period3': 0.0, 'applicant_marital_status': 'single', 'previous_country_of_residence_count': 0, 'sibling_foreigner_count': 0, 'child_mother_father_spouse_foreigner_count': 0, 'child_accompany': 0, 'parent_accompany': 0, 'spouse_accompany': 0, 'sibling_accompany': 0, 'child_average_age': 0.0, 'child_count': 0, 'sibling_average_age': 0, 'sibling_count': 0, 'long_distance_child_sibling_count': 0, 'foreign_living_child_sibling_count': 0}
+
+
+[__main__: 10-10 12:15:55] {453} DEBUG - Preprocessed but not pretransformed data:
+[__main__: 10-10 12:15:55] {454} DEBUG - [['Male' 'TURKEY' 6 False 'tourism' 8000.0 'hotel' 'ukn' 'unedu' 'OTHER'
+  'OTHER' 'OTHER' False False False 30.0 30.0 0.0 0.0 3.0 30.0 0.0 0.0
+  0.0 0.0 7.0 0 0 0 0 0 0 0 0.0 0 0 0.0 0 0]]
+
+
+[__main__: 10-10 12:15:55] {460} DEBUG - Preprocessed and pretransformed data:
+[__main__: 10-10 12:15:56] {461} DEBUG - [[-0.6343730591518709 -1.0121503703335588 -0.5532877505231
+  -0.9962797985210047 -0.22541294215137328 -0.8009549767307585
+  0.3399099681628012 -1.04946653809398 -1.0590084399572444
+  -0.48189357361304047 -0.3019301897939677 1.789150599231275
+  -0.6370520341961338 -1.2706438714302097 0.0 1.0 1.0 0.0 1.0 0.0 1.0 0.0
+  1.0 0.0 1.0 0.0 0.0 1.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0
+  1.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0
+  0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 0.0 0.0 0.0 1.0 0.0 0.0 0.0 0.0 0.0 0 0
+  0 0 0 0 0 0 0 0 0]]
+
+
+[__main__: 10-10 12:15:56] {617} DEBUG - Features Pydantic type passed to the main endpoints:
+[__main__: 10-10 12:15:56] {618} DEBUG - sex='Male' country_where_applying_country='TURKEY' country_where_applying_status='other' previous_marriage_indicator=False purpose_of_visit='tourism' funds=8000.0 contact_relation_to_me='hotel' contact_relation_to_me2='ukn' education_field_of_study='unedu' occupation_title1='OTHER' occupation_title2='OTHER' occupation_title3='OTHER' no_authorized_stay=False refused_entry_or_deport=False previous_apply=False date_of_birth=30.0 country_where_applying_period=30.0 marriage_period=0.0 previous_marriage_period=0.0 passport_expiry_date_remaining=3.0 how_long_stay_period=30.0 education_period=0.0 occupation_period=0.0 occupation_period2=0.0 occupation_period3=0.0 applicant_marital_status='single' previous_country_of_residence_count=0 sibling_foreigner_count=0 child_mother_father_spouse_foreigner_count=0 child_accompany=0 parent_accompany=0 spouse_accompany=0 sibling_accompany=0 child_average_age=0.0 child_count=0 sibling_average_age=0 sibling_count=0 long_distance_child_sibling_count=0 foreign_living_child_sibling_count=0
+
+
+[__main__: 10-10 12:15:56] {619} DEBUG - Features dict type passed to the main endpoints:
+[__main__: 10-10 12:15:56] {620} DEBUG - {'sex': 'Male', 'country_where_applying_country': 'TURKEY', 'country_where_applying_status': 'other', 'previous_marriage_indicator': False, 'purpose_of_visit': 'tourism', 'funds': 8000.0, 'contact_relation_to_me': 'hotel', 'contact_relation_to_me2': 'ukn', 'education_field_of_study': 'unedu', 'occupation_title1': 'OTHER', 'occupation_title2': 'OTHER', 'occupation_title3': 'OTHER', 'no_authorized_stay': False, 'refused_entry_or_deport': False, 'previous_apply': False, 'date_of_birth': 30.0, 'country_where_applying_period': 30.0, 'marriage_period': 0.0, 'previous_marriage_period': 0.0, 'passport_expiry_date_remaining': 3.0, 'how_long_stay_period': 30.0, 'education_period': 0.0, 'occupation_period': 0.0, 'occupation_period2': 0.0, 'occupation_period3': 0.0, 'applicant_marital_status': 'single', 'previous_country_of_residence_count': 0, 'sibling_foreigner_count': 0, 'child_mother_father_spouse_foreigner_count': 0, 'child_accompany': 0, 'parent_accompany': 0, 'spouse_accompany': 0, 'sibling_accompany': 0, 'child_average_age': 0.0, 'child_count': 0, 'sibling_average_age': 0, 'sibling_count': 0, 'long_distance_child_sibling_count': 0, 'foreign_living_child_sibling_count': 0}
+
+
+[__main__: 10-10 12:15:56] {621} INFO - artifacts saved in MLflow artifacts directory.
