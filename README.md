@@ -234,12 +234,12 @@ mamba install -c anaconda pytest=7.4.0 -y
 
 #### Description
 
-Since the training is done in local machine, when I exported and then imported these trained models into `mlflow-inference.db`, all links had references to my local machine path i.e., `/home/nik/....`. I removed all these links manually by editting the database file. Note that, the directory of `mlruns-inference` is fine and requires no modification (unlike previous cases).
+Since the training is done in local machine, when I exported and then imported these trained models into `mlflow-inference.db`, all links had references to my local machine path i.e., `/home/username/....`. I removed all these links manually by editing the database file. Note that, the directory of `mlruns-inference` is fine and requires no modification (unlike previous cases).
 
 This is done thanks to:
 
-1. [mlflow import export utility](https://github.com/mlflow/mlflow-export-import/blob/master/README_single.md): enables exporting registered models from one server and then importing them into another mlflow db and server.
-2. [DB Browser for SQLite](https://sqlitebrowser.org/): enables modifying the mlflow db manually to remove all those absolute paths of local machine
+1. [mlflow import export utility](https://github.com/mlflow/mlflow-export-import/blob/master/README_single.md): enables exporting registered models from one server and then importing them into another mlflow db and server. Install via `pip install mlflow-export-import`.
+2. [DB Browser for SQLite](https://sqlitebrowser.org/): enables modifying the mlflow db manually to remove all those absolute paths of local machine.
 
 #### Steps
 
@@ -247,23 +247,29 @@ Steps needed to migrate a registered model trained on server A (e.g., local mach
 
 1. Start mlflow on server A
 
-```bash
-# run mlflow of SERVER A on port 5000
-export MLFLOW_TRACKING_URI=http://localhost:5000
-```
+    ```bash
+    # run mlflow of SERVER A on port 5000
+    export MLFLOW_TRACKING_URI=http://localhost:5000
+    ```
 
-2. Export mlflow registered model:
+2. Export mlflow registered model (set `stages` if you want `[Staging, Production, Archived]`):
 
-```bash
-export-model --model v0.20.0-d2.0.1 --output-dir temp_ --stages Staging
-```
+    ```bash
+    export-model --model v0.20.0-d2.0.1 --output-dir temp_ --stages Staging
+    ```
 
 3. turn on the mlflow on server B (I assume it is on port 5000 too).
 
 4. Import exported model from step `2`:
 
-```bash
-import-model --model v0.20.0-d2.0.1 --experiment-name train_on_v0.20.0-d2.0.1-HOTFIX \--input-dir temp_
-```
+    ```bash
+    import-model --model v0.20.0-d2.0.1 --experiment-name train_on_v0.20.0-d2.0.1 \--input-dir temp_
+    ```
 
 5. Open the mlflow database (e.g., `mlflow-inference.db`) on server B and manually edit entries that include absolute path of server A with their relative path. For that, tables `model_versions` and `runs`.
+
+6. In some cases (I really don't the bug), the registered model is not transferred. In this case, `registered_models` need to be fixed too.
+
+#### Remark
+
+It is a ugly scene where we have to manually do something that happens all the time. Hence, a script for fixing this should be provided.
