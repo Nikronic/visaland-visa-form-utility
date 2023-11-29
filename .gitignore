@@ -64,18 +64,15 @@ temp.py
 # sample files
 sample
 
-# ignore logs, they are going to be recorded as artifacts using DVC
-logs
-
 # ignore raw-dataset/*files
 raw-dataset/all
 raw-dataset/field_data
 
 # ignore redundant logs
-mlruns
+mlruns/
 notebooks/mlruns
 mlflow-runs
-artifacts
+api/artifacts
 mlflow.db
 
 # gradio
@@ -87,3 +84,6 @@ gradio/models
 # ignore manually added temp files
 #  ignores anything that starts with ``temp_``
 temp_*
+
+# track mlruns-inference as it only contains production runs
+!mlruns-inference
