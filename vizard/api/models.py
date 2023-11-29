@@ -209,7 +209,7 @@ class Payload(BaseModel):
                     f'"{value}" is not valid'
                     f' Please use one of "{CanadaMarriageStatus.get_member_names()}"'
                 )
-            return value
+            return CanadaMarriageStatus[value.upper()].value
         elif isinstance(value, int) or isinstance(value, float) or value.isnumeric():
             value = int(value)
             # get Enum values # TODO: use const class or dict
