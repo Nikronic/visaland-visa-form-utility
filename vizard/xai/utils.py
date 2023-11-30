@@ -81,5 +81,4 @@ logical_dict: Dict[str, List[str]] = {
     "marriage_period": ["applicant_marital_status"],
     "child_accompany": ["applicant_marital_status", "child_count"],
     "child_count": ["applicant_marital_status"],
-    "sibling_accompany": ["sibling_count"],
 }
