@@ -22,7 +22,7 @@ def logical_questions(is_answered: List, answers: Dict) -> Tuple:
     if (
         "applicant_marital_status" in is_answered
         and answers["applicant_marital_status"]
-        == constant.CanadaMarriageStatus.SINGLE.name
+        == constant.CanadaMarriageStatus.SINGLE.value
     ):
         answers["child_count"] = 0
         answers["child_accompany"] = 0
