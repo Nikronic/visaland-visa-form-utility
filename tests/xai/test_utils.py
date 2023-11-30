@@ -12,7 +12,7 @@ def test_logical_questions():
             "spouse_accompany",
         ],
         {
-            "applicant_marital_status": constant.CanadaMarriageStatus.SINGLE.name,
+            "applicant_marital_status": constant.CanadaMarriageStatus.SINGLE.value,
             "child_count": 0,
             "child_accompany": 0,
             "marriage_period": 0,
@@ -20,8 +20,7 @@ def test_logical_questions():
         },
     )
     is_answered = ["applicant_marital_status"]
-    answers = {"applicant_marital_status": constant.CanadaMarriageStatus.SINGLE.name}
-
+    answers = {"applicant_marital_status": constant.CanadaMarriageStatus.SINGLE.value}
     check = utils.logical_questions(is_answered, answers)
     assert check == correct_answer, "test logical questions has been failed"
 
