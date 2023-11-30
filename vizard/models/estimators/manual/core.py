@@ -4,6 +4,7 @@ __all__ = [
     "TravelHistoryParameterBuilder",
 ]
 
+import math
 from typing import Any, Dict, List, Optional
 
 from vizard.data.constant import FeatureCategories
@@ -85,8 +86,10 @@ class ParameterBuilderBase:
         if not isinstance(percent, float):
             raise ValueError(f"'{percent}' is not a float.")
 
-        if (percent > 1.0) or (percent < 0.0):
-            raise ValueError("'Value should be in '0.0<=value<=1.0'")
+        # takes care of numerical precision #152
+        if not (math.isclose(percent, 0.0) or math.isclose(percent, 1.0)):
+            if (percent > 1.0) or (percent < 0.0):
+                raise ValueError("'Value should be in '0.0<=value<=1.0'")
 
     def _grouped_xai_check(self, group: Dict[str, float]) -> None:
         """Checks if the input is a group of percentage in [0, 1]
