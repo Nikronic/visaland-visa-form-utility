@@ -199,6 +199,10 @@ flaml_tree_explainer = FlamlTreeExplainer(
 invitation_letter_param = InvitationLetterParameterBuilder()
 # Create instances of manual parameter insertion
 travel_history_param = TravelHistoryParameterBuilder()
+MANUAL_PARAM_NAMES: List[str] = [
+    invitation_letter_param.name,
+    travel_history_param.name,
+]
 
 # instantiate fast api app
 app = fastapi.FastAPI(
@@ -444,6 +448,14 @@ async def predict(
             next_logical_variable = utils.logical_order(
                 next_suggested_variable, utils.logical_dict, is_answered
             )
+
+        # add instances of manual variables' names as a next suggested variable
+        next_logical_variable = utils.append_parameter_builder_instances(
+            suggested=next_logical_variable,
+            parameter_builder_instances_names=MANUAL_PARAM_NAMES,
+            len_user_answered_params=len(features_dict),
+            len_logically_answered_params=len(is_answered),
+        )
 
         logger.info("Inference finished")
         return {"result": result, "next_variable": next_logical_variable}
