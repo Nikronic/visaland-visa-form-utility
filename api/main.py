@@ -449,16 +449,13 @@ async def predict(
                 next_suggested_variable, utils.logical_dict, is_answered
             )
 
-        # add manual variables as the next suggested variables
-        if (len(features_dict) == len(is_answered)) and (len(MANUAL_PARAM_NAMES) > 0):
-            # if all non-manual questions are answered
-            manual_param_name: str = MANUAL_PARAM_NAMES.pop()
-            if next_logical_variable != "":
-                raise ValueError(
-                    f'manual parameter "{manual_param_name}" is '
-                    f'overriding XAI suggested value "{next_logical_variable}"'
-                )
-            next_logical_variable = manual_param_name
+        # add instances of manual variables' names as a next suggested variable
+        next_logical_variable = utils.append_parameter_builder_instances(
+            suggested=next_logical_variable,
+            parameter_builder_instances_names=MANUAL_PARAM_NAMES,
+            len_user_answered_params=len(features_dict),
+            len_logically_answered_params=len(is_answered),
+        )
 
         logger.info("Inference finished")
         return {"result": result, "next_variable": next_logical_variable}

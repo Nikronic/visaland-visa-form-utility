@@ -1,3 +1,5 @@
+__all__ = ["append_parameter_builder_instances", "logical_questions", "logical_order"]
+
 from typing import Dict, List, Tuple
 
 from vizard.data import constant
@@ -74,6 +76,51 @@ def logical_order(
                 return item
     else:
         return question_title
+
+
+def append_parameter_builder_instances(
+    suggested: str,
+    parameter_builder_instances_names: List[str],
+    len_user_answered_params: int,
+    len_logically_answered_params: int,
+) -> str:
+    """Append names of manual parameters to the list of suggested questions
+
+
+
+    Args:
+        suggested (str): The currently logically suggested question. For more info,
+            see :func:`vizard.xai.logical_order`.
+        parameter_builder_instances_names (List[str]): List names of the instances of
+            :class:`vizard.models.estimators.manual.core.ParameterBuilderBase`. In
+            other words, list of names of *manual* parameters.
+        len_user_answered_params (int): How many of non-*manual* questions are answered
+            by the user. In other words, number of items in the `Payload`.
+        len_logically_answered_params (int): How many of questions are logically answered
+            given the user answered parameters. For more info, see
+            see :func:`vizard.xai.logical_order`.
+
+    Raises:
+        ValueError:
+            If this method overrides the value of ``suggested`` question that is not
+            answered yet by the user or logically.
+
+    Returns:
+        str: The next suggested question, which is an item of ``parameter_builder_instances_names``
+    """
+    # if all non-manual questions are answered
+    if len_user_answered_params == len_logically_answered_params:
+        # if there are still parameter builder instances not suggested yet
+        if len(parameter_builder_instances_names) > 0:
+            manual_param_name: str = parameter_builder_instances_names.pop()
+            if suggested != "":
+                raise ValueError(
+                    f'manual parameter "{manual_param_name}" is '
+                    f'overriding XAI suggested value "{suggested}"'
+                )
+            return manual_param_name
+    # no suggestion
+    return suggested
 
 
 logical_dict: Dict[str, List[str]] = {
