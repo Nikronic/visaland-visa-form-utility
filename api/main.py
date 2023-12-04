@@ -199,6 +199,10 @@ flaml_tree_explainer = FlamlTreeExplainer(
 invitation_letter_param = InvitationLetterParameterBuilder()
 # Create instances of manual parameter insertion
 travel_history_param = TravelHistoryParameterBuilder()
+MANUAL_PARAM_NAMES: List[str] = [
+    invitation_letter_param.name,
+    travel_history_param.name,
+]
 
 # instantiate fast api app
 app = fastapi.FastAPI(
@@ -444,6 +448,17 @@ async def predict(
             next_logical_variable = utils.logical_order(
                 next_suggested_variable, utils.logical_dict, is_answered
             )
+
+        # add manual variables as the next suggested variables
+        if (len(features_dict) == len(is_answered)) and (len(MANUAL_PARAM_NAMES) > 0):
+            # if all non-manual questions are answered
+            manual_param_name: str = MANUAL_PARAM_NAMES.pop()
+            if next_logical_variable != "":
+                raise ValueError(
+                    f'manual parameter "{manual_param_name}" is '
+                    f'overriding XAI suggested value "{next_logical_variable}"'
+                )
+            next_logical_variable = manual_param_name
 
         logger.info("Inference finished")
         return {"result": result, "next_variable": next_logical_variable}
