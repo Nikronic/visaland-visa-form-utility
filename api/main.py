@@ -199,10 +199,10 @@ flaml_tree_explainer = FlamlTreeExplainer(
 invitation_letter_param = InvitationLetterParameterBuilder()
 # Create instances of manual parameter insertion
 travel_history_param = TravelHistoryParameterBuilder()
-MANUAL_PARAM_NAMES: List[str] = [
-    invitation_letter_param.name,
-    travel_history_param.name,
-]
+MANUAL_PARAM_NAMES_ANSWERED_DICT: Dict[str, bool] = {
+    invitation_letter_param.name: False,
+    travel_history_param.name: False,
+}
 
 # instantiate fast api app
 app = fastapi.FastAPI(
@@ -396,6 +396,15 @@ async def predict(
         features_dict: Dict[str, Any] = features.model_dump()
         provided_variables: List[str] = features.provided_variables
 
+        # reset manual variable responses
+        for k, _ in MANUAL_PARAM_NAMES_ANSWERED_DICT.items():
+            MANUAL_PARAM_NAMES_ANSWERED_DICT[k] = False
+
+        # if manual param is answered, make its value True
+        for param in provided_variables:
+            if param in MANUAL_PARAM_NAMES_ANSWERED_DICT.keys():
+                MANUAL_PARAM_NAMES_ANSWERED_DICT[param] = True
+
         # set response for invitation letter
         invitation_letter_param.set_response(
             response=InvitationLetterSenderRelation(features.invitation_letter),
@@ -452,7 +461,9 @@ async def predict(
         # add instances of manual variables' names as a next suggested variable
         next_logical_variable = utils.append_parameter_builder_instances(
             suggested=next_logical_variable,
-            parameter_builder_instances_names=MANUAL_PARAM_NAMES,
+            parameter_builder_instances_names=list(
+                k for k, v in MANUAL_PARAM_NAMES_ANSWERED_DICT.items() if not v
+            ),
             len_user_answered_params=len(features_dict),
             len_logically_answered_params=len(is_answered),
         )
