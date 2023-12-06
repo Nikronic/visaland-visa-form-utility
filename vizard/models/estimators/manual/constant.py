@@ -3,6 +3,8 @@ __all__ = [
     "INVITATION_LETTER_SENDER_IMPORTANCE",
     "TravelHistoryRegion",
     "TRAVEL_HISTORY_REGION_IMPORTANCE",
+    "BankBalanceStatus",
+    "BANK_BALANCE_STATUS_IMPORTANCE",
 ]
 
 from enum import Enum
@@ -104,4 +106,54 @@ Note:
 
 See Also:
     :class:`vizard.models.estimators.manual.core.TravelHistoryParameterBuilder`
+"""
+
+
+class BankBalanceStatus(Enum):
+    """Our custom categorization of bank balance status based on continuous value of it
+
+    Note:
+        This customization is based on our domain experts and only based on the minimum
+        requirement of required balance.
+
+    Note:
+        See issue #137 to further know about the reason behind having a negative
+        importance for `"base"`.
+
+    Variable description:
+     - ``HIGH``: More than 450 (million Toman) per person
+     - ``NORMAL``: Around 350 ± 50 (million Toman) per person
+     - ``LOW``: Lower than 250 (million Toman) per person
+
+
+    """
+
+    HIGH = "high"
+    NORMAL = "normal"
+    LOW = "low"
+    BASE = "base"  # negative effect for not normalizing other features - see #137
+
+
+BANK_BALANCE_STATUS_IMPORTANCE: Dict[BankBalanceStatus, float] = {
+    BankBalanceStatus.HIGH: 0.07,
+    BankBalanceStatus.NORMAL: 0.05,
+    BankBalanceStatus.LOW: 0.0,
+    BankBalanceStatus.BASE: -0.05,
+}
+"""A mapping from :class:`BankBalanceStatus` to a percentage based importance
+
+This dictionary used to map user responses to the importance of their response,
+and hence, manipulate calculated values such as chance as part of manual insertion
+of parameters via :class:`vizard.models.estimators.manual.core.ParameterBuilderBase`
+
+Note:
+    The keys of this dictionary are
+        :class:`vizard.models.estimators.manual.constant.BankBalanceStatus`
+
+Note:
+    See issue #137 to further know about the reason behind having a negative
+    importance for `"base"`.
+
+See Also:
+    :class:`vizard.models.estimators.manual.core.BankBalanceParameterBuilder`
 """
