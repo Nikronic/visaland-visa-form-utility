@@ -603,6 +603,15 @@ FEATURE_CATEGORY_TO_FEATURE_NAME_MAP = {
         "P1.PD.PrevCOR.Row2.Period",
         "P1.PD.PrevCOR.Row3.Period",
         "P1.PD.PrevCOR.Row.Count",
+        # shared
+        "P3.Edu.Edu_Row1.Country.Country",
+        "P3.Occ.OccRow1.Country.Country",
+        "P3.Occ.OccRow2.Country.Country",
+        "P3.Occ.OccRow3.Country.Country",
+        "P1.PD.CWA.Row2.Period",
+        "p1.SecC.Chd.X.ChdCOB.ForeignerCount",
+        "p1.SecB.ChdMoFaSps.X.ChdCOB.ForeignerCount",
+        "p1.SecX.ForeignAddr"
     ],
     FeatureCategories.EMOTIONAL: [
         "P1.PD.AliasName.AliasNameIndicator.AliasNameIndicator",
@@ -661,6 +670,14 @@ FEATURE_CATEGORY_TO_FEATURE_NAME_MAP = {
         "p1.SecC.Chd.X.ChdCOB.ForeignerCount",
         "p1.SecB.ChdMoFaSps.X.ChdCOB.ForeignerCount",
         "p1.SecX.ForeignAddr",
+        # shared
+        "P3.Edu.Edu_Row1.Country.Country",
+        "P3.Occ.OccRow1.Country.Country",
+        "P3.Occ.OccRow2.Country.Country",
+        "P3.Occ.OccRow3.Country.Country",
+        "P1.PD.PrevCOR.Row2.Period",
+        "P1.PD.PrevCOR.Row3.Period",
+        "P1.PD.PrevCOR.Row.Count"
     ],
     FeatureCategories.CAREER: [
         "P3.Edu.EduIndicator",
@@ -682,6 +699,13 @@ FEATURE_CATEGORY_TO_FEATURE_NAME_MAP = {
         "P3.DOV.PrpsRow1.Funds.Funds",
         # doubted
         "P1.PD.CWA.Row2.Period",
+        # shared
+        "P3.Occ.OccRow1.Occ.Occ",
+        "P3.Occ.OccRow2.Occ.Occ",
+        "P3.Occ.OccRow3.Occ.Occ",
+        "P3.Occ.OccRow1.Period",
+        "P3.Occ.OccRow2.Period",
+        "P3.Occ.OccRow3.Period",
     ],
 }
 """Dictionary of features belonging to each category
@@ -717,6 +741,12 @@ Note:
         10. 79  p1.SecC.Chd.X.ChdCOB.ForeignerCount: 1 (2)
         11. 80  p1.SecB.ChdMoFaSps.X.ChdCOB.ForeignerCount: 1 (2)
         12. 88  p1.SecX.ForeignAddr: 1 (2)
+        13. P3.Occ.OccRow1.Occ.Occ: (3) 4
+        14. P3.Occ.OccRow2.Occ.Occ: (3) 4
+        15. P3.Occ.OccRow3.Occ.Occ: (3) 4
+        16. P3.Occ.OccRow1.Period: (3) 4
+        16. P3.Occ.OccRow2.Period: (3) 4
+        16. P3.Occ.OccRow3.Period: (3) 4
     
     First value represents the feature index in database, second value
     represents the name of the feature, and anything after ``:`` demos
