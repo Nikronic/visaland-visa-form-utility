@@ -228,6 +228,24 @@ class ParameterBuilderBase:
 
 
 class ContinuousParameterBuilderBase(ParameterBuilderBase):
+    """A simple extension on top of `ParameterBuilderBase` for continuous parameters
+
+    This class enables us to have an arbitrary
+    :class:`vizard.models.estimators.manual.interpolator.ContinuousInterpolator` for obtaining
+    the:attr:`importance` values for that continuous param. Any new continuous param should
+    extend :class:`vizard.models.estimators.manual.core.ContinuousParameterBuilderBase` class,
+    and as before, implement the `_modifier` methods. The bounds or any other *constants* needed
+    for this new continuous variable needs to be defined inside the
+    :mod:`vizard.models.estimators.manual.constant` module. Also, the interpolator for the importance
+    values needs to be defined inside :mod:`vizard.models.estimators.manual.interpolator.` module.
+
+    See Also:
+        - :class:`vizard.models.estimators.manual.core.ContinuousParameterBuilderBase`
+        - :mod:`vizard.models.estimators.manual.interpolator.`
+        - :class:`vizard.models.estimators.manual.interpolator.ContinuousInterpolator`
+        - :mod:`vizard.models.estimators.manual.constant`
+    """
+
     def __init__(
         self,
         name: str,
@@ -447,6 +465,7 @@ class TravelHistoryParameterBuilder(ParameterBuilderBase):
             new_grouped_xai[key] = value
         return new_grouped_xai
 
+
 class BankBalanceContinuousParameterBuilder(ContinuousParameterBuilderBase):
     """Manual continuous parameter for `bank_balance`
 
@@ -456,8 +475,9 @@ class BankBalanceContinuousParameterBuilder(ContinuousParameterBuilderBase):
         - :mod:`vizard.models.estimators.manual.constant.BankBalanceStatus`
         - :dict:`vizard.models.estimators.manual.constant.BANK_BALANCE_STATUS_IMPORTANCE`
         - :dict:`vizard.models.estimators.manual.constant.BANK_BALANCE_INPUT_BOUND`
-        
+
     """
+
     def __init__(self) -> None:
         name: str = "bank_balance"
         responses: Callable = interpolator.BankBalanceInterpolator()

@@ -12,6 +12,26 @@ from vizard.models.estimators.manual.functional import truncated_scaler
 
 
 class ContinuousInterpolator:
+    """The base class for any interpolator used for manual parameters
+
+    Any desired interpolator must extend this class.
+
+    For construction of continuous manual parameters
+    :class:`vizard.models.estimators.manual.core.ContinuousParameterBuilderBase` an
+    interpolator is required as the possible *responses* (categorical variables does not
+    require such interpolation is the value for each category is fixed.). The constant
+    values used for construction this interpolator must be defined inside
+    :mod:`vizard.models.estimators.manual.constant` module. Note that the final
+    constructed manual parameter must reside in :mod:`vizard.models.estimators.manual.core`.
+
+    See Also:
+
+        - :class:`vizard.models.estimators.manual.core.ContinuousParameterBuilderBase`
+        - :mod:`vizard.models.estimators.manual.constant`
+        - :mod:`vizard.models.estimators.manual.core`
+
+    """
+
     def __init__(self, **kwargs) -> None:
         pass
 
