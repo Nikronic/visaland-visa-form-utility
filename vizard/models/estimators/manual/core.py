@@ -1,11 +1,12 @@
 __all__ = [
     "ParameterBuilderBase",
+    "ContinuousParameterBuilderBase",
     "InvitationLetterParameterBuilder",
     "TravelHistoryParameterBuilder",
 ]
 
 import math
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from vizard.data.constant import FeatureCategories
 from vizard.models.estimators.manual import constant, functional
@@ -223,6 +224,51 @@ class ParameterBuilderBase:
         """
 
         raise NotImplementedError("Please extend this class and implement this method")
+
+
+class ContinuousParameterBuilderBase(ParameterBuilderBase):
+    def __init__(
+        self,
+        name: str,
+        responses: Callable,
+        feature_category: FeatureCategories | List[FeatureCategories],
+    ) -> None:
+        super().__init__(name, responses, feature_category)
+
+    def _percent_check(self, percent: float) -> None:
+        """Checks if the input variable is a percentage in [-1, 1]
+
+        Args:
+            percent (float): A standardized value
+        """
+
+        if not isinstance(percent, float):
+            raise ValueError(f"'{percent}' is not a float.")
+
+        # takes care of numerical precision #152
+        if not (math.isclose(percent, -1.0) or math.isclose(percent, 1.0)):
+            if (percent > 1.0) or (percent < -1.0):
+                raise ValueError("'Value should be in '-1.0<=value<=1.0'")
+
+    def set_response(self, response: float) -> float:
+        """Sets the response to calculate ``importance`` used for ``_modifier`` s
+
+        Args:
+            response (float): A continuous number as a response that will be passed
+                to ``responses`` as a callable that computes the importance dynamically.
+        Returns:
+            float: Returns the calculated importance
+        """
+
+        # check if response is valid
+        if not (isinstance(response, float) or isinstance(response, int)):
+            raise ValueError(f"'{response}' is not a valid number.")
+
+        self.response = response
+        self.importance = self.responses(response)
+        # check for range
+        self._percent_check(percent=self.importance)
+        return self.importance
 
 
 class InvitationLetterParameterBuilder(ParameterBuilderBase):
