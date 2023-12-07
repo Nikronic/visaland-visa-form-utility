@@ -121,23 +121,20 @@ class BankBalanceStatus(Enum):
         importance for `"base"`.
 
     Variable description:
-     - ``HIGH``: More than 450 (million Toman) per person
-     - ``NORMAL``: Around 350 ± 50 (million Toman) per person
-     - ``LOW``: Lower than 250 (million Toman) per person
 
+     - ``HIGH``: More than 450 (million Toman) per person
+     - ``LOW``: Lower than 250 (million Toman) per person
 
     """
 
     HIGH = "high"
-    NORMAL = "normal"
     LOW = "low"
     BASE = "base"  # negative effect for not normalizing other features - see #137
 
 
 BANK_BALANCE_STATUS_IMPORTANCE: Dict[BankBalanceStatus, float] = {
     BankBalanceStatus.HIGH: 0.07,
-    BankBalanceStatus.NORMAL: 0.05,
-    BankBalanceStatus.LOW: 0.0,
+    BankBalanceStatus.LOW: -0.05,
     BankBalanceStatus.BASE: -0.05,
 }
 """A mapping from :class:`BankBalanceStatus` to a percentage based importance
