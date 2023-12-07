@@ -5,6 +5,7 @@ __all__ = [
     "TRAVEL_HISTORY_REGION_IMPORTANCE",
     "BankBalanceStatus",
     "BANK_BALANCE_STATUS_IMPORTANCE",
+    "BANK_BALANCE_INPUT_BOUND",
 ]
 
 from enum import Enum
@@ -153,4 +154,20 @@ Note:
 
 See Also:
     :class:`vizard.models.estimators.manual.core.BankBalanceParameterBuilder`
+"""
+
+BANK_BALANCE_INPUT_BOUND: Dict[str, float] = {
+    BankBalanceStatus.LOW: 100.0,
+    BankBalanceStatus.HIGH: 600.0,
+}
+"""A dictionary of bounds of input value for `bank_balance` responses
+
+These values used for bounds of a (non) linear mapping for interpolating input values
+to a desired range.
+
+See Also:
+
+    - :class:`vizard.models.estimators.manual.interpolator.BankBalanceInterpolator` which is a
+        wrapper around :func:`vizard.models.estimators.manual.functional.truncated_scaler`
+
 """
