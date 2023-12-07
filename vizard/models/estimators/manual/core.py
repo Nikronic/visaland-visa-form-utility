@@ -3,13 +3,14 @@ __all__ = [
     "ContinuousParameterBuilderBase",
     "InvitationLetterParameterBuilder",
     "TravelHistoryParameterBuilder",
+    "BankBalanceContinuousParameterBuilder",
 ]
 
 import math
 from typing import Any, Callable, Dict, List, Optional
 
 from vizard.data.constant import FeatureCategories
-from vizard.models.estimators.manual import constant, functional
+from vizard.models.estimators.manual import constant, functional, interpolator
 
 
 class ParameterBuilderBase:
@@ -442,6 +443,107 @@ class TravelHistoryParameterBuilder(ParameterBuilderBase):
                     percent=value,
                     new_value=self.importance,
                     shift=self.responses[constant.TravelHistoryRegion.BASE],
+                )
+            new_grouped_xai[key] = value
+        return new_grouped_xai
+
+class BankBalanceContinuousParameterBuilder(ContinuousParameterBuilderBase):
+    """Manual continuous parameter for `bank_balance`
+
+    See Also:
+
+        - :class:`vizard.models.estimators.manual.interpolator.BankBalanceInterpolator`
+        - :mod:`vizard.models.estimators.manual.constant.BankBalanceStatus`
+        - :dict:`vizard.models.estimators.manual.constant.BANK_BALANCE_STATUS_IMPORTANCE`
+        - :dict:`vizard.models.estimators.manual.constant.BANK_BALANCE_INPUT_BOUND`
+        
+    """
+    def __init__(self) -> None:
+        name: str = "bank_balance"
+        responses: Callable = interpolator.BankBalanceInterpolator()
+        feature_category: FeatureCategories = FeatureCategories(
+            FeatureCategories.FINANCIAL
+        )
+
+        super().__init__(name, responses, feature_category)
+
+    def potential_modifier(self, potential: float) -> float:
+        """Modifies ``potential`` based on given importance
+
+        See Also:
+            Base method :meth:`vizard.models.estimators.manual.ParameterBuilderBase.potential_modifier`
+        """
+        # check if response is provided
+        self._check_importance_set()
+        # check input is valid
+        self._percent_check(percent=potential)
+
+        new_potential: float = functional.extend_mean(
+            percent=potential,
+            new_value=self.importance,
+            shift=constant.BANK_BALANCE_STATUS_IMPORTANCE[
+                constant.BankBalanceStatus.BASE
+            ],
+        )
+
+        # `potential` is a percent value
+        new_potential = self._clip_to_percent(value=new_potential)
+
+        return new_potential
+
+    def probability_modifier(self, probability: float) -> float:
+        """Modifies ``probability`` based on given importance
+
+        See Also:
+            Base method :meth:`vizard.models.estimators.manual.ParameterBuilderBase.probability_modifier`
+        """
+        # check if response is provided
+        self._check_importance_set()
+        # check input is valid
+        self._percent_check(percent=probability)
+
+        new_probability: float = functional.extend_mean(
+            percent=probability,
+            new_value=self.importance,
+            shift=constant.BANK_BALANCE_STATUS_IMPORTANCE[
+                constant.BankBalanceStatus.BASE
+            ],
+        )
+
+        # `new_probability` is a percent value
+        new_probability = self._clip_to_percent(value=new_probability)
+
+        return new_probability
+
+    def grouped_xai_modifier(self, grouped_xai: Dict[str, float]) -> Dict[str, float]:
+        """Modifies ``grouped_xai`` based on given importance
+
+        Note:
+            This operation is not ``inplace``.
+
+        See Also:
+            Base method :meth:`vizard.models.estimators.manual.ParameterBuilderBase.grouped_xai_modifier`
+        """
+        # check if response is provided
+        self._check_importance_set()
+        # check input is valid
+        self._grouped_xai_check(group=grouped_xai)
+
+        # get the group assigned in parameter builder
+        xai_group: str = FeatureCategories(self.feature_category).name
+        # create a new dictionary to prevent inplace operation
+        new_grouped_xai: Dict[str, float] = {}
+        # TODO: implement list of feature_category
+
+        # update the key that matches `feature_category`
+        for key, value in grouped_xai.items():
+            if key == xai_group:
+                value = functional.extend_mean(
+                    percent=value,
+                    new_value=self.importance,
+                    shift=constant.BANK_BALANCE_STATUS_IMPORTANCE[
+                        constant.BankBalanceStatus.BASE
+                    ],
                 )
             new_grouped_xai[key] = value
         return new_grouped_xai
