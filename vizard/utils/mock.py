@@ -122,22 +122,3 @@ class SampleGenerator:
 
     def chap(self):
         print(self.feature_names)
-
-
-feature_values = {
-    "sex": ["male", "female"],
-    "education_field_of_study": constant.EducationFieldOfStudy.get_member_names(),
-    "occupation_title1": constant.OccupationTitle.get_member_names(),
-    "refused_entry_or_deport": [True, False],
-    "date_of_birth": list(range(18, 55)),
-    "marriage_period": list(range(30)),
-    "occupation_period": list(range(30)),
-    "applicant_marital_status": [3, 5, 7, 8],
-    "child_accompany": list(range(5)),
-    "parent_accompany": list(range(3)),
-    "spouse_accompany": list(range(2)),
-    "sibling_accompany": list(range(3)),
-    "child_count": list(range(5)),
-    "invitation_letter": list(InvitationLetterSenderRelation._value2member_map_.keys()),
-    "travel_history": list(TravelHistoryRegion._value2member_map_.keys()),
-}
