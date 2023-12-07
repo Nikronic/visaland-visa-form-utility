@@ -2,10 +2,8 @@ from itertools import chain, combinations, product
 from typing import Any, Dict, List
 
 from vizard.data import constant
-from vizard.models.estimators.manual import (
-    InvitationLetterSenderRelation,
-    TravelHistoryRegion,
-)
+from vizard.models.estimators.manual import (InvitationLetterSenderRelation,
+                                             TravelHistoryRegion)
 
 
 class SampleGenerator:
@@ -49,7 +47,7 @@ class SampleGenerator:
         }
 
     @staticmethod
-    def powerset(iterable: List) -> List[List]:
+    def _powerset(iterable: List) -> List[List]:
         """create a power-set (all possible subsets) from our list
         Args:
             iterable (List): given list of all feature_names to create subsets
@@ -77,18 +75,18 @@ class SampleGenerator:
         if feature_values is None:
             feature_values = self.feature_values  # Set default feature_values
 
-        powerset_list = self.powerset(feature_names)
+        powerset_list = self._powerset(feature_names)
         samples = []
         while powerset_list:
             z = powerset_list.pop()
-            sub_dict = self.sub_dict_with_keys(
+            sub_dict = self._sub_dict_with_keys(
                 z, feature_values
             )  # dict with only keys that are in our sub list
-            samples.extend(self.product_generator(sub_dict))
+            samples.extend(self._product_generator(sub_dict))
         return samples
 
     @staticmethod
-    def product_generator(dictionary: Dict[str, List]) -> List[Dict[str, Any]]:
+    def _product_generator(dictionary: Dict[str, List]) -> List[Dict[str, Any]]:
         """it gets a dictionary of acceptable values then create product of them
         Args:
             dictionary (Dict[str, List]): a dictionary of all acceptable values for each feature -> feature_name:list(acceptable_values)
@@ -110,7 +108,7 @@ class SampleGenerator:
         return result
 
     @staticmethod
-    def sub_dict_with_keys(
+    def _sub_dict_with_keys(
         input_list: List, input_dict: Dict[str, List]
     ) -> Dict[str, List]:
         """take the whole dict and returns sub dict with only items that their key is on our list
