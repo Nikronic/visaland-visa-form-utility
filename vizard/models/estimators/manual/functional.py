@@ -29,3 +29,36 @@ def extend_mean(
 
     new_percent: float = percent + (shift * percent) + new_value
     return new_percent
+
+
+def truncated_scaler(
+    x: float,
+    x_min_range: float,
+    x_max_range: float,
+    target_min_range: float,
+    target_max_range: float,
+) -> float:
+    """Scales a value to a desired range given range of the input
+
+    Args:
+        x (float): Input value to be scaled
+        x_min_range (float): denote the minimum of the range of input
+        x_max_range (float): denote the maximum of the range of input
+        target_min_range (float): denote the minimum of the range of desired target scaling
+        target_max_range (float): denote the maximum of the range of desired target scaling
+
+    Returns:
+        float: The scaled value in range of ``[target_min_range, target_max_range]``
+
+    Reference:
+        - https://stats.stackexchange.com/a/281164/216826
+    """
+
+    interpolated: float = 0.0
+    interpolated = (x - x_min_range) / (x_max_range - x_min_range)
+    interpolated = (
+        interpolated * (target_max_range - target_min_range) + target_min_range
+    )
+    return interpolated
+
+print
