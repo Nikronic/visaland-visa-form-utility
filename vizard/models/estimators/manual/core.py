@@ -1,14 +1,16 @@
 __all__ = [
     "ParameterBuilderBase",
+    "ContinuousParameterBuilderBase",
     "InvitationLetterParameterBuilder",
     "TravelHistoryParameterBuilder",
+    "BankBalanceContinuousParameterBuilder",
 ]
 
 import math
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 from vizard.data.constant import FeatureCategories
-from vizard.models.estimators.manual import constant, functional
+from vizard.models.estimators.manual import constant, functional, interpolator
 
 
 class ParameterBuilderBase:
@@ -225,6 +227,69 @@ class ParameterBuilderBase:
         raise NotImplementedError("Please extend this class and implement this method")
 
 
+class ContinuousParameterBuilderBase(ParameterBuilderBase):
+    """A simple extension on top of `ParameterBuilderBase` for continuous parameters
+
+    This class enables us to have an arbitrary
+    :class:`vizard.models.estimators.manual.interpolator.ContinuousInterpolator` for obtaining
+    the:attr:`importance` values for that continuous param. Any new continuous param should
+    extend :class:`vizard.models.estimators.manual.core.ContinuousParameterBuilderBase` class,
+    and as before, implement the `_modifier` methods. The bounds or any other *constants* needed
+    for this new continuous variable needs to be defined inside the
+    :mod:`vizard.models.estimators.manual.constant` module. Also, the interpolator for the importance
+    values needs to be defined inside :mod:`vizard.models.estimators.manual.interpolator.` module.
+
+    See Also:
+        - :class:`vizard.models.estimators.manual.core.ContinuousParameterBuilderBase`
+        - :mod:`vizard.models.estimators.manual.interpolator.`
+        - :class:`vizard.models.estimators.manual.interpolator.ContinuousInterpolator`
+        - :mod:`vizard.models.estimators.manual.constant`
+    """
+
+    def __init__(
+        self,
+        name: str,
+        responses: Callable,
+        feature_category: FeatureCategories | List[FeatureCategories],
+    ) -> None:
+        super().__init__(name, responses, feature_category)
+
+    def _percent_check(self, percent: float) -> None:
+        """Checks if the input variable is a percentage in [-1, 1]
+
+        Args:
+            percent (float): A standardized value
+        """
+
+        if not isinstance(percent, float):
+            raise ValueError(f"'{percent}' is not a float.")
+
+        # takes care of numerical precision #152
+        if not (math.isclose(percent, -1.0) or math.isclose(percent, 1.0)):
+            if (percent > 1.0) or (percent < -1.0):
+                raise ValueError("'Value should be in '-1.0<=value<=1.0'")
+
+    def set_response(self, response: float) -> float:
+        """Sets the response to calculate ``importance`` used for ``_modifier`` s
+
+        Args:
+            response (float): A continuous number as a response that will be passed
+                to ``responses`` as a callable that computes the importance dynamically.
+        Returns:
+            float: Returns the calculated importance
+        """
+
+        # check if response is valid
+        if not (isinstance(response, float) or isinstance(response, int)):
+            raise ValueError(f"'{response}' is not a valid number.")
+
+        self.response = response
+        self.importance = self.responses(response)
+        # check for range
+        self._percent_check(percent=self.importance)
+        return self.importance
+
+
 class InvitationLetterParameterBuilder(ParameterBuilderBase):
     def __init__(self) -> None:
         name: str = "invitation_letter"
@@ -396,6 +461,109 @@ class TravelHistoryParameterBuilder(ParameterBuilderBase):
                     percent=value,
                     new_value=self.importance,
                     shift=self.responses[constant.TravelHistoryRegion.BASE],
+                )
+            new_grouped_xai[key] = value
+        return new_grouped_xai
+
+
+class BankBalanceContinuousParameterBuilder(ContinuousParameterBuilderBase):
+    """Manual continuous parameter for `bank_balance`
+
+    See Also:
+
+        - :class:`vizard.models.estimators.manual.interpolator.BankBalanceInterpolator`
+        - :mod:`vizard.models.estimators.manual.constant.BankBalanceStatus`
+        - :dict:`vizard.models.estimators.manual.constant.BANK_BALANCE_STATUS_IMPORTANCE`
+        - :dict:`vizard.models.estimators.manual.constant.BANK_BALANCE_INPUT_BOUND`
+
+    """
+
+    def __init__(self) -> None:
+        name: str = "bank_balance"
+        responses: Callable = interpolator.BankBalanceInterpolator()
+        feature_category: FeatureCategories = FeatureCategories(
+            FeatureCategories.FINANCIAL
+        )
+
+        super().__init__(name, responses, feature_category)
+
+    def potential_modifier(self, potential: float) -> float:
+        """Modifies ``potential`` based on given importance
+
+        See Also:
+            Base method :meth:`vizard.models.estimators.manual.ParameterBuilderBase.potential_modifier`
+        """
+        # check if response is provided
+        self._check_importance_set()
+        # check input is valid
+        self._percent_check(percent=potential)
+
+        new_potential: float = functional.extend_mean(
+            percent=potential,
+            new_value=self.importance,
+            shift=constant.BANK_BALANCE_STATUS_IMPORTANCE[
+                constant.BankBalanceStatus.BASE
+            ],
+        )
+
+        # `potential` is a percent value
+        new_potential = self._clip_to_percent(value=new_potential)
+
+        return new_potential
+
+    def probability_modifier(self, probability: float) -> float:
+        """Modifies ``probability`` based on given importance
+
+        See Also:
+            Base method :meth:`vizard.models.estimators.manual.ParameterBuilderBase.probability_modifier`
+        """
+        # check if response is provided
+        self._check_importance_set()
+        # check input is valid
+        self._percent_check(percent=probability)
+
+        new_probability: float = functional.extend_mean(
+            percent=probability,
+            new_value=self.importance,
+            shift=constant.BANK_BALANCE_STATUS_IMPORTANCE[
+                constant.BankBalanceStatus.BASE
+            ],
+        )
+
+        # `new_probability` is a percent value
+        new_probability = self._clip_to_percent(value=new_probability)
+
+        return new_probability
+
+    def grouped_xai_modifier(self, grouped_xai: Dict[str, float]) -> Dict[str, float]:
+        """Modifies ``grouped_xai`` based on given importance
+
+        Note:
+            This operation is not ``inplace``.
+
+        See Also:
+            Base method :meth:`vizard.models.estimators.manual.ParameterBuilderBase.grouped_xai_modifier`
+        """
+        # check if response is provided
+        self._check_importance_set()
+        # check input is valid
+        self._grouped_xai_check(group=grouped_xai)
+
+        # get the group assigned in parameter builder
+        xai_group: str = FeatureCategories(self.feature_category).name
+        # create a new dictionary to prevent inplace operation
+        new_grouped_xai: Dict[str, float] = {}
+        # TODO: implement list of feature_category
+
+        # update the key that matches `feature_category`
+        for key, value in grouped_xai.items():
+            if key == xai_group:
+                value = functional.extend_mean(
+                    percent=value,
+                    new_value=self.importance,
+                    shift=constant.BANK_BALANCE_STATUS_IMPORTANCE[
+                        constant.BankBalanceStatus.BASE
+                    ],
                 )
             new_grouped_xai[key] = value
         return new_grouped_xai

@@ -2,11 +2,13 @@ from math import isclose
 from typing import Dict
 
 from pytest import mark
+import pytest
 
 from vizard.models.estimators.manual import constant, core
 
 inv_letter_param = core.InvitationLetterParameterBuilder()
 travel_hist_param = core.TravelHistoryParameterBuilder()
+bank_balance_param = core.BankBalanceContinuousParameterBuilder()
 
 
 class TestInvitationLetterParameterBuilder:
@@ -250,6 +252,126 @@ class TestTravelHistoryParameterBuilder:
             response=constant.TravelHistoryRegion(given_response), raw=True
         )
         new_grouped_xai: float = travel_hist_param.grouped_xai_modifier(
+            grouped_xai=given_grouped_xai
+        )
+
+        for xai_group_name, _ in new_grouped_xai.items():
+            assert isclose(
+                new_grouped_xai[xai_group_name], expected_grouped_xai[xai_group_name]
+            )
+
+
+class TestBankBalanceContinuousParameterBuilder:
+    @mark.parametrize(
+        argnames=[
+            "given_potential",
+            "given_response",
+            "expected_potential",
+        ],
+        argvalues=[
+            (0.0, 100, 0.0),
+            (0.0, 500, 0.04600000000000001),
+            (1.0, 400, 0.972),
+            (0.4, 250, 0.366),
+            (0.4, 350, 0.39),
+            (0.4, 500, 0.42600000000000005),
+        ],
+    )
+    def test_potential_modifier(
+        self, given_potential: float, given_response: str, expected_potential: float
+    ):
+        bank_balance_param.set_response(response=given_response)
+        new_potential: float = bank_balance_param.potential_modifier(given_potential)
+
+        assert isclose(new_potential, expected_potential)
+
+    @mark.parametrize(
+        argnames=[
+            "given_probability",
+            "given_response",
+            "expected_probability",
+        ],
+        argvalues=[
+            (0.0, 100, 0.0),
+            (0.0, 500, 0.04600000000000001),
+            (1.0, 400, 0.972),
+            (0.4, 250, 0.366),
+            (0.4, 350, 0.39),
+            (0.4, 500, 0.42600000000000005),
+        ],
+    )
+    def test_probability_modifier(
+        self, given_probability: float, given_response: str, expected_probability: float
+    ):
+        bank_balance_param.set_response(response=given_response)
+        new_probability: float = bank_balance_param.probability_modifier(
+            given_probability
+        )
+
+        assert isclose(new_probability, expected_probability)
+
+    @mark.parametrize(
+        argnames=[
+            "given_grouped_xai",
+            "given_response",
+            "expected_grouped_xai",
+        ],
+        argvalues=[
+            (
+                {
+                    "purpose": 0.49196228635250716,
+                    "emotional": -0.3633606764015736,
+                    "career": 0.10153467401648415,
+                    "financial": 0.04314236322943492,
+                },
+                100,
+                {
+                    "purpose": 0.49196228635250716,
+                    "emotional": -0.3633606764015736,
+                    "career": 0.10153467401648415,
+                    "financial": -0.00901475493203683,
+                },
+            ),
+            (
+                {
+                    "purpose": -0.3633606764015736,
+                    "emotional": 0.49196228635250716,
+                    "career": 0.10153467401648415,
+                    "financial": -0.04314236322943492,
+                },
+                300,
+                {
+                    "purpose": -0.3633606764015736,
+                    "emotional": 0.49196228635250716,
+                    "career": 0.10153467401648415,
+                    "financial": -0.04298524506796317,
+                },
+            ),
+            (
+                {
+                    "purpose": -0.3633606764015736,
+                    "emotional": 0.49196228635250716,
+                    "career": 0.10153467401648415,
+                    "financial": -0.04314236322943492,
+                },
+                600,
+                {
+                    "purpose": -0.3633606764015736,
+                    "emotional": 0.49196228635250716,
+                    "career": 0.10153467401648415,
+                    "financial": 0.029014754932036833,
+                },
+            ),
+        ],
+    )
+    def test_grouped_xai_modifier(
+        self,
+        given_grouped_xai: Dict[str, float],
+        given_response: str,
+        expected_grouped_xai: Dict[str, float],
+    ):
+        bank_balance_param.set_response(response=given_response)
+        new_grouped_xai: float = bank_balance_param.grouped_xai_modifier(
             grouped_xai=given_grouped_xai
         )
 
