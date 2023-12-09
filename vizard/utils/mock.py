@@ -65,7 +65,7 @@ class SampleGenerator:
         """combine all products from product_generator to create all possible samples
         Args:
             feature_names (List[str]): given list of all feature_names to create samples
-            feature_values (Dict[str, List[Any]]): a dictionary of all acceptable values for each feature -> feature_name:list(acceptable_values)
+            feature_values (Dict[str, List[Any]]): a dictionary of all acceptable values for each feature 
         Returns:
             List[Dict[str, Any]]: a list of dictionaries each dict is an acceptable fake sample
         """
@@ -89,9 +89,9 @@ class SampleGenerator:
     def _product_generator(dictionary: Dict[str, List[Any]]) -> List[Dict[str, List[Any]]]:
         """it gets a dictionary of acceptable values then create product of them
         Args:
-            dictionary (Dict[str, List[Any]]): a dictionary of all acceptable values for each feature -> feature_name:list(acceptable_values)
+            dictionary (Dict[str, List[Any]]): a dictionary of all acceptable values for each feature
         Returns:
-            List[Dict[str, List[Any]]]: _description_
+            List[Dict[str, Any]]: _description_
         """
         keys = list(dictionary.keys())  # Convert keys to a list
         value_lists = [dictionary[key] for key in keys]
@@ -114,7 +114,7 @@ class SampleGenerator:
         """take the whole dict and returns sub dict with only items that their key is on our list
         Args:
             input_list (List[str]): list of wanted features to including them from our given dict
-            input_dict (Dict[str, List[[Any]]]): a dictionary of all acceptable values for each feature -> feature_name:list(acceptable_values)
+            input_dict (Dict[str, List[[Any]]]): a dictionary of all acceptable values for each feature 
         Returns:
             Dict[str, List[[Any]]]: Dict of wanted features and their acceptable values
         """
