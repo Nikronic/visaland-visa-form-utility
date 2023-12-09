@@ -60,12 +60,14 @@ class SampleGenerator:
         )
 
     def sample_maker(
-        self, feature_names: List[str] = None, feature_values: Dict[str, List[Any]] = None
+        self,
+        feature_names: List[str] = None,
+        feature_values: Dict[str, List[Any]] = None,
     ) -> List[Dict[str, Any]]:
         """combine all products from product_generator to create all possible samples
         Args:
             feature_names (List[str]): given list of all feature_names to create samples
-            feature_values (Dict[str, List[Any]]): a dictionary of all acceptable values for each feature 
+            feature_values (Dict[str, List[Any]]): a dictionary of all acceptable values for each feature
         Returns:
             List[Dict[str, Any]]: a list of dictionaries each dict is an acceptable fake sample
         """
@@ -78,15 +80,17 @@ class SampleGenerator:
         powerset_list = self._powerset(feature_names)
         samples = []
         while powerset_list:
-            z = powerset_list.pop()
+            subset = powerset_list.pop()
             sub_dict = self._sub_dict_with_keys(
-                z, feature_values
+                subset, feature_values
             )  # dict with only keys that are in our sub list
             samples.extend(self._product_generator(sub_dict))
         return samples
 
     @staticmethod
-    def _product_generator(dictionary: Dict[str, List[Any]]) -> List[Dict[str, List[Any]]]:
+    def _product_generator(
+        dictionary: Dict[str, List[Any]]
+    ) -> List[Dict[str, List[Any]]]:
         """it gets a dictionary of acceptable values then create product of them
         Args:
             dictionary (Dict[str, List[Any]]): a dictionary of all acceptable values for each feature
@@ -114,7 +118,7 @@ class SampleGenerator:
         """take the whole dict and returns sub dict with only items that their key is on our list
         Args:
             input_list (List[str]): list of wanted features to including them from our given dict
-            input_dict (Dict[str, List[[Any]]]): a dictionary of all acceptable values for each feature 
+            input_dict (Dict[str, List[[Any]]]): a dictionary of all acceptable values for each feature
         Returns:
             Dict[str, List[[Any]]]: Dict of wanted features and their acceptable values
         """
