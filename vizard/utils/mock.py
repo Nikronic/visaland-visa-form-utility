@@ -66,6 +66,14 @@ class SampleGenerator:
     def _powerset_with_mandatory_features(
         self, iterable: List[str], mandatory_features: Any = None
     ) -> List[List[str]]:
+        """sometimes we need some features as mandatory this function keep those features in all of the subsets
+        Args:
+            iterable (List[str]):  given list of all feature_names to create subsets
+            mandatory_features (Any, optional): list of mandatory features
+
+        Returns:
+            List[List[str]]: a list of all possible subsets that all of them have our mandatory features
+        """
         if mandatory_features is None or mandatory_features == []:
             powerset = self._powerset(list_without_mandatory_features)
             if {} in powerset:
