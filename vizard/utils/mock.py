@@ -6,7 +6,7 @@ from vizard.models.estimators.manual import (InvitationLetterSenderRelation,
                                              TravelHistoryRegion)
 
 mandatory = ["sex"]
-FEATURE_VALUES: Dict[str, list[Any]] = {
+FEATURE_VALUES: Dict[str, List[Any]] = {
     "sex": ["male", "female"],
     "education_field_of_study": constant.EducationFieldOfStudy.get_member_names(),
     "occupation_title1": constant.OccupationTitle.get_member_names(),
@@ -40,9 +40,9 @@ class SampleGenerator:
     # TODO : check if it works well with no mandatory_features
 
     def __init__(
-        self, FEATURE_VALUES: Dict[str, List[Any]], mandatory_features: Any = None
+        self, feature_values: Dict[str, List[Any]], mandatory_features: Any = None
     ):
-        self.feature_values = FEATURE_VALUES
+        self.feature_values = feature_values
         self.feature_names = list(self.feature_values.keys())
         if mandatory_features is None:
             self.mandatory_features = []
