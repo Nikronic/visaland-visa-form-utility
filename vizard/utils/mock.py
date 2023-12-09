@@ -47,12 +47,12 @@ class SampleGenerator:
         }
 
     @staticmethod
-    def _powerset(iterable: List) -> List[List]:
+    def _powerset(iterable: List[str]) -> List[List[str]]:
         """create a power-set (all possible subsets) from our list
         Args:
-            iterable (List): given list of all feature_names to create subsets
+            iterable (List[str]): given list of all feature_names to create subsets
         Returns:
-            List[List]: a power-set of given feature_names
+            List[List[str]]: a power-set of given feature_names
         """
         s = list(iterable)
         return list(
@@ -60,12 +60,12 @@ class SampleGenerator:
         )
 
     def sample_maker(
-        self, feature_names: List = None, feature_values: Dict[str, List] = None
+        self, feature_names: List[str] = None, feature_values: Dict[str, List[Any]] = None
     ) -> List[Dict[str, Any]]:
         """combine all products from product_generator to create all possible samples
         Args:
-            feature_names (List): given list of all feature_names to create samples
-            feature_values (Dict[str, List]): a dictionary of all acceptable values for each feature -> feature_name:list(acceptable_values)
+            feature_names (List[str]): given list of all feature_names to create samples
+            feature_values (Dict[str, List[Any]]): a dictionary of all acceptable values for each feature -> feature_name:list(acceptable_values)
         Returns:
             List[Dict[str, Any]]: a list of dictionaries each dict is an acceptable fake sample
         """
@@ -86,12 +86,12 @@ class SampleGenerator:
         return samples
 
     @staticmethod
-    def _product_generator(dictionary: Dict[str, List]) -> List[Dict[str, Any]]:
+    def _product_generator(dictionary: Dict[str, List[Any]]) -> List[Dict[str, List[Any]]]:
         """it gets a dictionary of acceptable values then create product of them
         Args:
-            dictionary (Dict[str, List]): a dictionary of all acceptable values for each feature -> feature_name:list(acceptable_values)
+            dictionary (Dict[str, List[Any]]): a dictionary of all acceptable values for each feature -> feature_name:list(acceptable_values)
         Returns:
-            List[Dict[str, Any]]: _description_
+            List[Dict[str, List[Any]]]: _description_
         """
         keys = list(dictionary.keys())  # Convert keys to a list
         value_lists = [dictionary[key] for key in keys]
@@ -109,13 +109,13 @@ class SampleGenerator:
 
     @staticmethod
     def _sub_dict_with_keys(
-        input_list: List, input_dict: Dict[str, List]
-    ) -> Dict[str, List]:
+        input_list: List[str], input_dict: Dict[str, List[Any]]
+    ) -> Dict[str, List[Any]]:
         """take the whole dict and returns sub dict with only items that their key is on our list
         Args:
-            input_list (List): list of wanted features to including them from our given dict
-            input_dict (Dict[str, List]): a dictionary of all acceptable values for each feature -> feature_name:list(acceptable_values)
+            input_list (List[str]): list of wanted features to including them from our given dict
+            input_dict (Dict[str, List[[Any]]]): a dictionary of all acceptable values for each feature -> feature_name:list(acceptable_values)
         Returns:
-            Dict[str, List]: Dict of wanted features and their acceptable values
+            Dict[str, List[[Any]]]: Dict of wanted features and their acceptable values
         """
         return {key: input_dict[key] for key in input_list if key in input_dict}
