@@ -545,6 +545,10 @@ class CanadaGeneralConstants:
     """Canada isn't a muslim country!
     """
 
+    MINIMUM_BANK_BALANCE: float = 100.0
+    """Minimum amount of bank balance per person
+    """
+
 
 class ClassificationLabels:
     """Labels (dependent variable) in the data
@@ -611,7 +615,7 @@ FEATURE_CATEGORY_TO_FEATURE_NAME_MAP = {
         "P1.PD.CWA.Row2.Period",
         "p1.SecC.Chd.X.ChdCOB.ForeignerCount",
         "p1.SecB.ChdMoFaSps.X.ChdCOB.ForeignerCount",
-        "p1.SecX.ForeignAddr"
+        "p1.SecX.ForeignAddr",
     ],
     FeatureCategories.EMOTIONAL: [
         "P1.PD.AliasName.AliasNameIndicator.AliasNameIndicator",
@@ -677,7 +681,7 @@ FEATURE_CATEGORY_TO_FEATURE_NAME_MAP = {
         "P3.Occ.OccRow3.Country.Country",
         "P1.PD.PrevCOR.Row2.Period",
         "P1.PD.PrevCOR.Row3.Period",
-        "P1.PD.PrevCOR.Row.Count"
+        "P1.PD.PrevCOR.Row.Count",
     ],
     FeatureCategories.CAREER: [
         "P3.Edu.EduIndicator",

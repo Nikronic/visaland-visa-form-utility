@@ -32,6 +32,7 @@ from vizard.models.estimators.manual import (
     InvitationLetterSenderRelation,
     TravelHistoryParameterBuilder,
     TravelHistoryRegion,
+    BankBalanceContinuousParameterBuilder,
 )
 from vizard.utils import loggers
 from vizard.version import VERSION as VIZARD_VERSION
@@ -197,11 +198,12 @@ flaml_tree_explainer = FlamlTreeExplainer(
 
 # Create instances of manual parameter insertion
 invitation_letter_param = InvitationLetterParameterBuilder()
-# Create instances of manual parameter insertion
 travel_history_param = TravelHistoryParameterBuilder()
+bank_balance_param = BankBalanceContinuousParameterBuilder()
 MANUAL_PARAM_NAMES_ANSWERED_DICT: Dict[str, bool] = {
     invitation_letter_param.name: False,
     travel_history_param.name: False,
+    bank_balance_param.name: False,
 }
 
 # instantiate fast api app
@@ -355,6 +357,14 @@ async def potential(features: api_models.Payload):
         if travel_history_param.name in provided_variables:
             provided_variables.remove(travel_history_param.name)
 
+        # set response for bank balance
+        bank_balance_param.set_response(response=features.bank_balance)
+        # remove invitation letter so preprocessing, transformation, etc works just like before
+        if bank_balance_param.name in features_dict:
+            del features_dict[bank_balance_param.name]
+        if bank_balance_param.name in provided_variables:
+            provided_variables.remove(bank_balance_param.name)
+
         payload_to_xai = _potential(**features_dict)
 
         # compute dictionary of payloads provided and their xai values
@@ -373,6 +383,10 @@ async def potential(features: api_models.Payload):
         )
         # apply travel history modification given the response
         potential_by_xai_normalized: float = travel_history_param.potential_modifier(
+            potential=potential_by_xai_normalized
+        )
+        # apply bank balance modification given the response
+        potential_by_xai_normalized: float = bank_balance_param.potential_modifier(
             potential=potential_by_xai_normalized
         )
 
@@ -427,6 +441,14 @@ async def predict(
         if travel_history_param.name in provided_variables:
             provided_variables.remove(travel_history_param.name)
 
+        # set response for bank balance
+        bank_balance_param.set_response(response=features.bank_balance)
+        # remove invitation letter so preprocessing, transformation, etc works just like before
+        if bank_balance_param.name in features_dict:
+            del features_dict[bank_balance_param.name]
+        if bank_balance_param.name in provided_variables:
+            provided_variables.remove(bank_balance_param.name)
+
         logic_answers_implanted = utils.logical_questions(
             provided_variables, features_dict
         )
@@ -440,6 +462,8 @@ async def predict(
         result: float = invitation_letter_param.probability_modifier(probability=result)
         # apply travel history modification given the response
         result: float = travel_history_param.probability_modifier(probability=result)
+        # apply bank balance modification given the response
+        result: float = bank_balance_param.probability_modifier(probability=result)
 
         # get the next question by suggesting the variable with highest XAI value
         payload_to_xai: Dict[str, float] = _potential(**features_dict)
@@ -650,6 +674,12 @@ async def grouped_xai(features: api_models.Payload):
     if travel_history_param.name:
         del features_dict[travel_history_param.name]
 
+    # set response for bank balance
+    bank_balance_param.set_response(response=features.bank_balance)
+    # remove invitation letter so preprocessing, transformation, etc works just like before
+    if bank_balance_param.name in features_dict:
+        del features_dict[bank_balance_param.name]
+
     # validate sample
     sample = _xai(**features_dict)
 
@@ -677,6 +707,11 @@ async def grouped_xai(features: api_models.Payload):
     aggregated_shap_values: Dict[
         str, float
     ] = travel_history_param.grouped_xai_modifier(grouped_xai=aggregated_shap_values)
+
+    # apply bank balance modification given the response
+    aggregated_shap_values: Dict[str, float] = bank_balance_param.grouped_xai_modifier(
+        grouped_xai=aggregated_shap_values
+    )
 
     return {
         "aggregated_shap_values": aggregated_shap_values,
