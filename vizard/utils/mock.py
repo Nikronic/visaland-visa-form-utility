@@ -119,6 +119,3 @@ class SampleGenerator:
             Dict[str, List]: Dict of wanted features and their acceptable values
         """
         return {key: input_dict[key] for key in input_list if key in input_dict}
-
-    def chap(self):
-        print(self.feature_names)
