@@ -5,6 +5,24 @@ from vizard.data import constant
 from vizard.models.estimators.manual import (InvitationLetterSenderRelation,
                                              TravelHistoryRegion)
 
+FEATURE_VALUES: Dict[str, list[Any]] = {
+    "sex": ["male", "female"],
+    "education_field_of_study": constant.EducationFieldOfStudy.get_member_names(),
+    "occupation_title1": constant.OccupationTitle.get_member_names(),
+    "refused_entry_or_deport": [True, False],
+    "date_of_birth": list(range(18, 55)),
+    "marriage_period": list(range(30)),
+    "occupation_period": list(range(30)),
+    "applicant_marital_status": [3, 5, 7, 8],
+    "child_accompany": list(range(5)),
+    "parent_accompany": list(range(3)),
+    "spouse_accompany": list(range(2)),
+    "sibling_accompany": list(range(3)),
+    "child_count": list(range(5)),
+    "invitation_letter": list(InvitationLetterSenderRelation._value2member_map_.keys()),
+    "travel_history": list(TravelHistoryRegion._value2member_map_.keys()),
+}
+
 
 class SampleGenerator:
     """Generates samples using predefined feature names and values.
@@ -18,44 +36,9 @@ class SampleGenerator:
         data for analysis.
     """
 
-    def __init__(self):
-        self.feature_names = [
-            "sex",
-            "education_field_of_study",
-            "occupation_title1",
-            "refused_entry_or_deport",
-            "date_of_birth",
-            "marriage_period",
-            "occupation_period",
-            "applicant_marital_status",
-            "child_accompany",
-            "parent_accompany",
-            "spouse_accompany",
-            "sibling_accompany",
-            "child_count",
-            "invitation_letter",
-            "travel_history",
-        ]
-
-        self.feature_values = {
-            "sex": ["male", "female"],
-            "education_field_of_study": constant.EducationFieldOfStudy.get_member_names(),
-            "occupation_title1": constant.OccupationTitle.get_member_names(),
-            "refused_entry_or_deport": [True, False],
-            "date_of_birth": list(range(18, 55)),
-            "marriage_period": list(range(30)),
-            "occupation_period": list(range(30)),
-            "applicant_marital_status": [3, 5, 7, 8],
-            "child_accompany": list(range(5)),
-            "parent_accompany": list(range(3)),
-            "spouse_accompany": list(range(2)),
-            "sibling_accompany": list(range(3)),
-            "child_count": list(range(5)),
-            "invitation_letter": list(
-                InvitationLetterSenderRelation._value2member_map_.keys()
-            ),
-            "travel_history": list(TravelHistoryRegion._value2member_map_.keys()),
-        }
+    def __init__(self, FEATURE_VALUES):
+        self.feature_values = FEATURE_VALUES
+        self.feature_names = list(self.feature_values.keys())
 
     @staticmethod
     def _powerset(iterable: List[str]) -> List[List[str]]:
@@ -134,3 +117,7 @@ class SampleGenerator:
             Dict[str, List[[Any]]]: Dict of wanted features and their acceptable values
         """
         return {key: input_dict[key] for key in input_list if key in input_dict}
+
+
+z1 = SampleGenerator(FEATURE_VALUES)
+print(z1.feature_names)
