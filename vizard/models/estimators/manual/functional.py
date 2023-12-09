@@ -60,5 +60,3 @@ def truncated_scaler(
         interpolated * (target_max_range - target_min_range) + target_min_range
     )
     return interpolated
-
-print
