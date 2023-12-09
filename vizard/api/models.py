@@ -106,6 +106,7 @@ payload_fields2docs: Dict[str, str] = {
     "child_count": "How many children the user has. Input must be a integer (0 if no children).",
     "invitation_letter": "The relation of the person sending you the invitation letter. Input must be one of ['child', 'sibling', 'parent', 'f2', 'f3', 'friend', 'spouse', 'pro_unrelated', 'pro_related', 'none']",
     "travel_history": "The history of travels based on customized regions. Input must be one of ['schengen_once', schengen_twice', 'us_uk_au', 'jp_kr_af', 'br_sg_th_my_ru', 'ae_om_qa', 'am_ge_tr_az', 'none']",
+    "bank_balance": "The average bank balance per person. Input must a a continuous value in million Toman.",
 }
 """A dictionary of input payload and their documentation for OpenAPI docs
 
@@ -312,6 +313,14 @@ class Payload(BaseModel):
                 f"'{value}' is not valid"
                 f" Please use one of '{list(TravelHistoryRegion._value2member_map_.keys())}'"
             )
+        return value
+
+    bank_balance: float = 100.0
+
+    @field_validator("bank_balance")
+    def _bank_balance(cls, value):
+        if value < CanadaGeneralConstants.MINIMUM_BANK_BALANCE:
+            raise ValueError(f"Bank balance '{value}' cannot be negative.")
         return value
 
     def __init__(self, **data):
