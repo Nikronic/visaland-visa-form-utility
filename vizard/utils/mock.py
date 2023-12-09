@@ -7,6 +7,17 @@ from vizard.models.estimators.manual import (InvitationLetterSenderRelation,
 
 
 class SampleGenerator:
+    """Generates samples using predefined feature names and values.
+
+    Attributes:
+        feature_names (List[str]): List of feature names.
+        feature_values (Dict[str, List[Any]]): Dictionary of feature values.
+    Note:
+        This class helps generate artificial samples to test our trained model.
+        It utilizes predefined features and their possible values to create mock
+        data for analysis.
+    """
+
     def __init__(self):
         self.feature_names = [
             "sex",
