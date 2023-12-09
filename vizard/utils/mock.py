@@ -91,7 +91,7 @@ class SampleGenerator:
         Args:
             dictionary (Dict[str, List[Any]]): a dictionary of all acceptable values for each feature
         Returns:
-            List[Dict[str, Any]]: _description_
+            List[Dict[str, List[Any]]]: product from possible values that their feature is on given list
         """
         keys = list(dictionary.keys())  # Convert keys to a list
         value_lists = [dictionary[key] for key in keys]
