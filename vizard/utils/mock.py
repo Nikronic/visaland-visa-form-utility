@@ -5,6 +5,7 @@ from vizard.data import constant
 from vizard.models.estimators.manual import (InvitationLetterSenderRelation,
                                              TravelHistoryRegion)
 
+mandatory = ["sex"]
 FEATURE_VALUES: Dict[str, list[Any]] = {
     "sex": ["male", "female"],
     "education_field_of_study": constant.EducationFieldOfStudy.get_member_names(),
@@ -36,22 +37,59 @@ class SampleGenerator:
         data for analysis.
     """
 
-    def __init__(self, FEATURE_VALUES):
+    # TODO : check if it works well with no mandatory_features
+
+    def __init__(
+        self, FEATURE_VALUES: Dict[str, List[Any]], mandatory_features: Any = None
+    ):
         self.feature_values = FEATURE_VALUES
         self.feature_names = list(self.feature_values.keys())
+        if mandatory_features is None:
+            self.mandatory_features = []
+        else:
+            self.mandatory_features = mandatory_features
 
-    @staticmethod
-    def _powerset(iterable: List[str]) -> List[List[str]]:
+    def _powerset(self, iterable: List[str]) -> List[List[str]]:
         """create a power-set (all possible subsets) from our list
         Args:
             iterable (List[str]): given list of all feature_names to create subsets
         Returns:
             List[List[str]]: a power-set of given feature_names
         """
-        s = list(iterable)
-        return list(
-            chain.from_iterable(combinations(s, r) for r in range(1, len(s) + 1))
+        powerset = list(
+            chain.from_iterable(
+                combinations(iterable, r) for r in range(len(iterable) + 1)
+            )
         )
+        return powerset
+
+    def _powerset_with_mandatory_features(
+        self, iterable: List[str], mandatory_features: Any = None
+    ) -> List[List[str]]:
+        if mandatory_features is None or mandatory_features == []:
+            powerset = self._powerset(list_without_mandatory_features)
+            if {} in powerset:
+                powerset.remove({})
+            return powerset
+        else:
+            list_without_mandatory_features = [
+                features
+                for features in iterable
+                if features not in self.mandatory_features
+            ]  # remove mandatory items from list
+            powerset = self._powerset(list_without_mandatory_features)
+
+            customize_powerset = (
+                []
+            )  # all subset has mandatory items if mandatory is given
+            for single_tuple in powerset:
+                customize_powerset.append(list(single_tuple))  # change tuples to list
+            for subset in customize_powerset:
+                subset.extend(
+                    self.mandatory_features
+                )  # add mandatory_features to all subsets
+
+            return customize_powerset
 
     def sample_maker(
         self,
@@ -71,7 +109,9 @@ class SampleGenerator:
         if feature_values is None:
             feature_values = self.feature_values  # Set default feature_values
 
-        powerset_list = self._powerset(feature_names)
+        powerset_list = self._powerset_with_mandatory_features(
+            feature_names, self.mandatory_features
+        )  # TODO: check this line
         samples = []
         while powerset_list:
             subset = powerset_list.pop()
@@ -117,7 +157,3 @@ class SampleGenerator:
             Dict[str, List[[Any]]]: Dict of wanted features and their acceptable values
         """
         return {key: input_dict[key] for key in input_list if key in input_dict}
-
-
-z1 = SampleGenerator(FEATURE_VALUES)
-print(z1.feature_names)
