@@ -1,5 +1,8 @@
+import json
 from itertools import chain, combinations, product
 from typing import Any, Dict, List
+
+import httpx
 
 from vizard.data import constant
 from vizard.models.estimators.manual import (InvitationLetterSenderRelation,
@@ -165,3 +168,27 @@ class SampleGenerator:
             Dict[str, List[[Any]]]: Dict of wanted features and their acceptable values
         """
         return {key: input_dict[key] for key in input_list if key in input_dict}
+
+
+z1 = SampleGenerator(FEATURE_VALUES, mandatory)
+url = "http://localhost:9000/predict/"
+sample = {"sex": "male"}
+wanted = "result"
+# my first idea was to use a Dict[Dict,float] but we cannot use Dict as key value
+results_list = []
+samples_list = []
+with httpx.Client() as client:
+    for sample in z1.sample_maker():
+        r = client.post(url, json=sample).json()[wanted]
+        results_list.append(r)
+        samples_list.append(sample)
+
+print(len(samples_list))
+print(len(results_list))  # just to check size and if both are the same size
+
+
+# Save the list to a JSON file
+with open("vizard/utils/fakes_samples/samples_list.py", "w") as file:
+    json.dump(samples_list, file, indent=4)
+with open("vizard/utils/fakes_samples/results_list.py", "w") as file:
+    json.dump(results_list, file, indent=4)
