@@ -170,15 +170,14 @@ class SampleGenerator:
         return {key: input_dict[key] for key in input_list if key in input_dict}
 
 
-z1 = SampleGenerator(FEATURE_VALUES, mandatory)
+sampler = SampleGenerator(FEATURE_VALUES, mandatory)
 url = "http://localhost:9000/predict/"
-sample = {"sex": "male"}
 wanted = "result"
 # my first idea was to use a Dict[Dict,float] but we cannot use Dict as key value
 results_list = []
 samples_list = []
 with httpx.Client() as client:
-    for sample in z1.sample_maker():
+    for sample in sampler.sample_maker():
         r = client.post(url, json=sample).json()[wanted]
         results_list.append(r)
         samples_list.append(sample)
