@@ -1,4 +1,5 @@
 import json
+import multiprocessing
 from itertools import chain, combinations, product
 from typing import Any, Dict, List
 
@@ -11,20 +12,20 @@ from vizard.models.estimators.manual import (InvitationLetterSenderRelation,
 mandatory = ["sex"]
 FEATURE_VALUES: Dict[str, List[Any]] = {
     "sex": ["male", "female"],
-    "education_field_of_study": constant.EducationFieldOfStudy.get_member_names(),
-    "occupation_title1": constant.OccupationTitle.get_member_names(),
-    "refused_entry_or_deport": [True, False],
-    "date_of_birth": list(range(18, 55)),
-    "marriage_period": list(range(30)),
-    "occupation_period": list(range(30)),
-    "applicant_marital_status": [3, 5, 7, 8],
+    "education_field_of_study": ["master", "phd", "unedu"],
+    "occupation_title1": ["manager", "specialist", "employee"],
+    # "refused_entry_or_deport": [True, False],
+    "date_of_birth": list(range(20, 61, 10)),
+    "marriage_period": list(range(0, 31, 10)),
+    "occupation_period": list(range(0, 31, 10)),
+    "applicant_marital_status": [5, 7],
     "child_accompany": list(range(5)),
     "parent_accompany": list(range(3)),
     "spouse_accompany": list(range(2)),
     "sibling_accompany": list(range(3)),
     "child_count": list(range(5)),
-    "invitation_letter": list(InvitationLetterSenderRelation._value2member_map_.keys()),
-    "travel_history": list(TravelHistoryRegion._value2member_map_.keys()),
+    # "invitation_letter": list(InvitationLetterSenderRelation._value2member_map_.keys()),
+    # "travel_history": list(TravelHistoryRegion._value2member_map_.keys()),
 }
 
 
@@ -43,10 +44,14 @@ class SampleGenerator:
     # TODO : check if it works well with no mandatory_features
 
     def __init__(
-        self, feature_values: Dict[str, List[Any]], mandatory_features: Any = None
+        self,
+        feature_values: Dict[str, List[Any]],
+        mandatory_features: Any = None,
+        only: Any = None,
     ):
         self.feature_values = feature_values
         self.feature_names = list(self.feature_values.keys())
+        self.only = only
         if mandatory_features is None:
             self.mandatory_features = []
         else:
@@ -59,9 +64,10 @@ class SampleGenerator:
         Returns:
             List[List[str]]: a power-set of given feature_names
         """
+        only = self.only
         powerset = list(
             chain.from_iterable(
-                combinations(iterable, r) for r in range(len(iterable) + 1)
+                combinations(iterable, r) for r in range(only - 1, only)
             )
         )
         return powerset
@@ -170,24 +176,41 @@ class SampleGenerator:
         return {key: input_dict[key] for key in input_list if key in input_dict}
 
 
-sampler = SampleGenerator(FEATURE_VALUES, mandatory)
 url = "http://localhost:9000/predict/"
 wanted = "result"
-# my first idea was to use a Dict[Dict,float] but we cannot use Dict as key value
-results_list = []
-samples_list = []
-with httpx.Client() as client:
-    for sample in sampler.sample_maker():
-        r = client.post(url, json=sample).json()[wanted]
-        results_list.append(r)
-        samples_list.append(sample)
-
-print(len(samples_list))
-print(len(results_list))  # just to check size and if both are the same size
 
 
-# Save the list to a JSON file
-with open("vizard/utils/fakes_samples/samples_list.py", "w") as file:
-    json.dump(samples_list, file, indent=4)
-with open("vizard/utils/fakes_samples/results_list.py", "w") as file:
-    json.dump(results_list, file, indent=4)
+def para(only):
+    results_list = []
+    samples_list = []
+    sampler = SampleGenerator(FEATURE_VALUES, mandatory, only)
+    samples = sampler.sample_maker(FEATURE_VALUES)
+    with httpx.Client() as client:
+        for sample in samples:
+            r = client.post(url, json=sample).json()[wanted]
+            results_list.append(r)
+            samples_list.append(sample)
+    print(
+        "number of samples with only subsets of",
+        only,
+        "->",
+        len(samples_list),
+        len(samples_list) == len(results_list),
+    )  # just to check size and if both are the same size
+
+    # Save the list to a JSON file
+    with open(
+        f"vizard/utils/synthetic_samples/samples_with_subsets_of_only_{only}.json", "w"
+    ) as file:  # _samples
+        json.dump(samples_list, file, indent=4)
+    with open(
+        f"vizard/utils/synthetic_samples/results_with_subsets_of_only_{only}.json", "w"
+    ) as file:
+        json.dump(results_list, file, indent=4)
+
+
+print("number of features", len(FEATURE_VALUES))
+numbers = list(range(1, 5))
+
+with multiprocessing.Pool() as pool:
+    results = pool.map(para, numbers)
