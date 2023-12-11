@@ -78,6 +78,21 @@ class ParameterBuilderBase:
         if not isinstance(self.name, str):
             raise ValueError("The name can only be string.")
 
+    def _response_check(self, response: constant.Enum | List[constant.Enum]) -> None:
+        """Checks if all instances of response are valid
+
+        Validation is checked upon existence of values in :attr:`responses`
+
+        Args:
+            response (Enum | List[Enum]): The list or single instance of response
+        """
+
+        if response not in self.responses.keys():
+            raise ValueError(
+                f"'{response}' is not valid."
+                f"Please use one of '{self.responses.keys()}'"
+            )
+
     def _percent_check(self, percent: float) -> None:
         """Checks if the input variable is a percentage in [0, 1]
 
@@ -121,7 +136,11 @@ class ParameterBuilderBase:
                 f"`self.set_response` method should be called prior to  using this method."
             )
 
-    def __get_importance(self, response: str, raw: bool = False) -> float:
+    def __get_importance(
+        self,
+        response: constant.Enum | List[constant.Enum],
+        raw: bool = False,
+    ) -> float:
         """Calculates the importance of the parameter based on the ``response`` given
 
         Note:
@@ -129,13 +148,27 @@ class ParameterBuilderBase:
             correctness of the ``response`` provided.
 
         Args:
-            response (str): A string representing a possible value of this parameter
-                which is one of the keys of :attr:`self.responses`.
+            response (Enum | List[Enum]): An enum item or list of them representing the possible
+                values of this parameter which is a subset of the keys of :attr:`self.responses`.
+                The Enum classes reside in :mod:`vizard.models.estimators.manual.constant`.
             raw (bool): Whether to return the raw importance provided initially by the user
                 (residing in ``self.responses``) or normalized one if True. Defaults to True.
         """
+        total_importance: float = 0.0
         if raw:
-            return self.responses[response]
+            if isinstance(response, constant.Enum):
+                total_importance = self.responses[response]
+            elif isinstance(response, list):
+                total_importance = sum([self.responses[r] for r in response])
+                # clip value to a percentage range
+                total_importance = self._clip_to_percent(
+                    value=total_importance, lower=-1.0, upper=1.0
+                )
+            else:
+                raise ValueError(
+                    "importance value cannot be set. Please check your response."
+                )
+            return total_importance
         raise NotImplementedError("Normalized importance is not yet implemented.")
 
     def _clip_to_percent(
@@ -161,23 +194,64 @@ class ParameterBuilderBase:
 
         return max(min(value, upper), lower)  # clip in range of [0, 1]
 
-    def set_response(self, response: str, raw: bool = False) -> float:
-        """Sets the response to calculate ``self.importance`` used for ``_modifier`` s
+    def str_to_enum(self, value: str, target_enum: constant.Enum) -> constant.Enum:
+        """Takes a string and converts it to Enum type of that string
+
+        When extending this class, this method needs to implemented to take the Enum
+        type associated with the extended class.
+        For example, for :class:`TravelHistoryParameterBuilder`, the associated enum is
+        :class:`vizard.models.estimators.manual.constant.TravelHistoryRegion`.
+
 
         Args:
-            response (str): A string representing a possible value of this parameter
-                which is one of the keys of :attr:`self.responses`.
+            value (str): The input string to be converted to Enum
+            target_enum (Enum): The target Enum representing possible responses
+
+        Returns:
+            constant.Enum: The Enum used for computing the importance values
+        """
+
+        raise NotImplementedError("Please extend this class and implement this method.")
+
+    def set_response(
+        self,
+        response: str | List[str],
+        raw: bool = False,
+    ) -> float:
+        """Sets the response to calculate ``self.importance`` used for ``_modifier`` s
+
+        If the input is of type string as the name of Enum items, this method also converts
+        them (via :meth:`str_to_enum`) to their Enum item object. Hence user can provide both of type Enum and string.
+
+        Args:
+            response (str | List[str]): A string or list of them representing the possible
+                values of this parameter. The Enum classes which their name is the possible
+                values for responses, reside in :mod:`vizard.models.estimators.manual.constant`.
             raw (bool): Whether to return the raw importance provided initially by the user
                 (residing in ``self.responses``) or normalized one if True. Defaults to True.
         Returns:
             float: Returns the calculated importance
         """
         # check if response is valid
-        if response not in self.responses.keys():
-            raise ValueError(f"'{response}' is not valid.")
+        converted_response = response
+        if isinstance(response, list):
+            converted_response: List[constant.Enum] = []
+            for r in response:
+                # convert str to Enum
+                if isinstance(r, str):
+                    r = self.str_to_enum(r)
+                    converted_response.append(r)
+                self._response_check(response=r)
 
-        self.response = response
-        self.importance = self.__get_importance(response=response, raw=raw)
+        elif isinstance(response, constant.Enum):
+            self._response_check(response=response)
+
+        elif isinstance(response, str):
+            converted_response: constant.Enum = self.str_to_enum(value=response)
+            self._response_check(response=converted_response)
+
+        self.response = converted_response
+        self.importance = self.__get_importance(response=converted_response, raw=raw)
         # check for range if raw=false
         if not raw:
             self._percent_check(percent=self.importance)
@@ -302,6 +376,13 @@ class InvitationLetterParameterBuilder(ParameterBuilderBase):
 
         super().__init__(name, responses, feature_category)
 
+    def str_to_enum(
+        self,
+        value: str,
+        target_enum: constant.Enum = constant.InvitationLetterSenderRelation,
+    ) -> constant.InvitationLetterSenderRelation:
+        return target_enum(value)
+
     def potential_modifier(self, potential: float) -> float:
         """Modifies ``potential`` based on given importance
 
@@ -389,6 +470,11 @@ class TravelHistoryParameterBuilder(ParameterBuilderBase):
         )
 
         super().__init__(name, responses, feature_category)
+
+    def str_to_enum(
+        self, value: str, target_enum: constant.Enum = constant.TravelHistoryRegion
+    ) -> constant.TravelHistoryRegion:
+        return target_enum(value)
 
     def potential_modifier(self, potential: float) -> float:
         """Modifies ``potential`` based on given importance

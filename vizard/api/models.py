@@ -304,15 +304,16 @@ class Payload(BaseModel):
             )
         return value
 
-    travel_history: str = TravelHistoryRegion.NONE.value
+    travel_history: List[str] = [TravelHistoryRegion.NONE.value]
 
     @field_validator("travel_history")
     def _travel_history(cls, value):
-        if value.lower() not in TravelHistoryRegion._value2member_map_:
-            raise ValueError(
-                f"'{value}' is not valid"
-                f" Please use one of '{list(TravelHistoryRegion._value2member_map_.keys())}'"
-            )
+        for v in value:
+            if v.lower() not in TravelHistoryRegion._value2member_map_:
+                raise ValueError(
+                    f"'{v=}' is not valid"
+                    f" Please use one of '{list(TravelHistoryRegion._value2member_map_.keys())}'"
+                )
         return value
 
     bank_balance: float = 100.0

@@ -337,7 +337,7 @@ async def potential(features: api_models.Payload):
 
         # set response for invitation letter
         invitation_letter_param.set_response(
-            response=InvitationLetterSenderRelation(features.invitation_letter),
+            response=features.invitation_letter,
             raw=True,
         )
         # remove invitation letter so preprocessing, transformation, etc works just like before
@@ -348,7 +348,7 @@ async def potential(features: api_models.Payload):
 
         # set response for travel history
         travel_history_param.set_response(
-            response=TravelHistoryRegion(features.travel_history),
+            response=features.travel_history,
             raw=True,
         )
         # remove invitation letter so preprocessing, transformation, etc works just like before
@@ -421,7 +421,7 @@ async def predict(
 
         # set response for invitation letter
         invitation_letter_param.set_response(
-            response=InvitationLetterSenderRelation(features.invitation_letter),
+            response=features.invitation_letter,
             raw=True,
         )
         # remove invitation letter so preprocessing, transformation, etc works just like before
@@ -432,7 +432,7 @@ async def predict(
 
         # set response for travel history
         travel_history_param.set_response(
-            response=TravelHistoryRegion(features.travel_history),
+            response=features.travel_history,
             raw=True,
         )
         # remove invitation letter so preprocessing, transformation, etc works just like before
@@ -658,7 +658,7 @@ async def grouped_xai(features: api_models.Payload):
 
     # set response for invitation letter
     invitation_letter_param.set_response(
-        response=InvitationLetterSenderRelation(features.invitation_letter),
+        response=features.invitation_letter,
         raw=True,
     )
     # remove invitation letter so preprocessing, transformation, etc works just like before
@@ -667,7 +667,7 @@ async def grouped_xai(features: api_models.Payload):
 
     # set response for travel history
     travel_history_param.set_response(
-        response=TravelHistoryRegion(features.travel_history),
+        response=features.travel_history,
         raw=True,
     )
     # remove travel history so preprocessing, transformation, etc works just like before
