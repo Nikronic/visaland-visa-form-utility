@@ -4,7 +4,8 @@ from typing import Dict
 from pytest import mark
 import pytest
 
-from vizard.models.estimators.manual import constant, core
+from vizard.models.estimators.manual import core
+from vizard.models.estimators.manual import constant
 
 inv_letter_param = core.InvitationLetterParameterBuilder()
 travel_hist_param = core.TravelHistoryParameterBuilder()
@@ -144,19 +145,18 @@ class TestTravelHistoryParameterBuilder:
         ],
         argvalues=[
             (0.0, "schengen_once", 0.5),
+            (0.0, ["schengen_once", "am_ge_tr_az"], 0.55),
             (1.0, "schengen_twice", 1.0),
             (0.4, "jp_kr_af", 0.66),
+            (0.4, ["jp_kr_af", "am_ge_tr_az"], 0.71),
             (0.5, "schengen_twice", 1.0),
             (0.9, "am_ge_tr_az", 0.635),
-            (0.3, "am_ge_tr_az", 0.245),
         ],
     )
     def test_potential_modifier(
         self, given_potential: float, given_response: str, expected_potential: float
     ):
-        travel_hist_param.set_response(
-            response=constant.TravelHistoryRegion(given_response), raw=True
-        )
+        travel_hist_param.set_response(response=given_response, raw=True)
         new_potential: float = travel_hist_param.potential_modifier(given_potential)
 
         assert isclose(new_potential, expected_potential)
@@ -169,19 +169,18 @@ class TestTravelHistoryParameterBuilder:
         ],
         argvalues=[
             (0.0, "schengen_once", 0.5),
+            (0.0, ["schengen_once", "am_ge_tr_az"], 0.55),
             (1.0, "schengen_twice", 1.0),
-            (0.3, "jp_kr_af", 0.595),
-            (0.7, "schengen_twice", 1.0),
+            (0.4, "jp_kr_af", 0.66),
+            (0.4, ["jp_kr_af", "am_ge_tr_az"], 0.71),
+            (0.5, "schengen_twice", 1.0),
             (0.9, "am_ge_tr_az", 0.635),
-            (0.3, "am_ge_tr_az", 0.245),
         ],
     )
     def test_probability_modifier(
         self, given_probability: float, given_response: str, expected_probability: float
     ):
-        travel_hist_param.set_response(
-            response=constant.TravelHistoryRegion(given_response), raw=True
-        )
+        travel_hist_param.set_response(response=given_response, raw=True)
         new_probability: float = travel_hist_param.probability_modifier(
             given_probability
         )
@@ -205,6 +204,21 @@ class TestTravelHistoryParameterBuilder:
                 "schengen_once",
                 {
                     "purpose": 0.8197754861291296,
+                    "emotional": -0.3633606764015736,
+                    "career": 0.10153467401648415,
+                    "financial": -0.04314236322943492,
+                },
+            ),
+            (
+                {
+                    "purpose": 0.49196228635250716,
+                    "emotional": -0.3633606764015736,
+                    "career": 0.10153467401648415,
+                    "financial": -0.04314236322943492,
+                },
+                ["schengen_once", "am_ge_tr_az"],
+                {
+                    "purpose": 0.8697754861291297,
                     "emotional": -0.3633606764015736,
                     "career": 0.10153467401648415,
                     "financial": -0.04314236322943492,
@@ -248,9 +262,7 @@ class TestTravelHistoryParameterBuilder:
         given_response: str,
         expected_grouped_xai: Dict[str, float],
     ):
-        travel_hist_param.set_response(
-            response=constant.TravelHistoryRegion(given_response), raw=True
-        )
+        travel_hist_param.set_response(response=given_response, raw=True)
         new_grouped_xai: float = travel_hist_param.grouped_xai_modifier(
             grouped_xai=given_grouped_xai
         )
