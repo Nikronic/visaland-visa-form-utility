@@ -1,7 +1,7 @@
 __all__ = ["VERSION_SHORT", "VERSION"]
 
 _MAJOR = "0"
-_MINOR = "26"
+_MINOR = "27"
 _REVISION = "0"
 
 VERSION_SHORT = f"{_MAJOR}.{_MINOR}"
