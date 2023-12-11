@@ -6,15 +6,17 @@ from typing import Any, Dict, List
 import httpx
 
 from vizard.data import constant
-from vizard.models.estimators.manual import (InvitationLetterSenderRelation,
-                                             TravelHistoryRegion)
+from vizard.models.estimators.manual import (
+    InvitationLetterSenderRelation,
+    TravelHistoryRegion,
+)
 
 mandatory = ["sex"]
 FEATURE_VALUES: Dict[str, List[Any]] = {
     "sex": ["male", "female"],
     "education_field_of_study": ["master", "phd", "unedu"],
     "occupation_title1": ["manager", "specialist", "employee"],
-    # "refused_entry_or_deport": [True, False],
+    "refused_entry_or_deport": [True, False],
     "date_of_birth": list(range(20, 61, 10)),
     "marriage_period": list(range(0, 31, 10)),
     "occupation_period": list(range(0, 31, 10)),
@@ -24,8 +26,8 @@ FEATURE_VALUES: Dict[str, List[Any]] = {
     "spouse_accompany": list(range(2)),
     "sibling_accompany": list(range(3)),
     "child_count": list(range(5)),
-    # "invitation_letter": list(InvitationLetterSenderRelation._value2member_map_.keys()),
-    # "travel_history": list(TravelHistoryRegion._value2member_map_.keys()),
+    "invitation_letter": list(InvitationLetterSenderRelation._value2member_map_.keys()),
+    "travel_history": list(TravelHistoryRegion._value2member_map_.keys()),
 }
 
 
@@ -176,8 +178,211 @@ class SampleGenerator:
         return {key: input_dict[key] for key in input_list if key in input_dict}
 
 
-url = "http://localhost:9000/predict/"
-wanted = "result"
+#####################################
+import argparse
+import logging
+import pickle
+import shutil
+import sys
+from pathlib import Path
+from typing import Any, Dict, List, Tuple
+
+import dvc.api
+import mlflow
+import numpy as np
+import pandas as pd
+
+from vizard.data import functional, preprocessor
+from vizard.data.constant import (
+    OccupationTitle,
+)
+from vizard.models import preprocessors, trainers
+from vizard.models.estimators.manual import (
+    InvitationLetterParameterBuilder,
+    InvitationLetterSenderRelation,
+    TravelHistoryParameterBuilder,
+    TravelHistoryRegion,
+)
+from vizard.utils import loggers
+from vizard.version import VERSION as VIZARD_VERSION
+from vizard.xai import FlamlTreeExplainer
+
+# run mlflow tracking server
+mlflow.set_tracking_uri(f"http://0.0.0.0:5000")
+
+# data versioning config
+PATH = "raw-dataset/all-dev.pkl"  # path to source data, e.g. data.pkl file
+REPO = "../visaland-visa-form-utility"
+VERSION = "v3.0.0-dev"  # use the latest EDA version (i.e. `vx.x.x-dev`)
+# get url data from DVC data storage
+data_url = dvc.api.get_url(path=PATH, repo=REPO, rev=VERSION)
+data = pd.read_pickle(data_url).drop(columns=["VisaResult"], inplace=False)
+
+# DVC: helper - (for more info see the API that uses these files)
+# data file for converting country names to continuous score in "economical" sense
+HELPER_PATH_GDP = "raw-dataset/API_NY.GDP.PCAP.CD_DS2_en_xml_v2_4004943.pkl"
+HELPER_VERSION_GDP = "v0.1.0-field-GDP"  # use latest using `git tag`
+# data file for converting country names to continuous score in "all" possible senses
+HELPER_PATH_OVERALL = "raw-dataset/databank-2015-2019.pkl"
+HELPER_VERSION_OVERALL = "v0.1.0-field"  # use latest using `git tag`
+# gather these for MLFlow track
+all_helper_data_info = {
+    HELPER_PATH_GDP: HELPER_VERSION_GDP,
+    HELPER_PATH_OVERALL: HELPER_VERSION_OVERALL,
+}
+# data file for converting country names to continuous score in "economical" sense
+worldbank_gdp_dataframe = pd.read_pickle(
+    dvc.api.get_url(path=HELPER_PATH_GDP, repo=REPO, rev=HELPER_VERSION_GDP)
+)
+eco_country_score_preprocessor = preprocessor.WorldBankXMLProcessor(
+    dataframe=worldbank_gdp_dataframe
+)
+# data file for converting country names to continuous score in "all" possible senses
+worldbank_overall_dataframe = pd.read_pickle(
+    dvc.api.get_url(path=HELPER_PATH_OVERALL, repo=REPO, rev=HELPER_VERSION_OVERALL)
+)
+edu_country_score_preprocessor = (
+    preprocessor.EducationCountryScoreDataframePreprocessor(
+        dataframe=worldbank_overall_dataframe
+    )
+)
+
+# configure logging
+VERBOSE = logging.DEBUG
+MLFLOW_ARTIFACTS_BASE_PATH: Path = Path("artifacts")
+if MLFLOW_ARTIFACTS_BASE_PATH.exists():
+    shutil.rmtree(MLFLOW_ARTIFACTS_BASE_PATH)
+__libs = ["snorkel", "vizard", "flaml"]
+logger = loggers.Logger(
+    name=__name__,
+    level=VERBOSE,
+    mlflow_artifacts_base_path=MLFLOW_ARTIFACTS_BASE_PATH,
+    libs=__libs,
+)
+
+# log experiment configs
+MLFLOW_EXPERIMENT_NAME = f"{VIZARD_VERSION}"
+mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
+mlflow.start_run()
+
+logger.info(f"MLflow experiment name: {MLFLOW_EXPERIMENT_NAME}")
+logger.info(f"MLflow experiment id: {mlflow.active_run().info.run_id}")
+
+# get mlflow run id for extracting artifacts of the desired run
+MLFLOW_RUN_ID = "426deb77881b4d719c2c0d18ce7c36db"
+mlflow.log_param("mlflow-trained-run-id", MLFLOW_RUN_ID)
+
+# load fitted preprocessing models
+X_CT_NAME = "train_sklearn_column_transfer.pkl"
+x_ct_path = mlflow.artifacts.download_artifacts(
+    run_id=MLFLOW_RUN_ID,
+    artifact_path=f"0/models/{X_CT_NAME}",
+    dst_path=f"api/artifacts",
+)
+with open(x_ct_path, "rb") as f:
+    x_ct: preprocessors.ColumnTransformer = pickle.load(f)
+
+# load fitted FLAML AutoML model for prediction
+FLAML_AUTOML_NAME = "flaml_automl.pkl"
+flaml_automl_path = mlflow.artifacts.download_artifacts(
+    run_id=MLFLOW_RUN_ID,
+    artifact_path=f"0/models/{FLAML_AUTOML_NAME}",
+    dst_path=f"api/artifacts",
+)
+with open(flaml_automl_path, "rb") as f:
+    flaml_automl: trainers.AutoML = pickle.load(f)
+
+feature_names = preprocessors.get_transformed_feature_names(
+    column_transformer=x_ct,
+    original_columns_names=data.columns.values,
+)
+
+# SHAP tree explainer #56
+flaml_tree_explainer = FlamlTreeExplainer(
+    flaml_model=flaml_automl, feature_names=feature_names, data=None
+)
+
+# Create instances of manual parameter insertion
+invitation_letter_param = InvitationLetterParameterBuilder()
+# Create instances of manual parameter insertion
+travel_history_param = TravelHistoryParameterBuilder()
+MANUAL_PARAM_NAMES_ANSWERED_DICT: Dict[str, bool] = {
+    invitation_letter_param.name: False,
+    travel_history_param.name: False,
+}
+
+def _predict(is_flagged=False, **kwargs):
+    # flag raw data from the user
+    if is_flagged:
+        logger.debug(f"Raw data from pydantic:")
+        logger.debug(f"{kwargs}\n\n")
+
+    # convert api data to model data
+    args = list(kwargs.values())
+    # convert to dataframe
+    x_test = pd.DataFrame(data=[list(args)], columns=data.columns)
+    x_test = x_test.astype(data.dtypes)
+    x_test = x_test.to_numpy()
+    # flag pre transformed data
+    if is_flagged:
+        logger.debug(f"Preprocessed but not pretransformed data:")
+        logger.debug(f"{x_test}\n\n")
+
+    # preprocess test data
+    xt_test = x_ct.transform(x_test)
+    # flag transformed data
+    if is_flagged:
+        logger.debug(f"Preprocessed and pretransformed data:")
+        logger.debug(f"{xt_test}\n\n")
+
+    # predict
+    y_pred = flaml_automl.predict_proba(xt_test)
+    label = np.argmax(y_pred)
+    y_pred = y_pred[0, label]
+    y_pred = y_pred if label == 1 else 1.0 - y_pred
+    return y_pred
+
+
+def predict(features_dict: Dict[str, Any], provided_variables: List[str]):
+    # reset manual variable responses
+    for k, _ in MANUAL_PARAM_NAMES_ANSWERED_DICT.items():
+        MANUAL_PARAM_NAMES_ANSWERED_DICT[k] = False
+
+    # if manual param is answered, make its value True
+    for param in provided_variables:
+        if param in MANUAL_PARAM_NAMES_ANSWERED_DICT.keys():
+            MANUAL_PARAM_NAMES_ANSWERED_DICT[param] = True
+
+    # set response for invitation letter
+    invitation_letter_param.set_response(
+        response=InvitationLetterSenderRelation(features_dict["invitation_letter"]),
+        raw=True,
+    )
+    # remove invitation letter so preprocessing, transformation, etc works just like before
+    if invitation_letter_param.name in features_dict:
+        del features_dict[invitation_letter_param.name]
+    if invitation_letter_param.name in provided_variables:
+        provided_variables.remove(invitation_letter_param.name)
+
+    # set response for travel history
+    travel_history_param.set_response(
+        response=TravelHistoryRegion(features_dict["travel_history"]),
+        raw=True,
+    )
+    # remove invitation letter so preprocessing, transformation, etc works just like before
+    if travel_history_param.name in features_dict:
+        del features_dict[travel_history_param.name]
+    if travel_history_param.name in provided_variables:
+        provided_variables.remove(travel_history_param.name)
+
+    result = _predict(**features_dict)
+
+    # apply invitation letter modification given the response
+    result: float = invitation_letter_param.probability_modifier(probability=result)
+    # apply travel history modification given the response
+    result: float = travel_history_param.probability_modifier(probability=result)
+
+    return result
 
 
 def para(only):
@@ -185,11 +390,50 @@ def para(only):
     samples_list = []
     sampler = SampleGenerator(FEATURE_VALUES, mandatory, only)
     samples = sampler.sample_maker(FEATURE_VALUES)
-    with httpx.Client() as client:
-        for sample in samples:
-            r = client.post(url, json=sample).json()[wanted]
-            results_list.append(r)
-            samples_list.append(sample)
+
+    for sample in samples:
+        default_feature: Dict[str, Any] = {
+            "sex": "string",
+            "education_field_of_study": "unedu",
+            "occupation_title1": "OTHER",
+            "refused_entry_or_deport": False,
+            "date_of_birth": 18,
+            "marriage_period": 0,
+            "occupation_period": 0,
+            "applicant_marital_status": "7",
+            "child_accompany": 0,
+            "parent_accompany": 0,
+            "spouse_accompany": 0,
+            "sibling_accompany": 0,
+            "child_count": 0,
+            "invitation_letter": "none",
+            "travel_history": "none",
+        }
+        ###
+        for f, v in sample.items():
+            default_feature[f] = v
+        if "sex" in default_feature:
+            default_feature["sex"] = (
+                default_feature["sex"].lower().capitalize()
+            )  # female -> Female, ...
+
+        def __occupation_title_x(value: str) -> str:
+            value = value.lower()
+            if value == OccupationTitle.OTHER.name.lower():
+                value = OccupationTitle.OTHER.name
+            return value
+
+        if "occupation_title1" in default_feature:
+            default_feature["occupation_title1"] = __occupation_title_x(
+                value=default_feature["occupation_title1"]
+            )
+        ###
+        r = predict(
+            features_dict=default_feature,
+            provided_variables=list(default_feature.keys()),
+        )
+        results_list.append(r)
+        samples_list.append(default_feature)
     print(
         "number of samples with only subsets of",
         only,
@@ -197,20 +441,18 @@ def para(only):
         len(samples_list),
         len(samples_list) == len(results_list),
     )  # just to check size and if both are the same size
-
+    import os
     # Save the list to a JSON file
     with open(
-        f"vizard/utils/synthetic_samples/samples_with_subsets_of_only_{only}.json", "w"
+        f"{os.getcwd()}/vizard/utils/synthetic_samples/samples_with_subsets_of_only_{only}.json", "w"
     ) as file:  # _samples
         json.dump(samples_list, file, indent=4)
     with open(
-        f"vizard/utils/synthetic_samples/results_with_subsets_of_only_{only}.json", "w"
+        f"{os.getcwd()}/vizard/utils/synthetic_samples/results_with_subsets_of_only_{only}.json", "w"
     ) as file:
         json.dump(results_list, file, indent=4)
 
 
 print("number of features", len(FEATURE_VALUES))
-numbers = list(range(1, 5))
-
-with multiprocessing.Pool() as pool:
-    results = pool.map(para, numbers)
+numbers = list(range(1, 3))
+para(only=3)
