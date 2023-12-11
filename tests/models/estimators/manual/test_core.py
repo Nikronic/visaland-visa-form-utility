@@ -5,7 +5,6 @@ from pytest import mark
 import pytest
 
 from vizard.models.estimators.manual import core
-from vizard.models.estimators.manual import constant
 
 inv_letter_param = core.InvitationLetterParameterBuilder()
 travel_hist_param = core.TravelHistoryParameterBuilder()
@@ -30,9 +29,7 @@ class TestInvitationLetterParameterBuilder:
     def test_potential_modifier(
         self, given_potential: float, given_response: str, expected_potential: float
     ):
-        inv_letter_param.set_response(
-            response=constant.InvitationLetterSenderRelation(given_response), raw=True
-        )
+        inv_letter_param.set_response(response=given_response, raw=True)
         new_potential: float = inv_letter_param.potential_modifier(given_potential)
 
         assert isclose(new_potential, expected_potential)
@@ -54,9 +51,7 @@ class TestInvitationLetterParameterBuilder:
     def test_probability_modifier(
         self, given_probability: float, given_response: str, expected_probability: float
     ):
-        inv_letter_param.set_response(
-            response=constant.InvitationLetterSenderRelation(given_response), raw=True
-        )
+        inv_letter_param.set_response(response=given_response, raw=True)
         new_probability: float = inv_letter_param.probability_modifier(
             given_probability
         )
@@ -123,9 +118,7 @@ class TestInvitationLetterParameterBuilder:
         given_response: str,
         expected_grouped_xai: Dict[str, float],
     ):
-        inv_letter_param.set_response(
-            response=constant.InvitationLetterSenderRelation(given_response), raw=True
-        )
+        inv_letter_param.set_response(response=given_response, raw=True)
         new_grouped_xai: float = inv_letter_param.grouped_xai_modifier(
             grouped_xai=given_grouped_xai
         )
