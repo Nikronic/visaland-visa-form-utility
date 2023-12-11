@@ -78,6 +78,21 @@ class ParameterBuilderBase:
         if not isinstance(self.name, str):
             raise ValueError("The name can only be string.")
 
+    def _response_check(self, response: constant.Enum | List[constant.Enum]) -> None:
+        """Checks if all instances of response are valid
+
+        Validation is checked upon existence of values in :attr:`responses`
+
+        Args:
+            response (Enum | List[Enum]): The list or single instance of response
+        """
+
+        if response not in self.responses.keys():
+            raise ValueError(
+                f"'{response}' is not valid."
+                f"Please use one of '{self.responses.keys()}'"
+            )
+
     def _percent_check(self, percent: float) -> None:
         """Checks if the input variable is a percentage in [0, 1]
 
