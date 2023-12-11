@@ -211,7 +211,7 @@ class ParameterBuilderBase:
             constant.Enum: The Enum used for computing the importance values
         """
 
-        raise NotImplementedError('Please extend this class and implement this method.')
+        raise NotImplementedError("Please extend this class and implement this method.")
 
     def set_response(
         self,
