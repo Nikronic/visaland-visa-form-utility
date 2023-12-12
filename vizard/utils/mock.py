@@ -311,39 +311,17 @@ MANUAL_PARAM_NAMES_ANSWERED_DICT: Dict[str, bool] = {
     travel_history_param.name: False,
 }
 
-def _predict(is_flagged=False, **kwargs):
-    # flag raw data from the user
-    if is_flagged:
-        logger.debug(f"Raw data from pydantic:")
-        logger.debug(f"{kwargs}\n\n")
 
-    # convert api data to model data
-    args = list(kwargs.values())
-    # convert to dataframe
-    x_test = pd.DataFrame(data=[list(args)], columns=data.columns)
-    x_test = x_test.astype(data.dtypes)
-    x_test = x_test.to_numpy()
-    # flag pre transformed data
-    if is_flagged:
-        logger.debug(f"Preprocessed but not pretransformed data:")
-        logger.debug(f"{x_test}\n\n")
+def preprocess(features_dict: Dict[str, Any], provided_variables: List[str]):
+    # Create instances of manual parameter insertion
+    invitation_letter_param = InvitationLetterParameterBuilder()
+    # Create instances of manual parameter insertion
+    travel_history_param = TravelHistoryParameterBuilder()
+    MANUAL_PARAM_NAMES_ANSWERED_DICT: Dict[str, bool] = {
+        invitation_letter_param.name: False,
+        travel_history_param.name: False,
+    }
 
-    # preprocess test data
-    xt_test = x_ct.transform(x_test)
-    # flag transformed data
-    if is_flagged:
-        logger.debug(f"Preprocessed and pretransformed data:")
-        logger.debug(f"{xt_test}\n\n")
-
-    # predict
-    y_pred = flaml_automl.predict_proba(xt_test)
-    label = np.argmax(y_pred)
-    y_pred = y_pred[0, label]
-    y_pred = y_pred if label == 1 else 1.0 - y_pred
-    return y_pred
-
-
-def predict(features_dict: Dict[str, Any], provided_variables: List[str]):
     # reset manual variable responses
     for k, _ in MANUAL_PARAM_NAMES_ANSWERED_DICT.items():
         MANUAL_PARAM_NAMES_ANSWERED_DICT[k] = False
@@ -375,23 +353,55 @@ def predict(features_dict: Dict[str, Any], provided_variables: List[str]):
     if travel_history_param.name in provided_variables:
         provided_variables.remove(travel_history_param.name)
 
-    result = _predict(**features_dict)
+    # convert api data to model data
+    features_list = list(features_dict.values())
+    # convert to dataframe
+    x_test = pd.DataFrame(data=[list(features_list)], columns=data.columns)
+    x_test = x_test.astype(data.dtypes)
+    x_test = x_test.to_numpy()
+    # preprocess test data
+    xt_test = x_ct.transform(x_test)
 
-    # apply invitation letter modification given the response
-    result: float = invitation_letter_param.probability_modifier(probability=result)
-    # apply travel history modification given the response
-    result: float = travel_history_param.probability_modifier(probability=result)
+    return xt_test, invitation_letter_param, travel_history_param
+
+
+def predict(
+    xt_test: np.ndarray,
+    invitation_letter_param_list: List[InvitationLetterParameterBuilder],
+    travel_history_param_list: List[TravelHistoryParameterBuilder],
+) -> float:
+    # predict
+    y_pred = flaml_automl.predict_proba(xt_test)
+    label = np.argmax(y_pred, axis=1)
+    y_pred = y_pred[:, label.reshape(1, -1)][:, :, 0]
+    result = np.where([label.flatten() == 1], y_pred.flatten(), 1 - y_pred.flatten())
+    result = result.reshape(-1, 1)
+
+    for i in range(len(result)):
+        # apply invitation letter modification given the response
+        result[i] = invitation_letter_param_list[i].probability_modifier(probability=result[i].item())
+        # apply travel history modification given the response
+        result[i] = travel_history_param_list[i].probability_modifier(probability=result[i].item())
 
     return result
 
 
-def para(only):
-    results_list = []
+def batched_inference(only):
+    BATCH_SIZE: int = 12
+    N_FEATURES: int = 26
+    xt_tests_ndarray = np.empty(shape=(BATCH_SIZE, N_FEATURES))
+
     samples_list = []
+    results_list = []
+
     sampler = SampleGenerator(FEATURE_VALUES, mandatory, only)
     samples = sampler.sample_maker(FEATURE_VALUES)
 
+    i = 0
+    travel_history_param_list: List[TravelHistoryParameterBuilder] = []
+    invitation_letter_param_list: List[InvitationLetterParameterBuilder] = []
     for sample in samples:
+
         default_feature: Dict[str, Any] = {
             "sex": "string",
             "education_field_of_study": "unedu",
@@ -409,7 +419,6 @@ def para(only):
             "invitation_letter": "none",
             "travel_history": "none",
         }
-        ###
         for f, v in sample.items():
             default_feature[f] = v
         if "sex" in default_feature:
@@ -427,32 +436,34 @@ def para(only):
             default_feature["occupation_title1"] = __occupation_title_x(
                 value=default_feature["occupation_title1"]
             )
-        ###
-        r = predict(
+        # prepare batched tests
+        xt_test, ilp, thp = preprocess(
             features_dict=default_feature,
             provided_variables=list(default_feature.keys()),
         )
-        results_list.append(r)
+        xt_tests_ndarray[i, :] = xt_test[0, :]
+        travel_history_param_list.append(ilp)
+        invitation_letter_param_list.append(thp)
+
         samples_list.append(default_feature)
-    print(
-        "number of samples with only subsets of",
-        only,
-        "->",
-        len(samples_list),
-        len(samples_list) == len(results_list),
-    )  # just to check size and if both are the same size
-    import os
-    # Save the list to a JSON file
-    with open(
-        f"{os.getcwd()}/vizard/utils/synthetic_samples/samples_with_subsets_of_only_{only}.json", "w"
-    ) as file:  # _samples
-        json.dump(samples_list, file, indent=4)
-    with open(
-        f"{os.getcwd()}/vizard/utils/synthetic_samples/results_with_subsets_of_only_{only}.json", "w"
-    ) as file:
-        json.dump(results_list, file, indent=4)
+        i += 1
+        # prepare the batch and do batched inference
+        if i % BATCH_SIZE == 0:
+            batched_result = predict(
+                xt_test=xt_tests_ndarray,
+                invitation_letter_param_list=invitation_letter_param_list,
+                travel_history_param_list=travel_history_param_list,
+            )
+            results_list.append(batched_result)
+
+            # reset the batch
+            i = 0
+            xt_tests_ndarray = np.empty(shape=(BATCH_SIZE, N_FEATURES))
+            invitation_letter_param_list = []
+            travel_history_param_list = []
 
 
 print("number of features", len(FEATURE_VALUES))
 numbers = list(range(1, 3))
-para(only=3)
+batched_inference(only=3)
+print()
