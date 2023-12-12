@@ -353,23 +353,25 @@ def preprocess(features_dict: Dict[str, Any], provided_variables: List[str]):
     if travel_history_param.name in provided_variables:
         provided_variables.remove(travel_history_param.name)
 
-    # convert api data to model data
-    features_list = list(features_dict.values())
+    return features_dict, invitation_letter_param, travel_history_param
+
+
+def predict(
+    features_dict_list: List[Dict[str, Any]],
+    invitation_letter_param_list: List[InvitationLetterParameterBuilder],
+    travel_history_param_list: List[TravelHistoryParameterBuilder],
+) -> float:
+    features_list_list: List[List[float]] = []
+    for features_dict in features_dict_list:
+        # convert api data to model data
+        features_list = list(features_dict.values())
+        features_list_list.append(features_list)
     # convert to dataframe
-    x_test = pd.DataFrame(data=[list(features_list)], columns=data.columns)
+    x_test = pd.DataFrame(data=features_list_list, columns=data.columns)
     x_test = x_test.astype(data.dtypes)
     x_test = x_test.to_numpy()
     # preprocess test data
     xt_test = x_ct.transform(x_test)
-
-    return xt_test, invitation_letter_param, travel_history_param
-
-
-def predict(
-    xt_test: np.ndarray,
-    invitation_letter_param_list: List[InvitationLetterParameterBuilder],
-    travel_history_param_list: List[TravelHistoryParameterBuilder],
-) -> float:
     # predict
     y_pred = flaml_automl.predict_proba(xt_test)
     label = np.argmax(y_pred, axis=1)
@@ -387,9 +389,7 @@ def predict(
 
 
 def batched_inference(only):
-    BATCH_SIZE: int = 12
-    N_FEATURES: int = 26
-    xt_tests_ndarray = np.empty(shape=(BATCH_SIZE, N_FEATURES))
+    BATCH_SIZE: int = 4096
 
     samples_list = []
     results_list = []
@@ -400,6 +400,7 @@ def batched_inference(only):
     i = 0
     travel_history_param_list: List[TravelHistoryParameterBuilder] = []
     invitation_letter_param_list: List[InvitationLetterParameterBuilder] = []
+    features_dict_list: List[Dict[str, Any]] = []
     for sample in samples:
 
         default_feature: Dict[str, Any] = {
@@ -437,20 +438,21 @@ def batched_inference(only):
                 value=default_feature["occupation_title1"]
             )
         # prepare batched tests
-        xt_test, ilp, thp = preprocess(
+        fd, ilp, thp = preprocess(
             features_dict=default_feature,
             provided_variables=list(default_feature.keys()),
         )
-        xt_tests_ndarray[i, :] = xt_test[0, :]
+        
         travel_history_param_list.append(ilp)
         invitation_letter_param_list.append(thp)
+        features_dict_list.append(fd)
 
         samples_list.append(default_feature)
         i += 1
         # prepare the batch and do batched inference
         if i % BATCH_SIZE == 0:
             batched_result = predict(
-                xt_test=xt_tests_ndarray,
+                features_dict_list=features_dict_list,
                 invitation_letter_param_list=invitation_letter_param_list,
                 travel_history_param_list=travel_history_param_list,
             )
@@ -458,7 +460,7 @@ def batched_inference(only):
 
             # reset the batch
             i = 0
-            xt_tests_ndarray = np.empty(shape=(BATCH_SIZE, N_FEATURES))
+            features_dict_list = []
             invitation_letter_param_list = []
             travel_history_param_list = []
 
