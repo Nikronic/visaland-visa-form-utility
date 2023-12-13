@@ -1,15 +1,14 @@
 import json
 import multiprocessing
 from itertools import chain, combinations, product
-from typing import Any, Dict, List
+from pathlib import Path
+from typing import Any, Dict, List, Optional
 
-import httpx
+import ijson
 
 from vizard.data import constant
-from vizard.models.estimators.manual import (
-    InvitationLetterSenderRelation,
-    TravelHistoryRegion,
-)
+from vizard.models.estimators.manual import (InvitationLetterSenderRelation,
+                                             TravelHistoryRegion)
 
 mandatory = ["sex"]
 FEATURE_VALUES: Dict[str, List[Any]] = {
@@ -35,85 +34,84 @@ class SampleGenerator:
     """Generates samples using predefined feature names and values.
 
     Attributes:
-        feature_names (List[str]): List of feature names.
         feature_values (Dict[str, List[Any]]): Dictionary of feature values.
+        mandatory_features (List(str|int)): list of mandatory features
     Note:
         This class helps generate artificial samples to test our trained model.
         It utilizes predefined features and their possible values to create mock
         data for analysis.
     """
-
-    # TODO : check if it works well with no mandatory_features
-
     def __init__(
         self,
         feature_values: Dict[str, List[Any]],
-        mandatory_features: Any = None,
-        only: Any = None,
+        mandatory_features: Optional[list[str]] = None,
     ):
         self.feature_values = feature_values
         self.feature_names = list(self.feature_values.keys())
-        self.only = only
         if mandatory_features is None:
             self.mandatory_features = []
         else:
             self.mandatory_features = mandatory_features
 
-    def _powerset(self, iterable: List[str]) -> List[List[str]]:
+    def _subsets_with_only_n_items(
+        self,
+        n: int,
+    ) -> List[List[str | int]]:
+        """create all subsets with size of n
+
+        Args:
+            only (int): size of subsets that we want to create
+
+        Returns:
+            List[List[str | int]]: a list of all subsets with size of n
+        """
+        iterable = self.feature_names
+        return list(combinations(iterable, n))
+
+    def _powerset(self) -> List[List[str | int]]:
         """create a power-set (all possible subsets) from our list
         Args:
             iterable (List[str]): given list of all feature_names to create subsets
         Returns:
             List[List[str]]: a power-set of given feature_names
         """
-        only = self.only
+        iterable = self.feature_names
         powerset = list(
             chain.from_iterable(
-                combinations(iterable, r) for r in range(only - 1, only)
+                self._subsets_with_only_n_items(n) for n in range(0, len(iterable) + 1)
             )
         )
+
         return powerset
 
     def _powerset_with_mandatory_features(
-        self, iterable: List[str], mandatory_features: Any = None
+        self, mandatory_features: List[str | int]
     ) -> List[List[str]]:
         """sometimes we need some features as mandatory this function keep those features in all of the subsets
         Args:
-            iterable (List[str]):  given list of all feature_names to create subsets
             mandatory_features (Any, optional): list of mandatory features
-
         Returns:
             List[List[str]]: a list of all possible subsets that all of them have our mandatory features
         """
-        if mandatory_features is None or mandatory_features == []:
-            powerset = self._powerset(list_without_mandatory_features)
-            if {} in powerset:
-                powerset.remove({})
-            return powerset
-        else:
-            list_without_mandatory_features = [
-                features
-                for features in iterable
-                if features not in self.mandatory_features
-            ]  # remove mandatory items from list
-            powerset = self._powerset(list_without_mandatory_features)
+        iterable = self.feature_names
+        if mandatory_features == None:
+            mandatory_features = self.mandatory_features
+        list_without_mandatory_features = [
+            features for features in iterable if features not in mandatory_features
+        ]  # remove mandatory items from list
+        powerset = self._powerset(list_without_mandatory_features)
 
-            customize_powerset = (
-                []
-            )  # all subset has mandatory items if mandatory is given
-            for single_tuple in powerset:
-                customize_powerset.append(list(single_tuple))  # change tuples to list
-            for subset in customize_powerset:
-                subset.extend(
-                    self.mandatory_features
-                )  # add mandatory_features to all subsets
+        customize_powerset = []  # all subset has mandatory items if mandatory is given
+        for single_tuple in powerset:
+            customize_powerset.append(list(single_tuple))  # change tuples to list
+        for subset in customize_powerset:
+            subset.extend(mandatory_features)  # add mandatory_features to all subsets
 
             return customize_powerset
 
     def sample_maker(
         self,
-        feature_names: List[str] = None,
-        feature_values: Dict[str, List[Any]] = None,
+        mandatory_features :Optional[List[str|int]]= None
     ) -> List[Dict[str, Any]]:
         """combine all products from product_generator to create all possible samples
         Args:
@@ -122,15 +120,18 @@ class SampleGenerator:
         Returns:
             List[Dict[str, Any]]: a list of dictionaries each dict is an acceptable fake sample
         """
-        if feature_names is None:
-            feature_names = self.feature_names  # Set default feature_names
+        if mandatory_features == None:
+            mandatory_features = self.mandatory_features
+        feature_values = self.feature_values
+        if mandatory_features == []:  # if no mandatory features
+            powerset_list = self._powerset(self.feature_names)  # all possible subsets
+        else:
+            powerset_list = self._powerset_with_mandatory_features(
+                self.feature_names, mandatory_features
+            )  # all possible subsets with mandatory features
+        if {} in powerset_list:
+            powerset_list.remove({})  # TODO: Do we need this ?
 
-        if feature_values is None:
-            feature_values = self.feature_values  # Set default feature_values
-
-        powerset_list = self._powerset_with_mandatory_features(
-            feature_names, self.mandatory_features
-        )  # TODO: check this line
         samples = []
         while powerset_list:
             subset = powerset_list.pop()
@@ -163,10 +164,8 @@ class SampleGenerator:
             result.append(sample_dict)
 
         return result
-
-    @staticmethod
     def _sub_dict_with_keys(
-        input_list: List[str], input_dict: Dict[str, List[Any]]
+        self, input_list: List[str], input_dict: Dict[str, List[Any]]
     ) -> Dict[str, List[Any]]:
         """take the whole dict and returns sub dict with only items that their key is on our list
         Args:
@@ -174,11 +173,25 @@ class SampleGenerator:
             input_dict (Dict[str, List[[Any]]]): a dictionary of all acceptable values for each feature
         Returns:
             Dict[str, List[[Any]]]: Dict of wanted features and their acceptable values
+        Note:
+            this is needed for _product_generator
         """
+
+
+        input_dict = self.feature_values
         return {key: input_dict[key] for key in input_list if key in input_dict}
 
+    # def _save_to_json(self):
+    #     """save generated samples to a json file"""
+    #     with open("sample.json", "w") as f:
+    #         json.dump(self.sample_maker(), f, indent=4)
 
-#####################################
+    # def _save_to_json_batch(self):
+    #     """save generated samples to a json file
+    #     """
+
+
+####################################
 import argparse
 import logging
 import pickle
@@ -193,16 +206,12 @@ import numpy as np
 import pandas as pd
 
 from vizard.data import functional, preprocessor
-from vizard.data.constant import (
-    OccupationTitle,
-)
+from vizard.data.constant import OccupationTitle
 from vizard.models import preprocessors, trainers
-from vizard.models.estimators.manual import (
-    InvitationLetterParameterBuilder,
-    InvitationLetterSenderRelation,
-    TravelHistoryParameterBuilder,
-    TravelHistoryRegion,
-)
+from vizard.models.estimators.manual import (InvitationLetterParameterBuilder,
+                                             InvitationLetterSenderRelation,
+                                             TravelHistoryParameterBuilder,
+                                             TravelHistoryRegion)
 from vizard.utils import loggers
 from vizard.version import VERSION as VIZARD_VERSION
 from vizard.xai import FlamlTreeExplainer
@@ -381,9 +390,13 @@ def predict(
 
     for i in range(len(result)):
         # apply invitation letter modification given the response
-        result[i] = invitation_letter_param_list[i].probability_modifier(probability=result[i].item())
+        result[i] = invitation_letter_param_list[i].probability_modifier(
+            probability=result[i].item()
+        )
         # apply travel history modification given the response
-        result[i] = travel_history_param_list[i].probability_modifier(probability=result[i].item())
+        result[i] = travel_history_param_list[i].probability_modifier(
+            probability=result[i].item()
+        )
 
     return result
 
@@ -402,7 +415,6 @@ def batched_inference(only):
     invitation_letter_param_list: List[InvitationLetterParameterBuilder] = []
     features_dict_list: List[Dict[str, Any]] = []
     for sample in samples:
-
         default_feature: Dict[str, Any] = {
             "sex": "string",
             "education_field_of_study": "unedu",
@@ -442,7 +454,7 @@ def batched_inference(only):
             features_dict=default_feature,
             provided_variables=list(default_feature.keys()),
         )
-        
+
         travel_history_param_list.append(ilp)
         invitation_letter_param_list.append(thp)
         features_dict_list.append(fd)
@@ -465,7 +477,17 @@ def batched_inference(only):
             travel_history_param_list = []
 
 
-print("number of features", len(FEATURE_VALUES))
-numbers = list(range(1, 3))
-batched_inference(only=3)
-print()
+# print("number of features", len(FEATURE_VALUES))
+# numbers = list(range(1, 3))
+# batched_inference(only=3)
+# print()
+
+z1 = SampleGenerator(FEATURE_VALUES)
+# print(z1._powerset([1,2,3],1))
+# print(z1._subsets_with_only_n_items([1,2,3,4,5],3))
+
+lis = ["a", "b", "c"]
+only = 4
+# print(z1._powerset(lis))
+# print(len(z1._powerset(lis)))
+print(z1._powerset(lis))
