@@ -4,6 +4,7 @@ __all__ = [
     "InvitationLetterParameterBuilder",
     "TravelHistoryParameterBuilder",
     "BankBalanceContinuousParameterBuilder",
+    "ComposeParameterBuilder",
 ]
 
 import math
@@ -652,4 +653,150 @@ class BankBalanceContinuousParameterBuilder(ContinuousParameterBuilderBase):
                     ],
                 )
             new_grouped_xai[key] = value
+        return new_grouped_xai
+class ComposeParameterBuilder:
+    """Composes a list of :class:`ParameterBuilderBase` instances of its extensions
+
+    This is minimize the configuration required by the developer for defining, using, and
+    removing the instances of :class:`vizard.models.estimators.manual.ParameterBuilderBase`.
+    """
+
+    def __init__(self, params: List[ParameterBuilderBase]) -> None:
+        super().__init__()
+
+        # validate input
+        self.__check_compose_type(params=params)
+
+        self.params = params
+        self.consumption_status_dict: Dict[str, bool] = {
+            param_name: False for param_name in params
+        }
+
+    @staticmethod
+    def __check_compose_type(params: List[ParameterBuilderBase]) -> None:
+        for param in params:
+            if not issubclass(param.__class__, ParameterBuilderBase):
+                raise TypeError(f"Keys must be instance of {ParameterBuilderBase}.")
+
+    def _reset_params(self, consumption_status_dict: Dict[str, bool]) -> None:
+        """Takes a dictionary of params and resets the status to a fresh one
+
+        This means that all values are set to ``False``.
+
+        Note:
+            The idea of "consumption" has been explained in :meth:`consume_params`. In
+            simple terms, this is to figure out which of the params inside the
+            compose (this class) are effective (others are ignored).
+
+        Args:
+            consumption_status_dict (Dict[str, bool]): A dictionary that represents
+                which keys are consumed.
+        """
+        for param_name, _ in consumption_status_dict.items():
+            consumption_status_dict[param_name] = False
+
+    def consume_params(self, params_names: List[str]) -> None:
+        # reset params
+        self._reset_params(consumption_status_dict=self.consumption_status_dict)
+
+        # consume those that are available
+        for param_name in params_names:
+            if param_name in self.consumption_status_dict.keys():
+                self.consumption_status_dict[param_name] = True
+
+    def set_responses_for_params(
+        self,
+        responses: Dict[str, Any],
+        raw: bool = False,
+        pop: bool = False,
+        pop_containers: Optional[List[Any]] = None,
+    ) -> None:
+        """Takes a dictionary of params' names and their responses and sets them on param objects
+
+        Note:
+            Setting the parameters' responses is to obtain the importance value
+            which is described in details in :meth:`set_response`.
+
+        Args:
+            responses (Dict[str, Any]):
+                A dictionary that keys are the names of the parameters and values
+                are the corresponding values.
+            raw (bool): Whether to return the raw importance provided initially by the user
+                or normalized one if True. Defaults to True.
+            pop (bool): If True, this method will pop the params' names from given
+                ``pop_containers``. If False, it won't have any effect and ``pop_containers``
+                will be ignored.
+            pop_containers (Optional[List[List, Dict]], optional): A list of iterators
+                that contains the name of params and if ``pop=True``, then the params that
+                have their response set, will be removed from these iterators. If ``pop=False``,
+                then this variable will be ignored.
+        """
+
+        # set the responses for each param via dictionary of param name and param response value
+        for param_name, param_response in responses.items():
+            for param in self.params:
+                if param_name == param.name:
+                    param.set_response(response=param_response, raw=raw)
+
+        # pops params' names from the containers
+        if pop:
+            if pop_containers is None:
+                raise ValueError(f"`pop_containers` cannot be none when `pop` is True.")
+            for param in self.params:
+                param_name: str = param.name
+                # remove this param name from containers
+                for container in pop_containers:
+                    if isinstance(container, dict):
+                        if param_name in container:
+                            del container[param_name]
+                    elif isinstance(container, list):
+                        if param_name in container:
+                            container.remove(param_name)
+                    else:
+                        raise NotImplementedError(
+                            f"Container type={type(container)} is not supported yet."
+                        )
+
+    def probability_modifiers(self, probability: float) -> float:
+        """Applies a stack of probability modifiers of params sequentially
+
+        Args:
+            probability (float): The initial probability value
+
+        Returns:
+            float: The new probability modified by all the params' :meth:`probability_modifier`.
+        """
+        new_probability: float = probability
+        for param in self.params:
+            new_probability = param.probability_modifier(probability=new_probability)
+        return new_probability
+
+    def potential_modifiers(self, potential: float) -> float:
+        """Applies a stack of potential modifiers of params sequentially
+
+        Args:
+            potential (float): The initial potential value
+
+        Returns:
+            float: The new potential modified by all the params' :meth:`potential_modifier`.
+        """
+        new_potential: float = potential
+        for param in self.params:
+            new_potential = param.potential_modifier(probability=new_potential)
+        return new_potential
+
+    def grouped_xai_modifiers(self, grouped_xai: Dict[str, float]) -> Dict[str, float]:
+        """Applies a stack of group XAI modifiers of params sequentially
+
+        Args:
+            grouped_xai (Dict[str, float]): The initial group XAI value
+
+        Returns:
+            Dict[str, float]:
+                The new potential modified by all the params' :meth:`grouped_xai_modifier`.
+        """
+
+        new_grouped_xai: Dict[str, float] = grouped_xai
+        for param in self.params:
+            new_grouped_xai = param.grouped_xai_modifier(grouped_xai=new_grouped_xai)
         return new_grouped_xai
