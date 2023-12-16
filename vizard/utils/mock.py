@@ -41,6 +41,7 @@ class SampleGenerator:
         It utilizes predefined features and their possible values to create mock
         data for analysis.
     """
+
     def __init__(
         self,
         feature_values: Dict[str, List[Any]],
@@ -56,32 +57,36 @@ class SampleGenerator:
     def _subsets_with_only_n_items(
         self,
         n: int,
+        iterable: Optional[List[str | int]] = None,
     ) -> List[List[str | int]]:
         """create all subsets with size of n
 
         Args:
-            only (int): size of subsets that we want to create
+            n (int): size of subsets that we want to create
+            iterable (Optional[List[str  |  int]], optional): _description_. Defaults to None.
 
         Returns:
             List[List[str | int]]: a list of all subsets with size of n
         """
-        iterable = self.feature_names
+        if iterable == None:
+            iterable = self.feature_names
         return list(combinations(iterable, n))
 
-    def _powerset(self) -> List[List[str | int]]:
+    def _powerset(self, iterable=None) -> List[List[str | int]]:
         """create a power-set (all possible subsets) from our list
         Args:
             iterable (List[str]): given list of all feature_names to create subsets
         Returns:
             List[List[str]]: a power-set of given feature_names
         """
-        iterable = self.feature_names
+        if iterable == None:
+            iterable = self.feature_names
         powerset = list(
             chain.from_iterable(
-                self._subsets_with_only_n_items(n) for n in range(0, len(iterable) + 1)
+                self._subsets_with_only_n_items(n, iterable)
+                for n in range(0, len(iterable) + 1)
             )
         )
-
         return powerset
 
     def _powerset_with_mandatory_features(
@@ -99,24 +104,24 @@ class SampleGenerator:
         list_without_mandatory_features = [
             features for features in iterable if features not in mandatory_features
         ]  # remove mandatory items from list
+        # print('li',list_without_mandatory_features)
         powerset = self._powerset(list_without_mandatory_features)
-
         customize_powerset = []  # all subset has mandatory items if mandatory is given
         for single_tuple in powerset:
             customize_powerset.append(list(single_tuple))  # change tuples to list
+
         for subset in customize_powerset:
             subset.extend(mandatory_features)  # add mandatory_features to all subsets
 
-            return customize_powerset
+        return customize_powerset
 
     def sample_maker(
-        self,
-        mandatory_features :Optional[List[str|int]]= None
+        self, mandatory_features: Optional[List[str | int]] = None
     ) -> List[Dict[str, Any]]:
         """combine all products from product_generator to create all possible samples
+
         Args:
-            feature_names (List[str]): given list of all feature_names to create samples
-            feature_values (Dict[str, List[Any]]): a dictionary of all acceptable values for each feature
+            mandatory_features (Optional[List[str | int]], optional): list of mandatory features
         Returns:
             List[Dict[str, Any]]: a list of dictionaries each dict is an acceptable fake sample
         """
@@ -127,10 +132,8 @@ class SampleGenerator:
             powerset_list = self._powerset(self.feature_names)  # all possible subsets
         else:
             powerset_list = self._powerset_with_mandatory_features(
-                self.feature_names, mandatory_features
+                mandatory_features
             )  # all possible subsets with mandatory features
-        if {} in powerset_list:
-            powerset_list.remove({})  # TODO: Do we need this ?
 
         samples = []
         while powerset_list:
@@ -146,6 +149,7 @@ class SampleGenerator:
         dictionary: Dict[str, List[Any]]
     ) -> List[Dict[str, List[Any]]]:
         """it gets a dictionary of acceptable values then create product of them
+
         Args:
             dictionary (Dict[str, List[Any]]): a dictionary of all acceptable values for each feature
         Returns:
@@ -164,10 +168,12 @@ class SampleGenerator:
             result.append(sample_dict)
 
         return result
+
     def _sub_dict_with_keys(
         self, input_list: List[str], input_dict: Dict[str, List[Any]]
     ) -> Dict[str, List[Any]]:
         """take the whole dict and returns sub dict with only items that their key is on our list
+
         Args:
             input_list (List[str]): list of wanted features to including them from our given dict
             input_dict (Dict[str, List[[Any]]]): a dictionary of all acceptable values for each feature
@@ -176,7 +182,6 @@ class SampleGenerator:
         Note:
             this is needed for _product_generator
         """
-
 
         input_dict = self.feature_values
         return {key: input_dict[key] for key in input_list if key in input_dict}
@@ -475,19 +480,3 @@ def batched_inference(only):
             features_dict_list = []
             invitation_letter_param_list = []
             travel_history_param_list = []
-
-
-# print("number of features", len(FEATURE_VALUES))
-# numbers = list(range(1, 3))
-# batched_inference(only=3)
-# print()
-
-z1 = SampleGenerator(FEATURE_VALUES)
-# print(z1._powerset([1,2,3],1))
-# print(z1._subsets_with_only_n_items([1,2,3,4,5],3))
-
-lis = ["a", "b", "c"]
-only = 4
-# print(z1._powerset(lis))
-# print(len(z1._powerset(lis)))
-print(z1._powerset(lis))
