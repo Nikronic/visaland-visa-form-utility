@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import ijson
+from tqdm import tqdm
 
 from vizard.data import constant
 from vizard.models.estimators.manual import (InvitationLetterSenderRelation,
@@ -228,8 +229,20 @@ class SampleGenerator:
         input_dict = self.feature_values
         return {key: input_dict[key] for key in input_list if key in input_dict}
 
-    def _save_to_json(self, n):
-        """save generated samples to a json file"""
+    def _save_to_json(
+        self,
+        all: bool = False,
+        n: Optional[int] = None,
+        batch_size: Optional[int] = None,
+    ):
+        """save generated samples to a json file
+
+        Args:
+            all (bool, Optional): if True it will save all possible samples. Defaults to False.
+            n (int, Optional): if all is False it will save all possible samples with size of n
+            batch_size (Optional): for bigger files we create batches
+        """
+
         # Get the directory of the currently running script
         current_script_directory = os.path.dirname(os.path.realpath(__file__))
 
@@ -238,14 +251,41 @@ class SampleGenerator:
 
         # Create the directory if it does not exist
         os.makedirs(directory, exist_ok=True)
-        file_path = f"{directory}sample{n}.json"
-        self.sample_maker()
-        with open(file_path, "w") as f:
-            json.dump(self.sample_maker(), f, indent=4)
 
-    # def _save_to_json_batch(self):
-    #     """save generated samples to a json file
-    #     """
+        mandatory_features = self.mandatory_features
+        if all:
+            for i in range(
+                len(mandatory_features), len(FEATURE_VALUES) + 1
+            ):  # tqdm(range(len(mandatory_features),len(FEATURE_VALUES)+1),ncols=75):
+                samples = self.sample_maker(mandatory_features, i)
+                file_path = f"{directory}sample_with_size_{i}.json"
+                with open(file_path, "w") as f:
+                    json.dump(samples, f, indent=4)
+                print(
+                    f"saving size {i} samples to synthetic_samples/sample_with_size_{i}.json | size = {len(samples)}"
+                )
+            print(
+                "completed", len(FEATURE_VALUES) - len(mandatory_features) + 1, "items"
+            )
+
+        else:
+            if n > len(self.feature_names):
+                print("given n (size of subsets) is bigger than number of features")
+                return
+            samples = self.sample_maker(mandatory_features, n)
+            file_path = f"{directory}sample_with_size_{n}.json"
+            with open(file_path, "w") as f:
+                json.dump(samples, f, indent=4)
+            print(
+                f"saving size {n} samples to synthetic_samples/sample_with_size_{n}.json "
+            )
+
+        # if batch_size is None:
+        #     file_path = f"{directory}sample{n}.json"
+        #     with open(file_path, "w") as f:
+        #         json.dump(self.sample_maker(), f, indent=4)
+        # else:
+        #     pass
 
 
 ####################################
