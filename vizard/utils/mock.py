@@ -1,6 +1,7 @@
 import json
 import multiprocessing
 import os
+import random
 from itertools import chain, combinations, product
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -233,6 +234,7 @@ class SampleGenerator:
         self,
         all: bool = False,
         n: Optional[int] = None,
+        random: Optional[int] = 0,
         batch_size: Optional[int] = None,
     ):
         """save generated samples to a json file
@@ -240,9 +242,13 @@ class SampleGenerator:
         Args:
             all (bool, Optional): if True it will save all possible samples. Defaults to False.
             n (int, Optional): if all is False it will save all possible samples with size of n
+            random (int, Optional): if True it will save random samples instead of all to deal with RAM shortage number of samples is equal to the random. Defaults to 0
             batch_size (Optional): for bigger files we create batches
-        """
 
+        """
+        only = n
+        if only is None:
+            all = True
         # Get the directory of the currently running script
         current_script_directory = os.path.dirname(os.path.realpath(__file__))
 
@@ -253,39 +259,110 @@ class SampleGenerator:
         os.makedirs(directory, exist_ok=True)
 
         mandatory_features = self.mandatory_features
-        if all:
-            for i in range(
-                len(mandatory_features), len(FEATURE_VALUES) + 1
-            ):  # tqdm(range(len(mandatory_features),len(FEATURE_VALUES)+1),ncols=75):
-                samples = self.sample_maker(mandatory_features, i)
-                file_path = f"{directory}sample_with_size_{i}.json"
+        if random:
+            number = random
+            random_directory = os.path.join(directory, "random/")
+            os.makedirs(random_directory, exist_ok=True)
+            if all:
+                for i in range(len(mandatory_features), len(FEATURE_VALUES) + 1):
+                    samples = self._randomy(i, number)
+                    file_path = (
+                        f"{random_directory}{number}_random_sample_with_size_{i}.json"
+                    )
+                    with open(file_path, "w") as f:
+                        json.dump(samples, f, indent=4)
+                    print(
+                        f"saving size {i} random samples to synthetic_samples/random/{number}_random_sample_with_size_{i}.json"
+                    )
+                return
+            else:
+                samples = self._randomy(only, number)
+                file_path = (
+                    f"{random_directory}{number}_random_sample_with_size_{only}.json"
+                )
                 with open(file_path, "w") as f:
                     json.dump(samples, f, indent=4)
                 print(
-                    f"saving size {i} samples to synthetic_samples/sample_with_size_{i}.json | size = {len(samples)}"
+                    f"saving size {only} random samples to synthetic_samples/sample_with_size_{only}.json "
                 )
-            print(
-                "completed", len(FEATURE_VALUES) - len(mandatory_features) + 1, "items"
-            )
-
-        else:
-            if n > len(self.feature_names):
-                print("given n (size of subsets) is bigger than number of features")
                 return
-            samples = self.sample_maker(mandatory_features, n)
-            file_path = f"{directory}sample_with_size_{n}.json"
-            with open(file_path, "w") as f:
-                json.dump(samples, f, indent=4)
-            print(
-                f"saving size {n} samples to synthetic_samples/sample_with_size_{n}.json "
-            )
+        else:
+            if all:
+                for i in range(
+                    len(mandatory_features), len(FEATURE_VALUES) + 1
+                ):  # tqdm(range(len(mandatory_features),len(FEATURE_VALUES)+1),ncols=75):
+                    samples = self.sample_maker(mandatory_features, i)
+                    file_path = f"{directory}sample_with_size_{i}.json"
+                    with open(file_path, "w") as f:
+                        json.dump(samples, f, indent=4)
+                    print(
+                        f"saving size {i} samples to synthetic_samples/sample_with_size_{i}.json | size = {len(samples)}"
+                    )
+                print(
+                    "completed",
+                    len(FEATURE_VALUES) - len(mandatory_features) + 1,
+                    "items",
+                )
 
+            else:
+                if n > len(self.feature_names):
+                    print("given n (size of subsets) is bigger than number of features")
+                    return
+                samples = self.sample_maker(mandatory_features, n)
+                file_path = f"{directory}sample_with_size_{n}.json"
+                with open(file_path, "w") as f:
+                    json.dump(samples, f, indent=4)
+                print(
+                    f"saving size {n} samples to synthetic_samples/sample_with_size_{n}.json "
+                )
+        # TODO: batching for bigger files
         # if batch_size is None:
         #     file_path = f"{directory}sample{n}.json"
         #     with open(file_path, "w") as f:
         #         json.dump(self.sample_maker(), f, indent=4)
         # else:
         #     pass
+
+    def _randomy(self, only: int, numbers: int) -> List[Dict[str, Any]]:
+        """generate random samples for our instance
+
+        Args:
+            only (int): size of subsets that we want to create
+            numbers (int): number of random samples that we want to create
+
+        Returns:
+            List[Dict[str, Any]]: a list of dictionaries each dict is an acceptable synthetic sample
+        Note:
+
+        """
+        n = only
+
+        samples = []
+        if self.mandatory_features == []:
+            for i in range(numbers):
+                sample = {}
+                selected_features = random.sample(self.feature_names, n)
+                for feature in selected_features:
+                    sample[feature] = random.choice(self.feature_values[feature])
+                samples.append(sample)
+        else:
+            for i in range(numbers):
+                sample = {}
+                features_without_mandatory = [
+                    features
+                    for features in self.feature_names
+                    if features not in self.mandatory_features
+                ]
+                selected_features = random.sample(
+                    features_without_mandatory, n - len(self.mandatory_features)
+                )
+                for feature in selected_features:
+                    sample[feature] = random.choice(self.feature_values[feature])
+                for feature in self.mandatory_features:
+                    sample[feature] = random.choice(self.feature_values[feature])
+                samples.append(sample)
+
+        return samples
 
 
 ####################################
