@@ -1,5 +1,6 @@
 import json
 import multiprocessing
+import os
 from itertools import chain, combinations, product
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -104,7 +105,6 @@ class SampleGenerator:
         list_without_mandatory_features = [
             features for features in iterable if features not in mandatory_features
         ]  # remove mandatory items from list
-        # print('li',list_without_mandatory_features)
         powerset = self._powerset(list_without_mandatory_features)
         customize_powerset = []  # all subset has mandatory items if mandatory is given
         for single_tuple in powerset:
@@ -115,8 +115,37 @@ class SampleGenerator:
 
         return customize_powerset
 
+    def _subsets_with_only_n_items_and_mandatory_features(
+        self, only, mandatory_features: List[str | int]
+    ) -> List[List[str | int]]:
+        feature_names = self.feature_names
+        list_without_mandatory_features = [
+            features for features in feature_names if features not in mandatory_features
+        ]  # remove mandatory items from list
+        size_of_subsets_list_without_mandatory_features = only - len(mandatory_features)
+        if size_of_subsets_list_without_mandatory_features < 0:
+            print("error")  # TODO: check if it works well
+        else:
+            subsets_list_without_mandatory_features = self._subsets_with_only_n_items(
+                size_of_subsets_list_without_mandatory_features,
+                list_without_mandatory_features,
+            )
+            customize_subsets_list = []
+            for single_tuple in subsets_list_without_mandatory_features:
+                customize_subsets_list.append(
+                    list(single_tuple)
+                )  # change tuples to list
+
+            for subset in customize_subsets_list:
+                subset.extend(
+                    mandatory_features
+                )  # add mandatory_features to all subsets
+            return customize_subsets_list
+
     def sample_maker(
-        self, mandatory_features: Optional[List[str | int]] = None
+        self,
+        mandatory_features: Optional[List[str | int]] = None,
+        only: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
         """combine all products from product_generator to create all possible samples
 
@@ -125,19 +154,32 @@ class SampleGenerator:
         Returns:
             List[Dict[str, Any]]: a list of dictionaries each dict is an acceptable fake sample
         """
+
         if mandatory_features == None:
             mandatory_features = self.mandatory_features
         feature_values = self.feature_values
-        if mandatory_features == []:  # if no mandatory features
-            powerset_list = self._powerset(self.feature_names)  # all possible subsets
+        feature_names = self.feature_names
+
+        if only is not None:
+            if mandatory_features == []:  # if no mandatory features
+                subsets_list = self._subsets_with_only_n_items(only, feature_names)
+            else:
+                subsets_list = self._subsets_with_only_n_items_and_mandatory_features(
+                    only, mandatory_features
+                )
         else:
-            powerset_list = self._powerset_with_mandatory_features(
-                mandatory_features
-            )  # all possible subsets with mandatory features
+            if mandatory_features == []:  # if no mandatory features
+                subsets_list = self._powerset(
+                    self.feature_names
+                )  # all possible subsets
+            else:
+                subsets_list = self._powerset_with_mandatory_features(
+                    mandatory_features
+                )  # all possible subsets with mandatory features
 
         samples = []
-        while powerset_list:
-            subset = powerset_list.pop()
+        while subsets_list:
+            subset = subsets_list.pop()
             sub_dict = self._sub_dict_with_keys(
                 subset, feature_values
             )  # dict with only keys that are in our sub list
@@ -186,10 +228,20 @@ class SampleGenerator:
         input_dict = self.feature_values
         return {key: input_dict[key] for key in input_list if key in input_dict}
 
-    # def _save_to_json(self):
-    #     """save generated samples to a json file"""
-    #     with open("sample.json", "w") as f:
-    #         json.dump(self.sample_maker(), f, indent=4)
+    def _save_to_json(self, n):
+        """save generated samples to a json file"""
+        # Get the directory of the currently running script
+        current_script_directory = os.path.dirname(os.path.realpath(__file__))
+
+        # Create a new directory named 'ddx' in the current script's directory
+        directory = os.path.join(current_script_directory, "synthetic_samples/")
+
+        # Create the directory if it does not exist
+        os.makedirs(directory, exist_ok=True)
+        file_path = f"{directory}sample{n}.json"
+        self.sample_maker()
+        with open(file_path, "w") as f:
+            json.dump(self.sample_maker(), f, indent=4)
 
     # def _save_to_json_batch(self):
     #     """save generated samples to a json file
