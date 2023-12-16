@@ -1,8 +1,8 @@
 from math import isclose
-from typing import Dict
+from typing import Any, Dict
 
-from pytest import mark
 import pytest
+from pytest import mark
 
 from vizard.models.estimators.manual import core
 
@@ -384,3 +384,53 @@ class TestBankBalanceContinuousParameterBuilder:
             assert isclose(
                 new_grouped_xai[xai_group_name], expected_grouped_xai[xai_group_name]
             )
+
+
+compose_param = core.ComposeParameterBuilder(
+    params=[
+        core.InvitationLetterParameterBuilder(),
+        core.TravelHistoryParameterBuilder(),
+        core.BankBalanceContinuousParameterBuilder(),
+    ]
+)
+
+
+class TestComposeParameterBuilder:
+    @mark.parametrize(
+        argnames=[
+            "given_probability",
+            "given_il_resp",
+            "given_th_resp",
+            "given_bb_resp",
+            "expected_probability",
+        ],
+        argvalues=[
+            (0.0, "none", "none", 100, 0.0),
+            (0.3, "friend", "am_ge_tr_az", 350, 0.22113750000000001),
+            (0.3, "f2", "schengen_once", 550, 0.9436375000000001),
+        ],
+    )
+    def test_probability_modifiers(
+        self,
+        given_probability: float,
+        given_il_resp: str,
+        given_th_resp: str,
+        given_bb_resp: float,
+        expected_probability: float,
+    ):
+        # set responses
+        response_dict: Dict[str, Any] = {
+            "invitation_letter": given_il_resp,
+            "travel_history": given_th_resp,
+            "bank_balance": given_bb_resp,
+        }
+        compose_param.set_responses_for_params(
+            responses=response_dict, raw=True, pop=False
+        )
+
+        # apply modifiers
+        output_probability: float = compose_param.probability_modifiers(
+            probability=given_probability
+        )
+
+        assert isclose(output_probability, expected_probability)
