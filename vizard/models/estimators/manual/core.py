@@ -344,12 +344,13 @@ class ContinuousParameterBuilderBase(ParameterBuilderBase):
             if (percent > 1.0) or (percent < -1.0):
                 raise ValueError("'Value should be in '-1.0<=value<=1.0'")
 
-    def set_response(self, response: float) -> float:
+    def set_response(self, response: float, raw: bool = False) -> float:
         """Sets the response to calculate ``importance`` used for ``_modifier`` s
 
         Args:
             response (float): A continuous number as a response that will be passed
                 to ``responses`` as a callable that computes the importance dynamically.
+            raw (bool): This arg has no effect! TODO: I need it for composer.
         Returns:
             float: Returns the calculated importance
         """
@@ -654,6 +655,8 @@ class BankBalanceContinuousParameterBuilder(ContinuousParameterBuilderBase):
                 )
             new_grouped_xai[key] = value
         return new_grouped_xai
+
+
 class ComposeParameterBuilder:
     """Composes a list of :class:`ParameterBuilderBase` instances of its extensions
 
