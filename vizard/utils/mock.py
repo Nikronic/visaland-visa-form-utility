@@ -368,42 +368,34 @@ class SampleGenerator:
         return samples
 
     def _size_of_products(self) -> Dict[str, int]:
-        copy_of_feature_values = {
-            key: self.feature_values[key] for key in self.feature_values
-        }  # TODO: we dont need this just need to dont use pop
+        features_values = self.feature_values
         mandatory = self.mandatory_features
 
         mandatory_multiplier = 1
         if mandatory:
             for item in mandatory:
-                if item in copy_of_feature_values:
-                    mandatory_multiplier *= len(copy_of_feature_values.pop(item, None))
+                if item in features_values:
+                    mandatory_multiplier *= len(features_values[item])
                 else:
                     raise Exception(f"mandatory feature {item} not in features")
-            print("mandatory features size:", len(mandatory))
-            print(f"mandatory features multiplier: {mandatory_multiplier:,}")
-            print("=" * 40)
-        features_values = copy_of_feature_values.values()
-        size_dict = {}
-        current_script_directory = os.path.dirname(os.path.realpath(__file__))
 
-        for i in range(len(features_values) + 1):
+        features_values_without_mandatory = {
+            key: features_values[key] for key in features_values if key not in mandatory
+        }
+
+        features_possible_choices = features_values_without_mandatory.values()
+        size_dict = {}
+        for i in range(len(features_possible_choices) + 1):
             size = 0
-            print(f"subset size: {i+len(mandatory)}")
-            for subset in itertools.combinations(features_values, i):
+            for subset in itertools.combinations(features_possible_choices, i):
                 c = 1
                 for item in subset:
                     c *= len(item)
                 size += c
 
             size *= mandatory_multiplier  # for mandatory features
-            print(f"= {size:,}")
-            print("-" * 24)
             size_dict[f"size_{i+len(mandatory)}"] = size
-        with open(os.path.join(current_script_directory, "size_dictXS.json"), "w") as f:
-            json.dump(size_dict, f, indent=4)
-        print(f"saved successfully")
-        print("=" * 40)
+
         return size_dict
 
 
