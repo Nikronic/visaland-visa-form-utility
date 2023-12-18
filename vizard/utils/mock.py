@@ -12,8 +12,10 @@ import ijson
 from tqdm import tqdm
 
 from vizard.data import constant
-from vizard.models.estimators.manual import (InvitationLetterSenderRelation,
-                                             TravelHistoryRegion)
+from vizard.models.estimators.manual import (
+    InvitationLetterSenderRelation,
+    TravelHistoryRegion,
+)
 
 mandatory = ["sex"]
 FEATURE_VALUES: Dict[str, List[Any]] = {
@@ -269,11 +271,13 @@ class SampleGenerator:
                 return
             percentage = random
             size_dict = self._size_of_products()
-            random_directory = os.path.join(directory, f"random_percentage_{percentage}/")
+            random_directory = os.path.join(
+                directory, f"random_percentage_{percentage}/"
+            )
             os.makedirs(random_directory, exist_ok=True)
             if all:
                 for i in range(len(mandatory_features), len(FEATURE_VALUES) + 1):
-                    random_size = int(size_dict[f"size_{i}"] * percentage) +1
+                    random_size = int(size_dict[f"size_{i}"] * percentage) + 1
                     samples = self._randomy(i, random_size)
                     file_path = (
                         f"{random_directory}random_sample_with_subset_size_of_{i}.json"
@@ -281,10 +285,14 @@ class SampleGenerator:
                     with open(file_path, "w") as f:
                         json.dump(samples, f, indent=4)
                     print(
-                        f"saving subset size {i}".ljust(21), f"random samples to synthetic_samples/random_percentage_{percentage}/random_sample_with_subset_size_of_{i}.json".ljust(101),f"| size = {random_size:,}"
+                        f"saving subset size {i}".ljust(21),
+                        f"random samples to synthetic_samples/random_percentage_{percentage}/random_sample_with_subset_size_of_{i}.json".ljust(
+                            101
+                        ),
+                        f"| size = {random_size:,}",
                     )
             else:
-                random_size = int(size_dict[f"size_{only}"] * percentage) +1
+                random_size = int(size_dict[f"size_{only}"] * percentage) + 1
                 samples = self._randomy(only, random_size)
                 file_path = (
                     f"{random_directory}random_sample_with_subset_size_of_{only}.json"
@@ -292,7 +300,11 @@ class SampleGenerator:
                 with open(file_path, "w") as f:
                     json.dump(samples, f, indent=4)
                 print(
-                    f"saving subset size {only}".ljust(21), f"random samples to synthetic_samples/random_percentage_{percentage}/random_sample_with_subset_size_of_{only}.json".ljust(101),f"| size = {random_size:,}"
+                    f"saving subset size {only}".ljust(21),
+                    f"random samples to synthetic_samples/random_percentage_{percentage}/random_sample_with_subset_size_of_{only}.json".ljust(
+                        101
+                    ),
+                    f"| size = {random_size:,}",
                 )
                 return
         else:
@@ -413,288 +425,287 @@ class SampleGenerator:
         return size_dict
 
 
-# ####################################
-# import argparse
-# import logging
-# import pickle
-# import shutil
-# import sys
-# from pathlib import Path
-# from typing import Any, Dict, List, Tuple
+####################################
+import argparse
+import logging
+import pickle
+import shutil
+import sys
+from pathlib import Path
+from typing import Any, Dict, List, Tuple
 
-# import dvc.api
-# import mlflow
-# import numpy as np
-# import pandas as pd
+import dvc.api
+import mlflow
+import numpy as np
+import pandas as pd
 
-# from vizard.data import functional, preprocessor
-# from vizard.data.constant import OccupationTitle
-# from vizard.models import preprocessors, trainers
-# from vizard.models.estimators.manual import (InvitationLetterParameterBuilder,
-#                                              InvitationLetterSenderRelation,
-#                                              TravelHistoryParameterBuilder,
-#                                              TravelHistoryRegion)
-# from vizard.utils import loggers
-# from vizard.version import VERSION as VIZARD_VERSION
-# from vizard.xai import FlamlTreeExplainer
+from vizard.data import functional, preprocessor
+from vizard.data.constant import OccupationTitle
+from vizard.models import preprocessors, trainers
+from vizard.models.estimators.manual import (InvitationLetterParameterBuilder,
+                                             InvitationLetterSenderRelation,
+                                             TravelHistoryParameterBuilder,
+                                             TravelHistoryRegion)
+from vizard.utils import loggers
+from vizard.version import VERSION as VIZARD_VERSION
+from vizard.xai import FlamlTreeExplainer
 
-# # run mlflow tracking server
-# mlflow.set_tracking_uri(f"http://0.0.0.0:5000")
+# run mlflow tracking server
+mlflow.set_tracking_uri(f"http://0.0.0.0:5000")
 
-# # data versioning config
-# PATH = "raw-dataset/all-dev.pkl"  # path to source data, e.g. data.pkl file
-# REPO = "../visaland-visa-form-utility"
-# VERSION = "v3.0.0-dev"  # use the latest EDA version (i.e. `vx.x.x-dev`)
-# # get url data from DVC data storage
-# data_url = dvc.api.get_url(path=PATH, repo=REPO, rev=VERSION)
-# data = pd.read_pickle(data_url).drop(columns=["VisaResult"], inplace=False)
+# data versioning config
+PATH = "raw-dataset/all-dev.pkl"  # path to source data, e.g. data.pkl file
+REPO = "../visaland-visa-form-utility"
+VERSION = "v3.0.0-dev"  # use the latest EDA version (i.e. `vx.x.x-dev`)
+# get url data from DVC data storage
+data_url = dvc.api.get_url(path=PATH, repo=REPO, rev=VERSION)
+data = pd.read_pickle(data_url).drop(columns=["VisaResult"], inplace=False)
 
-# # DVC: helper - (for more info see the API that uses these files)
-# # data file for converting country names to continuous score in "economical" sense
-# HELPER_PATH_GDP = "raw-dataset/API_NY.GDP.PCAP.CD_DS2_en_xml_v2_4004943.pkl"
-# HELPER_VERSION_GDP = "v0.1.0-field-GDP"  # use latest using `git tag`
-# # data file for converting country names to continuous score in "all" possible senses
-# HELPER_PATH_OVERALL = "raw-dataset/databank-2015-2019.pkl"
-# HELPER_VERSION_OVERALL = "v0.1.0-field"  # use latest using `git tag`
-# # gather these for MLFlow track
-# all_helper_data_info = {
-#     HELPER_PATH_GDP: HELPER_VERSION_GDP,
-#     HELPER_PATH_OVERALL: HELPER_VERSION_OVERALL,
-# }
-# # data file for converting country names to continuous score in "economical" sense
-# worldbank_gdp_dataframe = pd.read_pickle(
-#     dvc.api.get_url(path=HELPER_PATH_GDP, repo=REPO, rev=HELPER_VERSION_GDP)
-# )
-# eco_country_score_preprocessor = preprocessor.WorldBankXMLProcessor(
-#     dataframe=worldbank_gdp_dataframe
-# )
-# # data file for converting country names to continuous score in "all" possible senses
-# worldbank_overall_dataframe = pd.read_pickle(
-#     dvc.api.get_url(path=HELPER_PATH_OVERALL, repo=REPO, rev=HELPER_VERSION_OVERALL)
-# )
-# edu_country_score_preprocessor = (
-#     preprocessor.EducationCountryScoreDataframePreprocessor(
-#         dataframe=worldbank_overall_dataframe
-#     )
-# )
+# DVC: helper - (for more info see the API that uses these files)
+# data file for converting country names to continuous score in "economical" sense
+HELPER_PATH_GDP = "raw-dataset/API_NY.GDP.PCAP.CD_DS2_en_xml_v2_4004943.pkl"
+HELPER_VERSION_GDP = "v0.1.0-field-GDP"  # use latest using `git tag`
+# data file for converting country names to continuous score in "all" possible senses
+HELPER_PATH_OVERALL = "raw-dataset/databank-2015-2019.pkl"
+HELPER_VERSION_OVERALL = "v0.1.0-field"  # use latest using `git tag`
+# gather these for MLFlow track
+all_helper_data_info = {
+    HELPER_PATH_GDP: HELPER_VERSION_GDP,
+    HELPER_PATH_OVERALL: HELPER_VERSION_OVERALL,
+}
+# data file for converting country names to continuous score in "economical" sense
+worldbank_gdp_dataframe = pd.read_pickle(
+    dvc.api.get_url(path=HELPER_PATH_GDP, repo=REPO, rev=HELPER_VERSION_GDP)
+)
+eco_country_score_preprocessor = preprocessor.WorldBankXMLProcessor(
+    dataframe=worldbank_gdp_dataframe
+)
+# data file for converting country names to continuous score in "all" possible senses
+worldbank_overall_dataframe = pd.read_pickle(
+    dvc.api.get_url(path=HELPER_PATH_OVERALL, repo=REPO, rev=HELPER_VERSION_OVERALL)
+)
+edu_country_score_preprocessor = (
+    preprocessor.EducationCountryScoreDataframePreprocessor(
+        dataframe=worldbank_overall_dataframe
+    )
+)
 
-# # configure logging
-# VERBOSE = logging.DEBUG
-# MLFLOW_ARTIFACTS_BASE_PATH: Path = Path("artifacts")
-# if MLFLOW_ARTIFACTS_BASE_PATH.exists():
-#     shutil.rmtree(MLFLOW_ARTIFACTS_BASE_PATH)
-# __libs = ["snorkel", "vizard", "flaml"]
-# logger = loggers.Logger(
-#     name=__name__,
-#     level=VERBOSE,
-#     mlflow_artifacts_base_path=MLFLOW_ARTIFACTS_BASE_PATH,
-#     libs=__libs,
-# )
+# configure logging
+VERBOSE = logging.DEBUG
+MLFLOW_ARTIFACTS_BASE_PATH: Path = Path("artifacts")
+if MLFLOW_ARTIFACTS_BASE_PATH.exists():
+    shutil.rmtree(MLFLOW_ARTIFACTS_BASE_PATH)
+__libs = ["snorkel", "vizard", "flaml"]
+logger = loggers.Logger(
+    name=__name__,
+    level=VERBOSE,
+    mlflow_artifacts_base_path=MLFLOW_ARTIFACTS_BASE_PATH,
+    libs=__libs,
+)
 
-# # log experiment configs
-# MLFLOW_EXPERIMENT_NAME = f"{VIZARD_VERSION}"
-# mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
-# mlflow.start_run()
+# log experiment configs
+MLFLOW_EXPERIMENT_NAME = f"{VIZARD_VERSION}"
+mlflow.set_experiment(MLFLOW_EXPERIMENT_NAME)
+mlflow.start_run()
 
-# logger.info(f"MLflow experiment name: {MLFLOW_EXPERIMENT_NAME}")
-# logger.info(f"MLflow experiment id: {mlflow.active_run().info.run_id}")
+logger.info(f"MLflow experiment name: {MLFLOW_EXPERIMENT_NAME}")
+logger.info(f"MLflow experiment id: {mlflow.active_run().info.run_id}")
 
-# # get mlflow run id for extracting artifacts of the desired run
-# MLFLOW_RUN_ID = "426deb77881b4d719c2c0d18ce7c36db"
-# mlflow.log_param("mlflow-trained-run-id", MLFLOW_RUN_ID)
+# get mlflow run id for extracting artifacts of the desired run
+MLFLOW_RUN_ID = "426deb77881b4d719c2c0d18ce7c36db"
+mlflow.log_param("mlflow-trained-run-id", MLFLOW_RUN_ID)
 
-# # load fitted preprocessing models
-# X_CT_NAME = "train_sklearn_column_transfer.pkl"
-# x_ct_path = mlflow.artifacts.download_artifacts(
-#     run_id=MLFLOW_RUN_ID,
-#     artifact_path=f"0/models/{X_CT_NAME}",
-#     dst_path=f"api/artifacts",
-# )
-# with open(x_ct_path, "rb") as f:
-#     x_ct: preprocessors.ColumnTransformer = pickle.load(f)
+# load fitted preprocessing models
+X_CT_NAME = "train_sklearn_column_transfer.pkl"
+x_ct_path = mlflow.artifacts.download_artifacts(
+    run_id=MLFLOW_RUN_ID,
+    artifact_path=f"0/models/{X_CT_NAME}",
+    dst_path=f"api/artifacts",
+)
+with open(x_ct_path, "rb") as f:
+    x_ct: preprocessors.ColumnTransformer = pickle.load(f)
 
-# # load fitted FLAML AutoML model for prediction
-# FLAML_AUTOML_NAME = "flaml_automl.pkl"
-# flaml_automl_path = mlflow.artifacts.download_artifacts(
-#     run_id=MLFLOW_RUN_ID,
-#     artifact_path=f"0/models/{FLAML_AUTOML_NAME}",
-#     dst_path=f"api/artifacts",
-# )
-# with open(flaml_automl_path, "rb") as f:
-#     flaml_automl: trainers.AutoML = pickle.load(f)
+# load fitted FLAML AutoML model for prediction
+FLAML_AUTOML_NAME = "flaml_automl.pkl"
+flaml_automl_path = mlflow.artifacts.download_artifacts(
+    run_id=MLFLOW_RUN_ID,
+    artifact_path=f"0/models/{FLAML_AUTOML_NAME}",
+    dst_path=f"api/artifacts",
+)
+with open(flaml_automl_path, "rb") as f:
+    flaml_automl: trainers.AutoML = pickle.load(f)
 
-# feature_names = preprocessors.get_transformed_feature_names(
-#     column_transformer=x_ct,
-#     original_columns_names=data.columns.values,
-# )
+feature_names = preprocessors.get_transformed_feature_names(
+    column_transformer=x_ct,
+    original_columns_names=data.columns.values,
+)
 
-# # SHAP tree explainer #56
-# flaml_tree_explainer = FlamlTreeExplainer(
-#     flaml_model=flaml_automl, feature_names=feature_names, data=None
-# )
+# SHAP tree explainer #56
+flaml_tree_explainer = FlamlTreeExplainer(
+    flaml_model=flaml_automl, feature_names=feature_names, data=None
+)
 
-# # Create instances of manual parameter insertion
-# invitation_letter_param = InvitationLetterParameterBuilder()
-# # Create instances of manual parameter insertion
-# travel_history_param = TravelHistoryParameterBuilder()
-# MANUAL_PARAM_NAMES_ANSWERED_DICT: Dict[str, bool] = {
-#     invitation_letter_param.name: False,
-#     travel_history_param.name: False,
-# }
-
-
-# def preprocess(features_dict: Dict[str, Any], provided_variables: List[str]):
-#     # Create instances of manual parameter insertion
-#     invitation_letter_param = InvitationLetterParameterBuilder()
-#     # Create instances of manual parameter insertion
-#     travel_history_param = TravelHistoryParameterBuilder()
-#     MANUAL_PARAM_NAMES_ANSWERED_DICT: Dict[str, bool] = {
-#         invitation_letter_param.name: False,
-#         travel_history_param.name: False,
-#     }
-
-#     # reset manual variable responses
-#     for k, _ in MANUAL_PARAM_NAMES_ANSWERED_DICT.items():
-#         MANUAL_PARAM_NAMES_ANSWERED_DICT[k] = False
-
-#     # if manual param is answered, make its value True
-#     for param in provided_variables:
-#         if param in MANUAL_PARAM_NAMES_ANSWERED_DICT.keys():
-#             MANUAL_PARAM_NAMES_ANSWERED_DICT[param] = True
-
-#     # set response for invitation letter
-#     invitation_letter_param.set_response(
-#         response=InvitationLetterSenderRelation(features_dict["invitation_letter"]),
-#         raw=True,
-#     )
-#     # remove invitation letter so preprocessing, transformation, etc works just like before
-#     if invitation_letter_param.name in features_dict:
-#         del features_dict[invitation_letter_param.name]
-#     if invitation_letter_param.name in provided_variables:
-#         provided_variables.remove(invitation_letter_param.name)
-
-#     # set response for travel history
-#     travel_history_param.set_response(
-#         response=TravelHistoryRegion(features_dict["travel_history"]),
-#         raw=True,
-#     )
-#     # remove invitation letter so preprocessing, transformation, etc works just like before
-#     if travel_history_param.name in features_dict:
-#         del features_dict[travel_history_param.name]
-#     if travel_history_param.name in provided_variables:
-#         provided_variables.remove(travel_history_param.name)
-
-#     return features_dict, invitation_letter_param, travel_history_param
+# Create instances of manual parameter insertion
+invitation_letter_param = InvitationLetterParameterBuilder()
+# Create instances of manual parameter insertion
+travel_history_param = TravelHistoryParameterBuilder()
+MANUAL_PARAM_NAMES_ANSWERED_DICT: Dict[str, bool] = {
+    invitation_letter_param.name: False,
+    travel_history_param.name: False,
+}
 
 
-# def predict(
-#     features_dict_list: List[Dict[str, Any]],
-#     invitation_letter_param_list: List[InvitationLetterParameterBuilder],
-#     travel_history_param_list: List[TravelHistoryParameterBuilder],
-# ) -> float:
-#     features_list_list: List[List[float]] = []
-#     for features_dict in features_dict_list:
-#         # convert api data to model data
-#         features_list = list(features_dict.values())
-#         features_list_list.append(features_list)
-#     # convert to dataframe
-#     x_test = pd.DataFrame(data=features_list_list, columns=data.columns)
-#     x_test = x_test.astype(data.dtypes)
-#     x_test = x_test.to_numpy()
-#     # preprocess test data
-#     xt_test = x_ct.transform(x_test)
-#     # predict
-#     y_pred = flaml_automl.predict_proba(xt_test)
-#     label = np.argmax(y_pred, axis=1)
-#     y_pred = y_pred[:, label.reshape(1, -1)][:, :, 0]
-#     result = np.where([label.flatten() == 1], y_pred.flatten(), 1 - y_pred.flatten())
-#     result = result.reshape(-1, 1)
+def preprocess(features_dict: Dict[str, Any], provided_variables: List[str]):
+    # Create instances of manual parameter insertion
+    invitation_letter_param = InvitationLetterParameterBuilder()
+    # Create instances of manual parameter insertion
+    travel_history_param = TravelHistoryParameterBuilder()
+    MANUAL_PARAM_NAMES_ANSWERED_DICT: Dict[str, bool] = {
+        invitation_letter_param.name: False,
+        travel_history_param.name: False,
+    }
 
-#     for i in range(len(result)):
-#         # apply invitation letter modification given the response
-#         result[i] = invitation_letter_param_list[i].probability_modifier(
-#             probability=result[i].item()
-#         )
-#         # apply travel history modification given the response
-#         result[i] = travel_history_param_list[i].probability_modifier(
-#             probability=result[i].item()
-#         )
+    # reset manual variable responses
+    for k, _ in MANUAL_PARAM_NAMES_ANSWERED_DICT.items():
+        MANUAL_PARAM_NAMES_ANSWERED_DICT[k] = False
 
-#     return result
+    # if manual param is answered, make its value True
+    for param in provided_variables:
+        if param in MANUAL_PARAM_NAMES_ANSWERED_DICT.keys():
+            MANUAL_PARAM_NAMES_ANSWERED_DICT[param] = True
+
+    # set response for invitation letter
+    invitation_letter_param.set_response(
+        response=InvitationLetterSenderRelation(features_dict["invitation_letter"]),
+        raw=True,
+    )
+    # remove invitation letter so preprocessing, transformation, etc works just like before
+    if invitation_letter_param.name in features_dict:
+        del features_dict[invitation_letter_param.name]
+    if invitation_letter_param.name in provided_variables:
+        provided_variables.remove(invitation_letter_param.name)
+
+    # set response for travel history
+    travel_history_param.set_response(
+        response=TravelHistoryRegion(features_dict["travel_history"]),
+        raw=True,
+    )
+    # remove invitation letter so preprocessing, transformation, etc works just like before
+    if travel_history_param.name in features_dict:
+        del features_dict[travel_history_param.name]
+    if travel_history_param.name in provided_variables:
+        provided_variables.remove(travel_history_param.name)
+
+    return features_dict, invitation_letter_param, travel_history_param
 
 
-# def batched_inference(only):
-#     BATCH_SIZE: int = 4096
+def predict(
+    features_dict_list: List[Dict[str, Any]],
+    invitation_letter_param_list: List[InvitationLetterParameterBuilder],
+    travel_history_param_list: List[TravelHistoryParameterBuilder],
+) -> float:
+    features_list_list: List[List[float]] = []
+    for features_dict in features_dict_list:
+        # convert api data to model data
+        features_list = list(features_dict.values())
+        features_list_list.append(features_list)
+    # convert to dataframe
+    x_test = pd.DataFrame(data=features_list_list, columns=data.columns)
+    x_test = x_test.astype(data.dtypes)
+    x_test = x_test.to_numpy()
+    # preprocess test data
+    xt_test = x_ct.transform(x_test)
+    # predict
+    y_pred = flaml_automl.predict_proba(xt_test)
+    label = np.argmax(y_pred, axis=1)
+    y_pred = y_pred[:, label.reshape(1, -1)][:, :, 0]
+    result = np.where([label.flatten() == 1], y_pred.flatten(), 1 - y_pred.flatten())
+    result = result.reshape(-1, 1)
 
-#     samples_list = []
-#     results_list = []
+    for i in range(len(result)):
+        # apply invitation letter modification given the response
+        result[i] = invitation_letter_param_list[i].probability_modifier(
+            probability=result[i].item()
+        )
+        # apply travel history modification given the response
+        result[i] = travel_history_param_list[i].probability_modifier(
+            probability=result[i].item()
+        )
 
-#     sampler = SampleGenerator(FEATURE_VALUES, mandatory, only)
-#     samples = sampler.sample_maker(FEATURE_VALUES)
+    return result
 
-#     i = 0
-#     travel_history_param_list: List[TravelHistoryParameterBuilder] = []
-#     invitation_letter_param_list: List[InvitationLetterParameterBuilder] = []
-#     features_dict_list: List[Dict[str, Any]] = []
-#     for sample in samples:
-#         default_feature: Dict[str, Any] = {
-#             "sex": "string",
-#             "education_field_of_study": "unedu",
-#             "occupation_title1": "OTHER",
-#             "refused_entry_or_deport": False,
-#             "date_of_birth": 18,
-#             "marriage_period": 0,
-#             "occupation_period": 0,
-#             "applicant_marital_status": "7",
-#             "child_accompany": 0,
-#             "parent_accompany": 0,
-#             "spouse_accompany": 0,
-#             "sibling_accompany": 0,
-#             "child_count": 0,
-#             "invitation_letter": "none",
-#             "travel_history": "none",
-#         }
-#         for f, v in sample.items():
-#             default_feature[f] = v
-#         if "sex" in default_feature:
-#             default_feature["sex"] = (
-#                 default_feature["sex"].lower().capitalize()
-#             )  # female -> Female, ...
 
-#         def __occupation_title_x(value: str) -> str:
-#             value = value.lower()
-#             if value == OccupationTitle.OTHER.name.lower():
-#                 value = OccupationTitle.OTHER.name
-#             return value
+def batched_inference(only):
+    BATCH_SIZE: int = 4096
 
-#         if "occupation_title1" in default_feature:
-#             default_feature["occupation_title1"] = __occupation_title_x(
-#                 value=default_feature["occupation_title1"]
-#             )
-#         # prepare batched tests
-#         fd, ilp, thp = preprocess(
-#             features_dict=default_feature,
-#             provided_variables=list(default_feature.keys()),
-#         )
+    samples_list = []
+    results_list = []
 
-#         travel_history_param_list.append(ilp)
-#         invitation_letter_param_list.append(thp)
-#         features_dict_list.append(fd)
+    sampler = SampleGenerator(FEATURE_VALUES, mandatory, only)
+    samples = sampler.sample_maker(FEATURE_VALUES)
 
-#         samples_list.append(default_feature)
-#         i += 1
-#         # prepare the batch and do batched inference
-#         if i % BATCH_SIZE == 0:
-#             batched_result = predict(
-#                 features_dict_list=features_dict_list,
-#                 invitation_letter_param_list=invitation_letter_param_list,
-#                 travel_history_param_list=travel_history_param_list,
-#             )
-#             results_list.append(batched_result)
+    i = 0
+    travel_history_param_list: List[TravelHistoryParameterBuilder] = []
+    invitation_letter_param_list: List[InvitationLetterParameterBuilder] = []
+    features_dict_list: List[Dict[str, Any]] = []
+    for sample in samples:
+        default_feature: Dict[str, Any] = {
+            "sex": "string",
+            "education_field_of_study": "unedu",
+            "occupation_title1": "OTHER",
+            "refused_entry_or_deport": False,
+            "date_of_birth": 18,
+            "marriage_period": 0,
+            "occupation_period": 0,
+            "applicant_marital_status": "7",
+            "child_accompany": 0,
+            "parent_accompany": 0,
+            "spouse_accompany": 0,
+            "sibling_accompany": 0,
+            "child_count": 0,
+            "invitation_letter": "none",
+            "travel_history": "none",
+        }
+        for f, v in sample.items():
+            default_feature[f] = v
+        if "sex" in default_feature:
+            default_feature["sex"] = (
+                default_feature["sex"].lower().capitalize()
+            )  # female -> Female, ...
 
-#             # reset the batch
-#             i = 0
-#             features_dict_list = []
-#             invitation_letter_param_list = []
-#             travel_history_param_list = []
+        def __occupation_title_x(value: str) -> str:
+            value = value.lower()
+            if value == OccupationTitle.OTHER.name.lower():
+                value = OccupationTitle.OTHER.name
+            return value
 
+        if "occupation_title1" in default_feature:
+            default_feature["occupation_title1"] = __occupation_title_x(
+                value=default_feature["occupation_title1"]
+            )
+        # prepare batched tests
+        fd, ilp, thp = preprocess(
+            features_dict=default_feature,
+            provided_variables=list(default_feature.keys()),
+        )
+
+        travel_history_param_list.append(ilp)
+        invitation_letter_param_list.append(thp)
+        features_dict_list.append(fd)
+
+        samples_list.append(default_feature)
+        i += 1
+        # prepare the batch and do batched inference
+        if i % BATCH_SIZE == 0:
+            batched_result = predict(
+                features_dict_list=features_dict_list,
+                invitation_letter_param_list=invitation_letter_param_list,
+                travel_history_param_list=travel_history_param_list,
+            )
+            results_list.append(batched_result)
+
+            # reset the batch
+            i = 0
+            features_dict_list = []
+            invitation_letter_param_list = []
+            travel_history_param_list = []
