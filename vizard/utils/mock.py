@@ -233,8 +233,8 @@ class SampleGenerator:
     def _save_to_json(
         self,
         all: bool = False,
-        n: Optional[int] = None,
         random: Optional[int] = 0,
+        n: Optional[int] = None,
         batch_size: Optional[int] = None,
     ):
         """save generated samples to a json file
@@ -259,31 +259,33 @@ class SampleGenerator:
         os.makedirs(directory, exist_ok=True)
 
         mandatory_features = self.mandatory_features
-        if random:
+        if (
+            random
+        ):  # TODO: random an integer and it generates random samples with size of that integer for all subsets size but it should be an percentage to generate random samples for all subsets size
             number = random
-            random_directory = os.path.join(directory, "random/")
+            random_directory = os.path.join(directory, f"random_size_{number}/")
             os.makedirs(random_directory, exist_ok=True)
             if all:
                 for i in range(len(mandatory_features), len(FEATURE_VALUES) + 1):
                     samples = self._randomy(i, number)
                     file_path = (
-                        f"{random_directory}{number}_random_sample_with_size_{i}.json"
+                        f"{random_directory}random_sample_with_subset_size_of_{i}.json"
                     )
                     with open(file_path, "w") as f:
                         json.dump(samples, f, indent=4)
                     print(
-                        f"saving size {i} random samples to synthetic_samples/random/{number}_random_sample_with_size_{i}.json"
+                        f"saving size {i} random samples to synthetic_samples/random_size_{number}/random_sample_with_subset_size_of_{i}.json"
                     )
                 return
             else:
                 samples = self._randomy(only, number)
                 file_path = (
-                    f"{random_directory}{number}_random_sample_with_size_{only}.json"
+                    f"{random_directory}random_sample_with_subset_size_of_{only}.json"
                 )
                 with open(file_path, "w") as f:
                     json.dump(samples, f, indent=4)
                 print(
-                    f"saving size {only} random samples to synthetic_samples/sample_with_size_{only}.json "
+                    f"saving size {only} random samples to synthetic_samples/random_size_{number}/random_sample_with_subset_size_of_{only}.json "
                 )
                 return
         else:
