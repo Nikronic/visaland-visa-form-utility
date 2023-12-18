@@ -368,6 +368,14 @@ class SampleGenerator:
         return samples
 
     def _size_of_products(self) -> Dict[str, int]:
+        """give us the size of all possible samples for each subset size
+
+        Raises:
+            Exception: if mandatory feature is not in our feature_values
+
+        Returns:
+            Dict[str, int]: a dictionary of sizes for each subset size
+        """
         features_values = self.feature_values
         mandatory = self.mandatory_features
 
