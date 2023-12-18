@@ -317,7 +317,7 @@ class SampleGenerator:
                     with open(file_path, "w") as f:
                         json.dump(samples, f, indent=4)
                     print(
-                        f"saving size {i} samples to synthetic_samples/sample_with_size_{i}.json | size = {len(samples)}"
+                        f"saving subset size {i} samples to synthetic_samples/sample_with_size_{i}.json | size = {len(samples)}"
                     )
                 print(
                     "completed",
@@ -334,7 +334,7 @@ class SampleGenerator:
                 with open(file_path, "w") as f:
                     json.dump(samples, f, indent=4)
                 print(
-                    f"saving size {n} samples to synthetic_samples/sample_with_size_{n}.json "
+                    f"saving subset size {n} samples to synthetic_samples/sample_with_size_{n}.json "
                 )
         # TODO: batching for bigger files
         # if batch_size is None:
