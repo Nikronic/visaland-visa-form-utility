@@ -1,21 +1,19 @@
 import itertools
 import json
+import math
 import multiprocessing
 import os
 import random
 from itertools import chain, combinations, product
 from pathlib import Path
 from typing import Any, Dict, List, Optional
-import math
 
 import ijson
 from tqdm import tqdm
 
 from vizard.data import constant
-from vizard.models.estimators.manual import (
-    InvitationLetterSenderRelation,
-    TravelHistoryRegion,
-)
+from vizard.models.estimators.manual import (InvitationLetterSenderRelation,
+                                             TravelHistoryRegion)
 
 mandatory = ["sex"]
 FEATURE_VALUES: Dict[str, List[Any]] = {
@@ -157,6 +155,7 @@ class SampleGenerator:
 
         Args:
             mandatory_features (Optional[List[str | int]], optional): list of mandatory features
+            only (Optional[int], optional): if it is given it will create  only samples that their size is n (it most be between number of mandatory features and number of all features)
         Returns:
             List[Dict[str, Any]]: a list of dictionaries each dict is an acceptable fake sample
         """
@@ -234,25 +233,44 @@ class SampleGenerator:
         input_dict = self.feature_values
         return {key: input_dict[key] for key in input_list if key in input_dict}
 
-    def _save_to_json(
+    def save_to_json(
         self,
-        all: bool = False,
-        random: Optional[float] = 0,
+        mode: float,
         n: Optional[int] = None,
         batch_size: Optional[int] = None,
     ):
         """save generated samples to a json file
 
         Args:
-            all (bool, Optional): if True it will save all possible samples. Defaults to False.
-            n (int, Optional): if all is False it will save all possible samples with size of n
-            random (int, Optional): if True it will save random samples instead of all to deal with RAM shortage number of samples is equal to the random. Defaults to 0
+            mode (float): if mode is between 0 and 1 it will create random samples (x percentage of all samples), use 1 to create all possible samples
+            n (int, Optional): if it is given it will create  only samples that their size is n (it most be between number of mandatory features and number of all features)
             batch_size (Optional): for bigger files we create batches
 
         """
-        only = n
-        if only is None:
+        all = False
+
+        if mode == 1:
             all = True
+        elif 0 <= mode < 1:
+            percentage = mode
+        else:
+            print("mode must be between 0 and 1")
+            return
+
+        only = n
+        mandatory_features = self.mandatory_features
+
+        if only is None:
+            range_min = len(mandatory_features)
+            range_max = len(FEATURE_VALUES)
+        else:
+            if len(mandatory_features) > only or only > len(self.feature_names):
+                print(
+                    "given n (size of subsets) most be between number of mandatory features and number of all features"
+                )
+                return
+            range_min = range_max = only
+
         # Get the directory of the currently running script
         current_script_directory = os.path.dirname(os.path.realpath(__file__))
 
@@ -262,80 +280,43 @@ class SampleGenerator:
         # Create the directory if it does not exist
         os.makedirs(directory, exist_ok=True)
 
-        mandatory_features = self.mandatory_features
-        if (
-            random
-        ):  # if random is True we create random samples instead of all possible samples
-            if random > 1:
-                print("random must be between 0 and 1")
-                return
-            percentage = random
+        if all:
+            for i in range(range_min, range_max + 1):  # TODO: progress bar?
+                samples = self.sample_maker(mandatory_features, i)
+                file_path = f"{directory}sample_with_size_{i}.json"
+                with open(file_path, "w") as f:
+                    json.dump(samples, f, indent=4)
+                print(
+                    f"saving all subset size {i} samples to synthetic_samples/sample_with_size_{i}.json | size = {len(samples)}"
+                )
+            print(
+                "completed",
+                range_max - range_min + 1,
+                "items",
+            )
+
+        else:  # if all is False we create random samples
             size_dict = self._size_of_products()
             random_directory = os.path.join(
                 directory, f"random_percentage_{percentage}/"
             )
             os.makedirs(random_directory, exist_ok=True)
-            if all:
-                for i in range(len(mandatory_features), len(FEATURE_VALUES) + 1):
-                    random_size = int(size_dict[f"size_{i}"] * percentage) + 1
-                    samples = self._randomy(i, random_size)
-                    file_path = (
-                        f"{random_directory}random_sample_with_subset_size_of_{i}.json"
-                    )
-                    with open(file_path, "w") as f:
-                        json.dump(samples, f, indent=4)
-                    print(
-                        f"saving subset size {i}".ljust(21),
-                        f"random samples to synthetic_samples/random_percentage_{percentage}/random_sample_with_subset_size_of_{i}.json".ljust(
-                            101
-                        ),
-                        f"| size = {random_size:,}",
-                    )
-            else:
-                random_size = int(size_dict[f"size_{only}"] * percentage) + 1
-                samples = self._randomy(only, random_size)
+            for i in range(range_min, range_max + 1):
+                random_size = int(size_dict[f"size_{i}"] * percentage) + 1
+                samples = self._randomy(i, random_size)
                 file_path = (
-                    f"{random_directory}random_sample_with_subset_size_of_{only}.json"
+                    f"{random_directory}random_sample_with_subset_size_of_{i}.json"
                 )
                 with open(file_path, "w") as f:
                     json.dump(samples, f, indent=4)
                 print(
-                    f"saving subset size {only}".ljust(21),
-                    f"random samples to synthetic_samples/random_percentage_{percentage}/random_sample_with_subset_size_of_{only}.json".ljust(
-                        101
+                    f"saving subset size {i}".ljust(21),
+                    f"random samples to synthetic_samples/random_percentage_{percentage}/random_sample_with_subset_size_of_{i}.json".ljust(
+                        102
                     ),
                     f"| size = {random_size:,}",
                 )
-                return
-        else:
-            if all:
-                for i in range(
-                    len(mandatory_features), len(FEATURE_VALUES) + 1
-                ):  # tqdm(range(len(mandatory_features),len(FEATURE_VALUES)+1),ncols=75):
-                    samples = self.sample_maker(mandatory_features, i)
-                    file_path = f"{directory}sample_with_size_{i}.json"
-                    with open(file_path, "w") as f:
-                        json.dump(samples, f, indent=4)
-                    print(
-                        f"saving subset size {i} samples to synthetic_samples/sample_with_size_{i}.json | size = {len(samples)}"
-                    )
-                print(
-                    "completed",
-                    len(FEATURE_VALUES) - len(mandatory_features) + 1,
-                    "items",
-                )
 
-            else:
-                if n > len(self.feature_names):
-                    print("given n (size of subsets) is bigger than number of features")
-                    return
-                samples = self.sample_maker(mandatory_features, n)
-                file_path = f"{directory}sample_with_size_{n}.json"
-                with open(file_path, "w") as f:
-                    json.dump(samples, f, indent=4)
-                print(
-                    f"saving subset size {n} samples to synthetic_samples/sample_with_size_{n}.json "
-                )
         # TODO: batching for bigger files
         # if batch_size is None:
         #     file_path = f"{directory}sample{n}.json"
