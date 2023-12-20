@@ -785,7 +785,7 @@ class ComposeParameterBuilder:
         """
         new_potential: float = potential
         for param in self.params:
-            new_potential = param.potential_modifier(probability=new_potential)
+            new_potential = param.potential_modifier(potential=new_potential)
         return new_potential
 
     def grouped_xai_modifiers(self, grouped_xai: Dict[str, float]) -> Dict[str, float]:
