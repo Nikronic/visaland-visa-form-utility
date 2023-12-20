@@ -21,4 +21,5 @@ from .core import (
     InvitationLetterParameterBuilder,
     TravelHistoryParameterBuilder,
     BankBalanceContinuousParameterBuilder,
+    ComposeParameterBuilder
 )
