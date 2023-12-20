@@ -33,6 +33,7 @@ from vizard.models.estimators.manual import (
     TravelHistoryParameterBuilder,
     TravelHistoryRegion,
     BankBalanceContinuousParameterBuilder,
+    ComposeParameterBuilder,
 )
 from vizard.utils import loggers
 from vizard.version import VERSION as VIZARD_VERSION
@@ -199,12 +200,14 @@ flaml_tree_explainer = FlamlTreeExplainer(
 # Create instances of manual parameter insertion
 invitation_letter_param = InvitationLetterParameterBuilder()
 travel_history_param = TravelHistoryParameterBuilder()
-bank_balance_param = BankBalanceContinuousParameterBuilder()
-MANUAL_PARAM_NAMES_ANSWERED_DICT: Dict[str, bool] = {
-    invitation_letter_param.name: False,
-    travel_history_param.name: False,
-    bank_balance_param.name: False,
-}
+bank_balance_continuous_param = BankBalanceContinuousParameterBuilder()
+param_composer = ComposeParameterBuilder(
+    params=[
+        invitation_letter_param,
+        travel_history_param,
+        bank_balance_continuous_param,
+    ]
+)
 
 # instantiate fast api app
 app = fastapi.FastAPI(
@@ -335,35 +338,17 @@ async def potential(features: api_models.Payload):
         features_dict: Dict[str, Any] = features.model_dump()
         provided_variables: List[str] = features.provided_variables
 
-        # set response for invitation letter
-        invitation_letter_param.set_response(
-            response=features.invitation_letter,
+        # set response for manual params `invitation_letter`, `travel_history`, and `bank_balance`
+        param_composer.set_responses_for_params(
+            responses={
+                invitation_letter_param.name: features.invitation_letter,
+                travel_history_param.name: features.travel_history,
+                bank_balance_continuous_param.name: features.bank_balance,
+            },
             raw=True,
+            pop=True,
+            pop_containers=[features_dict, provided_variables],
         )
-        # remove invitation letter so preprocessing, transformation, etc works just like before
-        if invitation_letter_param.name in features_dict:
-            del features_dict[invitation_letter_param.name]
-        if invitation_letter_param.name in provided_variables:
-            provided_variables.remove(invitation_letter_param.name)
-
-        # set response for travel history
-        travel_history_param.set_response(
-            response=features.travel_history,
-            raw=True,
-        )
-        # remove invitation letter so preprocessing, transformation, etc works just like before
-        if travel_history_param.name in features_dict:
-            del features_dict[travel_history_param.name]
-        if travel_history_param.name in provided_variables:
-            provided_variables.remove(travel_history_param.name)
-
-        # set response for bank balance
-        bank_balance_param.set_response(response=features.bank_balance)
-        # remove invitation letter so preprocessing, transformation, etc works just like before
-        if bank_balance_param.name in features_dict:
-            del features_dict[bank_balance_param.name]
-        if bank_balance_param.name in provided_variables:
-            provided_variables.remove(bank_balance_param.name)
 
         payload_to_xai = _potential(**features_dict)
 
@@ -377,16 +362,8 @@ async def potential(features: api_models.Payload):
         # normalize to 0-1 for percentage
         potential_by_xai_normalized: float = potential_by_xai_raw / total_xai
 
-        # apply invitation letter modification given the response
-        potential_by_xai_normalized: float = invitation_letter_param.potential_modifier(
-            potential=potential_by_xai_normalized
-        )
-        # apply travel history modification given the response
-        potential_by_xai_normalized: float = travel_history_param.potential_modifier(
-            potential=potential_by_xai_normalized
-        )
-        # apply bank balance modification given the response
-        potential_by_xai_normalized: float = bank_balance_param.potential_modifier(
+        # apply manual params modification given the response
+        potential_by_xai_normalized: float = param_composer.potential_modifiers(
             potential=potential_by_xai_normalized
         )
 
@@ -410,44 +387,20 @@ async def predict(
         features_dict: Dict[str, Any] = features.model_dump()
         provided_variables: List[str] = features.provided_variables
 
-        # reset manual variable responses
-        for k, _ in MANUAL_PARAM_NAMES_ANSWERED_DICT.items():
-            MANUAL_PARAM_NAMES_ANSWERED_DICT[k] = False
+        # if manual param is answered, consume it
+        param_composer.consume_params(params_names=provided_variables)
 
-        # if manual param is answered, make its value True
-        for param in provided_variables:
-            if param in MANUAL_PARAM_NAMES_ANSWERED_DICT.keys():
-                MANUAL_PARAM_NAMES_ANSWERED_DICT[param] = True
-
-        # set response for invitation letter
-        invitation_letter_param.set_response(
-            response=features.invitation_letter,
+        # set response for manual params `invitation_letter`, `travel_history`, and `bank_balance`
+        param_composer.set_responses_for_params(
+            responses={
+                invitation_letter_param.name: features.invitation_letter,
+                travel_history_param.name: features.travel_history,
+                bank_balance_continuous_param.name: features.bank_balance,
+            },
             raw=True,
+            pop=True,
+            pop_containers=[features_dict, provided_variables],
         )
-        # remove invitation letter so preprocessing, transformation, etc works just like before
-        if invitation_letter_param.name in features_dict:
-            del features_dict[invitation_letter_param.name]
-        if invitation_letter_param.name in provided_variables:
-            provided_variables.remove(invitation_letter_param.name)
-
-        # set response for travel history
-        travel_history_param.set_response(
-            response=features.travel_history,
-            raw=True,
-        )
-        # remove invitation letter so preprocessing, transformation, etc works just like before
-        if travel_history_param.name in features_dict:
-            del features_dict[travel_history_param.name]
-        if travel_history_param.name in provided_variables:
-            provided_variables.remove(travel_history_param.name)
-
-        # set response for bank balance
-        bank_balance_param.set_response(response=features.bank_balance)
-        # remove invitation letter so preprocessing, transformation, etc works just like before
-        if bank_balance_param.name in features_dict:
-            del features_dict[bank_balance_param.name]
-        if bank_balance_param.name in provided_variables:
-            provided_variables.remove(bank_balance_param.name)
 
         logic_answers_implanted = utils.logical_questions(
             provided_variables, features_dict
@@ -458,12 +411,8 @@ async def predict(
         given_answers = logic_answers_implanted[1]
         result = _predict(**given_answers)
 
-        # apply invitation letter modification given the response
-        result: float = invitation_letter_param.probability_modifier(probability=result)
-        # apply travel history modification given the response
-        result: float = travel_history_param.probability_modifier(probability=result)
-        # apply bank balance modification given the response
-        result: float = bank_balance_param.probability_modifier(probability=result)
+        # apply manual params modification given the response
+        result: float = param_composer.probability_modifiers(probability=result)
 
         # get the next question by suggesting the variable with highest XAI value
         payload_to_xai: Dict[str, float] = _potential(**features_dict)
@@ -486,7 +435,7 @@ async def predict(
         next_logical_variable = utils.append_parameter_builder_instances(
             suggested=next_logical_variable,
             parameter_builder_instances_names=list(
-                k for k, v in MANUAL_PARAM_NAMES_ANSWERED_DICT.items() if not v
+                k for k, v in param_composer.consumption_status_dict.items() if not v
             ),
             len_user_answered_params=len(features_dict),
             len_logically_answered_params=len(is_answered),
@@ -656,29 +605,17 @@ async def grouped_xai(features: api_models.Payload):
 
     features_dict: Dict[str, Any] = features.model_dump()
 
-    # set response for invitation letter
-    invitation_letter_param.set_response(
-        response=features.invitation_letter,
+    # set response for manual params `invitation_letter`, `travel_history`, and `bank_balance`
+    param_composer.set_responses_for_params(
+        responses={
+            invitation_letter_param.name: features.invitation_letter,
+            travel_history_param.name: features.travel_history,
+            bank_balance_continuous_param.name: features.bank_balance,
+        },
         raw=True,
+        pop=True,
+        pop_containers=[features_dict],
     )
-    # remove invitation letter so preprocessing, transformation, etc works just like before
-    if invitation_letter_param.name in features_dict:
-        del features_dict[invitation_letter_param.name]
-
-    # set response for travel history
-    travel_history_param.set_response(
-        response=features.travel_history,
-        raw=True,
-    )
-    # remove travel history so preprocessing, transformation, etc works just like before
-    if travel_history_param.name:
-        del features_dict[travel_history_param.name]
-
-    # set response for bank balance
-    bank_balance_param.set_response(response=features.bank_balance)
-    # remove invitation letter so preprocessing, transformation, etc works just like before
-    if bank_balance_param.name in features_dict:
-        del features_dict[bank_balance_param.name]
 
     # validate sample
     sample = _xai(**features_dict)
@@ -698,18 +635,8 @@ async def grouped_xai(features: api_models.Payload):
     for k, v in aggregated_shap_values.items():
         aggregated_shap_values[k] = v / total_xai
 
-    # apply invitation letter modification given the response
-    aggregated_shap_values: Dict[
-        str, float
-    ] = invitation_letter_param.grouped_xai_modifier(grouped_xai=aggregated_shap_values)
-
-    # apply travel history modification given the response
-    aggregated_shap_values: Dict[
-        str, float
-    ] = travel_history_param.grouped_xai_modifier(grouped_xai=aggregated_shap_values)
-
-    # apply bank balance modification given the response
-    aggregated_shap_values: Dict[str, float] = bank_balance_param.grouped_xai_modifier(
+    # apply manual params modification given the response
+    aggregated_shap_values: Dict[str, float] = param_composer.grouped_xai_modifiers(
         grouped_xai=aggregated_shap_values
     )
 
