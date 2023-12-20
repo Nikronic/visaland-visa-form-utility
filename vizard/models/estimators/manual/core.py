@@ -672,7 +672,7 @@ class ComposeParameterBuilder:
 
         self.params = params
         self.consumption_status_dict: Dict[str, bool] = {
-            param_name: False for param_name in params
+            param.name: False for param in params
         }
 
     @staticmethod
