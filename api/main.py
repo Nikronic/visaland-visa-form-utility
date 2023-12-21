@@ -510,8 +510,22 @@ async def xai(features: api_models.Payload, k: int = 5):
 
 @app.post("/grouped_xai_expanded", response_model=api_models.XaiExpandedGroupResponse)
 async def grouped_xai_expanded(features: api_models.Payload):
+    features_dict: Dict[str, Any] = features.model_dump()
+
+    # set response for manual params `invitation_letter`, `travel_history`, and `bank_balance`
+    param_composer.set_responses_for_params(
+        responses={
+            invitation_letter_param.name: features.invitation_letter,
+            travel_history_param.name: features.travel_history,
+            bank_balance_continuous_param.name: features.bank_balance,
+        },
+        raw=True,
+        pop=True,
+        pop_containers=[features_dict],
+    )
+
     # validate sample
-    sample = _xai(**features.model_dump())
+    sample = _xai(**features_dict)
 
     # compute xai values for the sample
     xai_top_k: Dict[str, float] = flaml_tree_explainer.top_k_score(sample=sample, k=-1)
