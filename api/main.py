@@ -607,6 +607,12 @@ async def grouped_xai_expanded(features: api_models.Payload):
         # C: feature_cat_name_xai
     # X: grouped_xai_expanded
 
+    # add manual params' responses and their importance to the result
+    for param in param_composer.params:
+        grouped_xai_expanded[param.feature_category.name].update(
+            param.get_pprint_response_importance_dict()
+        )
+
     return {"grouped_xai_expanded": grouped_xai_expanded}
 
 
