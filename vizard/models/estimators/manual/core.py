@@ -71,6 +71,9 @@ class ParameterBuilderBase:
         self.response: Optional[str] = None
         self.importance: Optional[float] = None
 
+        # for pprint
+        self._raw_response: str = None
+
     def __type_check(self) -> None:
         if not isinstance(self.feature_category, FeatureCategories):
             raise NotImplementedError(
@@ -251,12 +254,34 @@ class ParameterBuilderBase:
             converted_response: constant.Enum = self.str_to_enum(value=response)
             self._response_check(response=converted_response)
 
+        self._raw_response = response
         self.response = converted_response
         self.importance = self.__get_importance(response=converted_response, raw=raw)
         # check for range if raw=false
         if not raw:
             self._percent_check(percent=self.importance)
         return self.importance
+
+    def get_pprint_response_importance_dict(self) -> Dict[str, float]:
+        """Returns a pretty printed dictionary of given response and its importance
+
+        TODO:
+            This method needs to be implemented in the extensions of this class.
+            this is mostly to unclean code where importance of ``BASE`` is not easily
+            accessible.
+
+        Note:
+            The key of this dictionary is something readable but not sharable with
+            entire SDK. So only use this for printing.
+
+        Returns:
+            Dict[str, float]:
+                A dictionary where the key is a concatenation of parameter ``name`` and
+                raw ``response``, and the value is the ``importance`` of that response.
+                If the ``response`` is not provided explicitly, the ``BASE`` value
+                from :mod:`vizard.models.estimators.manual.constant` will be used.
+        """
+        raise NotImplementedError("Please extend this class and implement this method.")
 
     def potential_modifier(self, potential: float) -> float:
         """Given an importance (e.g., XAI) recomputes ``potential`` by including this variable
@@ -361,6 +386,8 @@ class ContinuousParameterBuilderBase(ParameterBuilderBase):
 
         self.response = response
         self.importance = self.responses(response)
+        # used for pprint
+        self._raw_response = response
         # check for range
         self._percent_check(percent=self.importance)
         return self.importance
@@ -384,6 +411,30 @@ class InvitationLetterParameterBuilder(ParameterBuilderBase):
         target_enum: constant.Enum = constant.InvitationLetterSenderRelation,
     ) -> constant.InvitationLetterSenderRelation:
         return target_enum(value)
+
+    def get_pprint_response_importance_dict(self) -> Dict[str, float]:
+        """Returns a pretty printed dictionary of given response and its importance
+
+        Note:
+            The key of this dictionary is something readable but not sharable with
+            entire SDK. So only use this for printing.
+
+        Returns:
+            Dict[str, float]:
+                A dictionary where the key is a concatenation of parameter ``name`` and
+                raw ``response``, and the value is the ``importance`` of that response.
+                If the ``response`` is not provided explicitly, the ``BASE`` value
+                from :mod:`vizard.models.estimators.manual.constant` will be used.
+        """
+        # check if response is provided
+        self._check_importance_set()
+
+        importance: float = None
+        if self.response == constant.InvitationLetterSenderRelation.NONE:
+            importance = self.responses[constant.InvitationLetterSenderRelation.BASE]
+        else:
+            importance = self.importance
+        return {f"{self.name}_{self._raw_response}": importance}
 
     def potential_modifier(self, potential: float) -> float:
         """Modifies ``potential`` based on given importance
@@ -477,6 +528,33 @@ class TravelHistoryParameterBuilder(ParameterBuilderBase):
         self, value: str, target_enum: constant.Enum = constant.TravelHistoryRegion
     ) -> constant.TravelHistoryRegion:
         return target_enum(value)
+    
+    def get_pprint_response_importance_dict(self) -> Dict[str, float]:
+        """Returns a pretty printed dictionary of given response and its importance
+
+        Note:
+            The key of this dictionary is something readable but not sharable with
+            entire SDK. So only use this for printing.
+
+        Returns:
+            Dict[str, float]:
+                A dictionary where the key is a concatenation of parameter ``name`` and
+                raw ``response``, and the value is the ``importance`` of that response.
+                If the ``response`` is not provided explicitly, the ``BASE`` value
+                from :mod:`vizard.models.estimators.manual.constant` will be used.
+        """
+        # check if response is provided
+        self._check_importance_set()
+
+        importance: float = None
+        # travel history is always a list of responses with at least one item (None)
+        if self.response[0] == constant.TravelHistoryRegion.NONE:
+            importance = self.responses[constant.TravelHistoryRegion.BASE]
+        else:
+            importance = self.importance
+        
+        raw_response: List[str] = "-".join(self._raw_response)
+        return {f"{self.name}_{raw_response}": importance}
 
     def potential_modifier(self, potential: float) -> float:
         """Modifies ``potential`` based on given importance
@@ -574,6 +652,25 @@ class BankBalanceContinuousParameterBuilder(ContinuousParameterBuilderBase):
         )
 
         super().__init__(name, responses, feature_category)
+    
+    def get_pprint_response_importance_dict(self) -> Dict[str, float]:
+        """Returns a pretty printed dictionary of given response and its importance
+
+        Note:
+            The key of this dictionary is something readable but not sharable with
+            entire SDK. So only use this for printing.
+
+        Returns:
+            Dict[str, float]:
+                A dictionary where the key is a concatenation of parameter ``name`` and
+                raw ``response``, and the value is the ``importance`` of that response.
+                If the ``response`` is not provided explicitly, the ``BASE`` value
+                from :mod:`vizard.models.estimators.manual.constant` will be used.
+        """
+        # check if response is provided
+        self._check_importance_set()
+
+        return {f"{self.name}_{self._raw_response}": self.importance}
 
     def potential_modifier(self, potential: float) -> float:
         """Modifies ``potential`` based on given importance
