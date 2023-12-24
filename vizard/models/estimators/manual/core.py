@@ -48,6 +48,7 @@ class ParameterBuilderBase:
         name: str,
         responses: Dict[str, float],
         feature_category: FeatureCategories | List[FeatureCategories],
+        description: Optional[str] = None
     ) -> None:
         """Initializes a parameter to be built manually
 
@@ -60,10 +61,15 @@ class ParameterBuilderBase:
             feature_category (:class:`vizard.data.constant.FeatureCategories`): Which category of
                 features/parameters this parameter affects. Note that it can take multiple values
                 if a list of :class:`vizard.data.constant.FeatureCategories` is provided.
+            description (Optional[str], optional): A string replacing the original response
+                string as a description of that response. If not provided, it will use the one
+                provided during instantiation of this class, otherwise, no replacement
+                is done. Defaults to None.
         """
         self.name = name
         self.responses = responses
         self.feature_category = feature_category
+        self.description = description
         # type check
         self.__type_check()
 
@@ -262,7 +268,7 @@ class ParameterBuilderBase:
             self._percent_check(percent=self.importance)
         return self.importance
 
-    def get_pprint_response_importance_dict(self) -> Dict[str, float]:
+    def get_pprint_response_importance_dict(self, description: Optional[str] = None) -> Dict[str, float]:
         """Returns a pretty printed dictionary of given response and its importance
 
         TODO:
@@ -273,6 +279,12 @@ class ParameterBuilderBase:
         Note:
             The key of this dictionary is something readable but not sharable with
             entire SDK. So only use this for printing.
+        
+        Args:
+            description (Optional[str], optional): A string replacing the original response
+                string as a description of that response. If not provided, it will use the one
+                provided during instantiation of this class, otherwise, no replacement
+                is done. Defaults to None.
 
         Returns:
             Dict[str, float]:
@@ -351,8 +363,9 @@ class ContinuousParameterBuilderBase(ParameterBuilderBase):
         name: str,
         responses: Callable,
         feature_category: FeatureCategories | List[FeatureCategories],
+        description: Optional[str] = None
     ) -> None:
-        super().__init__(name, responses, feature_category)
+        super().__init__(name, responses, feature_category, description)
 
     def _percent_check(self, percent: float) -> None:
         """Checks if the input variable is a percentage in [-1, 1]
@@ -402,8 +415,9 @@ class InvitationLetterParameterBuilder(ParameterBuilderBase):
         feature_category: FeatureCategories = FeatureCategories(
             FeatureCategories.PURPOSE
         )
+        description: str = "وضعیت دعوت نامه شما"
 
-        super().__init__(name, responses, feature_category)
+        super().__init__(name, responses, feature_category, description)
 
     def str_to_enum(
         self,
@@ -412,12 +426,18 @@ class InvitationLetterParameterBuilder(ParameterBuilderBase):
     ) -> constant.InvitationLetterSenderRelation:
         return target_enum(value)
 
-    def get_pprint_response_importance_dict(self) -> Dict[str, float]:
+    def get_pprint_response_importance_dict(self, description: Optional[str] = None) -> Dict[str, float]:
         """Returns a pretty printed dictionary of given response and its importance
 
         Note:
             The key of this dictionary is something readable but not sharable with
             entire SDK. So only use this for printing.
+        
+        Args:
+            description (Optional[str], optional): A string replacing the original response
+                string as a description of that response. If not provided, it will use the one
+                provided during instantiation of this class otherwise, no replacement
+                is done and original parameter name and the provided response. Defaults to None.
 
         Returns:
             Dict[str, float]:
@@ -429,12 +449,20 @@ class InvitationLetterParameterBuilder(ParameterBuilderBase):
         # check if response is provided
         self._check_importance_set()
 
+        # override class `description` with current one
+        if description is not None:
+            self.description = description
+
         importance: float = None
         if self.response == constant.InvitationLetterSenderRelation.NONE:
             importance = self.responses[constant.InvitationLetterSenderRelation.BASE]
         else:
             importance = self.importance
-        return {f"{self.name}_{self._raw_response}": importance}
+        
+        if self.description is None:
+            return {f"{self.name}_{self._raw_response}": importance}
+        return {f"{self.description} {self._raw_response}": importance}
+
 
     def potential_modifier(self, potential: float) -> float:
         """Modifies ``potential`` based on given importance
@@ -521,21 +549,28 @@ class TravelHistoryParameterBuilder(ParameterBuilderBase):
         feature_category: FeatureCategories = FeatureCategories(
             FeatureCategories.PURPOSE
         )
+        description: str = "وضعیت سابقه سفری شما"
 
-        super().__init__(name, responses, feature_category)
+        super().__init__(name, responses, feature_category, description)
 
     def str_to_enum(
         self, value: str, target_enum: constant.Enum = constant.TravelHistoryRegion
     ) -> constant.TravelHistoryRegion:
         return target_enum(value)
     
-    def get_pprint_response_importance_dict(self) -> Dict[str, float]:
+    def get_pprint_response_importance_dict(self, description: Optional[str] = None) -> Dict[str, float]:
         """Returns a pretty printed dictionary of given response and its importance
 
         Note:
             The key of this dictionary is something readable but not sharable with
             entire SDK. So only use this for printing.
 
+        Args:
+            description (Optional[str], optional): A string replacing the original response
+                string as a description of that response. If not provided, it will use the one
+                provided during instantiation of this class otherwise, no replacement
+                is done and original parameter name and the provided response. Defaults to None.
+            
         Returns:
             Dict[str, float]:
                 A dictionary where the key is a concatenation of parameter ``name`` and
@@ -545,6 +580,9 @@ class TravelHistoryParameterBuilder(ParameterBuilderBase):
         """
         # check if response is provided
         self._check_importance_set()
+        # override class `description` with current one
+        if description is not None:
+            self.description = description
 
         importance: float = None
         # travel history is always a list of responses with at least one item (None)
@@ -554,7 +592,10 @@ class TravelHistoryParameterBuilder(ParameterBuilderBase):
             importance = self.importance
         
         raw_response: List[str] = "-".join(self._raw_response)
-        return {f"{self.name}_{raw_response}": importance}
+        if self.description is None:    
+            return {f"{self.name}_{raw_response}": importance}
+        return {f"{self.description} {raw_response}": importance}
+
 
     def potential_modifier(self, potential: float) -> float:
         """Modifies ``potential`` based on given importance
@@ -650,15 +691,22 @@ class BankBalanceContinuousParameterBuilder(ContinuousParameterBuilderBase):
         feature_category: FeatureCategories = FeatureCategories(
             FeatureCategories.FINANCIAL
         )
+        description: str = "وضعیت تمکن مالی شما"
 
-        super().__init__(name, responses, feature_category)
+        super().__init__(name, responses, feature_category, description)
     
-    def get_pprint_response_importance_dict(self) -> Dict[str, float]:
+    def get_pprint_response_importance_dict(self, description: Optional[str] = None) -> Dict[str, float]:
         """Returns a pretty printed dictionary of given response and its importance
 
         Note:
             The key of this dictionary is something readable but not sharable with
             entire SDK. So only use this for printing.
+        
+        Args:
+            description (Optional[str], optional): A string replacing the original response
+                string as a description of that response. If not provided, it will use the one
+                provided during instantiation of this class otherwise, no replacement
+                is done and original parameter name and the provided response. Defaults to None.
 
         Returns:
             Dict[str, float]:
@@ -669,8 +717,13 @@ class BankBalanceContinuousParameterBuilder(ContinuousParameterBuilderBase):
         """
         # check if response is provided
         self._check_importance_set()
+        # override class `description` with current one
+        if description is not None:
+            self.description = description
 
-        return {f"{self.name}_{self._raw_response}": self.importance}
+        if self.description is None:
+            return {f"{self.name}_{self._raw_response}": self.importance}
+        return {f"{self.description} {self._raw_response}": self.importance}
 
     def potential_modifier(self, potential: float) -> float:
         """Modifies ``potential`` based on given importance
