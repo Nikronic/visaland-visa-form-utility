@@ -48,6 +48,7 @@ class ParameterBuilderBase:
         name: str,
         responses: Dict[str, float],
         feature_category: FeatureCategories | List[FeatureCategories],
+        description: Optional[str] = None
     ) -> None:
         """Initializes a parameter to be built manually
 
@@ -60,16 +61,24 @@ class ParameterBuilderBase:
             feature_category (:class:`vizard.data.constant.FeatureCategories`): Which category of
                 features/parameters this parameter affects. Note that it can take multiple values
                 if a list of :class:`vizard.data.constant.FeatureCategories` is provided.
+            description (Optional[str], optional): A string replacing the original response
+                string as a description of that response. If not provided, it will use the one
+                provided during instantiation of this class, otherwise, no replacement
+                is done. Defaults to None.
         """
         self.name = name
         self.responses = responses
         self.feature_category = feature_category
+        self.description = description
         # type check
         self.__type_check()
 
         # values required for ``_modifier`` methods
         self.response: Optional[str] = None
         self.importance: Optional[float] = None
+
+        # for pprint
+        self._raw_response: str = None
 
     def __type_check(self) -> None:
         if not isinstance(self.feature_category, FeatureCategories):
@@ -251,12 +260,40 @@ class ParameterBuilderBase:
             converted_response: constant.Enum = self.str_to_enum(value=response)
             self._response_check(response=converted_response)
 
+        self._raw_response = response
         self.response = converted_response
         self.importance = self.__get_importance(response=converted_response, raw=raw)
         # check for range if raw=false
         if not raw:
             self._percent_check(percent=self.importance)
         return self.importance
+
+    def get_pprint_response_importance_dict(self, description: Optional[str] = None) -> Dict[str, float]:
+        """Returns a pretty printed dictionary of given response and its importance
+
+        TODO:
+            This method needs to be implemented in the extensions of this class.
+            this is mostly to unclean code where importance of ``BASE`` is not easily
+            accessible.
+
+        Note:
+            The key of this dictionary is something readable but not sharable with
+            entire SDK. So only use this for printing.
+        
+        Args:
+            description (Optional[str], optional): A string replacing the original response
+                string as a description of that response. If not provided, it will use the one
+                provided during instantiation of this class, otherwise, no replacement
+                is done. Defaults to None.
+
+        Returns:
+            Dict[str, float]:
+                A dictionary where the key is a concatenation of parameter ``name`` and
+                raw ``response``, and the value is the ``importance`` of that response.
+                If the ``response`` is not provided explicitly, the ``BASE`` value
+                from :mod:`vizard.models.estimators.manual.constant` will be used.
+        """
+        raise NotImplementedError("Please extend this class and implement this method.")
 
     def potential_modifier(self, potential: float) -> float:
         """Given an importance (e.g., XAI) recomputes ``potential`` by including this variable
@@ -326,8 +363,9 @@ class ContinuousParameterBuilderBase(ParameterBuilderBase):
         name: str,
         responses: Callable,
         feature_category: FeatureCategories | List[FeatureCategories],
+        description: Optional[str] = None
     ) -> None:
-        super().__init__(name, responses, feature_category)
+        super().__init__(name, responses, feature_category, description)
 
     def _percent_check(self, percent: float) -> None:
         """Checks if the input variable is a percentage in [-1, 1]
@@ -361,6 +399,8 @@ class ContinuousParameterBuilderBase(ParameterBuilderBase):
 
         self.response = response
         self.importance = self.responses(response)
+        # used for pprint
+        self._raw_response = response
         # check for range
         self._percent_check(percent=self.importance)
         return self.importance
@@ -375,8 +415,9 @@ class InvitationLetterParameterBuilder(ParameterBuilderBase):
         feature_category: FeatureCategories = FeatureCategories(
             FeatureCategories.PURPOSE
         )
+        description: str = "وضعیت دعوت نامه شما"
 
-        super().__init__(name, responses, feature_category)
+        super().__init__(name, responses, feature_category, description)
 
     def str_to_enum(
         self,
@@ -384,6 +425,44 @@ class InvitationLetterParameterBuilder(ParameterBuilderBase):
         target_enum: constant.Enum = constant.InvitationLetterSenderRelation,
     ) -> constant.InvitationLetterSenderRelation:
         return target_enum(value)
+
+    def get_pprint_response_importance_dict(self, description: Optional[str] = None) -> Dict[str, float]:
+        """Returns a pretty printed dictionary of given response and its importance
+
+        Note:
+            The key of this dictionary is something readable but not sharable with
+            entire SDK. So only use this for printing.
+        
+        Args:
+            description (Optional[str], optional): A string replacing the original response
+                string as a description of that response. If not provided, it will use the one
+                provided during instantiation of this class otherwise, no replacement
+                is done and original parameter name and the provided response. Defaults to None.
+
+        Returns:
+            Dict[str, float]:
+                A dictionary where the key is a concatenation of parameter ``name`` and
+                raw ``response``, and the value is the ``importance`` of that response.
+                If the ``response`` is not provided explicitly, the ``BASE`` value
+                from :mod:`vizard.models.estimators.manual.constant` will be used.
+        """
+        # check if response is provided
+        self._check_importance_set()
+
+        # override class `description` with current one
+        if description is not None:
+            self.description = description
+
+        importance: float = None
+        if self.response == constant.InvitationLetterSenderRelation.NONE:
+            importance = self.responses[constant.InvitationLetterSenderRelation.BASE]
+        else:
+            importance = self.importance
+        
+        if self.description is None:
+            return {f"{self.name}_{self._raw_response}": importance}
+        return {f"{self.description} {self._raw_response}": importance}
+
 
     def potential_modifier(self, potential: float) -> float:
         """Modifies ``potential`` based on given importance
@@ -470,13 +549,53 @@ class TravelHistoryParameterBuilder(ParameterBuilderBase):
         feature_category: FeatureCategories = FeatureCategories(
             FeatureCategories.PURPOSE
         )
+        description: str = "وضعیت سابقه سفری شما"
 
-        super().__init__(name, responses, feature_category)
+        super().__init__(name, responses, feature_category, description)
 
     def str_to_enum(
         self, value: str, target_enum: constant.Enum = constant.TravelHistoryRegion
     ) -> constant.TravelHistoryRegion:
         return target_enum(value)
+    
+    def get_pprint_response_importance_dict(self, description: Optional[str] = None) -> Dict[str, float]:
+        """Returns a pretty printed dictionary of given response and its importance
+
+        Note:
+            The key of this dictionary is something readable but not sharable with
+            entire SDK. So only use this for printing.
+
+        Args:
+            description (Optional[str], optional): A string replacing the original response
+                string as a description of that response. If not provided, it will use the one
+                provided during instantiation of this class otherwise, no replacement
+                is done and original parameter name and the provided response. Defaults to None.
+            
+        Returns:
+            Dict[str, float]:
+                A dictionary where the key is a concatenation of parameter ``name`` and
+                raw ``response``, and the value is the ``importance`` of that response.
+                If the ``response`` is not provided explicitly, the ``BASE`` value
+                from :mod:`vizard.models.estimators.manual.constant` will be used.
+        """
+        # check if response is provided
+        self._check_importance_set()
+        # override class `description` with current one
+        if description is not None:
+            self.description = description
+
+        importance: float = None
+        # travel history is always a list of responses with at least one item (None)
+        if self.response[0] == constant.TravelHistoryRegion.NONE:
+            importance = self.responses[constant.TravelHistoryRegion.BASE]
+        else:
+            importance = self.importance
+        
+        raw_response: List[str] = "-".join(self._raw_response)
+        if self.description is None:    
+            return {f"{self.name}_{raw_response}": importance}
+        return {f"{self.description} {raw_response}": importance}
+
 
     def potential_modifier(self, potential: float) -> float:
         """Modifies ``potential`` based on given importance
@@ -572,8 +691,39 @@ class BankBalanceContinuousParameterBuilder(ContinuousParameterBuilderBase):
         feature_category: FeatureCategories = FeatureCategories(
             FeatureCategories.FINANCIAL
         )
+        description: str = "وضعیت تمکن مالی شما"
 
-        super().__init__(name, responses, feature_category)
+        super().__init__(name, responses, feature_category, description)
+    
+    def get_pprint_response_importance_dict(self, description: Optional[str] = None) -> Dict[str, float]:
+        """Returns a pretty printed dictionary of given response and its importance
+
+        Note:
+            The key of this dictionary is something readable but not sharable with
+            entire SDK. So only use this for printing.
+        
+        Args:
+            description (Optional[str], optional): A string replacing the original response
+                string as a description of that response. If not provided, it will use the one
+                provided during instantiation of this class otherwise, no replacement
+                is done and original parameter name and the provided response. Defaults to None.
+
+        Returns:
+            Dict[str, float]:
+                A dictionary where the key is a concatenation of parameter ``name`` and
+                raw ``response``, and the value is the ``importance`` of that response.
+                If the ``response`` is not provided explicitly, the ``BASE`` value
+                from :mod:`vizard.models.estimators.manual.constant` will be used.
+        """
+        # check if response is provided
+        self._check_importance_set()
+        # override class `description` with current one
+        if description is not None:
+            self.description = description
+
+        if self.description is None:
+            return {f"{self.name}_{self._raw_response}": self.importance}
+        return {f"{self.description} {self._raw_response}": self.importance}
 
     def potential_modifier(self, potential: float) -> float:
         """Modifies ``potential`` based on given importance
