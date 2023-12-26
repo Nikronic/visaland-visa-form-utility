@@ -1,19 +1,15 @@
 import itertools
 import json
-import math
-import multiprocessing
 import os
 import random
 from itertools import chain, combinations, product
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-import ijson
-from tqdm import tqdm
-
-from vizard.data import constant
-from vizard.models.estimators.manual import (InvitationLetterSenderRelation,
-                                             TravelHistoryRegion)
+from vizard.models.estimators.manual import (
+    InvitationLetterSenderRelation,
+    TravelHistoryRegion,
+)
 
 mandatory = ["sex"]
 FEATURE_VALUES: Dict[str, List[Any]] = {
@@ -151,16 +147,17 @@ class SampleGenerator:
         mandatory_features: Optional[List[str | int]] = None,
         only: Optional[int] = None,
     ) -> List[Dict[str, Any]]:
-        """combine all products from product_generator to create all possible samples
+        """Creates all possible samples or a subset of size ``only`` of that
 
         Args:
             mandatory_features (Optional[List[str | int]], optional): list of mandatory features
-            only (Optional[int], optional): if it is given it will create  only samples that their size is n (it most be between number of mandatory features and number of all features)
+            only (Optional[int], optional): if it is given it will create  only samples that
+            their size is *n* (it must be between number of mandatory features and number of all features)
         Returns:
-            List[Dict[str, Any]]: a list of dictionaries each dict is an acceptable fake sample
+            List[Dict[str, Any]]: a list of dictionaries each dict is an acceptable synthesized sample
         """
 
-        if mandatory_features == None:
+        if mandatory_features is None:
             mandatory_features = self.mandatory_features
         feature_values = self.feature_values
         feature_names = self.feature_names
@@ -294,6 +291,7 @@ class SampleGenerator:
                 range_max - range_min + 1,
                 "items",
             )
+            return samples
 
         else:  # if all is False we create random samples
             size_dict = self._size_of_products()
@@ -316,6 +314,7 @@ class SampleGenerator:
                     ),
                     f"| size = {random_size:,}",
                 )
+                return samples
 
         # TODO: batching for bigger files
         # if batch_size is None:
@@ -407,13 +406,10 @@ class SampleGenerator:
 
 
 ####################################
-import argparse
 import logging
 import pickle
 import shutil
-import sys
 from pathlib import Path
-from typing import Any, Dict, List, Tuple
 
 import dvc.api
 import mlflow
@@ -423,10 +419,12 @@ import pandas as pd
 from vizard.data import functional, preprocessor
 from vizard.data.constant import OccupationTitle
 from vizard.models import preprocessors, trainers
-from vizard.models.estimators.manual import (InvitationLetterParameterBuilder,
-                                             InvitationLetterSenderRelation,
-                                             TravelHistoryParameterBuilder,
-                                             TravelHistoryRegion)
+from vizard.models.estimators.manual import (
+    InvitationLetterParameterBuilder,
+    InvitationLetterSenderRelation,
+    TravelHistoryParameterBuilder,
+    TravelHistoryRegion,
+)
 from vizard.utils import loggers
 from vizard.version import VERSION as VIZARD_VERSION
 from vizard.xai import FlamlTreeExplainer
@@ -613,17 +611,23 @@ def predict(
             probability=result[i].item()
         )
 
-    return result
+    return result, xt_test
 
 
-def batched_inference(only):
-    BATCH_SIZE: int = 4096
+def batched_inference(mode, only):
+    batch_size: int = 1e14
 
-    samples_list = []
-    results_list = []
+    samples_list: List[np.ndarray] = []
+    results_list: List[np.ndarray] = []
 
-    sampler = SampleGenerator(FEATURE_VALUES, mandatory, only)
-    samples = sampler.sample_maker(FEATURE_VALUES)
+    sampler = SampleGenerator(
+        feature_values=FEATURE_VALUES, mandatory_features=mandatory
+    )
+    samples = sampler.save_to_json(mode=mode, n=only)
+
+    # process all samples if smaller than batch size
+    do_all_samples: bool = True if len(samples) < batch_size else False
+    batch_size = len(samples) if do_all_samples else batch_size
 
     i = 0
     travel_history_param_list: List[TravelHistoryParameterBuilder] = []
@@ -674,19 +678,81 @@ def batched_inference(only):
         invitation_letter_param_list.append(thp)
         features_dict_list.append(fd)
 
-        samples_list.append(default_feature)
         i += 1
         # prepare the batch and do batched inference
-        if i % BATCH_SIZE == 0:
-            batched_result = predict(
+        if i % batch_size == 0:
+            batched_result, batched_input = predict(
                 features_dict_list=features_dict_list,
                 invitation_letter_param_list=invitation_letter_param_list,
                 travel_history_param_list=travel_history_param_list,
             )
             results_list.append(batched_result)
+            samples_list.append(batched_input)
 
             # reset the batch
             i = 0
             features_dict_list = []
             invitation_letter_param_list = []
             travel_history_param_list = []
+
+    return results_list, samples_list
+
+
+# 'size_1':           2
+# 'size_2':         122
+# 'size_3':        3364
+# 'size_4':       55680
+# 'size_5':      619100
+# 'size_6':     4899052
+# 'size_7':    28488336
+# 'size_8':   123802616
+# 'size_9':   404396578
+# 'size_10':  988817386
+# 'size_11': 1782782940
+# 'size_12': 2299499064
+# 'size_13': 2006814960
+# 'size_14': 1061164800
+# 'size_15':  256608000
+rls = []
+sls = []
+mode_only = [
+    (1, 2),
+    (1, 3),
+    (1, 4),
+    (1e-1 * 0.5, 5),
+    (1e-2, 6),
+    (1e-3, 7),
+    (1e-4, 8),
+    (1e-4, 9),
+    (1e-4, 10),
+    (1e-5, 11),
+    (1e-5, 12),
+    (1e-5, 13),
+    (1e-5, 14),
+    (1e-4, 15),
+]
+# rl2, sl2 = batched_inference(mode=1, only=2)
+# rl3, sl3 = batched_inference(mode=1, only=3)
+# rl4, sl4 = batched_inference(mode=1, only=4)
+# rl5, sl5 = batched_inference(mode=1e-1, only=5)
+# rl6, sl6 = batched_inference(mode=1e-2, only=6)
+# rl6, sl6 = batched_inference(mode=1e-3, only=7)
+# rl6, sl6 = batched_inference(mode=1e-4, only=8)
+# rl6, sl6 = batched_inference(mode=1e-4, only=9)
+# rl6, sl6 = batched_inference(mode=1e-4, only=10)
+# rl6, sl6 = batched_inference(mode=1e-5, only=11)
+# rl6, sl6 = batched_inference(mode=1e-5, only=12)
+# rl6, sl6 = batched_inference(mode=1e-5, only=13)
+# rl6, sl6 = batched_inference(mode=1e-5, only=14)
+# rl6, sl6 = batched_inference(mode=1e-4, only=15)
+
+for mode, only in mode_only:
+    rl, sl = batched_inference(mode=mode, only=only)
+    rls.append(rl)
+    sls.append(sl)
+
+results = np.empty(shape=(0, rl[0].shape[-1]))
+results = np.append(arr=results, values=rls[1:], axis=0)
+
+x = np.empty(shape=(0, sl[0].shape[-1]))
+x = np.append(arr=x, values=sls[1:, ...], axis=0)
