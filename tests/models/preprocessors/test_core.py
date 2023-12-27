@@ -4,19 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from vizard.models.preprocessors.core import (
-    TrainTestEvalSplit,
-)
-
-
-# Mocked configuration for testing
-mock_config = {
-    "test_ratio": 0.20,
-    "eval_ratio": 0.10,
-    "shuffle": True,
-    "stratify": None,
-    "random_state": 42,
-}
+from vizard.models.preprocessors.core import PandasTrainTestSplit, TrainTestEvalSplit
 
 # Sample DataFrame
 data = {
@@ -29,6 +17,14 @@ df = pd.DataFrame(data)
 
 @patch("vizard.models.preprocessors.core.TrainTestEvalSplit.set_configs")
 def test_train_test_eval_split(mock_set_configs):
+    # Mocked configuration for testing
+    mock_config = {
+        "test_ratio": 0.20,
+        "eval_ratio": 0.10,
+        "shuffle": True,
+        "stratify": None,
+        "random_state": 42,
+    }
     mock_set_configs.return_value = mock_config
 
     splitter = TrainTestEvalSplit()
@@ -65,3 +61,38 @@ def test_train_test_eval_split(mock_set_configs):
     x_train, x_test, y_train, y_test = splitter(df, "target")
     assert len(x_train) == 8
     assert len(x_test) == 2
+
+
+@patch("vizard.models.preprocessors.core.PandasTrainTestSplit.set_configs")
+def test_pandas_train_test_split(mock_set_configs):
+    mock_config = {
+        "train_ratio": 0.80,
+        "shuffle": True,
+        "stratify": None,
+        "random_state": 42,
+    }
+    mock_set_configs.return_value = mock_config
+
+    splitter = PandasTrainTestSplit()
+    train_df, test_df = splitter(df, "target")
+
+    assert train_df.shape[0] == 8  # 80% of data
+    assert test_df.shape[0] == 2  # 20% of data
+
+    # test equality if seed is the same even if shuffle true
+    splitter = PandasTrainTestSplit()
+    train_df1, test_df1 = splitter(df, "target")
+    train_df2, test_df2 = splitter(df, "target")  # Repeat with same random_state
+
+    assert train_df1.equals(train_df2)
+    assert test_df1.equals(test_df2)
+
+    # test equality if seed is the same even if shuffle true
+    splitter = PandasTrainTestSplit()
+    train_df1, test_df1 = splitter(df, "target")
+    mock_config["random_state"] = 85
+    splitter2 = PandasTrainTestSplit()
+    train_df2, test_df2 = splitter2(df, "target")
+
+    assert not train_df1.equals(train_df2)
+    assert not test_df1.equals(test_df2)
