@@ -4,7 +4,11 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from vizard.models.preprocessors.core import PandasTrainTestSplit, TrainTestEvalSplit
+from vizard.models.preprocessors.core import (
+    PandasTrainTestSplit,
+    TrainTestEvalSplit,
+    ColumnSelector,
+)
 
 
 # Sample DataFrame
@@ -99,3 +103,50 @@ def test_pandas_train_test_split(mock_set_configs, sample_df):
 
     assert not train_df1.equals(train_df2)
     assert not test_df1.equals(test_df2)
+
+
+@pytest.fixture
+def sample_df2():
+    data = pd.DataFrame(
+        {
+            "a": [1.0, 2.0, 3.1],
+            "b": ["x", "y", "z"],
+            "c_Country": [1.5, 2.5, 3.5],
+            "d_Country": [True, False, True],
+            "e_Country": [False, False, True],
+        }
+    )
+    return data
+
+
+def test_column_selector(sample_df2):
+    selector = ColumnSelector(
+        columns_type="string", dtype_include=bool, pattern_include=".*Country"
+    )
+    selected_columns = selector(sample_df2)
+    assert selected_columns == ["d_Country", "e_Country"]
+
+    selector = ColumnSelector(
+        columns_type="string",
+        dtype_include=float,
+        pattern_include=".*Country",
+        dtype_exclude=bool,
+    )
+    selected_columns = selector(sample_df2)
+    assert selected_columns == ["c_Country"]
+
+    selector = ColumnSelector(
+        columns_type="numeric", dtype_include=float, pattern_exclude="a.*"
+    )
+    selected_columns = selector(sample_df2)
+    assert selected_columns == [2]  # Index of column 'd_Country'
+
+    selector = ColumnSelector(
+        columns_type="numeric", dtype_include=float, pattern_include="c.*"
+    )
+    selected_columns = selector(sample_df2)
+    assert selected_columns == [2]  # Index of column 'd_Country'
+
+    selector = ColumnSelector(columns_type="string", dtype_include=str)
+    with pytest.raises(TypeError):
+        selector(sample_df2.values)  # Pass a NumPy array instead of DataFrame
