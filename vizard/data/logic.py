@@ -213,6 +213,9 @@ class CanadaLogics(Logics):
             float: Result of averaging
         """
 
+        if len(series) == 0:
+            return 0.0
+
         def sum(x, y):
             return np.sum([x, y])
 
@@ -235,7 +238,7 @@ class CanadaLogics(Logics):
         def counter(x, y):
             return np.sum(np.isin([x, y], [0]))
 
-        return reduce(lambda x, y: 2 - counter(x, y), series)
+        return reduce(lambda x, y: 2 - counter(x, y), series, 0)
 
     def count_foreigner_family(self, series: pd.Series) -> int:
         """Counts the number of family members born in foreign country
@@ -327,6 +330,10 @@ class CanadaLogics(Logics):
 
         self.df = cast(pd.DataFrame, self.df)  # for mypy only
 
+        # parse empty case
+        if len(series) == 0:
+            return 0
+
         apps_loc: str = series["p1.SecA.App.AppAddr"]
 
         def counter(y):
@@ -374,6 +381,10 @@ class CanadaLogics(Logics):
         """
 
         self.df = cast(pd.DataFrame, self.df)  # for mypy only
+
+        # parse empty case
+        if len(series) == 0:
+            return 0
 
         def counter(y):
             return np.sum(np.isin([y], ["foreign"]))  # type: ignore
