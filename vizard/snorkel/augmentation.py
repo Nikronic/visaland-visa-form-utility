@@ -41,7 +41,7 @@ class SeriesNoise:
 
     """
 
-    def __init__(self, dataframe: Optional[pd.DataFrame]) -> None:
+    def __init__(self, dataframe: Optional[pd.DataFrame] = None) -> None:
         """
 
         Args:
