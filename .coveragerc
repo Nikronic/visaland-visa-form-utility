@@ -1,0 +1,5 @@
+[run]
+include = 
+    vizard/*
+omit = 
+    vizard/data/preprocessor.py
