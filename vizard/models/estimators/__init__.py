@@ -7,7 +7,6 @@ by sklearn-estimator_.
 
 Submodules:
 
-    * :mod:`vizard.models.estimators.networks <vizard.models.estimators.networks>`: contains all the neural network models
     * :mod:`vizard.models.estimators.manual`: Any method that enables integration of variables, 
         parameters, etc that are provided manually. 
 
