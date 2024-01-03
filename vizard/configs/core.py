@@ -16,7 +16,7 @@ class JsonConfigHandler:
             configs = json.load(f)
         return configs
 
-    def parse(self, filename: Union[Path, str], target: str) -> dict:
+    def parse(self, filename: Path | str, target: str) -> dict:
         """Takes a json file path and parse it for a particular class or method
 
         In the highest level of configs, there are keys that contain the name of method
@@ -37,7 +37,7 @@ class JsonConfigHandler:
             variables such as ``vizard.configs.LABEL_MODEL_CONFIGS``.
 
         Args:
-            filename (Union[Path, str]): Path to JSON file
+            filename (Path | str): Path to JSON file
             target (str): Target class or method name to parse the configs for
 
         Raises:
@@ -104,7 +104,7 @@ class JsonConfigHandler:
         else:
             raise ValueError(f"{target} is not implemented or not supported.")
 
-    def as_mlflow_artifact(self, target_path: Union[Path, str]) -> None:
+    def as_mlflow_artifact(self, target_path: Path | str) -> None:
         """Saves the configs to the MLFlow artifact directory
 
         Args:

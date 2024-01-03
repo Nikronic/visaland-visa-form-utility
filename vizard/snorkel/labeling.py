@@ -52,11 +52,12 @@ class LFLabeling:
     def __init__(self) -> None:
         self.COLUMN = ""
 
-    def label(self, s: pd.Series, column: str = None) -> int:
+    def label(self, s: pd.Series, column: Optional[str] = None) -> int:
         """Labels a Pandas Series based on a heuristic
 
         Args:
             s (:class:`pandas.Series`): An unlabeled series of our dataframe to be labeled
+            column (Optional[str], optional): The column to be operated on
 
         Returns:
             int: Labeling result
@@ -80,7 +81,7 @@ class LFLabeling:
                 Must be provided if ``func`` is not setting it internally. E.g. for
                 :class:`WeakAccept` you don't need to
                 set ``column`` since it is being handled internally.
-            class_name (str, optional): The name of the class if ``func`` is a method of it.
+            class_name (Optional[str], optional): The name of the class if ``func`` is a method of it.
                 It is used for better naming given class name alongside ``func`` name.
                 Defaults to None.
             kwargs: keyword arguments to ``func``
@@ -208,11 +209,12 @@ class WeakAccept(LFLabeling):
 
         self.COLUMN = "VisaResult"
 
-    def label(self, s: pd.Series, column: str = None) -> int:
+    def label(self, s: pd.Series, column: Optional[str] = None) -> int:
         """Labels a Pandas Series based on a heuristic
 
         Args:
             s (:class:`pandas.Series`): An unlabeled series of our dataframe to be labeled
+            column (Optional[str], optional): The column to be operated on
 
         Returns:
             int: Labeling result
@@ -244,11 +246,12 @@ class WeakReject(LFLabeling):
 
         self.COLUMN = "VisaResult"
 
-    def label(self, s: pd.Series, column: str = None) -> int:
+    def label(self, s: pd.Series, column: Optional[str] = None) -> int:
         """Labels a Pandas Series based on a heuristic
 
         Args:
             s (:class:`pandas.Series`): An unlabeled series of our dataframe to be labeled
+            column (Optional[str], optional): The column to be operated on
 
         Returns:
             int: Labeling result
@@ -284,11 +287,12 @@ class NoIdea(LFLabeling):
 
         self.COLUMN = "VisaResult"
 
-    def label(self, s: pd.Series, column: str = None) -> int:
+    def label(self, s: pd.Series, column: Optional[str] = None) -> int:
         """Labels a Pandas Series based on a heuristic
 
         Args:
             s (:class:`pandas.Series`): An unlabeled series of our dataframe to be labeled
+            column (Optional[str], optional): The column to be operated on
 
         Returns:
             int: Labeling result

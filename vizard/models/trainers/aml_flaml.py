@@ -1,6 +1,6 @@
 import logging
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional, Union
+from typing import Any, Callable, Dict, List, Optional
 
 import flaml
 import mlflow
@@ -18,14 +18,14 @@ logger = logging.getLogger(__name__)
 
 
 def get_loss_score(
-    y_predict: np.ndarray, y_true: np.ndarray, metrics: Union[List[str], str, Callable]
+    y_predict: np.ndarray, y_true: np.ndarray, metrics: List[str] | str | Callable
 ) -> Dict[str, Any]:
     """Gives loss score given predicted and true labels and metrics
 
     Args:
         y_predict (np.ndarray): Predicted labels, same shape as ``y_true``
         y_true (np.ndarray): Ground truth labels, same shape as ``y_predict``
-        metrics (Union[List[str], str, callable]): ``metrics`` can be either
+        metrics (List[str] | str | Callable): ``metrics`` can be either
             a metric name (``str``) or a list of metric names that is supported
             by ``flaml.ml.sklearn_metric_loss_score``.
 
@@ -227,7 +227,7 @@ def find_estimator(flaml_automl: flaml.AutoML):
 
 def log_model(
     estimator: Any,
-    artifact_path: Union[Path, str],
+    artifact_path: Path | str,
     conda_env: str,
     registered_model_name: Optional[str] = None,
 ):
@@ -241,9 +241,9 @@ def log_model(
     Args:
         estimator (Any): A trained :class:`flaml.AutoML` model that has ``flaml.model`` populated.
             Note that the list of estimators can be found by ``flaml.AutoML.estimator_list``.
-        artifact_path (Union[Path, str]): A path to save the tracked model as an mlflow artifact
+        artifact_path (Path | str): A path to save the tracked model as an mlflow artifact
         conda_env (str): Path to conda environment. If None, inferred by mlflow.
-        registered_model_name (Optional[str]): The name of the model if registration of the
+        registered_model_name (Optional[str], optional): The name of the model if registration of the
             model is desired. Giving the same name for multiple models, uses the default
             versioning by mlflow. Defaults to None.
     """

@@ -1,7 +1,7 @@
 __all__ = ["Logics", "CanadaLogics"]
 
 from functools import reduce
-from typing import Callable, cast
+from typing import Callable, cast, Optional
 
 import numpy as np
 import pandas as pd
@@ -21,11 +21,11 @@ class Logics:
     .. _functools.reduce: https://docs.python.org/3/library/functools.html#functools.reduce
     """
 
-    def __init__(self, dataframe: pd.DataFrame = None) -> None:
+    def __init__(self, dataframe: Optional[pd.DataFrame] = None) -> None:
         """Init class by setting dataframe globally
 
         Args:
-            dataframe (pd.DataFrame, optional): The dataframe that functions of this class
+            dataframe (Optional[pd.DataFrame], optional): The dataframe that functions of this class
                 will be user over its series, i.e. ``Logics.*(series)``. Defaults to None.
         """
         self.df = dataframe

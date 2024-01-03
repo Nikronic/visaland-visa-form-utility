@@ -5,7 +5,7 @@ import shutil
 import sys
 from enum import IntEnum
 from pathlib import Path
-from typing import List, Optional, Union
+from typing import List, Optional
 
 
 class LoggingLevels(IntEnum):
@@ -28,8 +28,8 @@ class Logger(logging.Logger):
     def __init__(
         self,
         name: str,
-        level: Union[LoggingLevels, int],
-        mlflow_artifacts_base_path: Union[Path, str],
+        level: LoggingLevels | int,
+        mlflow_artifacts_base_path: Path | str,
         libs: Optional[List[str]] = None,
     ) -> None:
         super().__init__(name, level)
@@ -84,11 +84,11 @@ class Logger(logging.Logger):
         """
         path.mkdir()
 
-    def __str_to_path(self, string: Union[str, Path]) -> Path:
+    def __str_to_path(self, string: str, Path) -> Path:
         """Converts a string of path to :class:`pathlib.Path`
 
         Args:
-            string (Union[str, `pathlib.Path`]): path string or object to convert
+            string (str | `pathlib.Path`): path string or object to convert
 
         Returns:
             :class:`pathlib.Path`: ``Path`` instance of given path string
@@ -97,7 +97,7 @@ class Logger(logging.Logger):
             return Path(string)
         return string
 
-    def _setup_mlflow_artifacts_dirs(self, base_path: Union[str, Path]) -> None:
+    def _setup_mlflow_artifacts_dirs(self, base_path: str, Path) -> None:
         """Builds the directories for saving images, logs, and configs as mlflow artifacts
 
         Following type of artifacts are predefined and each will be considered as a
@@ -114,7 +114,7 @@ class Logger(logging.Logger):
             you can simply send numerical values (``1/*``, ``2/*``)
 
         Args:
-            base_path (Union[str, :class:`pathlib.Path`]): Base path for artifacts.
+            base_path (str | :class:`pathlib.Path`): Base path for artifacts.
         """
         base_path = self.__str_to_path(string=base_path)
         base_path = self.mlflow_artifacts_base_path / base_path
@@ -148,7 +148,7 @@ class Logger(logging.Logger):
             for lib_log in self.libs_logger:
                 lib_log.removeHandler(self.__prev_handler)
 
-    def create_artifact_instance(self, artifact_name: str = None):
+    def create_artifact_instance(self, artifact_name: Optional[str] = None):
         """Creates an entire artifact (mlflow) directory each time it is called
 
         This is used to create artifacts sub directories that each include
@@ -157,7 +157,7 @@ class Logger(logging.Logger):
         include the artifacts of that type.
 
         Args:
-            artifact_name (str): a directory name. Please refrain
+            artifact_name (Optional[str], optional): a directory name. Please refrain
                 from providing full path and only give a directory name. It is expected
                 that you pass the path as :attr:`mlflow_artifacts_base_path` which makes
                 ``artifact_name`` as its sub directory. If None, we use an internal

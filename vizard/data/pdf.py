@@ -10,7 +10,6 @@ import pypdf
 
 from vizard.data import functional
 from vizard.data.constant import DOC_TYPES
-from vizard.utils.helpers import deprecated, loggingdecorator
 
 # logging
 logger = logging.getLogger(__name__)
@@ -70,7 +69,6 @@ class XFAPDF(PDFIO):
         super().__init__()
         self.logger = logging.getLogger(logger.name + ".XFAPDF")
 
-    @loggingdecorator(logger.name + ".XFAPDF.func", level=logging.DEBUG, output=False)
     def extract_raw_content(self, pdf_path: str) -> str:
         """Extracts RAW content of XFA PDF files which are in XML format
 
@@ -113,7 +111,6 @@ class XFAPDF(PDFIO):
 
         raise NotImplementedError
 
-    @deprecated("Use `flatten_dict`")
     def flatten_dict_basic(self, d: dict) -> dict:
         """
         Takes a (nested) dictionary and flattens it
@@ -134,7 +131,6 @@ class XFAPDF(PDFIO):
 
         return dict(items())
 
-    @loggingdecorator(logger.name + ".XFAPDF.func", level=logging.DEBUG, output=False)
     def flatten_dict(self, d: dict) -> dict:
         """Takes a (nested) multilevel dictionary and flattens it
 
@@ -152,7 +148,6 @@ class XFAPDF(PDFIO):
         """
         return functional.flatten_dict(d=d)
 
-    @loggingdecorator(logger.name + ".XFAPDF.func", level=logging.DEBUG, output=False)
     def xml_to_flattened_dict(self, xml: str) -> dict:
         """Takes a (nested) XML and converts it to a flattened dictionary
 
@@ -174,9 +169,6 @@ class CanadaXFA(XFAPDF):
         super().__init__()
         self.logger = logging.getLogger(logger.name + ".CanadaXFA")
 
-    @loggingdecorator(
-        logger.name + ".CanadaXFA.func", level=logging.DEBUG, output=False
-    )
     def clean_xml_for_csv(self, xml: str, type: Enum) -> str:
         """Hardcoded cleaning of Canada XFA XML files to be XML compatible with CSV
 

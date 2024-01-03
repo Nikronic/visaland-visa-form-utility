@@ -5,8 +5,7 @@ import numpy as np
 import shap
 from flaml import AutoML
 
-from vizard.data.constant import (FEATURE_CATEGORY_TO_FEATURE_NAME_MAP,
-                                  FeatureCategories)
+from vizard.data.constant import FEATURE_CATEGORY_TO_FEATURE_NAME_MAP, FeatureCategories
 from vizard.xai.core import get_top_k
 
 # configure logging
@@ -28,8 +27,8 @@ class FlamlTreeExplainer:
             flaml_model (:class:`flaml.AutoML`): Fitted tree-based ``flaml`` model
             feature_names (List[str]): List of feature names that are preprocessed (features
                 used directly to train ``flaml_model``.)
-            data (Optional[:class:`numpy.ndarray`]): Optionally to provide for other type of output
-                that :class:`shap.TreeExplainer` provides. Defaults to None.
+            data (Optional[:class:`numpy.ndarray`], optional): Optionally to provide for other
+                type of output that :class:`shap.TreeExplainer` provides. Defaults to None.
         """
 
         self.flaml_model = flaml_model

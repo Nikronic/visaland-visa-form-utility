@@ -13,9 +13,14 @@ import logging
 import pathlib
 
 # flaml
-from .aml_flaml import (AutoML, get_loss_score, log_model,
-                        report_feature_importances, report_loss_score,
-                        sklearn_metric_loss_score)
+from .aml_flaml import (
+    AutoML,
+    get_loss_score,
+    log_model,
+    report_feature_importances,
+    report_loss_score,
+    sklearn_metric_loss_score,
+)
 
 # set logger
 logger = logging.getLogger(__name__)
