@@ -5,13 +5,11 @@ import numpy as np
 import pandas as pd
 
 from vizard.models.preprocessors import ColumnTransformer, OneHotEncoder
-from vizard.utils.helpers import loggingdecorator
 
 # configure logging
 logger = logging.getLogger(__name__)
 
 
-@loggingdecorator(logger.name + ".func", level=logging.DEBUG, output=False, input=False)
 def preview_column_transformer(
     column_transformer: ColumnTransformer,
     original: np.ndarray,

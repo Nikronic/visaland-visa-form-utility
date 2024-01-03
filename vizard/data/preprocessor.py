@@ -28,7 +28,6 @@ from vizard.configs import CANADA_COUNTRY_CODE_TO_NAME
 from vizard.data import functional
 from vizard.data.constant import *
 from vizard.data.pdf import CanadaXFA
-from vizard.utils.helpers import loggingdecorator
 
 # logging
 logger = logging.getLogger(__name__)
@@ -58,12 +57,6 @@ class DataframePreprocessor:
         self.dataframe = dataframe
         self.logger = logging.getLogger(logger.name + ".DataframePreprocessor")
 
-    @loggingdecorator(
-        logger.name + ".DataframePreprocessor.func",
-        level=logging.DEBUG,
-        output=False,
-        input=True,
-    )
     def column_dropper(
         self,
         string: str,
@@ -81,9 +74,6 @@ class DataframePreprocessor:
             inplace=inplace,
         )
 
-    @loggingdecorator(
-        logger.name + ".DataframePreprocessor.func", level=logging.DEBUG, output=False
-    )
     def fillna_datetime(
         self,
         col_base_name: str,
@@ -105,9 +95,6 @@ class DataframePreprocessor:
             type=type,
         )
 
-    @loggingdecorator(
-        logger.name + ".DataframePreprocessor.func", level=logging.DEBUG, output=False
-    )
     def aggregate_datetime(
         self,
         col_base_name: str,
@@ -147,12 +134,6 @@ class DataframePreprocessor:
 
         raise NotImplementedError
 
-    @loggingdecorator(
-        logger.name + ".DataframePreprocessor.func",
-        level=logging.DEBUG,
-        output=False,
-        input=True,
-    )
     def change_dtype(
         self,
         col_name: str,
@@ -170,12 +151,6 @@ class DataframePreprocessor:
             **kwargs,
         )
 
-    @loggingdecorator(
-        logger.name + ".DataframePreprocessor.func",
-        level=logging.DEBUG,
-        output=False,
-        input=True,
-    )
     def config_csv_to_dict(self, path: str) -> dict:
         """
         Take a config CSV and return a dictionary of key and values
@@ -393,12 +368,6 @@ class WorldBankXMLProcessor:
         # populate processed dict
         self.country_name_to_numeric_dict = self.indicator_filter()
 
-    @loggingdecorator(
-        logger.name + ".WorldBankXMLProcessor.func",
-        level=logging.INFO,
-        output=False,
-        input=True,
-    )
     def indicator_filter(self) -> dict:
         """Aggregates using mean operation over all columns except name/index
 
@@ -418,7 +387,7 @@ class WorldBankXMLProcessor:
         # pivot XML attributes of `<field>` tag
         dataframe = dataframe.pivot(columns="name", values="field")
         dataframe = dataframe.drop("Item", axis=1)
-        # fill None s created by pivoting (onehot to stacked) only over country names
+        # fill None s created by pivoting (one hot to stacked) only over country names
         dataframe["Country or Area"] = dataframe["Country or Area"].ffill().bfill()
         dataframe = dataframe.drop_duplicates()  # drop repetition of one hots
         dataframe = dataframe.ffill().bfill()  # fill None of values of countries
@@ -469,12 +438,6 @@ class WorldBankXMLProcessor:
         )
 
     @staticmethod
-    @loggingdecorator(
-        logger.name + ".WorldBankXMLProcessor.func",
-        level=logging.INFO,
-        output=False,
-        input=False,
-    )
     def __include_years(
         dataframe: pd.DataFrame,
         start: Optional[int] = None,
@@ -504,12 +467,6 @@ class WorldBankXMLProcessor:
         dataframe = dataframe[dataframe["Year"].astype(int) >= start]
         return dataframe
 
-    @loggingdecorator(
-        logger.name + ".WorldBankXMLProcessor.func",
-        level=logging.DEBUG,
-        output=True,
-        input=True,
-    )
     def convert_country_name_to_numeric(self, string: Optional[str] = None) -> float:
         """Converts the name of a country into a numerical value
 
@@ -585,12 +542,6 @@ class WorldBankDataframeProcessor:
         self.logger_name = ".WorldBankDataframeProcessor"
         self.logger = logging.getLogger(logger.name + self.logger_name)
 
-    @loggingdecorator(
-        logger.name + ".WorldBankDataframeProcessor.func",
-        level=logging.INFO,
-        output=True,
-        input=True,
-    )
     def include_years(self, years: Tuple[Optional[int], Optional[int]] = None) -> None:
         """Processes a dataframe to only include years given tuple of ``years=(start, end)``.
 
@@ -618,12 +569,6 @@ class WorldBankDataframeProcessor:
         ]
         self.dataframe.drop(columns_to_drop, axis=True, inplace=True)
 
-    @loggingdecorator(
-        logger.name + ".WorldBankDataframeProcessor.func",
-        level=logging.INFO,
-        output=False,
-        input=True,
-    )
     def indicator_filter(self, indicator_name: str) -> pd.DataFrame:
         """Filters the rows by given ``indicator_name`` and aggregates using mean operation
 
@@ -689,13 +634,6 @@ class EducationCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
         )
         self.logger = logging.getLogger(logger.name + self.logger_name)
 
-    @loggingdecorator(
-        logger.name
-        + ".WorldBankDataframeProcessor.EducationCountryScoreDataframePreprocessor.func",
-        level=logging.DEBUG,
-        output=False,
-        input=True,
-    )
     def __indicator_filter(self) -> dict:
         """Filters the rows by a constant ``INDICATOR_NAME``
 
@@ -710,13 +648,6 @@ class EducationCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
             zip(dataframe[dataframe.columns[0]], dataframe[dataframe.columns[1]])
         )
 
-    @loggingdecorator(
-        logger.name
-        + ".WorldBankDataframeProcessor.EducationCountryScoreDataframePreprocessor.func",
-        level=logging.DEBUG,
-        output=True,
-        input=True,
-    )
     def convert_country_name_to_numeric(self, string: str) -> float:
         """Converts the name of a country into a numerical value
 
@@ -770,13 +701,6 @@ class EconomyCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
         )
         self.logger = logging.getLogger(logger.name + self.logger_name)
 
-    @loggingdecorator(
-        logger.name
-        + ".WorldBankDataframeProcessor.EconomyCountryScoreDataframePreprocessor.func",
-        level=logging.DEBUG,
-        output=False,
-        input=True,
-    )
     def __indicator_filter(self) -> dict:
         """Filters the rows by a constant ``INDICATOR_NAME``
 
@@ -791,13 +715,6 @@ class EconomyCountryScoreDataframePreprocessor(WorldBankDataframeProcessor):
             zip(dataframe[dataframe.columns[0]], dataframe[dataframe.columns[1]])
         )
 
-    @loggingdecorator(
-        logger.name
-        + ".WorldBankDataframeProcessor.EconomyCountryScoreDataframePreprocessor.func",
-        level=logging.DEBUG,
-        output=True,
-        input=True,
-    )
     def convert_country_name_to_numeric(self, string: str) -> float:
         """Converts the name of a country into a numerical value
 
@@ -843,12 +760,6 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
         self.config_path = CANADA_COUNTRY_CODE_TO_NAME
         self.CANADA_COUNTRY_CODE_TO_NAME = self.config_csv_to_dict(self.config_path)
 
-    @loggingdecorator(
-        logger.name + ".CanadaDataframePreprocessor.func",
-        level=logging.INFO,
-        output=True,
-        input=True,
-    )
     def convert_country_code_to_name(self, string: str) -> str:
         """
         Converts the (custom and non-standard) code of a country to its name given the XFA docs LOV section.
@@ -871,12 +782,6 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             )
             return "Unknown"  # '000' code in XFA forms
 
-    @loggingdecorator(
-        logger.name + ".CanadaDataframePreprocessor.func",
-        level=logging.INFO,
-        output=False,
-        input=True,
-    )
     def file_specific_basic_transform(self, type: DOC_TYPES, path: str) -> pd.DataFrame:
         canada_xfa = CanadaXFA()  # Canada PDF to XML
 
@@ -1444,7 +1349,7 @@ class CanadaDataframePreprocessor(DataframePreprocessor):
             )
 
             # transform multiple pleb columns into a single chad one and fixing column dtypes
-            # type of application: (already onehot) string -> int
+            # type of application: (already one hot) string -> int
             cols = [col for col in dataframe.columns.values if "p1.Subform1" in col]
             for c in cols:
                 dataframe = self.change_dtype(
@@ -1839,12 +1744,6 @@ class CopyFile(FileTransform):
         self.mode = mode if mode is not None else "cf"
         self.__check_mode(mode=mode)
 
-    @loggingdecorator(
-        logger.name + ".FileTransform.CopyFile",
-        level=logging.DEBUG,
-        input=True,
-        output=False,
-    )
     def __call__(self, src: str, dst: str, *args: Any, **kwds: Any) -> Any:
         if self.mode == "c":
             shutil.copy(src=src, dst=dst)
@@ -1882,12 +1781,6 @@ class MakeContentCopyProtectedMachineReadable(FileTransform):
     def __init__(self) -> None:
         super().__init__()
 
-    @loggingdecorator(
-        logger.name + ".FileTransform.MakeContentCopyProtectMachineReadable",
-        level=logging.DEBUG,
-        input=True,
-        output=False,
-    )
     def __call__(self, src: str, dst: str, *args: Any, **kwds: Any) -> Any:
         """
 

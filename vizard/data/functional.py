@@ -41,13 +41,11 @@ from enlighten import Manager
 
 from vizard.data.constant import *
 from vizard.data.preprocessor import FileTransformCompose
-from vizard.utils.helpers import loggingdecorator
 
 # set logger
 logger = logging.getLogger(__name__)
 
 
-@loggingdecorator(logger.name + ".func", level=logging.DEBUG, output=False)
 def dict_summarizer(
     d: dict,
     cutoff_term: str,
@@ -109,7 +107,6 @@ def dict_summarizer(
     return dict((new_keys[key], new_values[value]) for (key, value) in d.items())
 
 
-@loggingdecorator(logger.name + ".func", level=logging.INFO, output=False)
 def dict_to_csv(d: dict, path: str) -> None:
     """Takes a flattened dictionary and writes it to a CSV file.
 
@@ -489,7 +486,6 @@ def change_dtype(
     return dataframe
 
 
-@loggingdecorator(logger.name + ".func", level=logging.INFO, output=False)
 def dump_directory_structure_csv(src: str, shallow: bool = True) -> None:
     """Saves a tree structure of a directory in csv file
 
@@ -623,7 +619,6 @@ def unit_converter(sparse: float, dense: float, factor: float) -> float:
         return sparse
 
 
-@loggingdecorator(logger.name + ".func", level=logging.INFO, output=False, input=True)
 def process_directory(
     src_dir: str,
     dst_dir: str,
@@ -683,7 +678,6 @@ def process_directory(
         progress_bar.update()
 
 
-@loggingdecorator(logger.name + ".func", level=logging.DEBUG, output=True, input=True)
 def search_dict(string: str, dic: dict, if_nan: str) -> str:
     """Converts a string to another given a dictionary to search for
 
@@ -706,7 +700,6 @@ def search_dict(string: str, dic: dict, if_nan: str) -> str:
         return if_nan
 
 
-@loggingdecorator(logger.name + ".func", level=logging.DEBUG, output=True, input=True)
 def extended_dict_get(
     string: str, dic: dict, if_nan: str, condition: Optional[Callable | bool] = None
 ):
@@ -746,7 +739,6 @@ def extended_dict_get(
         return string
 
 
-@loggingdecorator(logger.name + ".func", level=logging.DEBUG, output=True, input=True)
 def fix_typo(string: str, typos: list | dict, fix: Optional[str] = None) -> str:
     """Fixes a typo in a token/word given a list of typos or dictionary of typos
 
@@ -779,7 +771,6 @@ def fix_typo(string: str, typos: list | dict, fix: Optional[str] = None) -> str:
         raise TypeError(f'type "{type(typos)}" is not recognized.')
 
 
-@loggingdecorator(logger.name + ".func", level=logging.DEBUG, output=False, input=True)
 def config_csv_to_dict(path: str) -> dict:
     """Takes a config CSV and return a dictionary of key and values
 
@@ -797,7 +788,6 @@ def config_csv_to_dict(path: str) -> dict:
     return dict(zip(config_df[config_df.columns[0]], config_df[config_df.columns[1]]))
 
 
-@loggingdecorator(logger.name + ".func", level=logging.DEBUG, output=False, input=False)
 def detect_outliers(df: pd.DataFrame, features: Iterable) -> list:
     """Takes a dataframe and desired features and finds outliers using percentiles
 
