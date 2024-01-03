@@ -39,12 +39,13 @@ class SFSlicing:
     def __init__(self) -> None:
         self.COLUMN = ""
 
-    def slice(self, s: pd.Series, column: str = None) -> bool:
+    def slice(self, s: pd.Series, column: Optional[str] = None) -> bool:
         """Slices a Pandas Series based on a heuristic
 
         Args:
             s (:class:`pandas.Series`): A series of our dataframe to be
                 conditioned for slicing
+            column (Optional[str], optional): The column to be operated on
 
         Returns:
             bool: True if condition is met, False otherwise
@@ -68,7 +69,7 @@ class SFSlicing:
                 Must be provided if ``func`` is not setting it internally. E.g. for
                 :class:`SinglePerson` you don't need to
                 set ``column`` since it is being handled internally.
-            class_name (str, optional): The name of the class if ``func`` is a method of it.
+            class_name (Optional[str], optional): The name of the class if ``func`` is a method of it.
                 It is used for better naming given class name alongside ``func`` name.
                 Defaults to None.
             kwargs: keyword arguments to ``func``
@@ -194,12 +195,13 @@ class SinglePerson(SFSlicing):
         self.COLUMN = "p1.SecA.App.ChdMStatus"
         self.HELPER_COLUMN = "P2.MS.SecA.Period"
 
-    def slice(self, s: pd.Series, column: str = None) -> bool:
+    def slice(self, s: pd.Series, column: Optional[str] = None) -> bool:
         """Slices a Pandas Series based on a heuristic
 
         Args:
             s (:class:`pandas.Series`): A series of our dataframe to be
                 conditioned for slicing
+            column (Optional[str], optional): The column to be operated on
 
         Returns:
             bool: True if condition is met, False otherwise

@@ -2,9 +2,14 @@ import logging
 import pathlib
 
 from snorkel.analysis import Scorer
-from snorkel.augmentation import (ApplyAllPolicy, ApplyEachPolicy,
-                                  ApplyOnePolicy, MeanFieldPolicy,
-                                  PandasTFApplier, RandomPolicy)
+from snorkel.augmentation import (
+    ApplyAllPolicy,
+    ApplyEachPolicy,
+    ApplyOnePolicy,
+    MeanFieldPolicy,
+    PandasTFApplier,
+    RandomPolicy,
+)
 from snorkel.labeling import LFAnalysis, PandasLFApplier
 from snorkel.labeling.model import LabelModel
 from snorkel.slicing import PandasSFApplier, slice_dataframe

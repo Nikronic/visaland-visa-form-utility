@@ -16,7 +16,7 @@ __all__ = [
 
 import logging
 import shutil
-from typing import Any, Callable, Optional, Tuple, Union
+from typing import Any, Callable, Optional, Tuple
 
 import numpy as np
 import pandas as pd
@@ -48,11 +48,11 @@ class DataframePreprocessor:
     In this case, :func:`file_specific_basic_transform` needs to be implemented.
     """
 
-    def __init__(self, dataframe: pd.DataFrame = None) -> None:
+    def __init__(self, dataframe: Optional[pd.DataFrame] = None) -> None:
         """
 
         Args:
-            dataframe (:class:`pandas.DataFrame`, optional): Main dataframe to be preprocessed.
+            dataframe (Optional[:class:`pandas.DataFrame`], optional): Main dataframe to be preprocessed.
                 Defaults to None.
         """
         self.dataframe = dataframe
@@ -70,7 +70,7 @@ class DataframePreprocessor:
         exclude: str = None,
         regex: bool = False,
         inplace: bool = True,
-    ) -> Union[None, pd.DataFrame]:
+    ) -> Optional[pd.DataFrame]:
         """See :func:`vizard.data.functional.column_dropper` for more information"""
 
         return functional.column_dropper(
@@ -88,10 +88,10 @@ class DataframePreprocessor:
         self,
         col_base_name: str,
         type: DOC_TYPES,
-        one_sided: Union[str, bool],
-        date: str = None,
+        one_sided: str | bool,
+        date: Optional[str] = None,
         inplace: bool = False,
-    ) -> Union[None, pd.DataFrame]:
+    ) -> Optional[pd.DataFrame]:
         """See :func:`vizard.data.functional.fillna_datetime` for more details"""
         if date is None:
             date = T0
@@ -113,10 +113,10 @@ class DataframePreprocessor:
         col_base_name: str,
         new_col_name: str,
         type: DOC_TYPES,
-        if_nan: Union[str, Callable, None] = None,
-        one_sided: str = None,
-        reference_date: str = None,
-        current_date: str = None,
+        if_nan: Optional[str | Callable] = None,
+        one_sided: Optional[str] = None,
+        reference_date: Optional[str] = None,
+        current_date: Optional[str] = None,
     ) -> pd.DataFrame:
         """See :func:`vizard.data.functional.aggregate_datetime` for more details"""
         return functional.aggregate_datetime(
@@ -131,8 +131,7 @@ class DataframePreprocessor:
         )
 
     def file_specific_basic_transform(self, type: DOC_TYPES, path: str) -> pd.DataFrame:
-        """
-        Takes a specific file then does data type fixing, missing value filling, descretization, etc.
+        """Takes a specific file then does data type fixing, missing value filling, discretization, etc.
 
         Note:
             Since each files has its own unique tags and requirements,
@@ -140,8 +139,10 @@ class DataframePreprocessor:
             hence this method exists to just improve readability without any generalization
             to other problems or even files.
 
-        args:
-            type: The input document type (see :class:`DOC_TYPES <vizard.data.constant.DOC_TYPES>`)
+        Args:
+            type (DOC_TYPES): The input document type
+                (see :class:`DOC_TYPES <vizard.data.constant.DOC_TYPES>`)
+            path (str): Path to the file
         """
 
         raise NotImplementedError
@@ -156,7 +157,7 @@ class DataframePreprocessor:
         self,
         col_name: str,
         dtype: Callable,
-        if_nan: Union[str, Callable] = "skip",
+        if_nan: Optional[str | Callable] = "skip",
         **kwargs,
     ):
         """See :func:`vizard.data.functional.change_dtype` for more details"""
@@ -201,16 +202,19 @@ class UnitConverter:
         pass
 
     def unit_converter(
-        self, sparse: Optional[float], dense: Optional[float], factor: float
+        self,
+        sparse: Optional[float] = None,
+        dense: Optional[float] = None,
+        factor: float = 1,
     ) -> float:
         """convert ``sparse`` or ``dense`` to each other using the rule of thump of ``dense = (factor) sparse``.
 
         Args:
-            sparse (float, optional): the smaller/sparser amount which is a percentage of ``dense``,
+            sparse (Optional[float], optional): the smaller/sparser amount which is a percentage of ``dense``,
                 if provided calculates ``sparse = (factor) dense``.
-            dense (float, optional): the larger/denser amount which is a multiplication of ``sparse``,
+            dense (Optional[float], optional): the larger/denser amount which is a multiplication of ``sparse``,
                 if provided calculates ``dense = (factor) sparse``
-            factor (float): sparse to dense factor, either directly provided as a
+            factor (float, optional): sparse to dense factor, either directly provided as a
                 float number or as a predefined factor given by ``vizard.data.constant.FINANCIAL_RATIOS``
 
         Raises:
@@ -242,11 +246,11 @@ class FinancialUnitConverter(UnitConverter):
 
     """
 
-    def __init__(self, CONSTANTS: dict = FINANCIAL_RATIOS) -> None:
+    def __init__(self, CONSTANTS: dict[str, float] = FINANCIAL_RATIOS) -> None:
         """Gets constant values needed for conversion
 
         Args:
-            CONSTANTS (dict, optional): A dictionary of ``{string: float}`` where keys
+            CONSTANTS (dict[str, float], optional): A dictionary of ``{string: float}`` where keys
                 are function of this module and values are the factor used in conversion
                 Defaults to ``vizard.data.constant.FINANCIAL_RATIOS``.
         """
@@ -416,7 +420,7 @@ class WorldBankXMLProcessor:
         dataframe = dataframe.drop("Item", axis=1)
         # fill None s created by pivoting (onehot to stacked) only over country names
         dataframe["Country or Area"] = dataframe["Country or Area"].ffill().bfill()
-        dataframe = dataframe.drop_duplicates()  # drop repetition of onehots
+        dataframe = dataframe.drop_duplicates()  # drop repetition of one hots
         dataframe = dataframe.ffill().bfill()  # fill None of values of countries
         dataframe = self.__include_years(dataframe=dataframe)  # exclude old years
         # dataframe = dataframe[dataframe['Year'].astype(int) >= 2017]
@@ -473,8 +477,8 @@ class WorldBankXMLProcessor:
     )
     def __include_years(
         dataframe: pd.DataFrame,
-        start: Union[int, None] = None,
-        end: Union[int, None] = None,
+        start: Optional[int] = None,
+        end: Optional[int] = None,
     ) -> pd.DataFrame:
         """Drop columns to only include years given start and end.
 
@@ -486,9 +490,9 @@ class WorldBankXMLProcessor:
 
         Args:
             dataframe (:class:`pandas.DataFrame`): Pandas dataframe to be processed
-            start (Union[int, None], optional): start of years to include.
+            start (Optional[int], optional): start of years to include.
                 Defaults to None.
-            end (Union[int, None], optional): end of years to include.
+            end (Optional[int], optional): end of years to include.
                 Defaults to None.
 
         Returns:
@@ -506,7 +510,7 @@ class WorldBankXMLProcessor:
         output=True,
         input=True,
     )
-    def convert_country_name_to_numeric(self, string: str) -> float:
+    def convert_country_name_to_numeric(self, string: Optional[str] = None) -> float:
         """Converts the name of a country into a numerical value
 
         If input ``string`` is None, uses the default value ``'Unknown'``. This
@@ -520,7 +524,7 @@ class WorldBankXMLProcessor:
         i.e. = 1.0.
 
         Args:
-            string (str): Name of a country
+            string (Optional[str], optional): Name of a country
 
         Returns:
             float: Numerical value of the country
@@ -549,13 +553,13 @@ class WorldBankDataframeProcessor:
     """
 
     def __init__(
-        self, dataframe: pd.DataFrame, subindicator_rank: bool = False
+        self, dataframe: pd.DataFrame, subindicator_rank: Optional[bool] = False
     ) -> None:
         """Drops redundant columns of of `dataframe` and prepares a column wise subset of it
 
         args:
-            dataframe: Main Pandas DataFrame to be processed
-            subindicator_rank: Whether or not use ranking (discrete)
+            dataframe (pd.DataFrame): Main Pandas DataFrame to be processed
+            subindicator_rank (Optional[bool], optional): Whether or not use ranking (discrete)
                 or score (continuous) for given ``indicator_name``. In original World Bank
                 dataset, for some indicators, the score is discrete, while for others,
                 it's continuous and this flag controls which one to extract.

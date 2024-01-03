@@ -1,4 +1,4 @@
-from typing import Callable
+from typing import Callable, Optional
 
 from gunicorn.app.base import BaseApplication
 
@@ -9,12 +9,12 @@ class StandaloneApplication(BaseApplication):
     For options, you can visit https://docs.gunicorn.org/en/latest/settings.html
     """
 
-    def __init__(self, app: Callable, options: dict = None):
+    def __init__(self, app: Callable, options: Optional[dict] = None):
         """Initialize runner
 
         Args:
             app (Callable): A callable as the ASGI/WSGI application
-            options (dict, optional): A dictionary were keys are command line
+            options (Optional[dict], optional): A dictionary were keys are command line
                 args and values are their corresponding values.
                 Defaults to None.
         """

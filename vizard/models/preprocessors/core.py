@@ -6,17 +6,19 @@ import inspect
 import json
 import logging
 import pathlib
-from typing import Any, Callable, List, Optional, Tuple, Union
+from typing import Any, Callable, List, Optional, Tuple
 
 import numpy as np
 import pandas as pd
 from sklearn import model_selection
 from sklearn.compose import ColumnTransformer, make_column_selector
 
-from vizard.models.preprocessors import (CANADA_COLUMN_TRANSFORMER_CONFIG_X,
-                                         CANADA_PANDAS_TRAIN_TEST_SPLIT,
-                                         CANADA_TRAIN_TEST_EVAL_SPLIT,
-                                         TRANSFORMS)
+from vizard.models.preprocessors import (
+    CANADA_COLUMN_TRANSFORMER_CONFIG_X,
+    CANADA_PANDAS_TRAIN_TEST_SPLIT,
+    CANADA_TRAIN_TEST_EVAL_SPLIT,
+    TRANSFORMS,
+)
 
 # configure logging
 logger = logging.getLogger(__name__)
@@ -48,7 +50,9 @@ class TrainTestEvalSplit:
     """
 
     def __init__(
-        self, stratify: Any = None, random_state: Union[np.random.Generator, int] = None
+        self,
+        stratify: Optional[Any] = None,
+        random_state: Optional[np.random.Generator | int] = None,
     ) -> None:
         self.logger = logging.getLogger(logger.name + self.__class__.__name__)
         self.CONF = self.set_configs()
@@ -57,7 +61,7 @@ class TrainTestEvalSplit:
         self.random_state = random_state
         self.stratify = stratify
 
-    def set_configs(self, path: Union[str, pathlib.Path] = None) -> dict:
+    def set_configs(self, path: Optional[str | pathlib.Path] = None) -> dict[str, Any]:
         """Defines and sets the config to be parsed
 
         The keys of the configs are the attributes of this class which are:
@@ -65,8 +69,10 @@ class TrainTestEvalSplit:
             * test_ratio (float): Ratio of test data
             * eval_ratio (float): Ratio of eval data
             * shuffle (bool): Whether to shuffle the data
-            * stratify (Optional[:class:`numpy.ndarray`]): If not None, this is used to stratify the data
-            * random_state (Optional[int]): Random state to use for shuffling
+            * stratify (Optional[:class:`numpy.ndarray`], optional): If not None,
+                this is used to stratify the data
+            * random_state (Optional[np.random.Generator | int], optional): Random state
+                to use for shuffling
 
         Note:
             You can explicitly override following attributes by passing it as an argument
@@ -79,10 +85,10 @@ class TrainTestEvalSplit:
         or extracted from JSON config files by providing the path to the JSON file.
 
         Args:
-            path: path to the JSON file containing the configs
+            path (Optional[str | pathlib.Path], optional): path to the JSON file containing the configs
 
         Returns:
-            dict: A dictionary of `str`: `Any` pairs of configs as class attributes
+            dict[str, Any]: A dictionary of `str`: `Any` pairs of configs as class attributes
         """
 
         # convert str path to Path
@@ -106,12 +112,12 @@ class TrainTestEvalSplit:
         # return the parsed configs
         return configs
 
-    def as_mlflow_artifact(self, target_path: Union[str, pathlib.Path]) -> None:
+    def as_mlflow_artifact(self, target_path: str | pathlib.Path) -> None:
         """Saves the configs to the MLFlow artifact directory
 
         Args:
-            target_path: Path to the MLFlow artifact directory. The name of the file
-                will be same as original config file, hence, only provide path to dir.
+            target_path (str | pathlib.Path): Path to the MLFlow artifact directory.
+                The name of the file will be same as original config file, hence, only provide path to dir.
         """
 
         # convert str path to Path
@@ -212,7 +218,9 @@ class PandasTrainTestSplit:
     """
 
     def __init__(
-        self, stratify: Any = None, random_state: Union[np.random.Generator, int] = None
+        self,
+        stratify: Optional[Any] = None,
+        random_state: Optional[np.random.Generator | int] = None,
     ) -> None:
         self.logger = logging.getLogger(logger.name + self.__class__.__name__)
         self.CONF = self.set_configs()
@@ -221,15 +229,16 @@ class PandasTrainTestSplit:
         self.random_state = random_state
         self.stratify = stratify
 
-    def set_configs(self, path: Union[str, pathlib.Path] = None) -> dict:
+    def set_configs(self, path: Optional[str | pathlib.Path] = None) -> dict:
         """Defines and sets the config to be parsed
 
         The keys of the configs are the attributes of this class which are:
 
             * train_ratio (float): Ratio of train data
             * shuffle (bool): Whether to shuffle the data
-            * stratify (Optional[np.ndarray]): If not None, this is used to stratify the data
-            * random_state (Optional[int]): Random state to use for shuffling
+            * stratify (Optional[np.ndarray], optional): If not None, this is used to stratify the data
+            * random_state (Optional[np.random.Generator | int], optional): Random state
+                to use for shuffling
 
         Note:
             You can explicitly override following attributes by passing it as an argument
@@ -242,7 +251,7 @@ class PandasTrainTestSplit:
         or extracted from JSON config files by providing the path to the JSON file.
 
         Args:
-            path: path to the JSON file containing the configs
+            path (Optional[str | pathlib.Path], optional): path to the JSON file containing the configs
 
         Returns:
             dict: A dictionary of `str`: `Any` pairs of configs as class attributes
@@ -269,12 +278,13 @@ class PandasTrainTestSplit:
         # return the parsed configs
         return configs
 
-    def as_mlflow_artifact(self, target_path: Union[str, pathlib.Path]) -> None:
+    def as_mlflow_artifact(self, target_path: str | pathlib.Path) -> None:
         """Saves the configs to the MLFlow artifact directory
 
         Args:
-            target_path: Path to the MLFlow artifact directory. The name of the file
-                will be same as original config file, hence, only provide path to dir.
+            target_path (str | pathlib.Path): Path to the MLFlow artifact directory.
+                The name of the file will be same as original config file,
+                hence, only provide path to dir.
         """
 
         # convert str path to Path
@@ -426,7 +436,7 @@ class ColumnSelector:
         columns_type: str,
         dtype_include: Any,
         pattern_include: Optional[str] = None,
-        dtype_exclude: Any = None,
+        dtype_exclude: Optional[Any] = None,
         pattern_exclude: Optional[str] = None,
     ) -> None:
         """Selects columns based on regex pattern and dtype
@@ -439,12 +449,12 @@ class ColumnSelector:
                 2. ``'numeric'``: returns the index of the columns. Useful for
                    :class:`numpy.ndarray`
 
-            dtype_include (type): Type of the columns to select. For more info
+            dtype_include (Any): Type of the columns to select. For more info
                 see :meth:`pandas.DataFrame.select_dtypes`.
-            pattern_include (str): Regex pattern to match columns to **include**
-            dtype_exclude (type): Type of the columns to ignore. For more info
+            pattern_include (Optional[str], optional): Regex pattern to match columns to **include**
+            dtype_exclude (Optional[Any], optional): Type of the columns to ignore. For more info
                 see :meth:`pandas.DataFrame.select_dtypes`. Defaults to None.
-            pattern_exclude (str): Regex pattern to match columns to **exclude**
+            pattern_exclude (Optional[str], optional): Regex pattern to match columns to **exclude**
         """
         self.columns_type = columns_type
         self.pattern_include = pattern_include
@@ -454,14 +464,14 @@ class ColumnSelector:
 
     def __call__(
         self, df: pd.DataFrame, *args: Any, **kwds: Any
-    ) -> Union[List[str], List[int]]:
+    ) -> List[str] | List[int]:
         """
 
         Args:
             df (:class:`pandas.DataFrame`): Dataframe to extract columns from
 
         Returns:
-            Union[List[str], List[int]]: List of names or indices of
+            List[str] | List[int]]: List of names or indices of
             filtered columns
 
         Raises:
@@ -514,7 +524,7 @@ class ColumnTransformerConfig:
         self.logger = logging.getLogger(logger.name + self.__class__.__name__)
         self.CONF = self.set_configs()
 
-    def set_configs(self, path: Union[str, pathlib.Path] = None) -> dict:
+    def set_configs(self, path: Optional[str | pathlib.Path] = None) -> dict:
         """Defines and sets the config to be parsed
 
         The keys of the configs are the names of the transformers. They must include
@@ -568,7 +578,7 @@ class ColumnTransformerConfig:
         features where some categories might are rare and might only exist in test and eval data.
 
         Args:
-            path: path to the JSON file containing the configs
+            path (Optional[str | pathlib.Path], optional): path to the JSON file containing the configs
 
         Returns:
             dict: A dictionary where keys are string names, values are tuple of
@@ -616,11 +626,11 @@ class ColumnTransformerConfig:
         # return the parsed configs
         return parsed_configs
 
-    def as_mlflow_artifact(self, target_path: Union[str, pathlib.Path]) -> None:
+    def as_mlflow_artifact(self, target_path: str | pathlib.Path) -> None:
         """Saves the configs to the MLFlow artifact directory
 
         Args:
-            target_path: Path to the MLFlow artifact directory. The name of the file
+            target_path (str | pathlib.Path): Path to the MLFlow artifact directory. The name of the file
                 will be same as original config file, hence, only provide path to dir.
         """
 
@@ -645,7 +655,7 @@ class ColumnTransformerConfig:
     @staticmethod
     def extract_selected_columns(
         selector: ColumnSelector, df: pd.DataFrame
-    ) -> Union[List[str], List[int]]:
+    ) -> List[str] | List[int]:
         """Extracts the columns from the dataframe based on the selector
 
         Note:
@@ -666,7 +676,7 @@ class ColumnTransformerConfig:
             df (:class:`pandas.DataFrame`): Dataframe to extract columns from
 
         Returns:
-            Union[List[str], List[int]]: List of columns to be transformed
+            List[str] | List[int]: List of columns to be transformed
         """
         return selector(df=df)
 
@@ -692,16 +702,17 @@ class ColumnTransformerConfig:
             )
 
     @staticmethod
-    def __get_df_column_unique(df: pd.DataFrame, loc: Union[int, str]) -> list:
+    def __get_df_column_unique(df: pd.DataFrame, loc: int | str) -> list:
         """Gets uniques of a column in a dataframe
 
         Args:
             df (:class:`pandas.DataFrame`): Dataframe to get uniques from
-            loc (Union[int, str]): Column to locate on the dataframe
+            loc (int | str): Column to locate on the dataframe
 
         Returns:
-            list: List of unique values in the column. Values of the returned
-            list can be anything that is supported by :class:`pandas.DataFrame`
+            list:
+                List of unique values in the column. Values of the returned list
+                can be anything that is supported by :class:`pandas.DataFrame`
         """
 
         # if loc is an int use iloc
@@ -795,12 +806,10 @@ class ColumnTransformerConfig:
         for i in range(count):
             for j in range(i + 1, count):
                 # (_ , _, columns)
-                columns_a: List[Union[int, str]] = transformers[i][-1]
+                columns_a: List[int | str] = transformers[i][-1]
                 # (_ , _, columns)
-                columns_b: List[Union[int, str]] = transformers[j][-1]
-                overlap: List[Union[int, str]] = list(
-                    set(columns_a).intersection(columns_b)
-                )
+                columns_b: List[int | str] = transformers[j][-1]
+                overlap: List[int | str] = list(set(columns_a).intersection(columns_b))
                 if len(overlap) > 0:  # found overlap
                     name_a: str = transformers[i][0]  # (name, _, _)
                     name_b: str = transformers[j][0]  # (name, _, _)
@@ -822,7 +831,7 @@ class ColumnTransformerConfig:
         Args:
             df (:class:`pandas.DataFrame`): Dataframe to extract columns from
                 if ``df_all`` is None, then this is interpreted as train data
-            df_all (Optional[:class:`pandas.DataFrame`]): Dataframe to extract columns from
+            df_all (Optional[:class:`pandas.DataFrame`], optional): Dataframe to extract columns from
                 if ``df_all`` is not None, then this is interpreted as entire data. For
                 more info see :meth:`set_configs`.
 

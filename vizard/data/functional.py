@@ -30,8 +30,7 @@ import os
 import re
 import sys
 from fnmatch import fnmatch
-from typing import (Any, Callable, Iterable, List, Literal, Optional, Union,
-                    cast)
+from typing import Any, Callable, Iterable, List, Literal, Optional, cast
 
 import enlighten
 import numpy as np
@@ -128,7 +127,7 @@ def dict_to_csv(d: dict, path: str) -> None:
 def column_dropper(
     dataframe: pd.DataFrame,
     string: str,
-    exclude: str = None,
+    exclude: Optional[str] = None,
     regex: bool = False,
     inplace: bool = True,
 ) -> Optional[pd.DataFrame]:
@@ -137,14 +136,14 @@ def column_dropper(
     Args:
         dataframe (:class:`pandas.DataFrame`): Pandas dataframe to be processed
         string (str): string to look for in ``dataframe`` columns
-        exclude (str, optional): string to exclude a subset of columns from
+        exclude (Optional[str], optional): string to exclude a subset of columns from
             being dropped. Defaults to None.
         regex (bool, optional): compile ``string`` as regex. Defaults to False.
         inplace (bool, optional): whether or not use and inplace
             operation. Defaults to True.
 
     Returns:
-        Union[None, :class:`pandas.DataFrame`]:
+        Optional[:class:`pandas.DataFrame`]:
             Takes a Pandas Dataframe and searches for
             columns *containing* ``string`` in them either raw string or
             regex (in latter case, use ``regex=True``) and after ``exclude`` ing a
@@ -173,7 +172,7 @@ def fillna_datetime(
     col_base_name: str,
     date: str,
     type: DOC_TYPES,
-    one_sided: Union[str, bool] = False,
+    one_sided: Optional[str | bool] = False,
     inplace: bool = False,
 ) -> Optional[pd.DataFrame]:
     """Takes names of two columns of dates (start, end) and fills them with a predefined value
@@ -188,7 +187,7 @@ def fillna_datetime(
             1. ``'right'``: Uses the ``current_date`` as the final time
             2. ``'left'``: Uses the ``reference_date`` as the starting time
 
-        one_sided (Union[str, bool], optional): whether or not use an inplace
+        one_sided (Optional[str | bool], optional): whether or not use an inplace
             operation. Defaults to False.
         inplace (bool, optional): :class:`DOC_TYPES <vizard.data.constant.DOC_TYPES>`
             used to use rules for matching tags and filling appropriately.
@@ -200,7 +199,7 @@ def fillna_datetime(
         non existing items (e.g. age of children for single person).
 
     Returns:
-        Union[None, :class:`pandas.DataFrame`]:
+        Optional[:class:`pandas.DataFrame`]:
             A Pandas Dataframe that two columns of dates that had no value (None)
             which was filled to the same date via ``date``.
     """
@@ -225,10 +224,10 @@ def aggregate_datetime(
     col_base_name: str,
     new_col_name: str,
     type: DOC_TYPES,
-    if_nan: Union[str, Callable, None] = "skip",
-    one_sided: str = None,
-    reference_date: str = None,
-    current_date: str = None,
+    if_nan: Optional[str | Callable] = "skip",
+    one_sided: Optional[str] = None,
+    reference_date: Optional[str] = None,
+    current_date: Optional[str] = None,
     **kwargs,
 ) -> pd.DataFrame:
     """Takes two columns of dates in string form and calculates the period of them
@@ -241,19 +240,19 @@ def aggregate_datetime(
             the final column containing the period.
         type (DOC_TYPES): document type used to use rules for matching tags and
             filling appropriately. See :class:`DOC_TYPES <vizard.data.constant.DOC_TYPES>`.
-        if_nan (Union[str, Callable, None], optional): What to do with None s (NaN).
+        if_nan (Optional[str | Callable], optional): What to do with None s (NaN).
             Could be a function or predefined states as follow:
 
             1. ``'skip'``: do nothing (i.e. ignore ``None``s). Defaults to ``'skip'``.
 
-        one_sided (str, optional): Different ways of filling empty date columns.
+        one_sided (Optional[str], optional): Different ways of filling empty date columns.
             Defaults to None. Could be one of the following:
 
             1. ``'right'``: Uses the ``current_date`` as the final time
             2. ``'left'``: Uses the ``reference_date`` as the starting time
 
-        reference_date (str, optional): Assumed ``reference_date`` (t0<t1). Defaults to None.
-        current_date (str, optional): Assumed ``current_date`` (t1>t0). Defaults to None.
+        reference_date (Optional[str], optional): Assumed ``reference_date`` (t0<t1). Defaults to None.
+        current_date (Optional[str], optional): Assumed ``current_date`` (t1>t0). Defaults to None.
         default_datetime: accepts datetime.datetime_ to set default date
             for dateutil.parser.parse_.
 
@@ -383,7 +382,7 @@ def change_dtype(
     dataframe: pd.DataFrame,
     col_name: str,
     dtype: Callable,
-    if_nan: Union[str, Callable] = "skip",
+    if_nan: str | Callable = "skip",
     **kwargs,
 ) -> pd.DataFrame:
     """Changes the data type of a column with ability to fill ``None`` s
@@ -392,7 +391,7 @@ def change_dtype(
         dataframe (:class:`pandas.DataFrame`): Dataframe that ``column_name`` will be searched on
         col_name (str): Desired column name of the dataframe
         dtype (Callable): target data type as a function e.g. ``np.float32``
-        if_nan (Union[str, Callable], optional): What to do with None s (NaN).
+        if_nan (str | Callable, optional): What to do with None s (NaN).
             Defaults to ``'skip'``. Could be a function or predefined states as follow:
 
             1. ``'skip'``: do nothing (i.e. ignore ``None`` s)
@@ -709,7 +708,7 @@ def search_dict(string: str, dic: dict, if_nan: str) -> str:
 
 @loggingdecorator(logger.name + ".func", level=logging.DEBUG, output=True, input=True)
 def extended_dict_get(
-    string: str, dic: dict, if_nan: str, condition: Union[Callable, bool, None] = None
+    string: str, dic: dict, if_nan: str, condition: Optional[Callable | bool] = None
 ):
     """Takes a string and looks for it inside a dictionary with default value if condition is satisfied
 
@@ -717,7 +716,7 @@ def extended_dict_get(
         string (str): the ``string`` to look for inside dictionary ``dic``
         dic (dict): the dictionary that ``string`` is expected to be
         if_nan (str): the value returned if ``string`` could not be found in ``dic``
-        condition (Optional[bool], optional): look for ``string`` in ``dic`` only
+        condition (Optional[Callable | bool], optional): look for ``string`` in ``dic`` only
             if ``condition`` is True
 
     Examples:
@@ -748,12 +747,12 @@ def extended_dict_get(
 
 
 @loggingdecorator(logger.name + ".func", level=logging.DEBUG, output=True, input=True)
-def fix_typo(string: str, typos: Union[list, dict], fix: Optional[str] = None) -> str:
+def fix_typo(string: str, typos: list | dict, fix: Optional[str] = None) -> str:
     """Fixes a typo in a token/word given a list of typos or dictionary of typos
 
     Args:
         string (str): the string that is a typo
-        typos (Union[list, dict]): two cases:
+        typos (list | dict): two cases:
 
             * list: a list that all are typos and will be replaced by ``fix``
             * dict: a dictionary that keys are typos and values are corresponding fixes

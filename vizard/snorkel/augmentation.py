@@ -28,8 +28,7 @@ import numpy as np
 import pandas as pd
 from scipy.stats import truncnorm
 
-from snorkel.augmentation import (TransformationFunction,
-                                  transformation_function)
+from snorkel.augmentation import TransformationFunction, transformation_function
 
 # configure logging
 logger = logging.getLogger(__name__)
@@ -45,7 +44,8 @@ class SeriesNoise:
         """
 
         Args:
-            dataframe: The dataframe that series will be extracted from to be processed
+            dataframe (Optional[pd.DataFrame], optional): The dataframe that series
+                will be extracted from to be processed
         """
         self.rng = np.random.default_rng()  # rng for all random generation
         self.df = dataframe  # the main dataframe that series are extracted
@@ -60,9 +60,11 @@ class SeriesNoise:
             )
 
     def set_dataframe(self, df: pd.DataFrame) -> None:
-        """
-        To initialize main dataframe if not initialized already at the time of
-            instance creation, i.e. ``... = SeriesNoise(...)``
+        """To initialize main dataframe if not initialized already
+
+        Args:
+            dataframe (Optional[pd.DataFrame], optional): The dataframe that series
+                will be extracted from to be processed
 
         Note:
             Must be called before calling any of ``series_*`` functions.
@@ -70,14 +72,14 @@ class SeriesNoise:
         self.df = df
 
     def normal_noise(
-        self, mean: float, std: float, size: Union[Tuple[int, ...], int]
+        self, mean: float, std: float, size: Tuple[int, ...] | int
     ) -> np.ndarray:
         """
         A wrapper around Numpy.Generator.normal_.
 
         Note:
-        user may extend this method by adding features to it; e.g. adding it to
-        a pandas Series (see :func:`series_add_normal_noise`)
+            user may extend this method by adding features to it; e.g. adding it to
+            a pandas Series (see :func:`series_add_normal_noise`)
 
         .. _Numpy.Generator.normal: https://numpy.org/doc/stable/reference/random/generated/numpy.random.Generator.normal.html
         """
@@ -116,7 +118,7 @@ class SeriesNoise:
         std: float,
         low: float,
         upp: float,
-        size: Union[Tuple[int, ...], int] = 1,
+        size: Tuple[int, ...] | int = 1,
     ) -> np.ndarray:
         """A wrapper around scipy.stats.truncnorm_ with lower/upper bound
 
@@ -133,7 +135,7 @@ class SeriesNoise:
             std (float): standard deviation of normal distribution
             low (float): lower bound for truncation
             upp (float): upper bound for truncation
-            size (Union[Tuple[int, ...], int], optional): shape of samples
+            size (Tuple[int, ...] | int, optional): shape of samples
 
         Returns:
             :class:`numpy.ndarray`: A truncated normal distribution
@@ -307,11 +309,12 @@ class TFAugmentation:
     def __init__(self) -> None:
         self.COLUMN = ""
 
-    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+    def augment(self, s: pd.Series, column: Optional[str] = None) -> pd.Series:
         """Augments a Pandas Series by modifying a single column
 
         Args:
             s (:class:`pandas.Series`): Pandas Series to be processed
+            column (Optional[str], optional): The column to be operated on
 
         Returns:
             :class:`pandas.Series`: Augmented ``s`` on column ``COLUMN``
@@ -334,7 +337,7 @@ class TFAugmentation:
                 Must be provided if ``func`` is not setting it internally. E.g. for
                 :class:`AddNormalNoiseDOBYear` you don't need to
                 set ``column`` since it is being handled internally.
-            class_name (str, optional): The name of the class if ``func`` is a method of it.
+            class_name (Optional[str], optional): The name of the class if ``func`` is a method of it.
                 It is used for better naming given class name alongside ``func`` name.
                 Defaults to None.
             kwargs: keyword arguments to ``func``
@@ -468,11 +471,12 @@ class AddNormalNoiseDOBYear(SeriesNoise, TFAugmentation):
         __max_bound = AGE_CATEGORY.TEEN.end - AGE_CATEGORY.TEEN.start
         self.__max_bound = __max_bound * self.__decay
 
-    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+    def augment(self, s: pd.Series, column: Optional[str] = None) -> pd.Series:
         """Augment the series for the predetermined column
 
         Args:
             s (:class:`pandas.Series`): A pandas series to get noisy on a fixed column
+            column (Optional[str], optional): The column to be operated on
 
         Returns:
             :class:`pandas.Series`: Noisy ``self.COLUMN`` of ``s``
@@ -516,11 +520,12 @@ class AddNormalNoiseChildDOBX(SeriesNoise, TFAugmentation):
         __max_bound = AGE_CATEGORY.TEEN.end - AGE_CATEGORY.TEEN.start
         self.__max_bound = __max_bound * self.__decay
 
-    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+    def augment(self, s: pd.Series, column: Optional[str] = None) -> pd.Series:
         """Augment the series for the predetermined column
 
         Args:
             s (:class:`pandas.Series`): A pandas series to get noisy on a fixed column
+            column (Optional[str], optional): The column to be operated on
 
         Returns:
             :class:`pandas.Series`: Noisy ``self.COLUMN`` of ``s``
@@ -558,11 +563,12 @@ class AddNormalNoiseFunds(SeriesNoise, TFAugmentation):
         self.__decay = [0.2, 0.1]
         self.COLUMN = "P3.DOV.PrpsRow1.Funds.Funds"
 
-    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+    def augment(self, s: pd.Series, column: Optional[str] = None) -> pd.Series:
         """Augment the series for the predetermined column
 
         Args:
             s (:class:`pandas.Series`): A pandas series to get noisy on a fixed column
+            column (Optional[str], optional): The column to be operated on
 
         Returns:
             :class:`pandas.Series`: Noisy ``self.COLUMN`` of ``s``
@@ -600,11 +606,12 @@ class AddNormalNoiseDateOfMarr(SeriesNoise, TFAugmentation):
         self.__decay = 0.2
         self.COLUMN = "P1.MS.SecA.DateOfMarr.Period"
 
-    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+    def augment(self, s: pd.Series, column: Optional[str] = None) -> pd.Series:
         """Augment the series for the predetermined column
 
         Args:
             s (:class:`pandas.Series`): A pandas series to get noisy on a fixed column
+            column (Optional[str], optional): The column to be operated on
 
         Returns:
             :class:`pandas.Series`: Noisy ``self.COLUMN`` of ``s``
@@ -639,11 +646,12 @@ class AddNormalNoiseOccRowXPeriod(SeriesNoise, TFAugmentation):
         self.__decay = 0.2
         self.COLUMN = f"P3.Occ.OccRow{row}.Period"
 
-    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+    def augment(self, s: pd.Series, column: Optional[str] = None) -> pd.Series:
         """Augment the series for the predetermined column
 
         Args:
             s (:class:`pandas.Series`): A pandas series to get noisy on a fixed column
+            column (Optional[str], optional): The column to be operated on
 
         Returns:
             :class:`pandas.Series`: Noisy ``self.COLUMN`` of ``s``
@@ -683,11 +691,12 @@ class AddNormalNoiseHLS(SeriesNoise, TFAugmentation):
         self.__std = 7  # we can do +- 7 days
         self.COLUMN = "P3.DOV.PrpsRow1.HLS.Period"
 
-    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+    def augment(self, s: pd.Series, column: Optional[str] = None) -> pd.Series:
         """Augment the series for the predetermined column
 
         Args:
             s (:class:`pandas.Series`): A pandas series to get noisy on a fixed column
+            column (Optional[str], optional): The column to be operated on
 
         Returns:
             :class:`pandas.Series`: Noisy ``self.COLUMN`` of ``s``
@@ -755,11 +764,12 @@ class AddCategoricalNoiseChildRelX(SeriesNoise, TFAugmentation):
             "other": "other",
         }
 
-    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+    def augment(self, s: pd.Series, column: Optional[str] = None) -> pd.Series:
         """Augment the series for the predetermined column
 
         Args:
             s (:class:`pandas.Series`): A pandas series to get noisy on a fixed column
+            column (Optional[str], optional): The column to be operated on
 
         Returns:
             :class:`pandas.Series`: Noisy ``self.COLUMN`` of ``s``
@@ -809,11 +819,12 @@ class AddCategoricalNoiseSiblingRelX(SeriesNoise, TFAugmentation):
             "other": "other",
         }
 
-    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+    def augment(self, s: pd.Series, column: Optional[str] = None) -> pd.Series:
         """Augment the series for the predetermined column
 
         Args:
             s (:class:`pandas.Series`): A pandas series to get noisy on a fixed column
+            column (Optional[str], optional): The column to be operated on
 
         Returns:
             :class:`pandas.Series`: Noisy ``self.COLUMN`` of ``s``
@@ -857,11 +868,12 @@ class AddCategoricalNoiseSex(SeriesNoise, TFAugmentation):
         self.CATEGORIES = {"Male": "Female", "Female": "Male"}
         self.COND_COLUMN = "p1.SecA.App.ChdMStatus"
 
-    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+    def augment(self, s: pd.Series, column: Optional[str] = None) -> pd.Series:
         """Augment the series for the predetermined column
 
         Args:
             s (:class:`pandas.Series`): A pandas series to get noisy on a fixed column
+            column (Optional[str], optional): The column to be operated on
 
         Returns:
             :class:`pandas.Series`: Noisy ``self.COLUMN`` of ``s``
@@ -913,11 +925,12 @@ class AddOrderedNoiseChdAccomp(SeriesNoise, TFAugmentation):
         self.COLUMN = f"p1.Sec{sec}.Chd.X.ChdAccomp.Count"
         self.HELPER_COLUMN = f"p1.Sec{sec}.Chd.X.ChdRel.ChdCount"
 
-    def augment(self, s: pd.Series, column: str = None) -> pd.Series:
+    def augment(self, s: pd.Series, column: Optional[str] = None) -> pd.Series:
         """Augment the series for the predetermined column
 
         Args:
             s (:class:`pandas.Series`): A pandas series to get noisy on a fixed column
+            column (Optional[str], optional): The column to be operated on
 
         Returns:
             :class:`pandas.Series`: Noisy ``self.COLUMN`` of ``s``

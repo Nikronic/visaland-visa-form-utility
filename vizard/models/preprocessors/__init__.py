@@ -59,9 +59,16 @@ see :class:`vizard.models.preprocessors.core.PandasTrainTestSplit`.
 
 # sklearn
 from sklearn.compose import ColumnTransformer
-from sklearn.preprocessing import (LabelBinarizer, LabelEncoder, MaxAbsScaler,
-                                   MinMaxScaler, MultiLabelBinarizer,
-                                   OneHotEncoder, RobustScaler, StandardScaler)
+from sklearn.preprocessing import (
+    LabelBinarizer,
+    LabelEncoder,
+    MaxAbsScaler,
+    MinMaxScaler,
+    MultiLabelBinarizer,
+    OneHotEncoder,
+    RobustScaler,
+    StandardScaler,
+)
 
 # a dictionary of transforms and their names
 TRANSFORMS = {
@@ -86,10 +93,14 @@ Note:
 
 import logging
 
-from .core import (ColumnSelector, ColumnTransformerConfig,
-                   PandasTrainTestSplit, TrainTestEvalSplit,
-                   get_transformed_feature_names,
-                   move_dependent_variable_to_end)
+from .core import (
+    ColumnSelector,
+    ColumnTransformerConfig,
+    PandasTrainTestSplit,
+    TrainTestEvalSplit,
+    get_transformed_feature_names,
+    move_dependent_variable_to_end,
+)
 from .helpers import preview_column_transformer
 
 # set logger
