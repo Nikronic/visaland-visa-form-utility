@@ -1,4 +1,5 @@
 from random import choice, choices, uniform
+from fastapi import FastAPI
 
 dir_path = "vizard/seduce/models/names/"
 
@@ -40,8 +41,9 @@ class RecordGenerator:
             )
         return acceptance_rates_list
 
-    def record_generator(self, acceptance_rate, n=5):
+    def record_generator(self, n=5):
         records = []
+        acceptance_rate = self.acceptance_rate
         acceptance_statuses = choices(
             [True, False], weights=[acceptance_rate, 1 - acceptance_rate], k=n
         )
@@ -56,3 +58,14 @@ class RecordGenerator:
                 }
             )
         return records
+
+
+app = FastAPI(
+    title="record generator",
+    summary="This is a record generator API. It generates a list of records with random first names, last names, acceptance rates, and acceptance statuses.",
+)
+
+
+@app.get("/item/{value}")
+async def read_item(value: float):
+    return RecordGenerator(value).record_generator()
