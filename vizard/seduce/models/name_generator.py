@@ -1,5 +1,4 @@
 from random import choice, choices
-import numpy as np
 
 dir_path = "vizard/seduce/models/names/"
 
@@ -10,7 +9,7 @@ def first_name(gender):
     elif gender.lower() in ["f", "female"]:
         filename = "female_name.txt"
     elif gender.lower() in ["r", "random"]:
-        filename = choice(['male_name.txt','female_name.txt'])
+        filename = choice(["male_name.txt", "female_name.txt"])
     else:
         raise ValueError
     with open(f"{dir_path}{filename}", "r", encoding="utf8") as f:
@@ -38,4 +37,3 @@ def record_generator(acceptance_rate, n=5):
             }
         )
     return records
-print(record_generator(0.5, 5))
