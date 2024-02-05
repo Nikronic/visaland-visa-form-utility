@@ -667,9 +667,9 @@ async def grouped_xai(features: api_models.Payload):
 
 
 @app.post("/artificial_records")
-async def generate_records(acceptance_rate: float, n: int = 5):
-    record = RecordGenerator(acceptance_rate, n)
-    return record.record_generator(n)
+async def generate_records(acceptance_rate: float, number_of_records: int = 5):
+    record = RecordGenerator(acceptance_rate, number_of_records)
+    return record.record_generator()
 
 
 @app.get(path="/const/states", response_model=api_models.ConstantStatesResponse)
