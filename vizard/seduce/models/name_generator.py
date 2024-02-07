@@ -1,8 +1,6 @@
 from random import choice, choices, uniform
-from fastapi import FastAPI
 
 dir_path = "vizard/seduce/models/names/"
-
 
 class RecordGenerator:
     def __init__(self, acceptance_rate, n=5):
