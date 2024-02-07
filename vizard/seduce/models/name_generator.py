@@ -3,6 +3,9 @@ from random import choice, choices, uniform
 dir_path = "vizard/seduce/models/names/"
 
 class RecordGenerator:
+    """
+    A class to generate fake records for the purpose of UI/UX.
+    """
     def __init__(self, acceptance_rate, n=5):
         self.acceptance_rate = acceptance_rate
         self.n = n
