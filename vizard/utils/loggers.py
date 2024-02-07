@@ -84,7 +84,7 @@ class Logger(logging.Logger):
         """
         path.mkdir()
 
-    def __str_to_path(self, string: str, Path) -> Path:
+    def __str_to_path(self, string: str | Path) -> Path:
         """Converts a string of path to :class:`pathlib.Path`
 
         Args:
@@ -97,7 +97,7 @@ class Logger(logging.Logger):
             return Path(string)
         return string
 
-    def _setup_mlflow_artifacts_dirs(self, base_path: str, Path) -> None:
+    def _setup_mlflow_artifacts_dirs(self, base_path: str | Path) -> None:
         """Builds the directories for saving images, logs, and configs as mlflow artifacts
 
         Following type of artifacts are predefined and each will be considered as a
