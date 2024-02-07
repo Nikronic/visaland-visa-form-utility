@@ -42,7 +42,8 @@ class RecordGenerator:
             )
         return acceptance_rates_list
 
-    def record_generator(self, n=5):
+    def record_generator(self):
+        n = self.n
         records = []
         acceptance_rate = self.acceptance_rate
         acceptance_statuses = choices(
