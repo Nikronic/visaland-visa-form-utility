@@ -28,13 +28,14 @@ from vizard.data.constant import (
 )
 from vizard.models import preprocessors, trainers
 from vizard.models.estimators.manual import (
+    BankBalanceContinuousParameterBuilder,
+    ComposeParameterBuilder,
     InvitationLetterParameterBuilder,
     InvitationLetterSenderRelation,
     TravelHistoryParameterBuilder,
     TravelHistoryRegion,
-    BankBalanceContinuousParameterBuilder,
-    ComposeParameterBuilder,
 )
+from vizard.seduce.models.name_generator import RecordGenerator
 from vizard.utils import loggers
 from vizard.version import VERSION as VIZARD_VERSION
 from vizard.xai import FlamlTreeExplainer, utils, xai_to_text
@@ -663,6 +664,12 @@ async def grouped_xai(features: api_models.Payload):
     return {
         "aggregated_shap_values": aggregated_shap_values,
     }
+
+
+@app.post("/artificial_records")
+async def generate_records(acceptance_rate: float, number_of_records: int = 5):
+    record = RecordGenerator(acceptance_rate, number_of_records)
+    return record.record_generator()
 
 
 @app.get(path="/const/states", response_model=api_models.ConstantStatesResponse)
