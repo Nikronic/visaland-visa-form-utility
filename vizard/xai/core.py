@@ -1,5 +1,5 @@
 from typing import Dict, Tuple
-
+from vizard.data.constant import FEATURE_CATEGORY_TO_FEATURE_NAME_MAP, FeatureCategories
 import numpy as np
 
 
@@ -114,3 +114,40 @@ def xai_to_text(
         )
 
     return xai_txt_top_k
+
+
+def xai_category_texter(
+    xai_feature_values: Dict[str, float], feature_to_keyword_mapping: Dict[str, str]
+):
+
+    name_map = {
+        "P1.PD.DOBYear.Period": "sex",
+        "p1.SecA.ParAccomp.Count": "parent_accompany",
+        "P1.MS.SecA.DateOfMarr.Period": "marriage_period",
+        "p1.SecA.Sps.SpsAccomp.Count": "spouse_accompany",
+        "p1.SecB.Chd.X.ChdRel.ChdCount": "child_count",
+        "p1.SecA.App.ChdMStatus": "applicant_marital_status",
+        "p1.SecB.Chd.X.ChdAccomp.Count": "child_accompany",
+        "p1.SecC.Chd.X.ChdAccomp.Count": "sibling_accompany",
+        "P3.Occ.OccRow1.Period": "occupation_period",
+    }  # TODO: we are already doing this when we get data from api we just need to reverse the process 
+    response_explain = {key: [] for key in FEATURE_CATEGORY_TO_FEATURE_NAME_MAP.keys()}
+
+    for _feature_name, _feature_xai_value in xai_feature_values.items():
+        for (
+            _feature_category,
+            _feature_name_list,
+        ) in FEATURE_CATEGORY_TO_FEATURE_NAME_MAP.items():
+            if _feature_name in _feature_name_list:
+                response_explain[_feature_category].append(
+                    {
+                        "name": (
+                            name_map[_feature_name]
+                            if _feature_name in name_map
+                            else _feature_name
+                        ),
+                        "value": _feature_xai_value,
+                        "txt": f"{feature_to_keyword_mapping[_feature_name]} {xai_threshold_to_text(xai_value=_feature_xai_value, threshold=0.)}",
+                    }
+                )
+    return response_explain
