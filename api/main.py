@@ -699,7 +699,7 @@ async def response_explain(features: api_models.Payload):
     # TODO: cannot retrieve value for transformed (let's say categorical)
     # for i, (k, v) in enumerate(xai_top_k.items()):
     # print(f'idx={i} => feat={k}, val={sample[0, i]}, xai={v}\n')
-    answers_tuple = (logic_answers_implanted[0], temp_answers)
+    answers_tuple = (logic_answers_implanted[0], temp_answers) # TODO: we should do soothing about this like using potential_modifiers to prevent it
     # dict of {feature_name, xai value, textual description}
     xai_txt_top_k: Dict[str, Tuple[float, str]] = xai_category_texter(
         xai_feature_values=xai_top_k,
