@@ -619,6 +619,9 @@ FEATURE_CATEGORY_TO_FEATURE_NAME_MAP = {
         # xai categorical
         "P3.refuseDeport_True",
         "P3.refuseDeport_False",
+        # manually add
+        "invitation_letter",
+        "travel_history",
     ],
     FeatureCategories.EMOTIONAL: [
         "P1.PD.AliasName.AliasNameIndicator.AliasNameIndicator",
@@ -688,6 +691,8 @@ FEATURE_CATEGORY_TO_FEATURE_NAME_MAP = {
         # xai categorical
         "P1.PD.Sex.Sex_Female",
         "P1.PD.Sex.Sex_Male",
+        # manually added
+        "travel_history",
     ],
     FeatureCategories.CAREER: [
         "P3.Edu.EduIndicator",
@@ -718,6 +723,8 @@ FEATURE_CATEGORY_TO_FEATURE_NAME_MAP = {
         "P3.Edu.Edu_Row1.FieldOfStudy_diploma",
         "P3.Edu.Edu_Row1.FieldOfStudy_unedu",
         "P3.Edu.Edu_Row1.FieldOfStudy_bachelor",
+        # manually added
+        "invitation_letter",
     ],
     FeatureCategories.FINANCIAL: [
         "P3.DOV.PrpsRow1.Funds.Funds",
@@ -738,6 +745,8 @@ FEATURE_CATEGORY_TO_FEATURE_NAME_MAP = {
         "P3.Occ.OccRow1.Occ.Occ_housewife",
         "P3.Occ.OccRow1.Occ.Occ_retired",
         "P3.Occ.OccRow1.Occ.Occ_employee",
+        # manually add
+        "travel_history",
     ],
 }
 """Dictionary of features belonging to each category
@@ -875,6 +884,9 @@ FEATURE_NAME_TO_TEXT_MAP = {
     "p1.SecC.Chd.X.ChdRel.ChdCount": "تعداد برادران و خواهران شما",
     "p1.SecX.LongDistAddr": "تعداد اعضای خانواده ای که در خارج از شهر شما سکونت دارند",
     "p1.SecX.ForeignAddr": "تعداد اعضای خانواده ای که در خارج از کشور سکونت دارند",
+    # manully added
+    "invitation_letter": "دعوتنامه شما",
+    "travel_history": "سابقه سفر خارجی شما",
 }
 """Dictionary of features names to their textual descriptions
 
