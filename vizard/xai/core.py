@@ -139,7 +139,30 @@ def xai_category_texter(
         "P1.PD.Sex.Sex": "sex",
         "P3.refuseDeport": "refused_entry_or_deport",
         "P3.Occ.OccRow1.Occ.Occ": "occupation_title1",
+        "P3.DOV.PrpsRow1.Funds.Funds": "bank_balance",
     }
+
+    categorical_features_map = {
+        "P3.Edu.Edu_Row1.FieldOfStudy_master": "education_field_of_study",
+        "P3.Edu.Edu_Row1.FieldOfStudy_phd": "education_field_of_study",
+        "P3.Edu.Edu_Row1.FieldOfStudy_apprentice": "education_field_of_study",
+        "P3.Edu.Edu_Row1.FieldOfStudy_diploma": "education_field_of_study",
+        "P3.Edu.Edu_Row1.FieldOfStudy_unedu": "education_field_of_study",
+        "P3.Edu.Edu_Row1.FieldOfStudy_bachelor": "education_field_of_study",
+        "P3.Occ.OccRow1.Occ.Occ_specialist": "occupation_title1",
+        "P3.Occ.OccRow1.Occ.Occ_OTHER": "occupation_title1",
+        "P3.Occ.OccRow1.Occ.Occ_student": "occupation_title1",
+        "P3.Occ.OccRow1.Occ.Occ_manager": "occupation_title1",
+        "P3.Occ.OccRow1.Occ.Occ_housewife": "occupation_title1",
+        "P3.Occ.OccRow1.Occ.Occ_retired": "occupation_title1",
+        "P3.Occ.OccRow1.Occ.Occ_employee": "occupation_title1",
+        "P3.refuseDeport_True": "refused_entry_or_deport",
+        "P3.refuseDeport_False": "refused_entry_or_deport",
+        "P1.PD.Sex.Sex_Female": "sex",
+        "P1.PD.Sex.Sex_Male": "sex",
+    }
+    xai_include_manual_assigns = xai_feature_values
+    xai_include_manual_assigns["P3.DOV.PrpsRow1.Funds.Funds"] = 0
 
     filtered_list = filter_elements(
         xai_feature_values.keys(), name_map, is_answered, answers
@@ -148,21 +171,22 @@ def xai_category_texter(
         key.name: [] for key in FEATURE_CATEGORY_TO_FEATURE_NAME_MAP.keys()
     }
 
-    for _feature_name, _feature_xai_value in xai_feature_values.items():
+    for _feature_name, _feature_xai_value in xai_include_manual_assigns.items():
         if _feature_name in filtered_list:
             for (
                 _feature_category,
                 _feature_name_list,
             ) in FEATURE_CATEGORY_TO_FEATURE_NAME_MAP.items():
                 if _feature_name in _feature_name_list:
-
+                    if _feature_name in name_map:
+                        name = name_map[_feature_name]
+                    elif _feature_name in categorical_features_map:
+                        name = categorical_features_map[_feature_name]
+                    else:
+                        name = _feature_name
                     response_explain[_feature_category.name].append(
                         {
-                            "name": (
-                                name_map[_feature_name]
-                                if _feature_name in name_map
-                                else _feature_name
-                            ),
+                            "name": name,
                             "value": _feature_xai_value,
                             "txt": f"{feature_to_keyword_mapping[_feature_name]} {xai_threshold_to_text(xai_value=_feature_xai_value, threshold=0.)}",
                         }
