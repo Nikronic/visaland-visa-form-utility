@@ -166,9 +166,18 @@ def xai_category_texter(
     }
     # manually added features
     xai_include_manual_assigns = xai_feature_values
-    xai_include_manual_assigns["P3.DOV.PrpsRow1.Funds.Funds"] = 0
-    xai_include_manual_assigns["invitation_letter"] = 0
-    xai_include_manual_assigns["travel_history"] = 0
+    if answers["bank_balance"] > 10000:
+        xai_include_manual_assigns["P3.DOV.PrpsRow1.Funds.Funds"] = 0.05
+    else:
+        xai_include_manual_assigns["P3.DOV.PrpsRow1.Funds.Funds"] = -0.08
+    if answers["travel_history"] != ["none"]:
+        xai_include_manual_assigns["travel_history"] = 0.5
+    else:
+        xai_include_manual_assigns["travel_history"] = -0.2
+    if answers["invitation_letter"] == "":
+        xai_include_manual_assigns["invitation_letter"] = 0.5
+    else:
+        xai_include_manual_assigns["invitation_letter"] = -0.2
 
     filtered_list = filter_elements(
         xai_feature_values.keys(), name_map, is_answered, answers
