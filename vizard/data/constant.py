@@ -797,7 +797,7 @@ Note:
 
 
 FEATURE_NAME_TO_TEXT_MAP = {
-    "P3.DOV.PrpsRow1.Funds.Funds": "شرایط تمکن مالی",
+    "P3.DOV.PrpsRow1.Funds.Funds": "شرایط تمکن مالی شما",
     "P1.PD.DOBYear.Period": "شرایط سنی",
     "P1.PD.CWA.Row2.Period": "مدت زمان اقامت شما در کشور انگشت نگاری",
     "P1.MS.SecA.DateOfMarr.Period": "مدت زمان نعهل فعلی",
