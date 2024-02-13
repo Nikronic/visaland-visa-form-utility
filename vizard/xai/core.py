@@ -144,7 +144,9 @@ def xai_category_texter(
     filtered_list = filter_elements(
         xai_feature_values.keys(), name_map, is_answered, answers
     )[0]
-    response_explain = {key: [] for key in FEATURE_CATEGORY_TO_FEATURE_NAME_MAP.keys()}
+    response_explain = {
+        key.name: [] for key in FEATURE_CATEGORY_TO_FEATURE_NAME_MAP.keys()
+    }
 
     for _feature_name, _feature_xai_value in xai_feature_values.items():
         if _feature_name in filtered_list:
@@ -154,7 +156,7 @@ def xai_category_texter(
             ) in FEATURE_CATEGORY_TO_FEATURE_NAME_MAP.items():
                 if _feature_name in _feature_name_list:
 
-                    response_explain[_feature_category].append(
+                    response_explain[_feature_category.name].append(
                         {
                             "name": (
                                 name_map[_feature_name]
