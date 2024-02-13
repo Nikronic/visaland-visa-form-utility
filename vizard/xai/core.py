@@ -169,16 +169,22 @@ def xai_category_texter(
     }
     # manually added features
     xai_include_manual_assigns = xai_feature_values
-    if answers["bank_balance"] > 10000:
-        xai_include_manual_assigns["P3.DOV.PrpsRow1.Funds.Funds"] = 0.05
+    if answers["bank_balance"] > 10000:  # TODO: change this to a better threshold
+        xai_include_manual_assigns["P3.DOV.PrpsRow1.Funds.Funds"] = 0.04
     else:
         xai_include_manual_assigns["P3.DOV.PrpsRow1.Funds.Funds"] = -0.08
     if answers["travel_history"] != ["none"]:
-        xai_include_manual_assigns["travel_history"] = 0.5
+        if len(answers["travel_history"]) >= 3:
+            xai_include_manual_assigns["travel_history"] = 0.6
+        else:
+            xai_include_manual_assigns["travel_history"] = 0.2
     else:
         xai_include_manual_assigns["travel_history"] = -0.2
-    if answers["invitation_letter"] == "":
-        xai_include_manual_assigns["invitation_letter"] = 0.5
+    if answers["invitation_letter"] != "none":
+        if answers["invitation_letter"] in ["child", "parent", "spouse", "pro_related"]:
+            xai_include_manual_assigns["invitation_letter"] = 0.6
+        else:
+            xai_include_manual_assigns["invitation_letter"] = 0.2
     else:
         xai_include_manual_assigns["invitation_letter"] = -0.2
 
