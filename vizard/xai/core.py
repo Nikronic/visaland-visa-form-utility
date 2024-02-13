@@ -140,6 +140,9 @@ def xai_category_texter(
         "P3.refuseDeport": "refused_entry_or_deport",
         "P3.Occ.OccRow1.Occ.Occ": "occupation_title1",
         "P3.DOV.PrpsRow1.Funds.Funds": "bank_balance",
+        # manually added
+        "travel_history": "travel_history",
+        "invitation_letter": "invitation_letter",
     }
 
     categorical_features_map = {
@@ -161,8 +164,11 @@ def xai_category_texter(
         "P1.PD.Sex.Sex_Female": "sex",
         "P1.PD.Sex.Sex_Male": "sex",
     }
+    # manually added features
     xai_include_manual_assigns = xai_feature_values
     xai_include_manual_assigns["P3.DOV.PrpsRow1.Funds.Funds"] = 0
+    xai_include_manual_assigns["invitation_letter"] = 0
+    xai_include_manual_assigns["travel_history"] = 0
 
     filtered_list = filter_elements(
         xai_feature_values.keys(), name_map, is_answered, answers
