@@ -1,4 +1,4 @@
-from typing import Dict, Tuple
+from typing import Dict, List, Tuple, Any
 from vizard.data.constant import FEATURE_CATEGORY_TO_FEATURE_NAME_MAP, FeatureCategories
 import numpy as np
 
@@ -117,11 +117,16 @@ def xai_to_text(
 
 
 def xai_category_texter(
-    xai_feature_values: Dict[str, float], feature_to_keyword_mapping: Dict[str, str]
+    xai_feature_values: Dict[str, float],
+    feature_to_keyword_mapping: Dict[str, str],
+    answers_tuple: tuple[List[str], Dict[str, Any]],
 ):
-
+    """Takes XAI values for features and generates basic textual descriptions"""
+    is_answered = answers_tuple[0]
+    answers = answers_tuple[1]
+    # Mapping from long names to short names
     name_map = {
-        "P1.PD.DOBYear.Period": "sex",
+        "P1.PD.DOBYear.Period": "date_of_birth",
         "p1.SecA.ParAccomp.Count": "parent_accompany",
         "P1.MS.SecA.DateOfMarr.Period": "marriage_period",
         "p1.SecA.Sps.SpsAccomp.Count": "spouse_accompany",
@@ -130,24 +135,109 @@ def xai_category_texter(
         "p1.SecB.Chd.X.ChdAccomp.Count": "child_accompany",
         "p1.SecC.Chd.X.ChdAccomp.Count": "sibling_accompany",
         "P3.Occ.OccRow1.Period": "occupation_period",
-    }  # TODO: we are already doing this when we get data from api we just need to reverse the process 
+        "P3.Edu.Edu_Row1.FieldOfStudy": "education_field_of_study",
+        "P1.PD.Sex.Sex": "sex",
+        "P3.refuseDeport": "refused_entry_or_deport",
+        "P3.Occ.OccRow1.Occ.Occ": "occupation_title1",
+    }
+
+    filtered_list = filter_elements(
+        xai_feature_values.keys(), name_map, is_answered, answers
+    )[0]
     response_explain = {key: [] for key in FEATURE_CATEGORY_TO_FEATURE_NAME_MAP.keys()}
 
     for _feature_name, _feature_xai_value in xai_feature_values.items():
-        for (
-            _feature_category,
-            _feature_name_list,
-        ) in FEATURE_CATEGORY_TO_FEATURE_NAME_MAP.items():
-            if _feature_name in _feature_name_list:
-                response_explain[_feature_category].append(
-                    {
-                        "name": (
-                            name_map[_feature_name]
-                            if _feature_name in name_map
-                            else _feature_name
-                        ),
-                        "value": _feature_xai_value,
-                        "txt": f"{feature_to_keyword_mapping[_feature_name]} {xai_threshold_to_text(xai_value=_feature_xai_value, threshold=0.)}",
-                    }
-                )
+        if _feature_name in filtered_list:
+            for (
+                _feature_category,
+                _feature_name_list,
+            ) in FEATURE_CATEGORY_TO_FEATURE_NAME_MAP.items():
+                if _feature_name in _feature_name_list:
+
+                    response_explain[_feature_category].append(
+                        {
+                            "name": (
+                                name_map[_feature_name]
+                                if _feature_name in name_map
+                                else _feature_name
+                            ),
+                            "value": _feature_xai_value,
+                            "txt": f"{feature_to_keyword_mapping[_feature_name]} {xai_threshold_to_text(xai_value=_feature_xai_value, threshold=0.)}",
+                        }
+                    )
+
     return response_explain
+
+
+def filter_elements(input_list, name_mapping, answered_questions, answers):
+
+    # Reverse mapping from short names to long names
+    reverse_mapping = {v: k for k, v in name_mapping.items()}
+
+    # List of all categorical possible questions
+    categorical_questions = [
+        "education_field_of_study",
+        "sex",
+        "occupation_title1",
+        "refused_entry_or_deport",
+    ]
+
+    # Dictionary to store answered questions and their answers
+    answered_dict = {}
+
+    # List to store filtered elements
+    filtered_elements = []
+
+    # List of all categorical possible answers
+    categorical_possible_answers = [
+        "P3.Edu.Edu_Row1.FieldOfStudy_master",
+        "P3.Edu.Edu_Row1.FieldOfStudy_phd",
+        "P3.Edu.Edu_Row1.FieldOfStudy_apprentice",
+        "P3.Edu.Edu_Row1.FieldOfStudy_diploma",
+        "P3.Edu.Edu_Row1.FieldOfStudy_unedu",
+        "P3.Edu.Edu_Row1.FieldOfStudy_bachelor",
+        "P3.Occ.OccRow1.Occ.Occ_specialist",
+        "P3.Occ.OccRow1.Occ.Occ_OTHER",
+        "P3.Occ.OccRow1.Occ.Occ_student",
+        "P3.Occ.OccRow1.Occ.Occ_manager",
+        "P3.Occ.OccRow1.Occ.Occ_housewife",
+        "P3.Occ.OccRow1.Occ.Occ_retired",
+        "P3.Occ.OccRow1.Occ.Occ_employee",
+        "P3.refuseDeport_True",
+        "P3.refuseDeport_False",
+        "P1.PD.Sex.Sex_Female",
+        "P1.PD.Sex.Sex_Male",
+    ]
+
+    # to make the value of refused_entry_or_deport to be capitalized
+    answers["refused_entry_or_deport"] = str(
+        answers["refused_entry_or_deport"]
+    ).capitalize()
+
+    for question in categorical_questions:
+        if question in answered_questions:
+            answered_dict[question] = answers[question]
+
+    # Filter all_possible_answers to only include elements that match the answered questions and their answers
+    filtered_elements = [
+        answer
+        for answer in categorical_possible_answers
+        if any(
+            reverse_mapping[question] in answer and answers[question] in answer
+            for question in answered_questions
+        )
+    ]
+
+    # Create a new list with only the items that should be kept
+    filtered_input_list = [
+        item
+        for item in input_list
+        if (
+            item not in categorical_possible_answers
+            and name_mapping[item]
+            in answered_questions  # Remove the items that are not in answered
+        )
+        or item in filtered_elements
+    ]
+
+    return filtered_input_list, filtered_elements
