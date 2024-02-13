@@ -72,7 +72,10 @@ def xai_threshold_to_text(xai_value: float, threshold: float = 0.0) -> str:
     """
 
     if xai_value >= threshold:
-        return "خوب است"
+        if xai_value < 0.5:
+            return "خوب است"
+        else:
+            return "عالی است"
     else:
         return "بد است"
 
