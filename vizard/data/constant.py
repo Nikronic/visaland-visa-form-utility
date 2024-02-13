@@ -704,7 +704,7 @@ FEATURE_CATEGORY_TO_FEATURE_NAME_MAP = {
         "P3.Edu.Edu_Row1.Country.Country",
         "P3.Occ.OccRow2.Country.Country",
         "P3.Occ.OccRow3.Country.Country",
-        # xa categorical
+        # xai categorical
         "P3.Occ.OccRow1.Occ.Occ_specialist",
         "P3.Occ.OccRow1.Occ.Occ_OTHER",
         "P3.Occ.OccRow1.Occ.Occ_student",
