@@ -675,6 +675,9 @@ async def response_explain(features: api_models.Payload):
     features_dict: Dict[str, Any] = features.model_dump()
     provided_variables: List[str] = features.provided_variables
 
+    temp_answers = utils.logical_questions(provided_variables, features.model_dump())[1]
+
+    logic_answers_implanted = utils.logical_questions(provided_variables, features_dict)
     # set response for manual params `invitation_letter`, `travel_history`, and `bank_balance`
     param_composer.set_responses_for_params(
         responses={
@@ -686,7 +689,6 @@ async def response_explain(features: api_models.Payload):
         pop=True,
         pop_containers=[features_dict],
     )
-    logic_answers_implanted = utils.logical_questions(provided_variables, features_dict)
 
     # validate sample
     sample = _xai(**features_dict)
@@ -697,12 +699,12 @@ async def response_explain(features: api_models.Payload):
     # TODO: cannot retrieve value for transformed (let's say categorical)
     # for i, (k, v) in enumerate(xai_top_k.items()):
     # print(f'idx={i} => feat={k}, val={sample[0, i]}, xai={v}\n')
-
+    answers_tuple = (logic_answers_implanted[0], temp_answers)
     # dict of {feature_name, xai value, textual description}
     xai_txt_top_k: Dict[str, Tuple[float, str]] = xai_category_texter(
         xai_feature_values=xai_top_k,
         feature_to_keyword_mapping=FEATURE_NAME_TO_TEXT_MAP,
-        answers_tuple=logic_answers_implanted,
+        answers_tuple=answers_tuple,
     )
     return xai_txt_top_k
 
