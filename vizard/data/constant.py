@@ -616,6 +616,9 @@ FEATURE_CATEGORY_TO_FEATURE_NAME_MAP = {
         "p1.SecC.Chd.X.ChdCOB.ForeignerCount",
         "p1.SecB.ChdMoFaSps.X.ChdCOB.ForeignerCount",
         "p1.SecX.ForeignAddr",
+        # xai categorical
+        "P3.refuseDeport_True",
+        "P3.refuseDeport_False",
     ],
     FeatureCategories.EMOTIONAL: [
         "P1.PD.AliasName.AliasNameIndicator.AliasNameIndicator",
@@ -682,6 +685,9 @@ FEATURE_CATEGORY_TO_FEATURE_NAME_MAP = {
         "P1.PD.PrevCOR.Row2.Period",
         "P1.PD.PrevCOR.Row3.Period",
         "P1.PD.PrevCOR.Row.Count",
+        # xai categorical
+        "P1.PD.Sex.Sex_Female",
+        "P1.PD.Sex.Sex_Male",
     ],
     FeatureCategories.CAREER: [
         "P3.Edu.EduIndicator",
@@ -698,6 +704,20 @@ FEATURE_CATEGORY_TO_FEATURE_NAME_MAP = {
         "P3.Edu.Edu_Row1.Country.Country",
         "P3.Occ.OccRow2.Country.Country",
         "P3.Occ.OccRow3.Country.Country",
+        # xa categorical
+        "P3.Occ.OccRow1.Occ.Occ_specialist",
+        "P3.Occ.OccRow1.Occ.Occ_OTHER",
+        "P3.Occ.OccRow1.Occ.Occ_student",
+        "P3.Occ.OccRow1.Occ.Occ_manager",
+        "P3.Occ.OccRow1.Occ.Occ_housewife",
+        "P3.Occ.OccRow1.Occ.Occ_retired",
+        "P3.Occ.OccRow1.Occ.Occ_employee",
+        "P3.Edu.Edu_Row1.FieldOfStudy_master",
+        "P3.Edu.Edu_Row1.FieldOfStudy_phd",
+        "P3.Edu.Edu_Row1.FieldOfStudy_apprentice",
+        "P3.Edu.Edu_Row1.FieldOfStudy_diploma",
+        "P3.Edu.Edu_Row1.FieldOfStudy_unedu",
+        "P3.Edu.Edu_Row1.FieldOfStudy_bachelor",
     ],
     FeatureCategories.FINANCIAL: [
         "P3.DOV.PrpsRow1.Funds.Funds",
@@ -710,6 +730,14 @@ FEATURE_CATEGORY_TO_FEATURE_NAME_MAP = {
         "P3.Occ.OccRow1.Period",
         "P3.Occ.OccRow2.Period",
         "P3.Occ.OccRow3.Period",
+        # xai categorical
+        "P3.Occ.OccRow1.Occ.Occ_specialist",
+        "P3.Occ.OccRow1.Occ.Occ_OTHER",
+        "P3.Occ.OccRow1.Occ.Occ_student",
+        "P3.Occ.OccRow1.Occ.Occ_manager",
+        "P3.Occ.OccRow1.Occ.Occ_housewife",
+        "P3.Occ.OccRow1.Occ.Occ_retired",
+        "P3.Occ.OccRow1.Occ.Occ_employee",
     ],
 }
 """Dictionary of features belonging to each category
