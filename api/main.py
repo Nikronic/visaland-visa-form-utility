@@ -673,6 +673,7 @@ async def response_explain(features: api_models.Payload):
     # 2) `FEATURE_CATEGORY_TO_FEATURE_NAME_MAP` can be indexed (see
     #    `aggregate_shap_values` method)
     features_dict: Dict[str, Any] = features.model_dump()
+    provided_variables: List[str] = features.provided_variables
 
     # set response for manual params `invitation_letter`, `travel_history`, and `bank_balance`
     param_composer.set_responses_for_params(
@@ -685,6 +686,7 @@ async def response_explain(features: api_models.Payload):
         pop=True,
         pop_containers=[features_dict],
     )
+    logic_answers_implanted = utils.logical_questions(provided_variables, features_dict)
 
     # validate sample
     sample = _xai(**features_dict)
@@ -700,6 +702,7 @@ async def response_explain(features: api_models.Payload):
     xai_txt_top_k: Dict[str, Tuple[float, str]] = xai_category_texter(
         xai_feature_values=xai_top_k,
         feature_to_keyword_mapping=FEATURE_NAME_TO_TEXT_MAP,
+        answers_tuple=logic_answers_implanted,
     )
     return xai_txt_top_k
 
