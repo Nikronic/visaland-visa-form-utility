@@ -707,44 +707,6 @@ async def response_explain(features: api_models.Payload):
     return xai_txt_top_k
 
 
-@app.post("/xcz")
-async def response_explain(features: api_models.Payload):
-    # TODO: Some caching can be done here:
-    # 1) `sample` is shared between all `xai` methods
-    # 2) `FEATURE_CATEGORY_TO_FEATURE_NAME_MAP` can be indexed (see
-    #    `aggregate_shap_values` method)
-    features_dict: Dict[str, Any] = features.model_dump()
-
-    # set response for manual params `invitation_letter`, `travel_history`, and `bank_balance`
-    param_composer.set_responses_for_params(
-        responses={
-            invitation_letter_param.name: features.invitation_letter,
-            travel_history_param.name: features.travel_history,
-            bank_balance_continuous_param.name: features.bank_balance,
-        },
-        raw=True,
-        pop=True,
-        pop_containers=[features_dict],
-    )
-
-    # validate sample
-    sample = _xai(**features_dict)
-
-    # compute xai values for the sample
-    xai_top_k: Dict[str, float] = flaml_tree_explainer.top_k_score(sample=sample, k=-1)
-
-    # TODO: cannot retrieve value for transformed (let's say categorical)
-    # for i, (k, v) in enumerate(xai_top_k.items()):
-    # print(f'idx={i} => feat={k}, val={sample[0, i]}, xai={v}\n')
-
-    # dict of {feature_name, xai value, textual description}
-    xai_txt_top_k: Dict[str, Tuple[float, str]] = xai_to_text(
-        xai_feature_values=xai_top_k,
-        feature_to_keyword_mapping=FEATURE_NAME_TO_TEXT_MAP,
-    )
-    return xai_txt_top_k
-
-
 @app.post("/artificial_records")
 async def generate_records(acceptance_rate: float, number_of_records: int = 5):
     record = RecordGenerator(acceptance_rate, number_of_records)
