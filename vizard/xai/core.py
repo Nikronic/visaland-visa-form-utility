@@ -169,7 +169,7 @@ def xai_category_texter(
     }
     # manually added features
     xai_include_manual_assigns = xai_feature_values
-    if answers["bank_balance"] > 500:  # TODO: change this to a better threshold
+    if answers["bank_balance"] >= 400:  # TODO: change this to a better threshold
         xai_include_manual_assigns["P3.DOV.PrpsRow1.Funds.Funds"] = 0.04
     else:
         xai_include_manual_assigns["P3.DOV.PrpsRow1.Funds.Funds"] = -0.08
