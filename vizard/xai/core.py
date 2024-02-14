@@ -197,6 +197,9 @@ def xai_category_texter(
     else:
         xai_include_manual_assigns["invitation_letter"] = -0.2
 
+    # manually set the XAI value of refused_entry_or_deport it resulted negative in the text msg for the user
+    xai_include_manual_assigns["P3.refuseDeport_False"] = 0.02
+
     filtered_list = filter_elements(
         xai_feature_values.keys(), name_map, is_answered, answers
     )[0]
