@@ -616,6 +616,12 @@ FEATURE_CATEGORY_TO_FEATURE_NAME_MAP = {
         "p1.SecC.Chd.X.ChdCOB.ForeignerCount",
         "p1.SecB.ChdMoFaSps.X.ChdCOB.ForeignerCount",
         "p1.SecX.ForeignAddr",
+        # xai categorical
+        "P3.refuseDeport_True",
+        "P3.refuseDeport_False",
+        # manually add
+        "invitation_letter",
+        "travel_history",
     ],
     FeatureCategories.EMOTIONAL: [
         "P1.PD.AliasName.AliasNameIndicator.AliasNameIndicator",
@@ -682,6 +688,11 @@ FEATURE_CATEGORY_TO_FEATURE_NAME_MAP = {
         "P1.PD.PrevCOR.Row2.Period",
         "P1.PD.PrevCOR.Row3.Period",
         "P1.PD.PrevCOR.Row.Count",
+        # xai categorical
+        "P1.PD.Sex.Sex_Female",
+        "P1.PD.Sex.Sex_Male",
+        # manually added
+        "travel_history",
     ],
     FeatureCategories.CAREER: [
         "P3.Edu.EduIndicator",
@@ -698,6 +709,22 @@ FEATURE_CATEGORY_TO_FEATURE_NAME_MAP = {
         "P3.Edu.Edu_Row1.Country.Country",
         "P3.Occ.OccRow2.Country.Country",
         "P3.Occ.OccRow3.Country.Country",
+        # xai categorical
+        "P3.Occ.OccRow1.Occ.Occ_specialist",
+        "P3.Occ.OccRow1.Occ.Occ_OTHER",
+        "P3.Occ.OccRow1.Occ.Occ_student",
+        "P3.Occ.OccRow1.Occ.Occ_manager",
+        "P3.Occ.OccRow1.Occ.Occ_housewife",
+        "P3.Occ.OccRow1.Occ.Occ_retired",
+        "P3.Occ.OccRow1.Occ.Occ_employee",
+        "P3.Edu.Edu_Row1.FieldOfStudy_master",
+        "P3.Edu.Edu_Row1.FieldOfStudy_phd",
+        "P3.Edu.Edu_Row1.FieldOfStudy_apprentice",
+        "P3.Edu.Edu_Row1.FieldOfStudy_diploma",
+        "P3.Edu.Edu_Row1.FieldOfStudy_unedu",
+        "P3.Edu.Edu_Row1.FieldOfStudy_bachelor",
+        # manually added
+        "invitation_letter",
     ],
     FeatureCategories.FINANCIAL: [
         "P3.DOV.PrpsRow1.Funds.Funds",
@@ -710,6 +737,16 @@ FEATURE_CATEGORY_TO_FEATURE_NAME_MAP = {
         "P3.Occ.OccRow1.Period",
         "P3.Occ.OccRow2.Period",
         "P3.Occ.OccRow3.Period",
+        # xai categorical
+        "P3.Occ.OccRow1.Occ.Occ_specialist",
+        "P3.Occ.OccRow1.Occ.Occ_OTHER",
+        "P3.Occ.OccRow1.Occ.Occ_student",
+        "P3.Occ.OccRow1.Occ.Occ_manager",
+        "P3.Occ.OccRow1.Occ.Occ_housewife",
+        "P3.Occ.OccRow1.Occ.Occ_retired",
+        "P3.Occ.OccRow1.Occ.Occ_employee",
+        # manually add
+        "travel_history",
     ],
 }
 """Dictionary of features belonging to each category
@@ -760,7 +797,7 @@ Note:
 
 
 FEATURE_NAME_TO_TEXT_MAP = {
-    "P3.DOV.PrpsRow1.Funds.Funds": "شرایط تمکن مالی",
+    "P3.DOV.PrpsRow1.Funds.Funds": "شرایط تمکن مالی شما",
     "P1.PD.DOBYear.Period": "شرایط سنی",
     "P1.PD.CWA.Row2.Period": "مدت زمان اقامت شما در کشور انگشت نگاری",
     "P1.MS.SecA.DateOfMarr.Period": "مدت زمان نعهل فعلی",
@@ -847,6 +884,9 @@ FEATURE_NAME_TO_TEXT_MAP = {
     "p1.SecC.Chd.X.ChdRel.ChdCount": "تعداد برادران و خواهران شما",
     "p1.SecX.LongDistAddr": "تعداد اعضای خانواده ای که در خارج از شهر شما سکونت دارند",
     "p1.SecX.ForeignAddr": "تعداد اعضای خانواده ای که در خارج از کشور سکونت دارند",
+    # manully added
+    "invitation_letter": "دعوتنامه شما",
+    "travel_history": "سابقه سفر خارجی شما",
 }
 """Dictionary of features names to their textual descriptions
 

@@ -1,5 +1,5 @@
-from typing import Dict, Tuple
-
+from typing import Dict, List, Tuple, Any
+from vizard.data.constant import FEATURE_CATEGORY_TO_FEATURE_NAME_MAP, FeatureCategories
 import numpy as np
 
 
@@ -72,7 +72,10 @@ def xai_threshold_to_text(xai_value: float, threshold: float = 0.0) -> str:
     """
 
     if xai_value >= threshold:
-        return "خوب است"
+        if xai_value < 0.5:
+            return "خوب است"
+        else:
+            return "عالی است"
     else:
         return "بد است"
 
@@ -114,3 +117,202 @@ def xai_to_text(
         )
 
     return xai_txt_top_k
+
+
+def xai_category_texter(
+    xai_feature_values: Dict[str, float],
+    feature_to_keyword_mapping: Dict[str, str],
+    answers_tuple: tuple[List[str], Dict[str, Any]],
+) -> Dict[str, List[Dict[str, Any]]]:
+    """Takes XAI values for features and generates basic textual descriptions
+
+    Args:
+        xai_feature_values (Dict[str, float]): dictionary of XAI values for features
+        feature_to_keyword_mapping (Dict[str, str]): dictionary of feature to keyword mapping
+        answers_tuple (tuple[List[str], Dict[str, Any]]): tuple of answered questions and their answers
+
+    Returns:
+        Dict[str, List[Dict[str, Any]]]: dictionary of XAI values for each category of features with text
+    """
+    is_answered = answers_tuple[0]
+    answers = answers_tuple[1]
+    # Mapping from long names to short names
+    name_map = {
+        "P1.PD.DOBYear.Period": "date_of_birth",
+        "p1.SecA.ParAccomp.Count": "parent_accompany",
+        "P1.MS.SecA.DateOfMarr.Period": "marriage_period",
+        "p1.SecA.Sps.SpsAccomp.Count": "spouse_accompany",
+        "p1.SecB.Chd.X.ChdRel.ChdCount": "child_count",
+        "p1.SecA.App.ChdMStatus": "applicant_marital_status",
+        "p1.SecB.Chd.X.ChdAccomp.Count": "child_accompany",
+        "p1.SecC.Chd.X.ChdAccomp.Count": "sibling_accompany",
+        "P3.Occ.OccRow1.Period": "occupation_period",
+        "P3.Edu.Edu_Row1.FieldOfStudy": "education_field_of_study",
+        "P1.PD.Sex.Sex": "sex",
+        "P3.refuseDeport": "refused_entry_or_deport",
+        "P3.Occ.OccRow1.Occ.Occ": "occupation_title1",
+        "P3.DOV.PrpsRow1.Funds.Funds": "bank_balance",
+        # manually added
+        "travel_history": "travel_history",
+        "invitation_letter": "invitation_letter",
+    }
+
+    categorical_features_map = {
+        "P3.Edu.Edu_Row1.FieldOfStudy_master": "education_field_of_study",
+        "P3.Edu.Edu_Row1.FieldOfStudy_phd": "education_field_of_study",
+        "P3.Edu.Edu_Row1.FieldOfStudy_apprentice": "education_field_of_study",
+        "P3.Edu.Edu_Row1.FieldOfStudy_diploma": "education_field_of_study",
+        "P3.Edu.Edu_Row1.FieldOfStudy_unedu": "education_field_of_study",
+        "P3.Edu.Edu_Row1.FieldOfStudy_bachelor": "education_field_of_study",
+        "P3.Occ.OccRow1.Occ.Occ_specialist": "occupation_title1",
+        "P3.Occ.OccRow1.Occ.Occ_OTHER": "occupation_title1",
+        "P3.Occ.OccRow1.Occ.Occ_student": "occupation_title1",
+        "P3.Occ.OccRow1.Occ.Occ_manager": "occupation_title1",
+        "P3.Occ.OccRow1.Occ.Occ_housewife": "occupation_title1",
+        "P3.Occ.OccRow1.Occ.Occ_retired": "occupation_title1",
+        "P3.Occ.OccRow1.Occ.Occ_employee": "occupation_title1",
+        "P3.refuseDeport_True": "refused_entry_or_deport",
+        "P3.refuseDeport_False": "refused_entry_or_deport",
+        "P1.PD.Sex.Sex_Female": "sex",
+        "P1.PD.Sex.Sex_Male": "sex",
+    }
+    # manually added features
+    xai_include_manual_assigns = xai_feature_values
+    if answers["bank_balance"] >= 400:  # TODO: change this to a better threshold
+        xai_include_manual_assigns["P3.DOV.PrpsRow1.Funds.Funds"] = 0.04
+    else:
+        xai_include_manual_assigns["P3.DOV.PrpsRow1.Funds.Funds"] = -0.08
+    if answers["travel_history"] != ["none"]:
+        if len(answers["travel_history"]) >= 3:
+            xai_include_manual_assigns["travel_history"] = 0.6
+        else:
+            xai_include_manual_assigns["travel_history"] = 0.2
+    else:
+        xai_include_manual_assigns["travel_history"] = -0.2
+    if answers["invitation_letter"] != "none":
+        if answers["invitation_letter"] in ["child", "parent", "spouse", "pro_related"]:
+            xai_include_manual_assigns["invitation_letter"] = 0.6
+        else:
+            xai_include_manual_assigns["invitation_letter"] = 0.2
+    else:
+        xai_include_manual_assigns["invitation_letter"] = -0.2
+
+    filtered_list = filter_elements(
+        xai_feature_values.keys(), name_map, is_answered, answers
+    )[0]
+    response_explain = {
+        key.name: [] for key in FEATURE_CATEGORY_TO_FEATURE_NAME_MAP.keys()
+    }
+
+    for _feature_name, _feature_xai_value in xai_include_manual_assigns.items():
+        if _feature_name in filtered_list:
+            for (
+                _feature_category,
+                _feature_name_list,
+            ) in FEATURE_CATEGORY_TO_FEATURE_NAME_MAP.items():
+                if _feature_name in _feature_name_list:
+                    if _feature_name in name_map:
+                        name = name_map[_feature_name]
+                    elif _feature_name in categorical_features_map:
+                        name = categorical_features_map[_feature_name]
+                    else:
+                        name = _feature_name
+                    response_explain[_feature_category.name].append(
+                        {
+                            "name": name,
+                            "value": _feature_xai_value,
+                            "txt": f"{feature_to_keyword_mapping[_feature_name]} {xai_threshold_to_text(xai_value=_feature_xai_value, threshold=0.)}",
+                        }
+                    )
+
+    return response_explain
+
+
+def filter_elements(
+    input_list: List[str],
+    name_mapping: Dict[str, str],
+    answered_questions: List[str],
+    answers: Dict[str, Any],
+) -> Tuple[List[str], List[str]]:
+    """Filter elements based on answered questions and their answers
+
+    Args:
+        input_list (List[str]): list of input elements
+        name_mapping (Dict[str, str]): dictionary to map names
+        answered_questions (List[str]): list of answered questions
+        answers (Dict[str, Any]): dictionary of answers
+
+    Returns:
+        Tuple[List[str], List[str]]: filtered input list and filtered elements
+    """
+
+    # Reverse mapping from short names to long names
+    reverse_mapping = {v: k for k, v in name_mapping.items()}
+
+    # List of all categorical possible questions
+    categorical_questions = [
+        "education_field_of_study",
+        "sex",
+        "occupation_title1",
+        "refused_entry_or_deport",
+    ]
+
+    # Dictionary to store answered questions and their answers
+    answered_dict = {}
+
+    # List to store filtered elements
+    filtered_elements = []
+
+    # List of all categorical possible answers
+    categorical_possible_answers = [
+        "P3.Edu.Edu_Row1.FieldOfStudy_master",
+        "P3.Edu.Edu_Row1.FieldOfStudy_phd",
+        "P3.Edu.Edu_Row1.FieldOfStudy_apprentice",
+        "P3.Edu.Edu_Row1.FieldOfStudy_diploma",
+        "P3.Edu.Edu_Row1.FieldOfStudy_unedu",
+        "P3.Edu.Edu_Row1.FieldOfStudy_bachelor",
+        "P3.Occ.OccRow1.Occ.Occ_specialist",
+        "P3.Occ.OccRow1.Occ.Occ_OTHER",
+        "P3.Occ.OccRow1.Occ.Occ_student",
+        "P3.Occ.OccRow1.Occ.Occ_manager",
+        "P3.Occ.OccRow1.Occ.Occ_housewife",
+        "P3.Occ.OccRow1.Occ.Occ_retired",
+        "P3.Occ.OccRow1.Occ.Occ_employee",
+        "P3.refuseDeport_True",
+        "P3.refuseDeport_False",
+        "P1.PD.Sex.Sex_Female",
+        "P1.PD.Sex.Sex_Male",
+    ]
+
+    # to make the value of refused_entry_or_deport to be capitalized
+    answers["refused_entry_or_deport"] = str(
+        answers["refused_entry_or_deport"]
+    ).capitalize()
+
+    for question in categorical_questions:
+        if question in answered_questions:
+            answered_dict[question] = answers[question]
+
+    # Filter all_possible_answers to only include elements that match the answered questions and their answers
+    filtered_elements = [
+        answer
+        for answer in categorical_possible_answers
+        if any(
+            reverse_mapping[question] in answer and answers[question] in answer
+            for question in answered_questions
+        )
+    ]
+
+    # Create a new list with only the items that should be kept
+    filtered_input_list = [
+        item
+        for item in input_list
+        if (
+            item not in categorical_possible_answers
+            and name_mapping[item]
+            in answered_questions  # Remove the items that are not in answered
+        )
+        or item in filtered_elements
+    ]
+
+    return filtered_input_list, filtered_elements
