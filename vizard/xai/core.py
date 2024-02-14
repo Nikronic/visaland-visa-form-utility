@@ -123,8 +123,17 @@ def xai_category_texter(
     xai_feature_values: Dict[str, float],
     feature_to_keyword_mapping: Dict[str, str],
     answers_tuple: tuple[List[str], Dict[str, Any]],
-):
-    """Takes XAI values for features and generates basic textual descriptions"""
+) -> Dict[str, List[Dict[str, Any]]]:
+    """Takes XAI values for features and generates basic textual descriptions
+
+    Args:
+        xai_feature_values (Dict[str, float]): dictionary of XAI values for features
+        feature_to_keyword_mapping (Dict[str, str]): dictionary of feature to keyword mapping
+        answers_tuple (tuple[List[str], Dict[str, Any]]): tuple of answered questions and their answers
+
+    Returns:
+        Dict[str, List[Dict[str, Any]]]: dictionary of XAI values for each category of features with text
+    """
     is_answered = answers_tuple[0]
     answers = answers_tuple[1]
     # Mapping from long names to short names
@@ -219,7 +228,23 @@ def xai_category_texter(
     return response_explain
 
 
-def filter_elements(input_list, name_mapping, answered_questions, answers):
+def filter_elements(
+    input_list: List[str],
+    name_mapping: Dict[str, str],
+    answered_questions: List[str],
+    answers: Dict[str, Any],
+) -> Tuple[List[str], List[str]]:
+    """Filter elements based on answered questions and their answers
+
+    Args:
+        input_list (List[str]): list of input elements
+        name_mapping (Dict[str, str]): dictionary to map names
+        answered_questions (List[str]): list of answered questions
+        answers (Dict[str, Any]): dictionary of answers
+
+    Returns:
+        Tuple[List[str], List[str]]: filtered input list and filtered elements
+    """
 
     # Reverse mapping from short names to long names
     reverse_mapping = {v: k for k, v in name_mapping.items()}
