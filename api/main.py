@@ -13,32 +13,30 @@ import numpy as np
 import pandas as pd
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
+from OpenSSL import SSL
 
 from vizard.api import apps as api_apps
 from vizard.api import database as api_database
 from vizard.api import models as api_models
 from vizard.data import functional, preprocessor
-from vizard.data.constant import (
-    FEATURE_CATEGORY_TO_FEATURE_NAME_MAP,
-    FEATURE_NAME_TO_TEXT_MAP,
-    CanadaMarriageStatus,
-    EducationFieldOfStudy,
-    FeatureCategories,
-    OccupationTitle,
-)
+from vizard.data.constant import (FEATURE_CATEGORY_TO_FEATURE_NAME_MAP,
+                                  FEATURE_NAME_TO_TEXT_MAP,
+                                  CanadaMarriageStatus, EducationFieldOfStudy,
+                                  FeatureCategories, OccupationTitle)
 from vizard.models import preprocessors, trainers
 from vizard.models.estimators.manual import (
-    BankBalanceContinuousParameterBuilder,
-    ComposeParameterBuilder,
-    InvitationLetterParameterBuilder,
-    InvitationLetterSenderRelation,
-    TravelHistoryParameterBuilder,
-    TravelHistoryRegion,
-)
+    BankBalanceContinuousParameterBuilder, ComposeParameterBuilder,
+    InvitationLetterParameterBuilder, InvitationLetterSenderRelation,
+    TravelHistoryParameterBuilder, TravelHistoryRegion)
 from vizard.seduce.models.name_generator import RecordGenerator
 from vizard.utils import loggers
 from vizard.version import VERSION as VIZARD_VERSION
-from vizard.xai import FlamlTreeExplainer, utils, xai_to_text, xai_category_texter
+from vizard.xai import (FlamlTreeExplainer, utils, xai_category_texter,
+                        xai_to_text)
+
+# to run the server with SSL
+context = SSL.Context(SSL.PROTOCOL_TLSv1_2)
+context.load_cert_chain("/etc/ssl/certificate.crt", "/etc/ssl/private/private.key")
 
 # argparse
 parser = argparse.ArgumentParser()
@@ -699,7 +697,10 @@ async def response_explain(features: api_models.Payload):
     # TODO: cannot retrieve value for transformed (let's say categorical)
     # for i, (k, v) in enumerate(xai_top_k.items()):
     # print(f'idx={i} => feat={k}, val={sample[0, i]}, xai={v}\n')
-    answers_tuple = (logic_answers_implanted[0], temp_answers) # TODO: we should do soothing about this like using potential_modifiers to prevent it
+    answers_tuple = (
+        logic_answers_implanted[0],
+        temp_answers,
+    )  # TODO: we should do soothing about this like using potential_modifiers to prevent it
     # dict of {feature_name, xai value, textual description}
     xai_txt_top_k: Dict[str, Tuple[float, str]] = xai_category_texter(
         xai_feature_values=xai_top_k,
