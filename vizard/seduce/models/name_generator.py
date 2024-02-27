@@ -50,6 +50,11 @@ class RecordGenerator:
             [True, False], weights=[acceptance_rate, 1 - acceptance_rate], k=n
         )
         acceptance_rates_list = self.acceptance_rates(acceptance_rate, n)
+        # acceptence rate should be between 0 and 1
+        acceptance_rates_list = [
+            0.99 if rate > 1 else 0.02 if rate < 0 else rate for rate in acceptance_rates_list
+        ]
+
         for i in range(n):
             records.append(
                 {
