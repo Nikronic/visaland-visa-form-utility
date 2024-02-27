@@ -225,6 +225,7 @@ def xai_category_texter(
                             "name": name,
                             "value": _feature_xai_value,
                             "txt": f"{feature_to_keyword_mapping[_feature_name]} {xai_threshold_to_text(xai_value=_feature_xai_value, threshold=0.)}",
+                            "good_influence": True if _feature_xai_value > 0 else False,
                         }
                     )
 
