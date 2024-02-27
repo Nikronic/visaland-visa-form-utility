@@ -206,8 +206,19 @@ def xai_category_texter(
     response_explain = {
         key.name: [] for key in FEATURE_CATEGORY_TO_FEATURE_NAME_MAP.keys()
     }
-
-    for _feature_name, _feature_xai_value in xai_include_manual_assigns.items():
+    xai_sorted = dict(
+        sorted(xai_include_manual_assigns.items(), key=lambda x: x[1], reverse=True)
+    )
+    # for negative values, we want to sort them in ascending order
+    xai_sorted_with_negative = dict(
+        sorted(
+            xai_sorted.items(),
+            key=lambda item: (
+                (item[1] < 0, -item[1]) if item[1] > 0 else (item[1] < 0, item[1])
+            ),
+        )
+    )
+    for _feature_name, _feature_xai_value in xai_sorted_with_negative.items():
         if _feature_name in filtered_list:
             for (
                 _feature_category,
