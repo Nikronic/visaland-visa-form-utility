@@ -709,8 +709,8 @@ async def response_explain(features: api_models.Payload):
     return xai_txt_top_k
 
 
-@app.post("/artificial_records")
-async def generate_records(acceptance_rate: float, number_of_records: int = 5):
+@app.get("/artificial_records")
+async def generate_records(acceptance_rate: float = fastapi.Query(...), number_of_records: int = fastapi.Query(5)):
     record = RecordGenerator(acceptance_rate, number_of_records)
     return record.record_generator()
 
