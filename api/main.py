@@ -710,7 +710,7 @@ async def response_explain(features: api_models.Payload):
 
 
 @app.get("/artificial_records")
-async def generate_records(acceptance_rate: float = fastapi.Query(...), number_of_records: int = fastapi.Query(5)):
+async def generate_records(acceptance_rate: float = fastapi.Query(..., ge=0, le=1), number_of_records: int = fastapi.Query(5)):
     record = RecordGenerator(acceptance_rate, number_of_records)
     return record.record_generator()
 
