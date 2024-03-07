@@ -413,3 +413,12 @@ class ConstantStatesResponse(BaseModel):
     """
 
     constant_states: Dict[str, List[str]]
+
+
+class UserLogging(pydantic.BaseModel):
+    status: str = pydantic.Field(..., description="completed or quited")
+    last_success_rate: str = pydantic.Field(..., description="Success rate of the last operation")
+    phone_number: int = pydantic.Field(None, description="Phone number of the user")
+    last_input: dict = pydantic.Field(..., description="Last input from the user")
+    full_name: str = pydantic.Field(..., description="Full name of the user")
+    last_question: str = pydantic.Field(..., description="Last question asked from the user")
