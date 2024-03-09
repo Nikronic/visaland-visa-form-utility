@@ -1,6 +1,7 @@
 import argparse
 import json
 import logging
+import os
 import pickle
 import shutil
 import sys
@@ -722,21 +723,23 @@ async def generate_records(
     return record.record_generator()
 
 
-# @app.post("/seer", response_model=api_models.UserLogging)
-# async def seer(user_input: api_models.UserLogging):
+@app.post("/seer")
+async def seer(user_input: api_models.UserLogging):
 
-#     data = user_input.model_dump()
-#     # Append the data to the file as a new line
-#     with open("user_inputs.ndjson", "a") as f:
-#         f.write(json.dumps(data) + "\n")
+    data = user_input.model_dump()
+    # Append the data to the file as a new line
+    file_path = "user_inputs.ndjson"
+    with open(file_path, "a") as f:
+        f.write(json.dumps(data) + "\n")
 
-#     return user_input
+    file_size = os.path.getsize(file_path)
+
+    massage = f"The size of '{file_path}' is {file_size / 1024:.2f} KB."
+    return massage
 
 
-
-
-# TODO: use an online service
-# from pymongo.mongo_client import MongoClient 
+# TODO: use an online service for our database
+# from pymongo.mongo_client import MongoClient
 # from pymongo.server_api import ServerApi
 
 # uri = "mongodb+srv://aliinreallife:<password>@seer.v0sxtpq.mongodb.net/?retryWrites=true&w=majority&appName=seer"
