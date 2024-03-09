@@ -1,5 +1,7 @@
 import argparse
+import json
 import logging
+import os
 import pickle
 import shutil
 import sys
@@ -38,7 +40,7 @@ from vizard.models.estimators.manual import (
 from vizard.seduce.models.name_generator import RecordGenerator
 from vizard.utils import loggers
 from vizard.version import VERSION as VIZARD_VERSION
-from vizard.xai import FlamlTreeExplainer, utils, xai_to_text, xai_category_texter
+from vizard.xai import FlamlTreeExplainer, utils, xai_category_texter, xai_to_text
 
 # argparse
 parser = argparse.ArgumentParser()
@@ -699,7 +701,10 @@ async def response_explain(features: api_models.Payload):
     # TODO: cannot retrieve value for transformed (let's say categorical)
     # for i, (k, v) in enumerate(xai_top_k.items()):
     # print(f'idx={i} => feat={k}, val={sample[0, i]}, xai={v}\n')
-    answers_tuple = (logic_answers_implanted[0], temp_answers) # TODO: we should do soothing about this like using potential_modifiers to prevent it
+    answers_tuple = (
+        logic_answers_implanted[0],
+        temp_answers,
+    )  # TODO: we should do soothing about this like using potential_modifiers to prevent it
     # dict of {feature_name, xai value, textual description}
     xai_txt_top_k: Dict[str, Tuple[float, str]] = xai_category_texter(
         xai_feature_values=xai_top_k,
@@ -710,9 +715,53 @@ async def response_explain(features: api_models.Payload):
 
 
 @app.get("/artificial_records")
-async def generate_records(acceptance_rate: float = fastapi.Query(..., ge=0, le=1), number_of_records: int = fastapi.Query(5)):
+async def generate_records(
+    acceptance_rate: float = fastapi.Query(..., ge=0, le=1),
+    number_of_records: int = fastapi.Query(5),
+):
     record = RecordGenerator(acceptance_rate, number_of_records)
     return record.record_generator()
+
+
+@app.post("/seer")
+async def seer(user_input: api_models.UserLogging):
+
+    data = user_input.model_dump()
+    # Append the data to the file as a new line
+    file_path = "user_inputs.ndjson"
+    with open(file_path, "a") as f:
+        f.write(json.dumps(data) + "\n")
+
+    file_size = os.path.getsize(file_path)
+
+    massage = f"The size of '{file_path}' is {file_size / 1024:.2f} KB."
+    return massage
+
+
+# TODO: use an online service for our database
+# from pymongo.mongo_client import MongoClient
+# from pymongo.server_api import ServerApi
+
+# uri = "mongodb+srv://aliinreallife:<password>@seer.v0sxtpq.mongodb.net/?retryWrites=true&w=majority&appName=seer"
+
+
+# # Create a new client and connect to the server
+# client = MongoClient(uri, server_api=ServerApi('1'))
+
+# # Connect to your database
+# db = client['seer']
+
+# # Connect to your collection
+# collection = db['seer_data']
+
+# @app.post("/seer", response_model=api_models.UserLogging)
+# async def seer(user_input: api_models.UserLogging):
+#     data = user_input.model_dump()
+
+#     # Store the data in MongoDB
+#     collection.insert_one(data)
+
+#     return user_input
 
 
 @app.get(path="/const/states", response_model=api_models.ConstantStatesResponse)

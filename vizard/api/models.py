@@ -413,3 +413,33 @@ class ConstantStatesResponse(BaseModel):
     """
 
     constant_states: Dict[str, List[str]]
+
+
+class UserLogging(pydantic.BaseModel):
+    is_completed: bool = pydantic.Field(
+        ..., description="True for completed, False for quited", example=False
+    )
+    last_success_rate: float = pydantic.Field(
+        ...,
+        description="Last shown success rate as a decimal (e.g., 0.85 for 85%)",
+        example=0.85,
+    )
+    last_answered_question: str = pydantic.Field(
+        ...,
+        description="Last question answered by the user",
+        example="What is your favorite color?",
+    )
+    current_question: str = pydantic.Field(
+        ...,
+        description="Current question asked from the user",
+        example="when was your last?",
+    )
+    full_name: str = pydantic.Field(
+        ..., description="Full name of the user", example="John Doe"
+    )
+    # phone_number: int = pydantic.Field(None, description="Phone number of the user", example=9127654321)
+    last_inputs: dict = pydantic.Field(
+        ...,
+        description="Last (also most completed) inputs of user",
+        example={"sex": "male", "age": 23, "name": "Ali"},
+    )
