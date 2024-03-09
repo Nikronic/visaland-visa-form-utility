@@ -722,15 +722,43 @@ async def generate_records(
     return record.record_generator()
 
 
-@app.post("/seer", response_model=api_models.UserLogging)
-async def seer(user_input: api_models.UserLogging):
+# @app.post("/seer", response_model=api_models.UserLogging)
+# async def seer(user_input: api_models.UserLogging):
 
-    data = user_input.model_dump()
-    # Append the data to the file as a new line
-    with open("user_inputs.ndjson", "a") as f:
-        f.write(json.dumps(data) + "\n")
+#     data = user_input.model_dump()
+#     # Append the data to the file as a new line
+#     with open("user_inputs.ndjson", "a") as f:
+#         f.write(json.dumps(data) + "\n")
 
-    return user_input
+#     return user_input
+
+
+
+
+# TODO: use an online service
+# from pymongo.mongo_client import MongoClient 
+# from pymongo.server_api import ServerApi
+
+# uri = "mongodb+srv://aliinreallife:<password>@seer.v0sxtpq.mongodb.net/?retryWrites=true&w=majority&appName=seer"
+
+
+# # Create a new client and connect to the server
+# client = MongoClient(uri, server_api=ServerApi('1'))
+
+# # Connect to your database
+# db = client['seer']
+
+# # Connect to your collection
+# collection = db['seer_data']
+
+# @app.post("/seer", response_model=api_models.UserLogging)
+# async def seer(user_input: api_models.UserLogging):
+#     data = user_input.model_dump()
+
+#     # Store the data in MongoDB
+#     collection.insert_one(data)
+
+#     return user_input
 
 
 @app.get(path="/const/states", response_model=api_models.ConstantStatesResponse)
