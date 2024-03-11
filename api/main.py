@@ -333,7 +333,7 @@ def _potential(**kwargs):
     return payload_to_xai
 
 
-@app.post("/potential/", response_model=api_models.PotentialResponse)
+@app.post("/potential", response_model=api_models.PotentialResponse)
 async def potential(features: api_models.Payload):
     # calculate the potential: some of abs xai values for given variables
     try:
@@ -382,7 +382,7 @@ async def potential(features: api_models.Payload):
         )
 
 
-@app.post("/predict/", response_model=api_models.PredictionResponse)
+@app.post("/predict", response_model=api_models.PredictionResponse)
 async def predict(
     features: api_models.Payload,
 ):
@@ -454,7 +454,7 @@ async def predict(
         )
 
 
-@app.post("/flag/", response_model=api_models.PredictionResponse)
+@app.post("/flag", response_model=api_models.PredictionResponse)
 async def flag(
     features: api_models.Payload,
 ):
