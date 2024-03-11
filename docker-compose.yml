@@ -1,0 +1,10 @@
+version: '3'
+services:
+  vizard:
+    container_name: vizard_container
+    image: vizard
+    volumes:
+      - ~/userLog/vizard:/app/data
+    ports:
+      - "5000:5000"
+      - "8000:8000"
