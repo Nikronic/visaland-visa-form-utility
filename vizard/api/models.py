@@ -423,19 +423,26 @@ class UserLogging(pydantic.BaseModel):
         ...,
         description="Last shown success rate as a decimal (e.g., 0.85 for 85%)",
         example=0.85,
+        ge=0.0,
+        le=1.0,
     )
     last_answered_question: str = pydantic.Field(
         ...,
         description="Last question answered by the user",
         example="What is your favorite color?",
+        max_length=128,
     )
     current_question: str = pydantic.Field(
         ...,
         description="Current question asked from the user",
         example="when was your last?",
+        max_length=128,
     )
     full_name: str = pydantic.Field(
-        ..., description="Full name of the user", example="John Doe"
+        ...,
+        description="Full name of the user",
+        example="John Doe",
+        max_length=64,
     )
     # phone_number: int = pydantic.Field(None, description="Phone number of the user", example=9127654321)
     last_inputs: dict = pydantic.Field(
