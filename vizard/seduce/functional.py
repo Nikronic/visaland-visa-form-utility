@@ -1,10 +1,13 @@
+import random
+from typing import Dict
 import numpy as np
 
+
 def sigmoid(x, scaler):
-    """sigmoid function with a custom scaler 
+    """sigmoid function with a custom scaler
     Args:
         x (int | float | np.ndarray): Input of the sigmoid function
-        scaler (int): multiply inputs with scaler number, use 1 for normal sigmoid 
+        scaler (int): multiply inputs with scaler number, use 1 for normal sigmoid
 
     Returns:
         int | float | np.ndarray:
@@ -13,13 +16,14 @@ def sigmoid(x, scaler):
     """
     return 1 / (1 + np.exp(-scaler * x))
 
+
 def adjusted_sigmoid(x, adjusted_min, adjusted_max, scaler):
     """apply sigmoid to some parts of our function
     Args:
         x (int | float | np.ndarray): Input of the sigmoid function
         adjusted_min (float): start of our adjustment inputs before that wont get any changes
         adjusted_max (float): end of our adjustment, inputs after that wont get any changes
-        scaler (int): multiply inputs with scaler number, use 1 for normal sigmoid 
+        scaler (int): multiply inputs with scaler number, use 1 for normal sigmoid
 
     Returns:
         int | float | np.ndarray:
@@ -35,22 +39,26 @@ def adjusted_sigmoid(x, adjusted_min, adjusted_max, scaler):
     adjusted_mean = (adjusted_min + adjusted_max) / 2
     sigmoid_input = x - adjusted_mean
 
-    a = (sigmoid(adjusted_max - adjusted_mean, scaler) - \
-        sigmoid(adjusted_min - adjusted_mean, scaler)) / (adjusted_max - adjusted_min)
+    a = (
+        sigmoid(adjusted_max - adjusted_mean, scaler)
+        - sigmoid(adjusted_min - adjusted_mean, scaler)
+    ) / (adjusted_max - adjusted_min)
     b = adjusted_min - sigmoid(adjusted_min - adjusted_mean, scaler) / a
 
     output = np.where(mask, (sigmoid(sigmoid_input, scaler) / a) + b, x)
 
     return output
 
+
 def bi_level_adjusted_sigmoid(
-        x: int | float | np.ndarray,
-        adjusted_min: float,
-        adjusted_max: float,
-        closer_adjusted_min: float,
-        closer_adjusted_max: float,
-        scaler1: int | float,
-        scaler2: int | float) -> np.ndarray:
+    x: int | float | np.ndarray,
+    adjusted_min: float,
+    adjusted_max: float,
+    closer_adjusted_min: float,
+    closer_adjusted_max: float,
+    scaler1: int | float,
+    scaler2: int | float,
+) -> np.ndarray:
     """apply sigmoid to limited parts of function focus more on closer part to middle of our adjustment
 
     This is an extension of :func:`vizard.seduce.functional.adjusted_sigmoid`
@@ -76,8 +84,33 @@ def bi_level_adjusted_sigmoid(
     mask = np.logical_and(adjusted_min < x, x < adjusted_max)
 
     # Use NumPy's vectorized operations for better performance
-    result = np.where(np.logical_and(closer_adjusted_min < x, x < closer_adjusted_max),
-                    adjusted_sigmoid(x, closer_adjusted_min, closer_adjusted_max, scaler1),
-                    adjusted_sigmoid(x, adjusted_min, adjusted_max, scaler2))
+    result = np.where(
+        np.logical_and(closer_adjusted_min < x, x < closer_adjusted_max),
+        adjusted_sigmoid(x, closer_adjusted_min, closer_adjusted_max, scaler1),
+        adjusted_sigmoid(x, adjusted_min, adjusted_max, scaler2),
+    )
 
     return np.where(mask, result, x)
+
+
+def chance_generator(acceptance_rate: float) -> Dict[str, float]:
+    """Generate random but calculated chances for different countries
+
+    Args:
+        acceptance_rate (float): The rate of acceptance for a specific country
+
+    Returns:
+        Dict[str, float]: A dictionary of countries and their chances
+    """
+    chances = {}
+    chances["US"] = round(acceptance_rate - random.uniform(0.1, 0.2), 2) # TODO: change these numbers
+    chances["AU"] = round(acceptance_rate + random.uniform(0.1, 0.2), 2)
+
+    # Check if the acceptance rate is higher than 0
+    for country in chances.keys():
+        if chances[country] <= 0:
+            chances[country] = 0.01
+        elif chances[country] >= 1:
+            chances[country] = 0.98
+
+    return chances
