@@ -116,18 +116,6 @@ def handle_accompany_questions(
                 return "taken_accompany_questions"
     else:
         return "applicant_marital_status"
-    # if next_question in accompany_questions:
-    #     if next_question in ["parent_accompany", "sibling_accompany"] and (
-    #         "applicant_marital_status" not in is_answered
-    #     ):
-    #         return "applicant_marital_status"
-
-    #     ):
-    #         return "singles_accompany_questions"
-    #     else:
-    #         return "taken_accompany_questions"
-    # else:
-    #     return next_question
 
 
 def append_parameter_builder_instances(
