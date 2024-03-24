@@ -444,6 +444,7 @@ async def predict(
             len_logically_answered_params=len(is_answered),
         )
 
+        next_logical_variable = utils.handle_accompany_questions(next_logical_variable,is_answered,given_answers)
         logger.info("Inference finished")
         return {"result": result, "next_variable": next_logical_variable}
     except Exception as error:
