@@ -77,6 +77,26 @@ def logical_order(
     else:
         return question_title
 
+def handle_accompany_questions(next_question: str, is_answered: List[str], answers: Dict) -> str:
+    """Combine questions that are about family members accompanying
+    Note: 
+        in the api we want to ask about the accompany status of family members in one question
+        to do that we need to combine the questions that are about family members accompanying
+        they are "spouse_accompany", "child_accompany", "parent_accompany" and "sibling_accompany"
+        when we know someone is single we dont want to ask about his/her spouse accompanying and
+        children accompanying status so we have 3 categories in return we will disuse it there.
+
+    Args:
+        next_question (str): next suggested question
+        is_answered (List[str]): list of answered questions
+        answers (Dict): dictionary of questions and user answers
+    Returns:
+        str: three things can happen
+            1. the question is not related to accompanying and we return next_question without any change.
+            2. the question is related to accompanying and we know user is single so we return "singles_accompany_questions". 
+            3. the question is related to accompanying and we know user is not single so we return "taken_accompany_questions ".
+    """
+    pass
 
 def append_parameter_builder_instances(
     suggested: str,
