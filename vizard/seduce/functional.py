@@ -107,7 +107,7 @@ def chance_generator(acceptance_rate: float) -> Dict[str, float]:
     chances["AU"] = round(acceptance_rate + random.uniform(0.1, 0.2), 2)
 
     # Check if the acceptance rate is higher than 0
-    for country in ["US", "AU"]:
+    for country in chances.keys():
         if chances[country] <= 0:
             chances[country] = 0.01
         elif chances[country] >= 1:
