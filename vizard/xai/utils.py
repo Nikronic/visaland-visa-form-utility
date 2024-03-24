@@ -77,9 +77,12 @@ def logical_order(
     else:
         return question_title
 
-def handle_accompany_questions(next_question: str, is_answered: List[str], answers: Dict) -> str:
+
+def handle_accompany_questions(
+    next_question: str, is_answered: List[str], answers: Dict
+) -> str:
     """Combine questions that are about family members accompanying
-    Note: 
+    Note:
         in the api we want to ask about the accompany status of family members in one question
         to do that we need to combine the questions that are about family members accompanying
         they are "spouse_accompany", "child_accompany", "parent_accompany" and "sibling_accompany"
@@ -93,10 +96,39 @@ def handle_accompany_questions(next_question: str, is_answered: List[str], answe
     Returns:
         str: three things can happen
             1. the question is not related to accompanying and we return next_question without any change.
-            2. the question is related to accompanying and we know user is single so we return "singles_accompany_questions". 
+            2. the question is related to accompanying and we know user is single so we return "singles_accompany_questions".
             3. the question is related to accompanying and we know user is not single so we return "taken_accompany_questions ".
     """
-    pass
+    accompany_questions = [
+        "spouse_accompany",
+        "child_accompany",
+        "parent_accompany",
+        "sibling_accompany",
+    ]  # is this hardcoding? i think yes
+    if "applicant_marital_status" in is_answered:
+        if next_question in accompany_questions:
+            if (
+                answers["applicant_marital_status"]
+                == constant.CanadaMarriageStatus.SINGLE.value
+            ):
+                return "singles_accompany_questions"
+            else:
+                return "taken_accompany_questions"
+    else:
+        return "applicant_marital_status"
+    # if next_question in accompany_questions:
+    #     if next_question in ["parent_accompany", "sibling_accompany"] and (
+    #         "applicant_marital_status" not in is_answered
+    #     ):
+    #         return "applicant_marital_status"
+
+    #     ):
+    #         return "singles_accompany_questions"
+    #     else:
+    #         return "taken_accompany_questions"
+    # else:
+    #     return next_question
+
 
 def append_parameter_builder_instances(
     suggested: str,
