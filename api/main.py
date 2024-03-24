@@ -16,6 +16,7 @@ import pandas as pd
 import uvicorn
 from fastapi.middleware.cors import CORSMiddleware
 
+from vizard.seduce.functional import chance_generator
 from vizard.api import apps as api_apps
 from vizard.api import database as api_database
 from vizard.api import models as api_models
@@ -761,7 +762,22 @@ async def seer(user_input: api_models.UserLogging):
 #     # Store the data in MongoDB
 #     collection.insert_one(data)
 
+
 #     return user_input
+@app.get("/other_chances")  # TODO: remove this endpoint
+async def other_chances(
+    canada_acceptance_rate: float = fastapi.Query(..., ge=0, le=1)
+) -> Dict:
+    """to give calculated random acceptance rate based on their canada predicted acceptance rate
+
+    Args:
+        canada_acceptance_rate (float): the predicted acceptance rate for canada
+
+    Returns:
+        Dict[str, float]: the acceptance rate for other countries
+    """
+
+    return chance_generator(canada_acceptance_rate)
 
 
 @app.get(path="/const/states", response_model=api_models.ConstantStatesResponse)
