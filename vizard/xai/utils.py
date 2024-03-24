@@ -96,7 +96,7 @@ def handle_accompany_questions(
     Returns:
         str: three things can happen
             1. the question is not related to accompanying and we return next_question without any change.
-            2. the question is related to accompanying and we know user is single so we return "singles_accompany_questions".
+            2. the question is related to accompanying and we know user is single so we return "single_accompany_questions".
             3. the question is related to accompanying and we know user is not single so we return "taken_accompany_questions ".
     """
     accompany_questions = [
@@ -111,7 +111,7 @@ def handle_accompany_questions(
                 answers["applicant_marital_status"]
                 == constant.CanadaMarriageStatus.SINGLE.value
             ):
-                return "singles_accompany_questions"
+                return "single_accompany_questions"
             else:
                 return "taken_accompany_questions"
     else:
