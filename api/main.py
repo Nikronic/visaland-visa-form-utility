@@ -715,15 +715,6 @@ async def response_explain(features: api_models.Payload):
     return xai_txt_top_k
 
 
-@app.get("/artificial_records")
-async def generate_records(
-    acceptance_rate: float = fastapi.Query(..., ge=0, le=1),
-    number_of_records: int = fastapi.Query(5),
-):
-    record = RecordGenerator(acceptance_rate, number_of_records)
-    return record.record_generator()
-
-
 @app.post("/seer")
 async def seer(user_input: api_models.UserLogging):
 
@@ -764,6 +755,17 @@ async def seer(user_input: api_models.UserLogging):
 
 
 #     return user_input
+
+
+@app.get("/artificial_records")
+async def generate_records(
+    acceptance_rate: float = fastapi.Query(..., ge=0, le=1),
+    number_of_records: int = fastapi.Query(5),
+):
+    record = RecordGenerator(acceptance_rate, number_of_records)
+    return record.record_generator()
+
+
 @app.get("/other_chances")  # TODO: remove this endpoint
 async def other_chances(
     canada_acceptance_rate: float = fastapi.Query(..., ge=0, le=1)
