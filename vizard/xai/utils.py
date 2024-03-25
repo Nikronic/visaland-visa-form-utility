@@ -114,6 +114,8 @@ def handle_accompany_questions(
                 return "single_accompany_questions"
             else:
                 return "taken_accompany_questions"
+        else:
+            return next_question
     else:
         return "applicant_marital_status"
 
