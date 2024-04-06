@@ -99,6 +99,7 @@ def handle_accompany_questions(
             2. the question is related to accompanying and we know user is single so we return "single_accompany_questions".
             3. the question is related to accompanying and we know user is not single so we return "taken_accompany_questions ".
     """
+
     accompany_questions = [
         "spouse_accompany",
         "child_accompany",
@@ -113,7 +114,10 @@ def handle_accompany_questions(
             ):
                 return "single_accompany_questions"
             else:
-                return "taken_accompany_questions"
+                if "child_count" in is_answered:
+                    return "taken_accompany_questions"
+                else:
+                    return "child_count"
         else:
             return next_question
     else:
