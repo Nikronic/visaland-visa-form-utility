@@ -1,4 +1,4 @@
-from random import choice, choices, uniform
+from random import choice, choices, randint, uniform
 
 dir_path = "vizard/seduce/models/names/"
 
@@ -97,7 +97,7 @@ class RecordGenerator:
                 first_name = self.first_name_en("r")
                 last_name = self.last_name_en()
 
-            chance = round(uniform(0.03, 0.98), 2)
+            chance = randint(3, 98)
             cases.append(
                 {"first_name": first_name, "last_name": last_name, "chance": chance}
             )
