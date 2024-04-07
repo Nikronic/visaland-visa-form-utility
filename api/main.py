@@ -445,7 +445,9 @@ async def predict(
             len_logically_answered_params=len(is_answered),
         )
 
-        next_logical_variable = utils.handle_accompany_questions(next_logical_variable,is_answered,given_answers)
+        next_logical_variable = utils.handle_accompany_questions(
+            next_logical_variable, is_answered, given_answers
+        )
         logger.info("Inference finished")
         return {"result": result, "next_variable": next_logical_variable}
     except Exception as error:
@@ -781,6 +783,12 @@ async def other_chances(
     """
 
     return chance_generator(canada_acceptance_rate)
+
+
+@app.get("/case_generator")
+async def case_generator() -> List:
+    record = RecordGenerator(1, 1)
+    return record.name_chance_generator()
 
 
 @app.get(path="/const/states", response_model=api_models.ConstantStatesResponse)
