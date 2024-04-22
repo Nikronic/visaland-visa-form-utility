@@ -1,6 +1,6 @@
 import json
 
-with open("adv.json", "r", encoding="utf-8") as f:
+with open("vizard/xai/adv.json", "r", encoding="utf-8") as f:
     adv = json.load(f)
 
 
