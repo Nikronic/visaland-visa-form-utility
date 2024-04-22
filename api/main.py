@@ -758,6 +758,15 @@ async def seer(user_input: api_models.UserLogging):
 
 
 #     return user_input
+from vizard.xai.adviser import adviser
+
+
+@app.post("/adviser")
+async def advises(
+    features: api_models.Payload,
+):
+    features_dict: Dict[str, Any] = features.model_dump()
+    return adviser(features_dict)
 
 
 @app.get("/artificial_records")
