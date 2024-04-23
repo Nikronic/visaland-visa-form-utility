@@ -103,15 +103,7 @@ def case_handling(inputs):
 
             if other:
                 re.append("other-countries")
-
-    re.extend(
-        [
-            "employee-main",
-            "under-2",
-            "married",
-            "has-child",
-        ]
-    )
+                
     return re
 
 
