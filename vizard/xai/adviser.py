@@ -132,5 +132,5 @@ def adviser(input):
                 flag = False
                 break
         if flag:
-            rn.append({"result:": item["result"], "advice": item["advice"]})
+            rn.append({"type": item["type"], "result:": item["result"], "advice": item["advice"]})
     return rn
