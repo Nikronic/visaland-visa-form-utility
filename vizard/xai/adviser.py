@@ -82,7 +82,7 @@ def case_handling(inputs):
             re.append("friend")
 
     travel_history = inputs["travel_history"]
-    if travel_history == "none":
+    if travel_history == ["none"]:
         re.append("no-trip")
     else:
         other = True
@@ -103,26 +103,36 @@ def case_handling(inputs):
 
             if other:
                 re.append("other-countries")
-                
     return re
 
 
 def adviser(input):
     rn = []
+    conditions = case_handling(input)
     for item in adv:
         flag = True
+
         for condition in item["conditions"]:
             if isinstance(condition, list):
                 all_false = True
                 for con in condition:
-                    if con in case_handling(input):
+                    if con in conditions:
                         all_false = False
                         break
                 if all_false:
                     flag = False
-            if condition not in case_handling(input):
-                flag = False
-                break
+            else:
+                if condition not in conditions:
+                    flag = False
+                    break
         if flag:
-            rn.append({"type": item["type"], "result:": item["result"], "advice": item["advice"]})
+            rn.append(
+                {
+                    "type": item["type"],
+                    "result:": item["result"],
+                    "advice": item["advice"],
+                    "condition": item["conditions"],
+                }
+            )
     return rn
+
